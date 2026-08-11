@@ -34,9 +34,15 @@ builder.Services.AddHttpClient<RiftcodexClient>(c =>
     c.Timeout = TimeSpan.FromSeconds(30);
 });
 builder.Services.AddHttpClient("card-images", c => c.Timeout = TimeSpan.FromSeconds(30));
+builder.Services.AddHttpClient("github", c =>
+{
+    c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftBoundVault-UpdateChecker");
+    c.Timeout = TimeSpan.FromSeconds(60);
+});
 
 builder.Services.AddSingleton<ImageHashService>();
 builder.Services.AddSingleton<OcrService>();
+builder.Services.AddSingleton<UpdateService>();
 builder.Services.AddScoped<CardCacheService>();
 builder.Services.AddScoped<ScanService>();
 
@@ -68,7 +74,31 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/card-images"
 });
 
-app.MapGet("/api/server-info", () => Results.Ok(new { httpPort = port, httpsPort }));
+app.MapGet("/api/server-info", () =>
+    Results.Ok(new { httpPort = port, httpsPort, version = UpdateService.CurrentVersion.ToString() }));
+
+app.MapGet("/api/update/check", async (UpdateService updater, CancellationToken ct) =>
+    Results.Ok(await updater.CheckAsync(ct)));
+
+app.MapPost("/api/update/apply", async (UpdateService updater, IHostApplicationLifetime lifetime, CancellationToken ct) =>
+{
+    try
+    {
+        await updater.ApplyAsync(ct);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+
+    // Respond before the process exits so the client actually gets this confirmation.
+    _ = Task.Run(async () =>
+    {
+        await Task.Delay(500);
+        lifetime.StopApplication();
+    });
+    return Results.Ok(new { started = true });
+});
 
 app.MapGet("/api/sets", async (CardCacheService cache, CancellationToken ct)
     => Results.Ok(await cache.GetSetsAsync(ct)));

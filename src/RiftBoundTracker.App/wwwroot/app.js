@@ -503,6 +503,63 @@ async function warnInsecureContext() {
   }
 }
 
+/* ---------------- Update check ---------------- */
+const updateStatus = document.getElementById("updateStatus");
+const checkUpdateBtn = document.getElementById("checkUpdateBtn");
+const currentVersionEl = document.getElementById("currentVersion");
+
+checkUpdateBtn.addEventListener("click", checkForUpdate);
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function checkForUpdate() {
+  checkUpdateBtn.disabled = true;
+  checkUpdateBtn.textContent = "Checking…";
+  updateStatus.hidden = false;
+  updateStatus.innerHTML = "Checking for updates…";
+
+  try {
+    const result = await api("/api/update/check");
+    currentVersionEl.textContent = result.currentVersion;
+
+    if (!result.selfUpdateSupported) {
+      updateStatus.innerHTML = `<span>${escapeHtml(result.unsupportedReason || "Self-update isn't available in this environment.")}</span>`;
+    } else if (result.updateAvailable) {
+      const notes = result.releaseNotes ? `<div class="notes">${escapeHtml(result.releaseNotes)}</div>` : "";
+      updateStatus.innerHTML = `
+        <span class="available">Update available: v${escapeHtml(result.latestVersion)}</span>
+        ${notes}
+        <button class="btn primary" id="applyUpdateBtn">Update & Restart</button>
+      `;
+      document.getElementById("applyUpdateBtn").addEventListener("click", applyUpdate);
+    } else {
+      updateStatus.innerHTML = `<span>You're up to date (v${escapeHtml(result.currentVersion)}).</span>`;
+    }
+  } catch (err) {
+    updateStatus.innerHTML = `<span>Couldn't check for updates: ${escapeHtml(err.message)}</span>`;
+  } finally {
+    checkUpdateBtn.disabled = false;
+    checkUpdateBtn.textContent = "Check for updates";
+  }
+}
+
+async function applyUpdate() {
+  const btn = document.getElementById("applyUpdateBtn");
+  btn.disabled = true;
+  btn.textContent = "Updating…";
+
+  try {
+    await api("/api/update/apply", { method: "POST" });
+    updateStatus.innerHTML = `<span class="available">Restarting — reload this page in about 10 seconds.</span>`;
+  } catch (err) {
+    updateStatus.innerHTML = `<span>Update failed: ${escapeHtml(err.message)}</span>`;
+  }
+}
+
 /* ---------------- Init ---------------- */
 (async function init() {
   const sets = await api("/api/sets");
@@ -511,4 +568,9 @@ async function warnInsecureContext() {
   await loadFacets();
   await loadStats();
   await loadGrid();
+
+  try {
+    const info = await api("/api/server-info");
+    currentVersionEl.textContent = info.version;
+  } catch { /* version display is best-effort */ }
 })();

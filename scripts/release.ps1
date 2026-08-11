@@ -46,4 +46,9 @@ Write-Host "== Creating GitHub release ==" -ForegroundColor Cyan
 $releaseNotes = if ($Notes) { $Notes } else { "Release v$Version" }
 gh release create "v$Version" $zipPath --title "v$Version" --notes "$releaseNotes"
 
+# gh release create has occasionally left a release stuck in draft state (a draft won't show up
+# via the public /releases/latest API the app's update-checker relies on) — force-publish as a
+# safety net regardless.
+gh release edit "v$Version" --draft=false
+
 Write-Host "== Done: v$Version published ==" -ForegroundColor Green

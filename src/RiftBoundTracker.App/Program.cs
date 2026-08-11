@@ -71,13 +71,21 @@ internal static class Program
         {
             c.BaseAddress = new Uri("https://api.riftcodex.com");
             c.Timeout = TimeSpan.FromSeconds(30);
-            // The default HttpClient sends no User-Agent at all, which many APIs behind bot/WAF
-            // protection (Cloudflare etc.) treat as an obvious signal to block — a bare .NET
-            // client with no UA looks nothing like a browser. A real-looking UA is the single
-            // biggest lever available here to avoid 403s.
+            // The default HttpClient sends no User-Agent at all, which bot/WAF protection
+            // (Cloudflare etc.) treats as an obvious non-browser signal. A bare UA header alone
+            // isn't always enough against stricter bot-scoring — filling in the rest of what a
+            // real browser sends when it loads riftcodex.com (Referer/Origin so it looks like a
+            // same-site API call the page itself made, Accept-Language, and the Sec-Fetch-* hints
+            // Chromium adds) gives it more to match against than a UA string in isolation.
             c.DefaultRequestHeaders.UserAgent.ParseAdd(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
-            c.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            c.DefaultRequestHeaders.Accept.ParseAdd("application/json, text/plain, */*");
+            c.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
+            c.DefaultRequestHeaders.Referrer = new Uri("https://riftcodex.com/");
+            c.DefaultRequestHeaders.Add("Origin", "https://riftcodex.com");
+            c.DefaultRequestHeaders.Add("Sec-Fetch-Site", "same-site");
+            c.DefaultRequestHeaders.Add("Sec-Fetch-Mode", "cors");
+            c.DefaultRequestHeaders.Add("Sec-Fetch-Dest", "empty");
         });
         builder.Services.AddHttpClient("card-images", c => c.Timeout = TimeSpan.FromSeconds(30));
         builder.Services.AddHttpClient("github", c =>
@@ -89,6 +97,7 @@ internal static class Program
         builder.Services.AddSingleton<ImageHashService>();
         builder.Services.AddSingleton<OcrService>();
         builder.Services.AddSingleton<UpdateService>();
+        builder.Services.AddSingleton<BrowserRelayClient>();
         builder.Services.AddScoped<CardCacheService>();
         builder.Services.AddScoped<ScanService>();
 

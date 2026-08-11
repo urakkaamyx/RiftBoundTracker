@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace RiftBoundTracker.App.Services;
 
@@ -8,11 +9,20 @@ namespace RiftBoundTracker.App.Services;
 /// Thin wrapper around the Riftcodex API. Retries transient failures (403/429/5xx) with backoff —
 /// a 403 with no other explanation is almost always a WAF/bot-detection response rather than a
 /// real permissions error, and it can be inconsistent across networks/IPs even for identical
-/// requests, so a bare failure on the first attempt shouldn't be treated as final.
+/// requests, so a bare failure on the first attempt shouldn't be treated as final. If every direct
+/// attempt still fails, falls back to <see cref="BrowserRelayClient"/> — some bot detection
+/// fingerprints the TLS handshake itself, which no header on a plain HttpClient can spoof, but a
+/// real embedded browser naturally passes.
 /// </summary>
-public class RiftcodexClient(HttpClient http)
+public class RiftcodexClient(HttpClient http, BrowserRelayClient relay, ILogger<RiftcodexClient> logger)
 {
     private const int MaxAttempts = 4;
+
+    // Matches what System.Net.Http.Json's ReadFromJsonAsync uses internally by default (the
+    // primary path) — the relay fallback deserializes raw bytes itself, so it needs the same
+    // case-insensitive/camelCase behavior or fields on properties without an explicit
+    // [JsonPropertyName] would silently come back unset.
+    private static readonly JsonSerializerOptions RelayJsonOptions = new(JsonSerializerDefaults.Web);
 
     public async Task<List<RiftcodexCard>> GetByRiftboundIdAsync(string riftboundId, CancellationToken ct = default)
     {
@@ -58,10 +68,15 @@ public class RiftcodexClient(HttpClient http)
                              || (int)response.StatusCode >= 500;
             if (!transient || attempt == MaxAttempts)
             {
+                var viaRelay = await TryBrowserRelayAsync<T>(url, ct);
+                if (viaRelay is not null)
+                    return viaRelay;
+
                 throw new RiftcodexApiException(
                     $"Riftcodex API returned {(int)response.StatusCode} {response.StatusCode} for {url} " +
-                    $"after {attempt} attempt(s). This is usually the API's bot/rate protection, not a real " +
-                    "permissions error — it can come and go. Try again in a minute.",
+                    $"after {attempt} attempt(s) (the embedded-browser fallback also couldn't get through). " +
+                    "This is usually the API's bot/rate protection, not a real permissions error — it can " +
+                    "come and go. Try again in a minute.",
                     response.StatusCode);
             }
 
@@ -70,6 +85,23 @@ public class RiftcodexClient(HttpClient http)
         }
 
         return default;
+    }
+
+    private async Task<T?> TryBrowserRelayAsync<T>(string url, CancellationToken ct)
+    {
+        try
+        {
+            var fullUrl = http.BaseAddress is null ? url : new Uri(http.BaseAddress, url).ToString();
+            logger.LogWarning("Direct requests to {Url} keep failing; trying the embedded-browser fallback", fullUrl);
+
+            var bytes = await relay.FetchBytesAsync(fullUrl, ct);
+            return bytes is null ? default : JsonSerializer.Deserialize<T>(bytes, RelayJsonOptions);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Browser-relay fallback failed for {Url}", url);
+            return default;
+        }
     }
 }
 

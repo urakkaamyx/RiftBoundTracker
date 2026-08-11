@@ -66,6 +66,13 @@ internal static class Program
         {
             c.BaseAddress = new Uri("https://api.riftcodex.com");
             c.Timeout = TimeSpan.FromSeconds(30);
+            // The default HttpClient sends no User-Agent at all, which many APIs behind bot/WAF
+            // protection (Cloudflare etc.) treat as an obvious signal to block — a bare .NET
+            // client with no UA looks nothing like a browser. A real-looking UA is the single
+            // biggest lever available here to avoid 403s.
+            c.DefaultRequestHeaders.UserAgent.ParseAdd(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+            c.DefaultRequestHeaders.Accept.ParseAdd("application/json");
         });
         builder.Services.AddHttpClient("card-images", c => c.Timeout = TimeSpan.FromSeconds(30));
         builder.Services.AddHttpClient("github", c =>
@@ -99,6 +106,23 @@ internal static class Program
 
             await db.Database.MigrateAsync();
         }
+
+        // A safety net for anything that slips past a route's own error handling: without this,
+        // an unhandled exception anywhere (a flaky external API, a bad file, whatever) surfaces
+        // to the client as a bare connection failure and dumps a raw stack trace to the console
+        // instead of a message someone can actually act on.
+        app.UseExceptionHandler(handler =>
+        {
+            handler.Run(async ctx =>
+            {
+                var error = ctx.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
+                app.Logger.LogError(error, "Unhandled exception on {Path}", ctx.Request.Path);
+
+                ctx.Response.StatusCode = error is RiftcodexApiException ? 502 : 500;
+                ctx.Response.ContentType = "application/json";
+                await ctx.Response.WriteAsJsonAsync(new { error = error?.Message ?? "Something went wrong." });
+            });
+        });
 
         app.UseDefaultFiles();
         app.UseStaticFiles();

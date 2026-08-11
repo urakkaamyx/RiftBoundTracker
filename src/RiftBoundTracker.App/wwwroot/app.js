@@ -23,7 +23,14 @@ let cardsById = new Map();
 
 async function api(path, opts) {
   const res = await fetch(path, opts);
-  if (!res.ok) throw new Error(`${path} -> ${res.status}`);
+  if (!res.ok) {
+    let message = `${path} -> ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body?.error) message = body.error;
+    } catch { /* not a JSON error body — keep the generic message */ }
+    throw new Error(message);
+  }
   return res.status === 204 ? null : res.json();
 }
 

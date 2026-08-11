@@ -9,10 +9,13 @@ App_Data/
 # Local Claude Code settings
 .claude/settings.local.json
 
-# Publish output — any local test/publish folder at the repo root, not committed
-publish/
-publish-test/
-test-install/
-[Tt]est/
-[Tt]est-run/
+# Publish output — any local test/publish folder at the repo root, not committed.
+# Matched broadly (not just exact names like "Test/") since these get created ad hoc while
+# testing published builds and it's easy to pick a name that isn't already covered here.
+/publish*/
+/[Tt]est*/
 *.zip
+
+# WebView2 per-install user-data cache (created next to any exe that embeds WebView2, wherever
+# it's run from) — never something to commit regardless of which folder it shows up in.
+**/*.WebView2/

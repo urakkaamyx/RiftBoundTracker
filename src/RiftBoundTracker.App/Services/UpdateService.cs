@@ -88,7 +88,11 @@ public class UpdateService(IHttpClientFactory httpClientFactory, ILogger<UpdateS
             ?? release.Assets.FirstOrDefault(a => a.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
             ?? throw new InvalidOperationException($"Latest release '{release.TagName}' has no downloadable build attached.");
 
-        var installDir = AppContext.BaseDirectory;
+        // Trim any trailing separator: a Windows command-line argument ending in `\"` (backslash
+        // immediately before the closing quote) is parsed as an escaped literal quote, not
+        // "backslash then end-of-argument" — it silently runs the argument into the next token.
+        // AppContext.BaseDirectory always ends with a trailing backslash, so this isn't optional.
+        var installDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
         var exeName = Path.GetFileName(Environment.ProcessPath!);
 
         CleanUpOldStagingDirs();

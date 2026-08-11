@@ -554,7 +554,7 @@ async function applyUpdate() {
 
   try {
     await api("/api/update/apply", { method: "POST" });
-    updateStatus.innerHTML = `<span class="available">Restarting — reload this page in about 10 seconds.</span>`;
+    updateStatus.innerHTML = `<span class="available">Downloading and installing — this can take a couple of minutes (Windows scans new files the first time). Reload this page once it's back.</span>`;
   } catch (err) {
     updateStatus.innerHTML = `<span>Update failed: ${escapeHtml(err.message)}</span>`;
   }

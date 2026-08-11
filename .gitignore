@@ -1,0 +1,14 @@
+bin/
+obj/
+*.user
+.vs/
+
+# Runtime data — the whole point is this isn't shipped or shared, it's generated per-install
+App_Data/
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Publish output (built by the release script, not committed)
+publish/
+*.zip

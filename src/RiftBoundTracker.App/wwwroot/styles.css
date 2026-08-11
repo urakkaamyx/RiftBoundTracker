@@ -132,6 +132,13 @@ select.sort { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--bor
 }
 .scan-fab.secondary:hover { color: var(--accent-text); border-color: var(--accent); }
 
+.theme-toggle {
+  display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;
+  border-radius: 999px; border: 1px solid var(--border); background: var(--surface);
+  color: var(--text-dim); cursor: pointer; flex-shrink: 0;
+}
+.theme-toggle:hover { color: var(--accent-text); border-color: var(--accent); }
+
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px; }
 
 .card {

@@ -589,6 +589,27 @@ async function applyUpdate() {
   }
 }
 
+/* ---------------- Theme toggle ---------------- */
+const themeToggle = document.getElementById("themeToggle");
+const iconSun = themeToggle.querySelector(".icon-sun");
+const iconMoon = themeToggle.querySelector(".icon-moon");
+
+function setTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("riftbound-theme", theme);
+  const isDark = theme === "dark";
+  iconSun.hidden = isDark;
+  iconMoon.hidden = !isDark;
+  themeToggle.setAttribute("aria-label", isDark ? "Switch to light theme" : "Switch to dark theme");
+}
+
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme");
+  setTheme(current === "dark" ? "light" : "dark");
+});
+
+setTheme(document.documentElement.getAttribute("data-theme"));
+
 /* ---------------- Connection QR ---------------- */
 const connectionOverlay = document.getElementById("connectionOverlay");
 const connectionBody = document.getElementById("connectionBody");

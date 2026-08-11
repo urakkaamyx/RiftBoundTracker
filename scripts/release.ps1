@@ -30,9 +30,14 @@ Write-Host "== Zipping ==" -ForegroundColor Cyan
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
 Compress-Archive -Path "$publishDir\*" -DestinationPath $zipPath
 
-Write-Host "== Committing version bump and tagging ==" -ForegroundColor Cyan
-git -C $root add $proj
-git -C $root commit -m "Release v$Version"
+Write-Host "== Committing any pending changes and tagging ==" -ForegroundColor Cyan
+git -C $root add -A
+$pending = git -C $root status --porcelain
+if ($pending) {
+    git -C $root commit -m "Release v$Version"
+} else {
+    Write-Host "  (nothing to commit — tagging the current HEAD)"
+}
 git -C $root tag "v$Version"
 git -C $root push
 git -C $root push --tags

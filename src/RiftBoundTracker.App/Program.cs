@@ -58,8 +58,26 @@ internal static class Program
             // self-update flow calls this) actually closes the WPF window instead of leaving the
             // process running with the message loop blocked forever.
             var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+
+            // Belt-and-suspenders for shutdown (see StopAsync note below): if graceful shutdown
+            // ever hangs for any reason, force the process to exit anyway after a bounded wait so
+            // an update can never leave someone stuck with two copies of the app running.
+            lifetime.ApplicationStopping.Register(() => Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromSeconds(8));
+                Environment.Exit(0);
+            }));
+
             new DesktopShell(port, lifetime).Run();
-            app.StopAsync().GetAwaiter().GetResult();
+
+            // Must not run on this STA thread: WPF's Application.Run() (inside DesktopShell.Run())
+            // installs a DispatcherSynchronizationContext that stays set on the thread even after
+            // the message loop returns. If StopAsync's internals ever await a continuation that
+            // captures SynchronizationContext.Current, it would try to post back to a Dispatcher
+            // that's no longer pumping messages — a deadlock the 5s ShutdownTimeout can't break,
+            // since that only cancels a token, it can't force-unblock a stuck continuation. Running
+            // it on a thread-pool thread (no captured context) sidesteps that entirely.
+            Task.Run(() => app.StopAsync()).GetAwaiter().GetResult();
         }
     }
 

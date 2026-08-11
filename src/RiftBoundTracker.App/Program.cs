@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
 using RiftBoundTracker.App.Data;
 using RiftBoundTracker.App.Desktop;
@@ -10,12 +11,33 @@ namespace RiftBoundTracker.App;
 
 internal static class Program
 {
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool AllocConsole();
+
     // WPF needs the UI thread to be STA. Top-level statements can't be decorated with
     // [STAThread] (there's no method signature to attach it to), so this app uses a normal
     // explicit Main instead.
     [STAThread]
     private static void Main(string[] args)
     {
+        // The app normally runs with no console at all (see the WinExe change) so a friend
+        // troubleshooting an issue has nowhere to see what's happening. --debug-console opens one
+        // on demand without needing a whole separate build — AllocConsole works even though the
+        // exe itself is the GUI (WinExe) subsystem; Console.Out/Error just need re-pointing at it
+        // since the runtime already decided at startup that there was no console to write to.
+        if (args.Contains("--debug-console"))
+        {
+            AllocConsole();
+            var stdout = new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true };
+            Console.SetOut(stdout);
+            var stderr = new StreamWriter(Console.OpenStandardError()) { AutoFlush = true };
+            Console.SetError(stderr);
+            Console.Title = "RiftBound Vault - Debug Console";
+            Console.WriteLine("=== RiftBound Vault debug console ===");
+            Console.WriteLine("Diagnostic output shows up here. Leave this window open while you reproduce the issue, then copy/paste what it shows.");
+            Console.WriteLine();
+        }
+
         var (app, port, httpsPort) = BuildApp(args).GetAwaiter().GetResult();
         app.StartAsync().GetAwaiter().GetResult();
         PrintStartupBanner(port, httpsPort);

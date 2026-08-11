@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <None Include="tessdata\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Run with debug console.bat" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Combining Sdk.Web with UseWPF/UseWindowsForms drops System.IO from the implicit-usings set

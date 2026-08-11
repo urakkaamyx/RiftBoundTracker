@@ -54,7 +54,11 @@ internal static class Program
             // "localhost" counts as a secure context even over plain HTTP (the spec carves out
             // loopback addresses), so the desktop window skips the self-signed-cert warning the
             // phone has to click through — it navigates to the plain HTTP port instead of TLS.
-            new DesktopShell(port).Run();
+            // The lifetime is passed through so IHostApplicationLifetime.StopApplication() (the
+            // self-update flow calls this) actually closes the WPF window instead of leaving the
+            // process running with the message loop blocked forever.
+            var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+            new DesktopShell(port, lifetime).Run();
             app.StopAsync().GetAwaiter().GetResult();
         }
     }

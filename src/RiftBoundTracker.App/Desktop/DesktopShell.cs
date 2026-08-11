@@ -14,9 +14,13 @@ namespace RiftBoundTracker.App.Desktop;
 ///
 /// Closing the window minimizes to the tray instead of exiting: the server keeps running so a
 /// phone on the same Wi-Fi can still reach it. "Exit" from the tray menu is the only way to
-/// actually shut down.
+/// actually shut down — except <paramref name="lifetime"/>, which the self-update flow (and
+/// anything else that calls IHostApplicationLifetime.StopApplication) also needs wired to a real
+/// exit. Without that hook, stopping the ASP.NET Core host doesn't touch the WPF message loop at
+/// all — the process just keeps running with the window still open, and the update relauncher
+/// ends up trying to overwrite files that are still locked because nothing ever actually exited.
 /// </summary>
-public class DesktopShell(int port)
+public class DesktopShell(int port, IHostApplicationLifetime lifetime)
 {
     private NotifyIcon? _trayIcon;
     private Window? _window;
@@ -37,6 +41,12 @@ public class DesktopShell(int port)
             _window.Hide();
             _trayIcon.ShowBalloonTip(2500, "RiftBound Vault", "Still running in the background — your phone can keep using it. Right-click the tray icon to exit.", ToolTipIcon.Info);
         };
+
+        lifetime.ApplicationStopping.Register(() =>
+        {
+            if (_reallyExiting) return;
+            app.Dispatcher.BeginInvoke(ExitApp);
+        });
 
         _window.Show();
         app.Run();

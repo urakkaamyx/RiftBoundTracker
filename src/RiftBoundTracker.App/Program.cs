@@ -171,6 +171,26 @@ internal static class Program
         app.MapGet("/api/server-info", () =>
             Results.Ok(new { httpPort = port, httpsPort, version = UpdateService.CurrentVersion.ToString() }));
 
+        app.MapGet("/api/connection-info", () =>
+        {
+            var lanIp = GetLanAddresses().FirstOrDefault();
+            return lanIp is null
+                ? Results.Ok(new { available = false })
+                : Results.Ok(new { available = true, url = $"https://{lanIp}:{httpsPort}", lanIp, httpsPort });
+        });
+
+        app.MapGet("/api/connection-qr.png", () =>
+        {
+            var lanIp = GetLanAddresses().FirstOrDefault();
+            if (lanIp is null) return Results.NotFound();
+
+            var url = $"https://{lanIp}:{httpsPort}";
+            using var qrGenerator = new QRCoder.QRCodeGenerator();
+            using var qrData = qrGenerator.CreateQrCode(url, QRCoder.QRCodeGenerator.ECCLevel.Q);
+            var png = new QRCoder.PngByteQRCode(qrData).GetGraphic(12);
+            return Results.File(png, "image/png");
+        });
+
         app.MapGet("/api/update/check", async (UpdateService updater, CancellationToken ct) =>
             Results.Ok(await updater.CheckAsync(ct)));
 

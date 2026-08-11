@@ -589,6 +589,55 @@ async function applyUpdate() {
   }
 }
 
+/* ---------------- Connection QR ---------------- */
+const connectionOverlay = document.getElementById("connectionOverlay");
+const connectionBody = document.getElementById("connectionBody");
+const connectionStatus = document.getElementById("connectionStatus");
+
+document.getElementById("openConnection").addEventListener("click", async () => {
+  connectionOverlay.hidden = false;
+  connectionStatus.hidden = false;
+  connectionStatus.textContent = "Loading…";
+  document.querySelectorAll(".connection-qr, .connection-hint, .connection-url-row").forEach(el => el.remove());
+
+  try {
+    const info = await api("/api/connection-info");
+    if (!info.available) {
+      connectionStatus.textContent = "No LAN address detected — check your network connection.";
+      return;
+    }
+
+    connectionStatus.hidden = true;
+
+    const qr = document.createElement("div");
+    qr.className = "connection-qr";
+    qr.innerHTML = `<img src="/api/connection-qr.png?t=${Date.now()}" alt="QR code for ${info.url}" />`;
+    connectionBody.appendChild(qr);
+
+    const hint = document.createElement("div");
+    hint.className = "connection-hint";
+    hint.innerHTML = `Scan with your phone's camera on the <b>same Wi-Fi</b> to open the app. This is the <b>HTTPS</b> link — needed for live camera scanning. Your browser will warn about the certificate the first time; tap <b>Advanced → Proceed</b>.`;
+    connectionBody.appendChild(hint);
+
+    const urlRow = document.createElement("div");
+    urlRow.className = "connection-url-row";
+    urlRow.innerHTML = `<input readonly value="${info.url}" /><button id="copyConnectionUrl">Copy</button>`;
+    connectionBody.appendChild(urlRow);
+
+    document.getElementById("copyConnectionUrl").addEventListener("click", async e => {
+      await navigator.clipboard.writeText(info.url);
+      e.target.textContent = "Copied";
+      setTimeout(() => { e.target.textContent = "Copy"; }, 1500);
+    });
+  } catch (err) {
+    connectionStatus.hidden = false;
+    connectionStatus.textContent = "Couldn't load connection info: " + err.message;
+  }
+});
+
+document.getElementById("closeConnection").addEventListener("click", () => { connectionOverlay.hidden = true; });
+connectionOverlay.addEventListener("click", e => { if (e.target === connectionOverlay) connectionOverlay.hidden = true; });
+
 /* ---------------- Init ---------------- */
 (async function init() {
   const sets = await api("/api/sets");

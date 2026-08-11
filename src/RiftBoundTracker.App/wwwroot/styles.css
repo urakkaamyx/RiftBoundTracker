@@ -127,6 +127,10 @@ select.sort { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--bor
   background: var(--accent); color: #201705; font: 800 13px var(--font-ui); cursor: pointer;
   box-shadow: 0 4px 14px var(--accent-soft);
 }
+.scan-fab.secondary {
+  background: var(--surface); color: var(--text-dim); border: 1px solid var(--border); box-shadow: none;
+}
+.scan-fab.secondary:hover { color: var(--accent-text); border-color: var(--accent); }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px; }
 
@@ -234,6 +238,34 @@ select.sort { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--bor
 }
 
 .manual-entry { padding-top: 14px; border-top: 1px solid var(--border); }
+
+/* ---------- Connection overlay ---------- */
+.connection-sheet { max-width: 380px; }
+.connection-body { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.connection-status { font: 600 13px var(--font-ui); color: var(--text-dim); padding: 20px 0; }
+
+.connection-qr {
+  width: 220px; height: 220px; padding: 12px; background: #fff; border-radius: 12px;
+  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+}
+.connection-qr img { width: 100%; height: 100%; image-rendering: pixelated; }
+
+.connection-hint { font: 500 12.5px var(--font-ui); color: var(--text-dim); line-height: 1.5; }
+.connection-hint b { color: var(--text); }
+
+.connection-url-row {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
+}
+.connection-url-row input {
+  flex: 1; border: none; background: transparent; color: var(--text); font: 600 12px var(--font-mono);
+  outline: none; min-width: 0;
+}
+.connection-url-row button {
+  flex-shrink: 0; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text-dim); font: 700 11px var(--font-ui); cursor: pointer;
+}
+.connection-url-row button:hover { color: var(--accent-text); border-color: var(--accent); }
 
 .live-start-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 28px 12px; font-size: 13.5px; border-radius: 12px; }
 

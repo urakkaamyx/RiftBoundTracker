@@ -89,6 +89,10 @@
               <option value="owned">Owned first</option>
             </select>
           </div>
+          <button class="scan-fab secondary" id="openConnection">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01"/></svg>
+            Connection
+          </button>
           <button class="scan-fab" id="openScan">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V6a2 2 0 0 1 2-2h3M21 9V6a2 2 0 0 0-2-2h-3M3 15v3a2 2 0 0 0 2 2h3M21 15v3a2 2 0 0 1-2 2h-3"/><circle cx="12" cy="12" r="3.2"/></svg>
             Scan card
@@ -162,6 +166,19 @@
           <input class="field" id="manualNumber" type="number" inputmode="numeric" placeholder="e.g. 147" min="1" />
           <button class="btn primary" id="manualLookupBtn">Find</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="connectionOverlay" hidden>
+    <div class="sheet connection-sheet">
+      <div class="sheet-head">
+        <h2>Connect a phone</h2>
+        <button id="closeConnection" aria-label="Close">✕</button>
+      </div>
+
+      <div class="connection-body" id="connectionBody">
+        <div class="connection-status" id="connectionStatus">Loading…</div>
       </div>
     </div>
   </div>

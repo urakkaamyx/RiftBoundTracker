@@ -7,7 +7,7 @@
     <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.3.5</Version>
+    <Version>1.3.6</Version>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>app.ico</ApplicationIcon>
@@ -33,6 +33,17 @@
 
   <ItemGroup>
     <None Include="Run with debug console.bat" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Sdk.Web copies any loose project-directory file into the publish output by default (Content
+       items default to CopyToPublishDirectory) — without this, App_Data (created locally by
+       `dotnet run` for dev testing, and gitignored so it's never noticed in `git status`) rides
+       along in the release zip. The self-update relauncher then robocopy /MIR's it onto the
+       install dir, silently replacing a real user's database and images with whatever was sitting
+       in the dev's local App_Data at publish time. -->
+  <ItemGroup>
+    <Content Remove="App_Data/**" />
+    <None Remove="App_Data/**" />
   </ItemGroup>
 
   <!-- Combining Sdk.Web with UseWPF/UseWindowsForms drops System.IO from the implicit-usings set

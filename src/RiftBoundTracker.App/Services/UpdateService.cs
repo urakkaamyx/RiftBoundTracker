@@ -183,6 +183,11 @@ public class UpdateService(IHttpClientFactory httpClientFactory, ILogger<UpdateS
         Start-Sleep -Seconds 1
 
         foreach ($item in Get-ChildItem -Path $StagingDir) {
+            # App_Data (DB, cached images, TLS cert) must never be part of an update payload — the
+            # csproj now excludes it from publish, but this is a second guard against a release
+            # ever shipping it anyway: /MIR mirrors the destination to match the source exactly,
+            # which would otherwise delete or overwrite a real user's data.
+            if ($item.Name -eq "App_Data") { continue }
             $dest = Join-Path $InstallDir $item.Name
             if ($item.PSIsContainer) {
                 robocopy $item.FullName $dest /MIR /NFL /NDL /NJH /NJS | Out-Null

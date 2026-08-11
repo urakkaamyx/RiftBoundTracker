@@ -194,6 +194,17 @@ select.sort { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--bor
 .sheet-head h2 { margin: 0; font: 800 17px var(--font-ui); }
 .sheet-head button { background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer; line-height: 1; }
 
+.tab-bar { display: flex; gap: 4px; background: var(--surface-2); border-radius: 10px; padding: 4px; }
+.tab-btn {
+  flex: 1; padding: 8px 6px; border-radius: 7px; border: none; background: transparent;
+  color: var(--text-dim); font: 700 12.5px var(--font-ui); cursor: pointer; transition: background .12s, color .12s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn[aria-selected="true"] { background: var(--surface); color: var(--accent-text); box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+
+.tab-panel { display: flex; flex-direction: column; gap: 12px; }
+.tab-panel[hidden] { display: none; }
+
 .camera-input {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
   border: 2px dashed var(--border); border-radius: 12px; padding: 32px 16px; cursor: pointer; text-align: center;
@@ -201,13 +212,6 @@ select.sort { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--bor
 .camera-input:hover { border-color: var(--accent); }
 .camera-input svg { color: var(--text-faint); }
 .camera-input span { font: 600 13px var(--font-ui); color: var(--text-dim); }
-
-.pick-existing {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 4px; cursor: pointer; color: var(--text-dim); margin-top: -4px;
-}
-.pick-existing:hover { color: var(--accent-text); }
-.pick-existing span { font: 600 12px var(--font-ui); }
 
 .scan-preview { display: flex; gap: 12px; align-items: center; }
 .scan-preview img { width: 72px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
@@ -229,9 +233,9 @@ select.sort { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--bor
   border-radius: 8px; padding: 8px 10px; white-space: pre-wrap; max-height: 90px; overflow-y: auto;
 }
 
-.scan-options { display: flex; flex-direction: column; gap: 16px; }
+.manual-entry { padding-top: 14px; border-top: 1px solid var(--border); }
 
-.live-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 13.5px; }
+.live-start-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 28px 12px; font-size: 13.5px; border-radius: 12px; }
 
 .live-scan { display: flex; flex-direction: column; gap: 12px; }
 .live-video-wrap {

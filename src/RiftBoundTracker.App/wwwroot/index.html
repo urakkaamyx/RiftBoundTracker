@@ -110,49 +110,57 @@
         <button id="closeScan" aria-label="Close">✕</button>
       </div>
 
-      <button class="btn primary live-btn" id="liveScanBtn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-        Live camera scan
-      </button>
-
-      <div class="live-scan" id="liveScanView" hidden>
-        <div class="live-video-wrap">
-          <video id="liveVideo" autoplay playsinline muted></video>
-          <div class="live-frame-guide"></div>
-        </div>
-        <div class="live-status" id="liveStatus">Point the camera at a card…</div>
-        <div class="live-readout" id="liveReadout">Reading: <span id="liveReadoutText">—</span></div>
-        <div class="live-hit" id="liveHit" hidden></div>
-        <button class="btn" id="stopLiveBtn">Stop live scan</button>
+      <div class="tab-bar" role="tablist">
+        <button class="tab-btn" id="tabBtnLive" data-tab="live" role="tab" aria-selected="true">Live Camera</button>
+        <button class="tab-btn" id="tabBtnPhoto" data-tab="photo" role="tab" aria-selected="false">Camera Picture</button>
+        <button class="tab-btn" id="tabBtnUpload" data-tab="upload" role="tab" aria-selected="false">Upload</button>
       </div>
 
-      <div class="scan-options" id="scanOptions">
+      <div class="tab-panel" id="tabPanelLive" data-tab-panel="live">
+        <button class="btn primary live-start-btn" id="liveScanBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          Start live camera
+        </button>
+        <div class="live-scan" id="liveScanView" hidden>
+          <div class="live-video-wrap">
+            <video id="liveVideo" autoplay playsinline muted></video>
+            <div class="live-frame-guide"></div>
+          </div>
+          <div class="live-status" id="liveStatus">Point the camera at a card…</div>
+          <div class="live-readout" id="liveReadout">Reading: <span id="liveReadoutText">—</span></div>
+          <div class="live-hit" id="liveHit" hidden></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tabPanelPhoto" data-tab-panel="photo" hidden>
         <label class="camera-input" id="cameraTrigger">
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          <span>Or take a single photo of the whole card</span>
+          <span>Tap to take a photo of the whole card — flat, well-lit, filling most of the frame</span>
           <input type="file" accept="image/*" capture="environment" id="scanFile" hidden />
         </label>
+      </div>
 
-        <label class="pick-existing" id="pickExistingTrigger">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-          <span>Or choose an existing photo / screenshot</span>
+      <div class="tab-panel" id="tabPanelUpload" data-tab-panel="upload" hidden>
+        <label class="camera-input" id="pickExistingTrigger">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <span>Choose an existing photo or screenshot</span>
           <input type="file" accept="image/*" id="scanFileExisting" hidden />
         </label>
+      </div>
 
-        <div class="scan-preview" id="scanPreview" hidden>
-          <img id="scanPreviewImg" alt="Captured card" />
-          <div class="scan-status" id="scanStatus">Reading card…</div>
-        </div>
+      <div class="scan-preview" id="scanPreview" hidden>
+        <img id="scanPreviewImg" alt="Captured card" />
+        <div class="scan-status" id="scanStatus">Reading card…</div>
+      </div>
 
-        <div class="match-list" id="matchList"></div>
-        <div class="ocr-debug" id="ocrDebug" hidden></div>
+      <div class="match-list" id="matchList"></div>
+      <div class="ocr-debug" id="ocrDebug" hidden></div>
 
-        <div class="filter-group">
-          <h3>Or type the number</h3>
-          <div class="sync-row">
-            <input class="field" id="manualNumber" type="number" inputmode="numeric" placeholder="e.g. 147" min="1" />
-            <button class="btn primary" id="manualLookupBtn">Find</button>
-          </div>
+      <div class="filter-group manual-entry">
+        <h3>Or type the number</h3>
+        <div class="sync-row">
+          <input class="field" id="manualNumber" type="number" inputmode="numeric" placeholder="e.g. 147" min="1" />
+          <button class="btn primary" id="manualLookupBtn">Find</button>
         </div>
       </div>
     </div>

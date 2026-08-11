@@ -252,6 +252,7 @@ overlay.addEventListener("click", e => { if (e.target === overlay) { stopLiveSca
 
 function resetScanSheet() {
   stopLiveScan();
+  resetTabs();
   scanFile.value = "";
   scanFileExisting.value = "";
   scanPreview.hidden = true;
@@ -358,14 +359,38 @@ document.getElementById("manualLookupBtn").addEventListener("click", async () =>
   }
 });
 
+/* ---------------- Scan tabs ---------------- */
+const tabButtons = [...document.querySelectorAll(".tab-btn")];
+const tabPanels = {
+  live: document.getElementById("tabPanelLive"),
+  photo: document.getElementById("tabPanelPhoto"),
+  upload: document.getElementById("tabPanelUpload"),
+};
+let activeTab = "live";
+
+tabButtons.forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
+
+function switchTab(tab) {
+  if (tab === activeTab) return;
+  if (activeTab === "live") stopLiveScan();
+
+  activeTab = tab;
+  tabButtons.forEach(btn => btn.setAttribute("aria-selected", String(btn.dataset.tab === tab)));
+  for (const [name, panel] of Object.entries(tabPanels)) panel.hidden = name !== tab;
+}
+
+function resetTabs() {
+  activeTab = "live";
+  tabButtons.forEach(btn => btn.setAttribute("aria-selected", String(btn.dataset.tab === "live")));
+  for (const [name, panel] of Object.entries(tabPanels)) panel.hidden = name !== "live";
+}
+
 /* ---------------- Live camera scan ---------------- */
 const liveScanBtn = document.getElementById("liveScanBtn");
 const liveScanView = document.getElementById("liveScanView");
 const liveVideo = document.getElementById("liveVideo");
 const liveStatus = document.getElementById("liveStatus");
 const liveHit = document.getElementById("liveHit");
-const stopLiveBtn = document.getElementById("stopLiveBtn");
-const scanOptions = document.getElementById("scanOptions");
 const liveReadoutText = document.getElementById("liveReadoutText");
 const liveCanvas = document.createElement("canvas");
 
@@ -375,7 +400,6 @@ let liveInFlight = false;
 let liveHitPending = false;
 
 liveScanBtn.addEventListener("click", startLiveScan);
-stopLiveBtn.addEventListener("click", stopLiveScan);
 
 async function startLiveScan() {
   if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
@@ -394,7 +418,6 @@ async function startLiveScan() {
   }
 
   liveVideo.srcObject = liveStream;
-  scanOptions.hidden = true;
   liveScanBtn.hidden = true;
   liveScanView.hidden = false;
   liveHit.hidden = true;
@@ -415,7 +438,6 @@ function stopLiveScan() {
   liveReadoutText.textContent = "—";
   liveScanView.hidden = true;
   liveScanBtn.hidden = false;
-  scanOptions.hidden = false;
 }
 
 function cleanOcrSnippet(text) {

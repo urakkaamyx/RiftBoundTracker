@@ -20,10 +20,13 @@ Write-Host "== Bumping version to $Version ==" -ForegroundColor Cyan
     Set-Content $proj -NoNewline
 
 Write-Host "== Publishing self-contained win-x64 build ==" -ForegroundColor Cyan
+# Deliberately NOT using -p:PublishSingleFile=true: it bundles every managed assembly (including
+# Tesseract's own wrapper DLL) into the exe, which breaks its native-library loader (InteropDotNet
+# resolves tesseract50.dll/leptonica via Assembly.Location, which is empty for a bundled assembly
+# -> ArgumentNullException at OCR time). A plain self-contained publish (a folder of loose files,
+# no separate .NET install needed) avoids the incompatibility entirely.
 if (Test-Path $publishDir) { Remove-Item $publishDir -Recurse -Force }
-dotnet publish $proj -c Release -r win-x64 --self-contained true `
-    -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
-    -o $publishDir
+dotnet publish $proj -c Release -r win-x64 --self-contained true -o $publishDir
 if ($LASTEXITCODE -ne 0) { throw "Publish failed" }
 
 Write-Host "== Zipping ==" -ForegroundColor Cyan

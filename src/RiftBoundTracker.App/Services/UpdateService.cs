@@ -38,16 +38,18 @@ public class UpdateService(IHttpClientFactory httpClientFactory, ILogger<UpdateS
         Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
 
     /// <summary>
-    /// Self-update only makes sense for the published single-file build — under `dotnet run` (or
-    /// any framework-dependent build) there's no single exe to replace. `dotnet run` actually
+    /// Self-update only makes sense for the published self-contained deployment — under
+    /// `dotnet run` (a framework-dependent dev build) there's no bundled runtime to relaunch
+    /// against, and the release zip's contents wouldn't even run there. `dotnet run` actually
     /// launches the apphost exe directly, so checking the process file name doesn't distinguish
-    /// dev from published; a true single-file bundle is the one case where the executing
-    /// assembly's on-disk Location is empty (it's embedded in the exe, not a separate DLL).
+    /// dev from published. The reliable signal: a self-contained deployment always ships the
+    /// .NET runtime itself (coreclr.dll etc.) next to the exe; a framework-dependent build never
+    /// does, since it relies on the globally-installed shared runtime instead.
     /// </summary>
     public static (bool Supported, string? Reason) SelfUpdateSupport()
     {
-        var isSingleFileBundle = string.IsNullOrEmpty(Assembly.GetExecutingAssembly().Location);
-        if (!isSingleFileBundle)
+        var isSelfContained = File.Exists(Path.Combine(AppContext.BaseDirectory, "coreclr.dll"));
+        if (!isSelfContained)
             return (false, "Self-update only works from the published build — not 'dotnet run'.");
 
         if (string.IsNullOrEmpty(Environment.ProcessPath))

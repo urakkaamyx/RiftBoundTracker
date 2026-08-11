@@ -11,4 +11,5 @@ App_Data/
 
 # Publish output (built by the release script, not committed)
 publish/
+test-install/
 *.zip

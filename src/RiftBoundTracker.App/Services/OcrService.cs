@@ -1,131 +1,112 @@
+using System.Runtime.InteropServices.WindowsRuntime;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using Tesseract;
+using Windows.Globalization;
+using Windows.Graphics.Imaging;
+using Windows.Media.Ocr;
 using Rectangle = SixLabors.ImageSharp.Rectangle;
 using Image = SixLabors.ImageSharp.Image;
 
 namespace RiftBoundTracker.App.Services;
 
-public class OcrService : IDisposable
+/// <summary>
+/// Reads the collector-number text near a card's bottom-left corner using Windows' built-in OCR
+/// engine (Windows.Media.Ocr) rather than a bundled third-party library. Noticeably more accurate
+/// on the small, stylized card print, ships with Windows itself (no native DLLs or language-data
+/// files to bundle, version, or fight with PublishSingleFile over), and doesn't need the manual
+/// multi-threshold binarization sweep Tesseract benefited from — it handles color/contrast
+/// variance in real photos on its own, so one clean pass per region is enough.
+/// </summary>
+public class OcrService
 {
     private readonly ILogger<OcrService> _logger;
     private readonly SemaphoreSlim _gate = new(1, 1);
-    private TesseractEngine? _engine;
+    private readonly OcrEngine? _engine;
 
-    public OcrService(ILogger<OcrService> logger) => _logger = logger;
+    public OcrService(ILogger<OcrService> logger)
+    {
+        _logger = logger;
+        _engine = OcrEngine.TryCreateFromLanguage(new Language("en-US"))
+                  ?? OcrEngine.TryCreateFromUserProfileLanguages();
 
-    private string TessDataPath => Path.Combine(AppContext.BaseDirectory, "tessdata");
+        if (_engine is null)
+            _logger.LogWarning(
+                "No OCR language is installed on this Windows install — card-number recognition " +
+                "will be unavailable until one is (Settings > Time & Language > Language & region " +
+                "> add English, then 'Optional features' on that language > add 'Handwriting').");
+    }
 
     /// <summary>
-    /// Runs OCR near the bottom-left corner, where Riftbound prints the collector number.
-    /// Expects <paramref name="image"/> to already be oriented and cropped down to just the card
-    /// (see PhotoBoundaryDetector) — region percentages are relative to the card, not an arbitrary
+    /// <paramref name="image"/> should already be oriented and cropped down to just the card (see
+    /// PhotoBoundaryDetector) — region percentages are relative to the card, not an arbitrary
     /// photo that may include background.
     ///
-    /// <paramref name="fast"/> trades thoroughness for latency: one crop, one threshold, digits
-    /// only — meant for the live-camera loop, where a request fires every ~800ms and needs to come
-    /// back quickly rather than exhaustively. The still-photo/manual flows use the slower, more
-    /// thorough multi-pass sweep instead, since latency doesn't matter there.
+    /// <paramref name="fast"/> trims this to a single pass for the live-camera loop, which fires a
+    /// request every ~800ms and needs to come back quickly; the still-photo/manual flows use both
+    /// candidate regions since latency doesn't matter there.
     /// </summary>
     public async Task<string> ReadCardNumberTextAsync(Image<Rgba32> image, bool fast, CancellationToken ct = default)
     {
+        if (_engine is null) return "";
+
         var w = image.Width;
         var h = image.Height;
 
+        // A tight bottom-left corner (where the number usually sits) and a wider bottom band (in
+        // case the crop isn't tight to the card edges).
         var tightRegion = new Rectangle(0, (int)(h * 0.80), (int)(w * 0.45), (int)(h * 0.20));
         var wideRegion = new Rectangle(0, (int)(h * 0.82), w, (int)(h * 0.18));
+        var regions = fast ? [tightRegion] : new[] { tightRegion, wideRegion };
 
         var combined = new System.Text.StringBuilder();
-
-        if (fast)
+        foreach (var region in regions)
         {
-            var safe = Rectangle.Intersect(tightRegion, image.Bounds);
-            if (safe.Width > 4 && safe.Height > 4)
-            {
-                using var crop = image.Clone(x => x
-                    .Crop(safe)
-                    .Resize(safe.Width * 3, safe.Height * 3)
-                    .Grayscale()
-                    .Contrast(1.5f)
-                    .BinaryThreshold(0.5f));
-                using var ms = new MemoryStream();
-                await crop.SaveAsync(ms, new PngEncoder(), ct);
-                combined.AppendLine(await RunTesseractAsync(ms.ToArray(), "0123456789/. ", ct));
-            }
-            return combined.ToString();
-        }
-
-        // Two candidate regions: a tight bottom-left corner (where the number usually sits),
-        // and a wider bottom band (in case the crop isn't tight to the card edges).
-        foreach (var region in new[] { tightRegion, wideRegion })
-        {
+            ct.ThrowIfCancellationRequested();
             var safe = Rectangle.Intersect(region, image.Bounds);
             if (safe.Width <= 4 || safe.Height <= 4) continue;
 
-            foreach (var threshold in new[] { 0.5f, 0.62f, 0.38f })
-            {
-                using var crop = image.Clone(x => x
-                    .Crop(safe)
-                    .Resize(safe.Width * 4, safe.Height * 4)
-                    .Grayscale()
-                    .Contrast(1.5f)
-                    .BinaryThreshold(threshold));
-
-                using var ms = new MemoryStream();
-                await crop.SaveAsync(ms, new PngEncoder(), ct);
-                combined.AppendLine(await RunTesseractAsync(ms.ToArray(), "0123456789/. ", ct));
-            }
-        }
-
-        // One unrestricted pass, kept to the tight bottom-left corner only, to try to pick up a
-        // nearby set code (e.g. "VEN"). The wider band runs into rules-text lines further up the
-        // card, which produces garbage letter sequences that outrank the real set code.
-        var tightSafe = Rectangle.Intersect(tightRegion, image.Bounds);
-        if (tightSafe.Width > 4 && tightSafe.Height > 4)
-        {
-            using var tightCrop = image.Clone(x => x
-                .Crop(tightSafe)
-                .Resize(tightSafe.Width * 3, tightSafe.Height * 3)
-                .Grayscale()
-                .Contrast(1.4f));
-            using var ms = new MemoryStream();
-            await tightCrop.SaveAsync(ms, new PngEncoder(), ct);
-            combined.AppendLine(await RunTesseractAsync(ms.ToArray(), null, ct));
+            combined.AppendLine(await RecognizeAsync(image, safe, ct));
         }
 
         return combined.ToString();
     }
 
-    // Tesseract's native engine isn't safe for concurrent Process() calls, and constructing a new
-    // engine per request means reloading the ~4MB language model every time — costly when the live
-    // loop is firing several requests a second. One engine, reused, guarded by a gate instead.
-    private async Task<string> RunTesseractAsync(byte[] pngBytes, string? whitelist, CancellationToken ct)
+    private async Task<string> RecognizeAsync(Image<Rgba32> source, Rectangle region, CancellationToken ct)
     {
-        await _gate.WaitAsync(ct);
         try
         {
-            _engine ??= new TesseractEngine(TessDataPath, "eng", EngineMode.Default);
-            _engine.SetVariable("tessedit_char_whitelist", whitelist ?? "");
-            using var pix = Pix.LoadFromMemory(pngBytes);
-            using var page = _engine.Process(pix, PageSegMode.SparseText);
-            return page.GetText() ?? "";
+            using var crop = source.Clone(x => x.Crop(region).Resize(region.Width * 3, region.Height * 3));
+            using var bitmap = ToSoftwareBitmap(crop);
+
+            // OcrEngine instances aren't documented as safe for concurrent RecognizeAsync calls —
+            // serialize them rather than risk it, same as the previous engine did.
+            await _gate.WaitAsync(ct);
+            try
+            {
+                var result = await _engine!.RecognizeAsync(bitmap);
+                return result.Text ?? "";
+            }
+            finally
+            {
+                _gate.Release();
+            }
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "OCR pass failed");
             return "";
         }
-        finally
-        {
-            _gate.Release();
-        }
     }
 
-    public void Dispose()
+    private static SoftwareBitmap ToSoftwareBitmap(Image<Rgba32> image)
     {
-        _engine?.Dispose();
-        _gate.Dispose();
+        using var bgra = image.CloneAs<Bgra32>();
+        var bytes = new byte[bgra.Width * bgra.Height * 4];
+        bgra.CopyPixelDataTo(bytes);
+
+        var bitmap = new SoftwareBitmap(BitmapPixelFormat.Bgra8, bgra.Width, bgra.Height, BitmapAlphaMode.Ignore);
+        bitmap.CopyFromBuffer(bytes.AsBuffer());
+        return bitmap;
     }
 }

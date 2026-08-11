@@ -1,7 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- Windows-SDK-versioned TFM (rather than plain net10.0-windows) so Windows.Media.Ocr and
+         other WinRT APIs are directly usable — this is what replaced Tesseract; see OcrService. -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Version>1.2.1</Version>
@@ -25,12 +28,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
     <PackageReference Include="QRCoder" Version="1.8.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
-    <PackageReference Include="Tesseract" Version="5.2.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="tessdata\**" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Run with debug console.bat" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

@@ -37,14 +37,26 @@ public class OcrService
                 "> add English, then 'Optional features' on that language > add 'Handwriting').");
     }
 
+    // Upper bound on the long side fed to the OCR engine per pass. Small crops (the bottom-band
+    // regions) still get upscaled up to 3x for better recognition of tiny print; a full-resolution
+    // photo used as-is (see below) gets capped down instead so it doesn't blow up OCR latency.
+    private const int MaxOcrDimension = 2200;
+
     /// <summary>
     /// <paramref name="image"/> should already be oriented and cropped down to just the card (see
     /// PhotoBoundaryDetector) — region percentages are relative to the card, not an arbitrary
     /// photo that may include background.
     ///
-    /// <paramref name="fast"/> trims this to a single pass for the live-camera loop, which fires a
-    /// request every ~800ms and needs to come back quickly; the still-photo/manual flows use both
-    /// candidate regions since latency doesn't matter there.
+    /// Tries the bottom-band regions where the number usually sits on a whole-card photo, AND the
+    /// full frame as-is — someone deliberately zooming in tight on just the number (a very natural
+    /// thing to try when OCR is struggling) means the number may no longer be confined to that
+    /// bottom band at all, so a fixed geographic crop guess would cut off the very text it's
+    /// trying to read. Aggregating all passes and letting CardIdParser scan the whole combined
+    /// text for a match is more robust than betting on one crop being right.
+    ///
+    /// <paramref name="fast"/> trims this for the live-camera loop, which fires a request every
+    /// ~800ms and needs to come back quickly; the still-photo/manual flows try every candidate
+    /// region since latency doesn't matter there.
     /// </summary>
     public async Task<string> ReadCardNumberTextAsync(Image<Rgba32> image, bool fast, CancellationToken ct = default)
     {
@@ -53,11 +65,13 @@ public class OcrService
         var w = image.Width;
         var h = image.Height;
 
-        // A tight bottom-left corner (where the number usually sits) and a wider bottom band (in
-        // case the crop isn't tight to the card edges).
+        // A tight bottom-left corner (where the number usually sits), a wider bottom band (in
+        // case the crop isn't tight to the card edges), and the full frame (in case the photo is
+        // already zoomed into just the number, or the number sits somewhere the other two miss).
         var tightRegion = new Rectangle(0, (int)(h * 0.80), (int)(w * 0.45), (int)(h * 0.20));
         var wideRegion = new Rectangle(0, (int)(h * 0.82), w, (int)(h * 0.18));
-        var regions = fast ? [tightRegion] : new[] { tightRegion, wideRegion };
+        var fullRegion = image.Bounds;
+        var regions = fast ? [tightRegion, fullRegion] : new[] { tightRegion, wideRegion, fullRegion };
 
         var combined = new System.Text.StringBuilder();
         foreach (var region in regions)
@@ -76,7 +90,13 @@ public class OcrService
     {
         try
         {
-            using var crop = source.Clone(x => x.Crop(region).Resize(region.Width * 3, region.Height * 3));
+            var longSide = Math.Max(region.Width, region.Height);
+            var target = Math.Min(longSide * 3, MaxOcrDimension);
+            var scale = (float)target / longSide;
+            var newWidth = Math.Max(1, (int)(region.Width * scale));
+            var newHeight = Math.Max(1, (int)(region.Height * scale));
+
+            using var crop = source.Clone(x => x.Crop(region).Resize(newWidth, newHeight));
             using var bitmap = ToSoftwareBitmap(crop);
 
             // OcrEngine instances aren't documented as safe for concurrent RecognizeAsync calls —

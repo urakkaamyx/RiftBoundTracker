@@ -3,6 +3,8 @@ using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Tesseract;
+using Rectangle = SixLabors.ImageSharp.Rectangle;
+using Image = SixLabors.ImageSharp.Image;
 
 namespace RiftBoundTracker.App.Services;
 

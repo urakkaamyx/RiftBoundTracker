@@ -272,7 +272,7 @@ select.sort { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--bor
 .live-hit button { flex-shrink: 0; }
 
 .update-box {
-  margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border);
+  padding-bottom: 16px; border-bottom: 1px solid var(--border);
   display: flex; flex-direction: column; gap: 8px;
 }
 .update-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

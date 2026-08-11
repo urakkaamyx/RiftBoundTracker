@@ -1,7 +1,9 @@
+using System.IO;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using RiftBoundTracker.App.Data;
+using Image = SixLabors.ImageSharp.Image;
 
 namespace RiftBoundTracker.App.Services;
 

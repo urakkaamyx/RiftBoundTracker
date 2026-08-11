@@ -9,7 +9,10 @@ App_Data/
 # Local Claude Code settings
 .claude/settings.local.json
 
-# Publish output (built by the release script, not committed)
+# Publish output — any local test/publish folder at the repo root, not committed
 publish/
+publish-test/
 test-install/
+[Tt]est/
+[Tt]est-run/
 *.zip

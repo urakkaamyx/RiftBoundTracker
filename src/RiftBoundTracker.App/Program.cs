@@ -41,6 +41,11 @@ internal static class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        // Bound how long shutdown can take — the default host shutdown timeout waits longer than
+        // makes sense for a small local app, and if anything ever did hang draining a connection,
+        // this keeps it from looking permanently "stuck" instead of just closing.
+        builder.Host.ConfigureHostOptions(o => o.ShutdownTimeout = TimeSpan.FromSeconds(5));
+
         var port = builder.Configuration.GetValue<int?>("Port") ?? 5080;
         var httpsPort = builder.Configuration.GetValue<int?>("HttpsPort") ?? 5443;
 

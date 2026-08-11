@@ -8,6 +8,13 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>app.ico</ApplicationIcon>
+    <!-- Without this, Sdk.Web's default (console subsystem) means double clicking the exe pops
+         a raw console window alongside the real desktop window, showing bare framework log
+         lines like "Application is shutting down..." with nothing to obviously click to dismiss
+         it. WinExe suppresses that; launching from an existing terminal (dotnet run, headless
+         mode for scripting) still shows console output normally since a console is already
+         attached. -->
+    <OutputType>WinExe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>

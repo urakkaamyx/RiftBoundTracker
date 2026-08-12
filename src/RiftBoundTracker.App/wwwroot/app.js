@@ -578,23 +578,43 @@ function iconStyle(kind) {
 function formatCardText(raw) {
   if (!raw) return "";
   const decoded = raw.replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&amp;/g, "&");
+  const parts = decoded.split(/(\[[^\]]+\]|:rb_[a-z0-9_]+:)/gi);
 
-  return decoded
-    .split(/(\[[^\]]+\]|:rb_[a-z0-9_]+:)/gi)
-    .map(part => {
-      const kw = /^\[([^\]]+)\]$/.exec(part);
-      if (kw) return `<span class="kw-badge ${keywordStyle(kw[1])}">${escapeHtml(kw[1])}</span>`;
-
-      const icon = /^:rb_(.+):$/i.exec(part);
-      if (icon) {
-        const num = /^(.*)_(\d+)$/.exec(icon[1]);
-        const kind = (num ? num[1] : icon[1]).replace(/_/g, " ");
-        return `<span class="icon-tok ${iconStyle(kind)}">${num ? `${escapeHtml(num[2])} ` : ""}${escapeHtml(kind)}</span>`;
+  const out = [];
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    const kw = /^\[([^\]]+)\]$/.exec(part);
+    if (kw) {
+      // A keyword directly followed by a numbered resource token ("[Empower] :rb_energy_5:") is
+      // one combined badge on the printed card ("EMPOWER 5"), not a tag plus a floating cost pill
+      // — merge them when only whitespace separates the two.
+      const gapIsSpace = parts[i + 1] === undefined || /^\s*$/.test(parts[i + 1]);
+      const nextIcon = gapIsSpace ? /^:rb_(.+):$/i.exec(parts[i + 2] || "") : null;
+      const num = nextIcon ? /^(.*)_(\d+)$/.exec(nextIcon[1]) : null;
+      if (num) {
+        out.push(`<span class="kw-badge ${keywordStyle(kw[1])}">${escapeHtml(kw[1])} ${escapeHtml(num[2])}</span>`);
+        i += 2;
+        continue;
       }
+      out.push(`<span class="kw-badge ${keywordStyle(kw[1])}">${escapeHtml(kw[1])}</span>`);
+      continue;
+    }
 
-      return escapeHtml(part);
-    })
-    .join("");
+    const icon = /^:rb_(.+):$/i.exec(part);
+    if (icon) {
+      const num = /^(.*)_(\d+)$/.exec(icon[1]);
+      const kind = (num ? num[1] : icon[1]).replace(/_/g, " ");
+      // A numbered token (energy cost, etc.) shows just the number — the badge's own color
+      // already says what kind it is, the way the printed card just shows a numeral in an icon.
+      // An un-numbered token (might, rune…) has nothing else to show, so the name stays.
+      const label = num ? num[2] : kind;
+      out.push(`<span class="icon-tok ${iconStyle(kind)}">${escapeHtml(label)}</span>`);
+      continue;
+    }
+
+    out.push(escapeHtml(part));
+  }
+  return out.join("");
 }
 
 async function checkForUpdate() {

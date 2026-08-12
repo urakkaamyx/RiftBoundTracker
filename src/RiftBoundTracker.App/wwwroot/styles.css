@@ -321,9 +321,12 @@ select.sort { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--bor
 .detail-text .kw-badge.kw-gray { color: var(--text-dim); border: 1px solid var(--border); }
 
 .detail-text .icon-tok {
-  display: inline-block; font: 700 11px var(--font-mono); white-space: nowrap; background: var(--surface-2);
-  border-radius: 999px; padding: 0 7px; margin: 0 1px; line-height: 1.6; border: 1px solid var(--border);
+  display: inline-flex; align-items: center; justify-content: center; gap: 3px;
+  font: 700 11px var(--font-mono); white-space: nowrap; background: var(--surface-2);
+  border-radius: 999px; min-width: 20px; height: 20px; padding: 0 6px; margin: 0 1px;
+  border: 1px solid var(--border); vertical-align: -4px;
 }
+.detail-text .icon-tok svg { flex-shrink: 0; }
 .detail-text .icon-tok.icon-default, .detail-text .icon-tok.icon-gray { color: var(--text-dim); }
 .detail-text .icon-tok.icon-amber { color: var(--accent-text); border-color: var(--accent); }
 .detail-text .icon-tok.icon-fury { color: var(--c-fury); border-color: var(--c-fury); }

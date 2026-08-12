@@ -560,6 +560,17 @@ const KEYWORD_STYLE = {
 };
 const ICON_STYLE = { energy: "icon-amber", might: "icon-fury", power: "icon-order", exhaust: "icon-gray" };
 
+// Small shape glyphs standing in for the printed symbols — a diamond for Energy, a sword for
+// Might, a hexagon (Riftbound's rune/domain shape) for Power and Rune costs, a rotate arrow for
+// Exhaust — colored via currentColor so the surrounding badge class controls the color.
+const ICON_SVG = {
+  energy: '<svg viewBox="0 0 16 16" width="11" height="11"><polygon points="8,1 15,8 8,15 1,8" fill="currentColor"/></svg>',
+  might: '<svg viewBox="0 0 16 16" width="11" height="11"><path d="M2.5 13.5 9 7M11 2l3 3-2 2-3-3zM7.5 8.5l2 2-1.5 1.5-2-2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  power: '<svg viewBox="0 0 16 16" width="11" height="11"><polygon points="8,1 14.5,4.6 14.5,11.4 8,15 1.5,11.4 1.5,4.6" fill="currentColor"/></svg>',
+  rune: '<svg viewBox="0 0 16 16" width="11" height="11"><polygon points="8,1 14.5,4.6 14.5,11.4 8,15 1.5,11.4 1.5,4.6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+  exhaust: '<svg viewBox="0 0 16 16" width="11" height="11"><path d="M13 3.2A6 6 0 1 0 14.5 9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M13.2 0.2v4h-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+
 function keywordStyle(label) {
   const key = label.toLowerCase().replace(/\s*\d+$/, "").trim();
   return KEYWORD_STYLE[key] || "kw-default";
@@ -567,6 +578,10 @@ function keywordStyle(label) {
 function iconStyle(kind) {
   if (kind.startsWith("rune")) return "icon-gray";
   return ICON_STYLE[kind.split(" ")[0]] || "icon-default";
+}
+function iconGlyph(kind) {
+  const base = kind.startsWith("rune") ? "rune" : kind.split(" ")[0];
+  return ICON_SVG[base] || "";
 }
 
 // Rules text from the API embeds two inline token styles the real card art renders as badges
@@ -604,11 +619,13 @@ function formatCardText(raw) {
     if (icon) {
       const num = /^(.*)_(\d+)$/.exec(icon[1]);
       const kind = (num ? num[1] : icon[1]).replace(/_/g, " ");
-      // A numbered token (energy cost, etc.) shows just the number — the badge's own color
-      // already says what kind it is, the way the printed card just shows a numeral in an icon.
-      // An un-numbered token (might, rune…) has nothing else to show, so the name stays.
-      const label = num ? num[2] : kind;
-      out.push(`<span class="icon-tok ${iconStyle(kind)}">${escapeHtml(label)}</span>`);
+      const glyph = iconGlyph(kind);
+      // A numbered token (energy cost, etc.) shows the glyph plus the number, the way the
+      // printed card shows a numeral inside its icon. An un-numbered token (might, rune…) has no
+      // number to pair it with, so the glyph alone stands in for the word, with the name as a
+      // hover tooltip for anyone unsure what it means.
+      const label = num ? escapeHtml(num[2]) : (glyph ? "" : escapeHtml(kind));
+      out.push(`<span class="icon-tok ${iconStyle(kind)}" title="${escapeHtml(kind)}">${glyph}${label}</span>`);
       continue;
     }
 

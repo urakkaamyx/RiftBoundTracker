@@ -182,10 +182,12 @@ function renderCardTile(c) {
   const stepper = document.createElement("div");
   stepper.className = "stepper";
   stepper.innerHTML = `<button data-act="dec" aria-label="Remove copy">−</button><span class="n">${c.ownedCount}</span><button data-act="inc" aria-label="Add copy">+</button>`;
-  stepper.querySelector('[data-act="dec"]').addEventListener("click", () => setOwned(c.id, Math.max(0, c.ownedCount - 1)));
-  stepper.querySelector('[data-act="inc"]').addEventListener("click", () => setOwned(c.id, c.ownedCount + 1));
+  stepper.querySelector('[data-act="dec"]').addEventListener("click", e => { e.stopPropagation(); setOwned(c.id, Math.max(0, c.ownedCount - 1)); });
+  stepper.querySelector('[data-act="inc"]').addEventListener("click", e => { e.stopPropagation(); setOwned(c.id, c.ownedCount + 1); });
   body.appendChild(stepper);
   card.appendChild(body);
+
+  card.addEventListener("click", () => openCardDetail(c.id));
 
   return card;
 }
@@ -658,6 +660,73 @@ document.getElementById("openConnection").addEventListener("click", async () => 
 
 document.getElementById("closeConnection").addEventListener("click", () => { connectionOverlay.hidden = true; });
 connectionOverlay.addEventListener("click", e => { if (e.target === connectionOverlay) connectionOverlay.hidden = true; });
+
+/* ---------------- Card detail ---------------- */
+const detailOverlay = document.getElementById("cardDetailOverlay");
+const detailName = document.getElementById("detailName");
+const detailBody = document.getElementById("detailBody");
+
+function openCardDetail(cardId) {
+  const card = cardsById.get(cardId);
+  if (!card) return;
+  detailOverlay.hidden = false;
+  renderCardDetail(card);
+}
+
+function renderCardDetail(c) {
+  detailName.textContent = c.name;
+
+  const domains = c.domains.length ? c.domains : ["Colorless"];
+  const stats = [
+    { k: "Energy", v: c.energy },
+    { k: "Might", v: c.might },
+    { k: "Power", v: c.power },
+  ].filter(s => s.v !== null && s.v !== undefined);
+
+  detailBody.innerHTML = `
+    <div class="detail-art-col">
+      <div class="detail-art${c.orientation === "landscape" ? " is-landscape" : ""}${c.ownedCount <= 0 ? " is-missing" : ""}">
+        <div class="domain-bar">${domains.map(d => `<span style="background:${DOMAIN_COLOR[d] || "var(--c-colorless)"}"></span>`).join("")}</div>
+        <img src="${c.localImagePath || ""}" alt="${escapeHtml(c.name)}" />
+      </div>
+      <div class="detail-owned">
+        <span class="lbl">You own</span>
+        <div class="stepper">
+          <button data-act="dec" aria-label="Remove copy">−</button>
+          <span class="n">${c.ownedCount}</span>
+          <button data-act="inc" aria-label="Add copy">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="detail-info">
+      <div class="detail-meta-row">
+        <span class="num">${escapeHtml(c.setLabel || c.setId)} · ${c.setId}-${String(c.collectorNumber).padStart(3, "0")}</span>
+        <span class="rarity"><span class="dot" style="background:${RARITY_COLOR[c.rarity] || "var(--text-faint)"}"></span>${escapeHtml(c.rarity)}</span>
+      </div>
+      <div class="detail-type">${c.supertype ? `<b>${escapeHtml(c.supertype)}</b> ` : ""}${escapeHtml(c.type)}</div>
+      <div class="detail-domains">${domains.map(d => `<span class="chip"><span class="dot" style="background:${DOMAIN_COLOR[d] || "var(--c-colorless)"}"></span>${escapeHtml(d)}</span>`).join("")}</div>
+      ${stats.length ? `<div class="detail-stats">${stats.map(s => `<div class="detail-stat"><span class="v">${s.v}</span><span class="k">${s.k}</span></div>`).join("")}</div>` : ""}
+      ${c.textPlain ? `<div class="detail-text">${escapeHtml(c.textPlain)}</div>` : ""}
+      ${c.flavour ? `<div class="detail-flavor">${escapeHtml(c.flavour)}</div>` : ""}
+      ${c.artist ? `<div class="detail-artist">Illustrated by ${escapeHtml(c.artist)}</div>` : ""}
+    </div>
+  `;
+
+  detailBody.querySelector('[data-act="dec"]').addEventListener("click", async () => {
+    await setOwned(c.id, Math.max(0, c.ownedCount - 1));
+    renderCardDetail(cardsById.get(c.id));
+  });
+  detailBody.querySelector('[data-act="inc"]').addEventListener("click", async () => {
+    await setOwned(c.id, c.ownedCount + 1);
+    renderCardDetail(cardsById.get(c.id));
+  });
+}
+
+document.getElementById("closeDetail").addEventListener("click", () => { detailOverlay.hidden = true; });
+detailOverlay.addEventListener("click", e => { if (e.target === detailOverlay) detailOverlay.hidden = true; });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !detailOverlay.hidden) detailOverlay.hidden = true;
+});
 
 /* ---------------- Init ---------------- */
 (async function init() {

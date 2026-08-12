@@ -144,6 +144,7 @@ select.sort { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--bor
 .card {
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
   display: flex; flex-direction: column; position: relative; transition: transform .12s ease, border-color .12s ease;
+  cursor: pointer;
 }
 .card:hover { transform: translateY(-2px); border-color: var(--text-faint); }
 .card .art { position: relative; background: var(--surface-2); aspect-ratio: 744 / 1039; }
@@ -258,6 +259,58 @@ select.sort { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--bor
 .connection-qr img { width: 100%; height: 100%; image-rendering: pixelated; }
 
 .connection-hint { font: 500 12.5px var(--font-ui); color: var(--text-dim); line-height: 1.5; }
+
+/* ---------- Card detail overlay ---------- */
+.detail-sheet { max-width: 720px; }
+.detail-body { display: flex; flex-direction: column; gap: 18px; }
+@media (min-width: 640px) {
+  .detail-body { flex-direction: row; align-items: flex-start; }
+  .detail-art-col { width: 260px; flex-shrink: 0; }
+}
+
+.detail-art-col { position: relative; }
+.detail-art {
+  position: relative; background: var(--surface-2); border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--border); aspect-ratio: 744 / 1039;
+}
+.detail-art.is-landscape { aspect-ratio: 1039 / 744; }
+.detail-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.detail-art.is-missing img { filter: grayscale(1) brightness(.55) contrast(.92); opacity: .82; }
+.detail-art .domain-bar { height: 5px; }
+
+.detail-owned {
+  margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
+}
+.detail-owned .lbl { font: 700 11px var(--font-ui); letter-spacing: .06em; text-transform: uppercase; color: var(--text-faint); }
+.detail-owned .stepper { margin-top: 0; }
+.detail-owned .stepper button { width: 30px; height: 30px; font-size: 15px; }
+.detail-owned .stepper .n { font-size: 16px; min-width: 22px; }
+
+.detail-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+
+.detail-meta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 12.5px; }
+.detail-meta-row .num { font: 600 12px var(--font-mono); color: var(--text-faint); }
+.detail-meta-row .rarity { display: flex; align-items: center; gap: 6px; font: 700 12px var(--font-ui); }
+.detail-meta-row .rarity .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.detail-type { font: 600 12px var(--font-ui); color: var(--text-dim); }
+.detail-type b { color: var(--text); font-weight: 700; }
+
+.detail-domains { display: flex; flex-wrap: wrap; gap: 6px; }
+.detail-domains .chip { display: flex; align-items: center; gap: 6px; cursor: default; }
+.detail-domains .chip:hover { color: var(--text-dim); border-color: var(--border); }
+
+.detail-stats { display: flex; gap: 10px; }
+.detail-stat {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  width: 56px; height: 56px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface);
+}
+.detail-stat .v { font: 800 18px var(--font-mono); color: var(--text); }
+.detail-stat .k { font: 700 9px var(--font-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); }
+
+.detail-text { font: 500 13.5px/1.55 var(--font-ui); color: var(--text); white-space: pre-wrap; }
+.detail-flavor { font: italic 500 13px/1.5 var(--font-ui); color: var(--text-dim); }
+.detail-artist { font: 500 11.5px var(--font-ui); color: var(--text-faint); }
 .connection-hint b { color: var(--text); }
 
 .connection-url-row {

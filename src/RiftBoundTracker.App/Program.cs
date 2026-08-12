@@ -183,7 +183,15 @@ internal static class Program
         });
 
         app.UseDefaultFiles();
-        app.UseStaticFiles();
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            // The desktop shell's WebView2 window keeps the same on-disk HTTP cache across app
+            // restarts — after a self-update swaps in new files, a plain cache hit could go on
+            // serving pre-update JS/CSS/HTML with no way for the user to tell anything changed.
+            // Forcing revalidation means real content changes (new ETag/Last-Modified) always win,
+            // while an unchanged file still gets a cheap 304 instead of a full re-download.
+            OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl = "no-cache"
+        });
         app.UseStaticFiles(new StaticFileOptions
         {
             FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(Path.Combine(dataDir, "images")),

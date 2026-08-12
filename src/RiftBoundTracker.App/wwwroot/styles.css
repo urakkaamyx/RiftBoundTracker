@@ -309,6 +309,25 @@ select.sort { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--bor
 .detail-stat .k { font: 700 9px var(--font-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); }
 
 .detail-text { font: 500 13.5px/1.55 var(--font-ui); color: var(--text); white-space: pre-wrap; }
+.detail-text .kw-badge {
+  display: inline-block; font: 800 10.5px var(--font-ui); letter-spacing: .03em; text-transform: uppercase;
+  border-radius: 4px; padding: 1px 6px; margin: 0 1px; line-height: 1.6; background: var(--surface-2);
+}
+.detail-text .kw-badge.kw-default, .detail-text .kw-badge.kw-amber { background: var(--accent-soft); color: var(--accent-text); border: 1px solid var(--accent); }
+.detail-text .kw-badge.kw-blue { color: var(--c-calm); border: 1px solid var(--c-calm); }
+.detail-text .kw-badge.kw-fury { color: var(--c-fury); border: 1px solid var(--c-fury); }
+.detail-text .kw-badge.kw-mind { color: var(--c-mind); border: 1px solid var(--c-mind); }
+.detail-text .kw-badge.kw-body { color: var(--c-body); border: 1px solid var(--c-body); }
+.detail-text .kw-badge.kw-gray { color: var(--text-dim); border: 1px solid var(--border); }
+
+.detail-text .icon-tok {
+  display: inline-block; font: 700 11px var(--font-mono); white-space: nowrap; background: var(--surface-2);
+  border-radius: 999px; padding: 0 7px; margin: 0 1px; line-height: 1.6; border: 1px solid var(--border);
+}
+.detail-text .icon-tok.icon-default, .detail-text .icon-tok.icon-gray { color: var(--text-dim); }
+.detail-text .icon-tok.icon-amber { color: var(--accent-text); border-color: var(--accent); }
+.detail-text .icon-tok.icon-fury { color: var(--c-fury); border-color: var(--c-fury); }
+.detail-text .icon-tok.icon-order { color: var(--c-order); border-color: var(--c-order); }
 .detail-flavor { font: italic 500 13px/1.5 var(--font-ui); color: var(--text-dim); }
 .detail-artist { font: 500 11.5px var(--font-ui); color: var(--text-faint); }
 .connection-hint b { color: var(--text); }

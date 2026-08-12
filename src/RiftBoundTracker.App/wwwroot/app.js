@@ -547,6 +547,56 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// Keyed by the keyword text lowercased with any trailing " N" stripped (so "Assault 2" and
+// "Assault" share a style). Colors reuse the app's existing domain palette rather than inventing
+// a second color language, grouped loosely by what each keyword does (offense, defense, growth…).
+const KEYWORD_STYLE = {
+  empower: "kw-amber", empowered: "kw-amber", level: "kw-amber",
+  deflect: "kw-blue", tank: "kw-blue",
+  assault: "kw-fury", burn: "kw-fury", hunt: "kw-fury",
+  ambush: "kw-mind", flow: "kw-mind",
+  recycle: "kw-body",
+  exhaust: "kw-gray", tap: "kw-gray",
+};
+const ICON_STYLE = { energy: "icon-amber", might: "icon-fury", power: "icon-order", exhaust: "icon-gray" };
+
+function keywordStyle(label) {
+  const key = label.toLowerCase().replace(/\s*\d+$/, "").trim();
+  return KEYWORD_STYLE[key] || "kw-default";
+}
+function iconStyle(kind) {
+  if (kind.startsWith("rune")) return "icon-gray";
+  return ICON_STYLE[kind.split(" ")[0]] || "icon-default";
+}
+
+// Rules text from the API embeds two inline token styles the real card art renders as badges
+// instead of literal text: [Keyword] tags (Empower, Deflect, Assault 2…) and :rb_xxx_n: resource/
+// icon tokens (:rb_energy_5:, :rb_might:, :rb_rune_rainbow:…). Some strings also carry an
+// already-HTML-escaped "&gt;" from the source data, which escapeHtml() would otherwise double
+// escape into a literal "&amp;gt;". This turns that raw text into the same badge-and-pill shape
+// the card itself uses, giving each keyword/icon kind its own color instead of one flat style.
+function formatCardText(raw) {
+  if (!raw) return "";
+  const decoded = raw.replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&amp;/g, "&");
+
+  return decoded
+    .split(/(\[[^\]]+\]|:rb_[a-z0-9_]+:)/gi)
+    .map(part => {
+      const kw = /^\[([^\]]+)\]$/.exec(part);
+      if (kw) return `<span class="kw-badge ${keywordStyle(kw[1])}">${escapeHtml(kw[1])}</span>`;
+
+      const icon = /^:rb_(.+):$/i.exec(part);
+      if (icon) {
+        const num = /^(.*)_(\d+)$/.exec(icon[1]);
+        const kind = (num ? num[1] : icon[1]).replace(/_/g, " ");
+        return `<span class="icon-tok ${iconStyle(kind)}">${num ? `${escapeHtml(num[2])} ` : ""}${escapeHtml(kind)}</span>`;
+      }
+
+      return escapeHtml(part);
+    })
+    .join("");
+}
+
 async function checkForUpdate() {
   checkUpdateBtn.disabled = true;
   checkUpdateBtn.textContent = "Checking…";
@@ -706,7 +756,7 @@ function renderCardDetail(c) {
       <div class="detail-type">${c.supertype ? `<b>${escapeHtml(c.supertype)}</b> ` : ""}${escapeHtml(c.type)}</div>
       <div class="detail-domains">${domains.map(d => `<span class="chip"><span class="dot" style="background:${DOMAIN_COLOR[d] || "var(--c-colorless)"}"></span>${escapeHtml(d)}</span>`).join("")}</div>
       ${stats.length ? `<div class="detail-stats">${stats.map(s => `<div class="detail-stat"><span class="v">${s.v}</span><span class="k">${s.k}</span></div>`).join("")}</div>` : ""}
-      ${c.textPlain ? `<div class="detail-text">${escapeHtml(c.textPlain)}</div>` : ""}
+      ${c.textPlain ? `<div class="detail-text">${formatCardText(c.textPlain)}</div>` : ""}
       ${c.flavour ? `<div class="detail-flavor">${escapeHtml(c.flavour)}</div>` : ""}
       ${c.artist ? `<div class="detail-artist">Illustrated by ${escapeHtml(c.artist)}</div>` : ""}
     </div>

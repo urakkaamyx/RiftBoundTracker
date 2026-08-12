@@ -12,8 +12,8 @@
   --danger: #b3432f;
   --missing-stripe: repeating-linear-gradient(135deg, rgba(0,0,0,.05) 0 6px, transparent 6px 12px);
 
-  --c-fury: #c14d2e; --c-calm: #2c8ba6; --c-order: #a9822a;
-  --c-mind: #7052a8; --c-body: #3d8a56; --c-chaos: #ab3d84; --c-colorless: #726c7d;
+  --c-fury: #c14d2e; --c-calm: #3d8a56; --c-order: #a9822a;
+  --c-mind: #2c8ba6; --c-body: #c17a1f; --c-chaos: #7052a8; --c-colorless: #726c7d;
 
   --font-ui: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-card: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
@@ -25,8 +25,8 @@
     --text: #ece8f2; --text-dim: #9a92ab; --text-faint: #635c73;
     --accent: #d9a441; --accent-soft: #d9a44122; --accent-text: #f0c66e; --danger: #e07e6a;
     --missing-stripe: repeating-linear-gradient(135deg, rgba(0,0,0,.35) 0 6px, transparent 6px 12px);
-    --c-fury: #e07352; --c-calm: #56b8d6; --c-order: #d6b155; --c-mind: #a082d9;
-    --c-body: #5fbd7d; --c-chaos: #d668ac; --c-colorless: #938da3;
+    --c-fury: #e07352; --c-calm: #5fbd7d; --c-order: #d6b155; --c-mind: #56b8d6;
+    --c-body: #e0a052; --c-chaos: #a082d9; --c-colorless: #938da3;
   }
 }
 :root[data-theme="dark"] {
@@ -34,16 +34,16 @@
   --text: #ece8f2; --text-dim: #9a92ab; --text-faint: #635c73;
   --accent: #d9a441; --accent-soft: #d9a44122; --accent-text: #f0c66e; --danger: #e07e6a;
   --missing-stripe: repeating-linear-gradient(135deg, rgba(0,0,0,.35) 0 6px, transparent 6px 12px);
-  --c-fury: #e07352; --c-calm: #56b8d6; --c-order: #d6b155; --c-mind: #a082d9;
-  --c-body: #5fbd7d; --c-chaos: #d668ac; --c-colorless: #938da3;
+  --c-fury: #e07352; --c-calm: #5fbd7d; --c-order: #d6b155; --c-mind: #56b8d6;
+  --c-body: #e0a052; --c-chaos: #a082d9; --c-colorless: #938da3;
 }
 :root[data-theme="light"] {
   --bg: #f5f3f0; --surface: #ffffff; --surface-2: #ece8e2; --border: #ddd7cd;
   --text: #211d29; --text-dim: #6b6577; --text-faint: #a39cae;
   --accent: #a97a1f; --accent-soft: #a97a1f22; --accent-text: #6e5314; --danger: #b3432f;
   --missing-stripe: repeating-linear-gradient(135deg, rgba(0,0,0,.05) 0 6px, transparent 6px 12px);
-  --c-fury: #c14d2e; --c-calm: #2c8ba6; --c-order: #a9822a; --c-mind: #7052a8;
-  --c-body: #3d8a56; --c-chaos: #ab3d84; --c-colorless: #726c7d;
+  --c-fury: #c14d2e; --c-calm: #3d8a56; --c-order: #a9822a; --c-mind: #2c8ba6;
+  --c-body: #c17a1f; --c-chaos: #7052a8; --c-colorless: #726c7d;
 }
 
 * { box-sizing: border-box; }
@@ -81,6 +81,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-ui); }
 .chip:hover { color: var(--text); border-color: var(--text-faint); }
 .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-text); }
 .chip .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.chip .dot.dot-icon { width: 12px; height: 12px; border-radius: 0; display: inline-flex; align-items: center; justify-content: center; }
+.chip .dot.dot-icon svg { display: block; }
 
 .owned-toggle { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
 .owned-toggle button {

@@ -4,6 +4,17 @@ const DOMAIN_COLOR = {
   Mind: "var(--c-mind)", Body: "var(--c-body)", Chaos: "var(--c-chaos)",
   Colorless: "var(--c-colorless)"
 };
+// Simplified stand-ins for each domain's printed symbol (a spiky burst for Fury, a teardrop for
+// Calm, an arrowhead for Mind, linked diamonds for Body, a four-blade pinwheel for Chaos, a
+// swept wing for Order) — colored via currentColor so DOMAIN_COLOR still drives the hue.
+const DOMAIN_ICON = {
+  Fury: '<svg viewBox="0 0 16 16" width="12" height="12"><polygon points="8,0 9.8,6.2 16,8 9.8,9.8 8,16 6.2,9.8 0,8 6.2,6.2" fill="currentColor"/></svg>',
+  Calm: '<svg viewBox="0 0 16 16" width="12" height="12"><path d="M8 1 C11.5 4.5 13.5 7.5 13.5 10 A5.5 5.5 0 0 1 2.5 10 C2.5 7.5 4.5 4.5 8 1 Z" fill="currentColor"/></svg>',
+  Mind: '<svg viewBox="0 0 16 16" width="12" height="12"><path d="M1 8 L9.5 1 L7.5 8 L9.5 15 Z" fill="currentColor"/></svg>',
+  Body: '<svg viewBox="0 0 16 16" width="12" height="12"><polygon points="4.5,8 6.8,5 9,8 6.8,11" fill="currentColor"/><polygon points="9,8 11.3,5 13.5,8 11.3,11" fill="currentColor"/></svg>',
+  Chaos: '<svg viewBox="0 0 16 16" width="12" height="12"><g fill="currentColor"><path d="M8 8 Q8 2.5 3 2.5 Q3 7 8 8 Z"/><path d="M8 8 Q8 2.5 3 2.5 Q3 7 8 8 Z" transform="rotate(90 8 8)"/><path d="M8 8 Q8 2.5 3 2.5 Q3 7 8 8 Z" transform="rotate(180 8 8)"/><path d="M8 8 Q8 2.5 3 2.5 Q3 7 8 8 Z" transform="rotate(270 8 8)"/></g></svg>',
+  Order: '<svg viewBox="0 0 16 16" width="12" height="12"><path d="M8 3 C6 3.5 2.5 5.5 1 9.5 C4 8.5 6.2 8.5 8 10.5 C9.8 8.5 12 8.5 15 9.5 C13.5 5.5 10 3.5 8 3 Z" fill="currentColor"/></svg>',
+};
 const RARITY_COLOR = {
   Common: "var(--text-faint)", Uncommon: "var(--c-body)", Rare: "var(--c-calm)",
   Epic: "var(--c-mind)", Legendary: "var(--c-order)"
@@ -74,7 +85,7 @@ function onSetChanged() {
   loadGrid();
 }
 
-function buildChips(containerId, values, current, onPick, colorMap) {
+function buildChips(containerId, values, current, onPick, colorMap, iconMap) {
   const el = document.getElementById(containerId);
   el.innerHTML = "";
   values.forEach(v => {
@@ -82,7 +93,13 @@ function buildChips(containerId, values, current, onPick, colorMap) {
     btn.className = "chip";
     btn.type = "button";
     btn.setAttribute("aria-pressed", String(v === current));
-    if (colorMap) {
+    if (iconMap && iconMap[v]) {
+      const icon = document.createElement("span");
+      icon.className = "dot dot-icon";
+      icon.style.color = colorMap ? colorMap[v] : "var(--text-faint)";
+      icon.innerHTML = iconMap[v];
+      btn.appendChild(icon);
+    } else if (colorMap) {
       const dot = document.createElement("span");
       dot.className = "dot";
       dot.style.background = colorMap[v] || "var(--text-faint)";
@@ -102,7 +119,7 @@ async function loadFacets() {
 
   buildChips("typeChips", types, state.type, v => { state.type = v; loadGrid(); });
   buildChips("rarityChips", rarities, state.rarity, v => { state.rarity = v; loadGrid(); });
-  buildChips("domainChips", domains, state.domain, v => { state.domain = v; loadGrid(); }, DOMAIN_COLOR);
+  buildChips("domainChips", domains, state.domain, v => { state.domain = v; loadGrid(); }, DOMAIN_COLOR, DOMAIN_ICON);
 }
 
 async function loadStats() {
@@ -791,7 +808,7 @@ function renderCardDetail(c) {
         <span class="rarity"><span class="dot" style="background:${RARITY_COLOR[c.rarity] || "var(--text-faint)"}"></span>${escapeHtml(c.rarity)}</span>
       </div>
       <div class="detail-type">${c.supertype ? `<b>${escapeHtml(c.supertype)}</b> ` : ""}${escapeHtml(c.type)}</div>
-      <div class="detail-domains">${domains.map(d => `<span class="chip"><span class="dot" style="background:${DOMAIN_COLOR[d] || "var(--c-colorless)"}"></span>${escapeHtml(d)}</span>`).join("")}</div>
+      <div class="detail-domains">${domains.map(d => `<span class="chip"><span class="dot dot-icon" style="color:${DOMAIN_COLOR[d] || "var(--c-colorless)"}">${DOMAIN_ICON[d] || ""}</span>${escapeHtml(d)}</span>`).join("")}</div>
       ${stats.length ? `<div class="detail-stats">${stats.map(s => `<div class="detail-stat"><span class="v">${s.v}</span><span class="k">${s.k}</span></div>`).join("")}</div>` : ""}
       ${c.textPlain ? `<div class="detail-text">${formatCardText(c.textPlain)}</div>` : ""}
       ${c.flavour ? `<div class="detail-flavor">${escapeHtml(c.flavour)}</div>` : ""}

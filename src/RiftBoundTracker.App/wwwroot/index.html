@@ -30,25 +30,10 @@
         <div class="update-status" id="updateStatus" hidden></div>
       </div>
 
-      <div class="ring-stat">
-        <svg width="52" height="52" viewBox="0 0 52 52">
-          <circle cx="26" cy="26" r="22" fill="none" stroke="var(--border)" stroke-width="5"/>
-          <circle id="ringProgress" cx="26" cy="26" r="22" fill="none" stroke="var(--accent)" stroke-width="5"
-            stroke-linecap="round" transform="rotate(-90 26 26)"/>
-        </svg>
-        <div>
-          <div class="num" id="pctLabel">0%</div>
-          <div class="lbl"><span id="ownedLabel">0</span> / <span id="totalLabel">0</span> collected</div>
-        </div>
-      </div>
-
-      <div class="filter-group">
-        <h3>Sets</h3>
-        <div class="set-list" id="setList"></div>
-        <div class="sync-row">
-          <input class="field" id="syncSetId" placeholder="Set code, e.g. VEN" maxlength="8" />
-          <button class="btn primary" id="syncBtn">Sync</button>
-        </div>
+      <div class="filter-group catalog-status">
+        <h3>Catalog</h3>
+        <div class="catalog-status-body" id="catalogStatusBody">Loading…</div>
+        <button class="btn" id="refreshCatalogBtn">Refresh catalog</button>
       </div>
 
       <div class="filter-group">
@@ -62,17 +47,17 @@
 
       <div class="filter-group">
         <h3>Search</h3>
-        <input class="search" id="search" type="text" placeholder="Card name…" />
-      </div>
-
-      <div class="filter-group">
-        <h3>Type</h3>
-        <div class="chiprow" id="typeChips"></div>
+        <input class="search" id="search" type="text" placeholder="Card name or number…" />
       </div>
 
       <div class="filter-group">
         <h3>Rarity</h3>
         <div class="chiprow" id="rarityChips"></div>
+      </div>
+
+      <div class="filter-group">
+        <h3>Type</h3>
+        <div class="chiprow" id="typeChips"></div>
       </div>
 
       <div class="filter-group">
@@ -84,8 +69,29 @@
 
     <main class="main">
       <div class="toolbar">
-        <div class="count"><b id="resultCount">0</b> cards shown</div>
+        <div class="toolbar-stats">
+          <div class="ring-stat" id="ringStat">
+            <svg width="40" height="40" viewBox="0 0 40 40">
+              <circle cx="20" cy="20" r="16" fill="none" stroke="var(--border)" stroke-width="4"/>
+              <circle id="ringProgress" cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4"
+                stroke-linecap="round" transform="rotate(-90 20 20)"/>
+            </svg>
+            <div>
+              <div class="num" id="pctLabel">0%</div>
+              <div class="lbl"><span id="ownedLabel">0</span> / <span id="totalLabel">0</span></div>
+            </div>
+          </div>
+          <div class="count"><b id="resultCount">0</b> cards shown</div>
+        </div>
         <div class="toolbar-actions">
+          <div class="quick-add" id="quickAdd">
+            <input class="field" id="quickAddInput" placeholder="Quick add: OGN-045 or 45" />
+            <button class="btn primary" id="quickAddBtn">Add</button>
+          </div>
+          <button class="scan-fab secondary" id="openMassAdd">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h11M4 12h7M4 18h11"/><path d="M19 15v6M16 18h6"/></svg>
+            Mass add
+          </button>
           <div class="sortbox">
             <label for="sort">Sort</label>
             <select class="sort" id="sort">
@@ -112,10 +118,12 @@
         </div>
       </div>
 
-      <div class="grid" id="grid"></div>
-      <div class="empty" id="emptyState" hidden>No cards match these filters. Try syncing a set from the sidebar.</div>
+      <div class="set-tabs" id="setTabs"></div>
 
-      <p class="note"><b>Cached locally.</b> Card data and art are pulled from the Riftcodex API once per set (via Sync) and stored in SQLite + on disk — browsing, filtering, and scanning all run against that local cache, not the live API.</p>
+      <div class="grid" id="grid"></div>
+      <div class="empty" id="emptyState" hidden>No cards match these filters. The catalog may still be syncing — check the sidebar.</div>
+
+      <p class="note"><b>Cached locally.</b> The full card catalog is synced automatically and stored in SQLite + on disk — browsing, filtering, and scanning all run against that local cache, not the live API.</p>
     </main>
   </div>
 
@@ -175,10 +183,31 @@
       <div class="filter-group manual-entry">
         <h3>Or type the number</h3>
         <div class="sync-row">
+          <input class="field manual-set" id="manualSetCode" type="text" placeholder="Set" maxlength="8" />
           <input class="field" id="manualNumber" type="number" inputmode="numeric" placeholder="e.g. 147" min="1" />
           <button class="btn primary" id="manualLookupBtn">Find</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="massAddOverlay" hidden>
+    <div class="sheet mass-add-sheet">
+      <div class="sheet-head">
+        <h2>Mass add</h2>
+        <button id="closeMassAdd" aria-label="Close">✕</button>
+      </div>
+
+      <p class="mass-add-hint">One card per line — <code>OGN-045</code>, <code>45</code> (uses the active set tab),
+        or add <code>x3</code> for multiple copies (e.g. <code>OGN-045 x3</code>). Commas also work as separators.</p>
+
+      <textarea class="mass-add-input" id="massAddInput" rows="8" placeholder="OGN-045&#10;VEN-012 x2&#10;88"></textarea>
+
+      <button class="btn primary" id="massAddPreviewBtn">Preview</button>
+
+      <div class="mass-add-results" id="massAddResults"></div>
+
+      <button class="btn primary" id="massAddConfirmBtn" hidden>Add</button>
     </div>
   </div>
 

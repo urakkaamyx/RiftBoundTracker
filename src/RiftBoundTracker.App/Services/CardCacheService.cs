@@ -85,7 +85,9 @@ public class CardCacheService(
         if (string.IsNullOrEmpty(entity.ImageUrl))
             return;
 
-        var fileName = $"{entity.Id}.png";
+        // Some riftbound_ids contain characters that aren't valid in a Windows filename (e.g. a
+        // trailing "*" marking a foil/variant print) — sanitize before using the id as a filename.
+        var fileName = $"{SanitizeFileName(entity.Id)}.png";
         var localPath = Path.Combine(ImagesRoot, fileName);
 
         if (!File.Exists(localPath))
@@ -111,6 +113,12 @@ public class CardCacheService(
         }
     }
 
+    private static string SanitizeFileName(string id)
+    {
+        var invalid = Path.GetInvalidFileNameChars();
+        return string.Concat(id.Select(c => invalid.Contains(c) ? '_' : c));
+    }
+
     public Task<List<CardEntity>> QueryAsync(CardQuery q, CancellationToken ct = default)
     {
         var query = db.Cards.AsQueryable();
@@ -124,7 +132,11 @@ public class CardCacheService(
         if (!string.IsNullOrWhiteSpace(q.Domain))
             query = query.Where(c => c.DomainsCsv.Contains(q.Domain));
         if (!string.IsNullOrWhiteSpace(q.Search))
-            query = query.Where(c => c.Name.Contains(q.Search));
+        {
+            var search = q.Search.Trim();
+            query = query.Where(c => c.Name.Contains(search) || c.Id.Contains(search)
+                || c.CollectorNumber.ToString().Contains(search));
+        }
         if (q.Owned == "owned")
             query = query.Where(c => c.OwnedCount > 0);
         else if (q.Owned == "missing")

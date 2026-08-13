@@ -68,3 +68,27 @@ public class RiftcodexCardPage
     public int Size { get; set; }
     public int Pages { get; set; }
 }
+
+public class RiftcodexSetListItem
+{
+    public string? Id { get; set; }
+    public string Name { get; set; } = "";
+
+    [JsonPropertyName("set_id")]
+    public string SetId { get; set; } = "";
+
+    [JsonPropertyName("card_count")]
+    public int CardCount { get; set; }
+
+    [JsonPropertyName("published_on")]
+    public DateTimeOffset? PublishedOn { get; set; }
+}
+
+public class RiftcodexSetPage
+{
+    public List<RiftcodexSetListItem> Items { get; set; } = [];
+    public int Total { get; set; }
+    public int Page { get; set; }
+    public int Size { get; set; }
+    public int Pages { get; set; }
+}

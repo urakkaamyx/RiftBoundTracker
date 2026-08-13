@@ -55,6 +55,30 @@ public class RiftcodexClient(HttpClient http, BrowserRelayClient relay, ILogger<
         }
     }
 
+    public async Task<RiftcodexSetPage> GetSetsPageAsync(int page, int size, CancellationToken ct = default)
+    {
+        var url = $"/sets?page={page}&size={size}";
+        var result = await GetWithRetryAsync<RiftcodexSetPage>(url, ct);
+        return result ?? new RiftcodexSetPage();
+    }
+
+    public async IAsyncEnumerable<RiftcodexSetListItem> GetAllSetsAsync(
+        int pageSize = 50,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default)
+    {
+        var page = 1;
+        while (true)
+        {
+            var result = await GetSetsPageAsync(page, pageSize, ct);
+            foreach (var set in result.Items)
+                yield return set;
+
+            if (result.Items.Count == 0 || page >= result.Pages)
+                yield break;
+            page++;
+        }
+    }
+
     private async Task<T?> GetWithRetryAsync<T>(string url, CancellationToken ct)
     {
         for (var attempt = 1; attempt <= MaxAttempts; attempt++)

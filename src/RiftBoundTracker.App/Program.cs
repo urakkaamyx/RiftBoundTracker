@@ -144,6 +144,7 @@ internal static class Program
         builder.Services.AddSingleton<BrowserRelayClient>();
         builder.Services.AddScoped<CardCacheService>();
         builder.Services.AddScoped<ScanService>();
+        builder.Services.AddScoped<CatalogSyncService>();
 
         var app = builder.Build();
 
@@ -163,6 +164,21 @@ internal static class Program
             }
 
             await db.Database.MigrateAsync();
+
+            // First launch (or a DB that's never finished a full sync) — populate the whole
+            // catalog automatically instead of requiring the old manual per-set sync. Runs in its
+            // own background scope so it doesn't block app startup / the desktop window showing up.
+            var catalogSync = scope.ServiceProvider.GetRequiredService<CatalogSyncService>();
+            if (!await catalogSync.HasEverSyncedAsync())
+            {
+                var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
+                _ = Task.Run(async () =>
+                {
+                    using var bgScope = scopeFactory.CreateScope();
+                    var bgSync = bgScope.ServiceProvider.GetRequiredService<CatalogSyncService>();
+                    await bgSync.TrySyncAllAsync();
+                });
+            }
         }
 
         // A safety net for anything that slips past a route's own error handling: without this,
@@ -252,6 +268,20 @@ internal static class Program
             var count = await cache.SyncSetAsync(setId, progress: null, ct);
             return Results.Ok(new { setId = setId.ToUpperInvariant(), synced = count });
         });
+
+        app.MapPost("/api/sync/refresh", (IServiceScopeFactory scopeFactory) =>
+        {
+            _ = Task.Run(async () =>
+            {
+                using var scope = scopeFactory.CreateScope();
+                var sync = scope.ServiceProvider.GetRequiredService<CatalogSyncService>();
+                await sync.TrySyncAllAsync();
+            });
+            return Results.Ok(new { started = true });
+        });
+
+        app.MapGet("/api/sync/status", async (CatalogSyncService sync, CancellationToken ct) =>
+            Results.Ok(await sync.GetStatusAsync(ct)));
 
         app.MapGet("/api/cards", async (
             string? search, string? setId, string? type, string? rarity, string? domain, string? owned, string? sort,

@@ -53,27 +53,33 @@ function qs(params) {
 
 async function loadSets() {
   const sets = await api("/api/sets");
-  const el = document.getElementById("setList");
+  const el = document.getElementById("setTabs");
   el.innerHTML = "";
 
-  const allItem = document.createElement("div");
-  allItem.className = "set-item" + (state.setId === null ? " active" : "");
-  allItem.innerHTML = `<span>All sets</span>`;
-  allItem.addEventListener("click", () => { state.setId = null; onSetChanged(); });
-  el.appendChild(allItem);
+  const totalOwned = sets.reduce((n, s) => n + s.owned, 0);
+  const totalAll = sets.reduce((n, s) => n + s.total, 0);
+
+  const allTab = document.createElement("button");
+  allTab.type = "button";
+  allTab.className = "set-tab" + (state.setId === null ? " active" : "");
+  allTab.innerHTML = `<span class="name">All sets</span><span class="n">${totalOwned}/${totalAll}</span>`;
+  allTab.addEventListener("click", () => { state.setId = null; onSetChanged(); });
+  el.appendChild(allTab);
 
   sets.forEach(s => {
-    const item = document.createElement("div");
-    item.className = "set-item" + (state.setId === s.setId ? " active" : "");
-    item.innerHTML = `<span>${s.setLabel || s.setId}</span><span class="n">${s.owned}/${s.total}</span>`;
-    item.addEventListener("click", () => { state.setId = s.setId; onSetChanged(); });
-    el.appendChild(item);
+    const tab = document.createElement("button");
+    tab.type = "button";
+    tab.className = "set-tab" + (state.setId === s.setId ? " active" : "");
+    tab.title = s.setLabel || s.setId;
+    tab.innerHTML = `<span class="name">${s.setId}</span><span class="n">${s.owned}/${s.total}</span>`;
+    tab.addEventListener("click", () => { state.setId = s.setId; onSetChanged(); });
+    el.appendChild(tab);
   });
 
   if (sets.length === 0) {
     const hint = document.createElement("div");
-    hint.style.cssText = "font-size:12px;color:var(--text-faint);padding:4px;";
-    hint.textContent = "No sets cached yet — sync one below.";
+    hint.className = "set-tabs-hint";
+    hint.textContent = "Catalog is syncing — sets will appear here as they finish.";
     el.appendChild(hint);
   }
 }
@@ -129,7 +135,7 @@ async function loadStats() {
   const pct = stats.total ? Math.round((stats.owned / stats.total) * 100) : 0;
   document.getElementById("pctLabel").textContent = pct + "%";
   const ring = document.getElementById("ringProgress");
-  const circumference = 2 * Math.PI * 22;
+  const circumference = 2 * Math.PI * 16;
   ring.style.strokeDasharray = circumference;
   ring.style.strokeDashoffset = circumference * (1 - pct / 100);
 }
@@ -238,25 +244,262 @@ document.getElementById("search").addEventListener("input", e => {
 
 document.getElementById("sort").addEventListener("change", e => { state.sort = e.target.value; loadGrid(); });
 
-document.getElementById("syncBtn").addEventListener("click", async () => {
-  const input = document.getElementById("syncSetId");
-  const setId = input.value.trim();
-  if (!setId) return;
-  const btn = document.getElementById("syncBtn");
-  btn.disabled = true;
-  btn.textContent = "Syncing…";
+/* ---------------- Catalog sync status ---------------- */
+const catalogStatusBody = document.getElementById("catalogStatusBody");
+const refreshCatalogBtn = document.getElementById("refreshCatalogBtn");
+let catalogPollTimer = null;
+
+function formatRelativeTime(iso) {
+  if (!iso) return null;
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.round(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.round(hours / 24)}d ago`;
+}
+
+async function pollCatalogStatus() {
+  let status;
   try {
-    const result = await api(`/api/sync/${encodeURIComponent(setId)}`, { method: "POST" });
-    state.setId = result.setId;
-    input.value = "";
-    onSetChanged();
+    status = await api("/api/sync/status");
   } catch (err) {
-    alert("Sync failed: " + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Sync";
+    catalogStatusBody.textContent = "Couldn't load sync status: " + err.message;
+    return;
   }
+
+  if (status.running) {
+    catalogStatusBody.innerHTML = `
+      <span class="available">Syncing ${escapeHtml(status.currentSet || "")}…</span>
+      <div class="notes">${status.setsDone}/${status.setsTotal} sets · ${status.cardsDone} cards</div>
+    `;
+    refreshCatalogBtn.disabled = true;
+    if (!catalogPollTimer) catalogPollTimer = setInterval(pollCatalogStatus, 2000);
+  } else {
+    const relative = formatRelativeTime(status.lastSyncedAt);
+    catalogStatusBody.textContent = status.lastSyncedAt
+      ? `${status.totalCards} cards across ${status.totalSets} sets — synced ${relative}`
+      : "Not synced yet.";
+    refreshCatalogBtn.disabled = false;
+    if (catalogPollTimer) { clearInterval(catalogPollTimer); catalogPollTimer = null; }
+    onSetChanged();
+  }
+}
+
+refreshCatalogBtn.addEventListener("click", async () => {
+  refreshCatalogBtn.disabled = true;
+  try {
+    await api("/api/sync/refresh", { method: "POST" });
+  } catch (err) {
+    catalogStatusBody.textContent = "Refresh failed: " + err.message;
+    refreshCatalogBtn.disabled = false;
+    return;
+  }
+  pollCatalogStatus();
 });
+
+pollCatalogStatus();
+
+/* ---------------- Quick add by ID ---------------- */
+const quickAddInput = document.getElementById("quickAddInput");
+const quickAddBtn = document.getElementById("quickAddBtn");
+
+function parseQuickAddInput(raw) {
+  const cleaned = raw.trim();
+  const withSet = /^([A-Za-z]{2,4})[\s-]*(\d{1,3})$/.exec(cleaned);
+  if (withSet) return { setId: withSet[1].toUpperCase(), number: parseInt(withSet[2], 10) };
+  const bare = /^(\d{1,3})$/.exec(cleaned);
+  if (bare) return { setId: state.setId, number: parseInt(bare[1], 10) };
+  return null;
+}
+
+async function quickAdd() {
+  const parsed = parseQuickAddInput(quickAddInput.value);
+  if (!parsed) {
+    alert('Type a card number (e.g. "45") or set + number (e.g. "OGN-045").');
+    return;
+  }
+
+  quickAddBtn.disabled = true;
+  try {
+    const cards = await api(`/api/cards/lookup?${qs({ setId: parsed.setId, number: parsed.number })}`);
+    if (cards.length === 1) {
+      await setOwned(cards[0].id, (cards[0].ownedCount || 0) + 1);
+      quickAddInput.value = "";
+      quickAddBtn.textContent = "Added ✓";
+      setTimeout(() => { quickAddBtn.textContent = "Add"; }, 1200);
+    } else if (cards.length > 1) {
+      resetScanSheet();
+      overlay.hidden = false;
+      manualNumber.value = String(parsed.number);
+      if (parsed.setId) manualSetCode.value = parsed.setId;
+      document.getElementById("manualLookupBtn").click();
+    } else {
+      alert(parsed.setId
+        ? `No card #${parsed.number} found in ${parsed.setId}.`
+        : `No card numbered ${parsed.number} in any synced set.`);
+    }
+  } catch (err) {
+    alert("Quick add failed: " + err.message);
+  } finally {
+    quickAddBtn.disabled = false;
+  }
+}
+
+quickAddBtn.addEventListener("click", quickAdd);
+quickAddInput.addEventListener("keydown", e => { if (e.key === "Enter") quickAdd(); });
+
+/* ---------------- Mass add ---------------- */
+const massAddOverlay = document.getElementById("massAddOverlay");
+const massAddInput = document.getElementById("massAddInput");
+const massAddPreviewBtn = document.getElementById("massAddPreviewBtn");
+const massAddConfirmBtn = document.getElementById("massAddConfirmBtn");
+const massAddResults = document.getElementById("massAddResults");
+
+let massAddEntries = [];
+
+document.getElementById("openMassAdd").addEventListener("click", () => {
+  resetMassAdd();
+  massAddOverlay.hidden = false;
+  massAddInput.focus();
+});
+document.getElementById("closeMassAdd").addEventListener("click", () => { massAddOverlay.hidden = true; });
+massAddOverlay.addEventListener("click", e => { if (e.target === massAddOverlay) massAddOverlay.hidden = true; });
+
+function resetMassAdd() {
+  massAddInput.value = "";
+  massAddResults.innerHTML = "";
+  massAddEntries = [];
+  massAddConfirmBtn.hidden = true;
+  massAddPreviewBtn.hidden = false;
+  massAddPreviewBtn.disabled = false;
+}
+
+// Editing the list after a preview invalidates it — force a fresh preview rather than confirming
+// against stale lookups.
+massAddInput.addEventListener("input", () => {
+  massAddResults.innerHTML = "";
+  massAddEntries = [];
+  massAddConfirmBtn.hidden = true;
+  massAddPreviewBtn.hidden = false;
+});
+
+function parseMassAddLine(line) {
+  const trimmed = line.trim();
+  if (!trimmed) return null;
+
+  const qtyMatch = /[xX](\d+)\s*$/.exec(trimmed);
+  const qty = qtyMatch ? parseInt(qtyMatch[1], 10) : 1;
+  const base = qtyMatch ? trimmed.slice(0, qtyMatch.index).trim() : trimmed;
+
+  const parsed = parseQuickAddInput(base);
+  return parsed ? { raw: trimmed, setId: parsed.setId, number: parsed.number, qty } : { raw: trimmed, error: true };
+}
+
+async function previewMassAdd() {
+  const lines = massAddInput.value
+    .split(/\r?\n/)
+    .flatMap(line => line.split(","))
+    .map(parseMassAddLine)
+    .filter(Boolean);
+  if (lines.length === 0) return;
+
+  massAddPreviewBtn.disabled = true;
+  massAddResults.innerHTML = "";
+
+  for (const entry of lines) {
+    if (entry.error) {
+      entry.status = "error";
+      entry.message = `couldn't parse (try "OGN-045" or "45")`;
+    } else {
+      try {
+        const cards = await api(`/api/cards/lookup?${qs({ setId: entry.setId, number: entry.number })}`);
+        if (cards.length === 1) {
+          entry.status = "ok";
+          entry.card = cards[0];
+          entry.selected = true;
+        } else if (cards.length > 1) {
+          entry.status = "error";
+          entry.message = `ambiguous across ${cards.length} sets, add a set code (e.g. "OGN-${entry.number}")`;
+        } else {
+          entry.status = "error";
+          entry.message = "no matching card found";
+        }
+      } catch (err) {
+        entry.status = "error";
+        entry.message = err.message;
+      }
+    }
+  }
+
+  massAddEntries = lines;
+  massAddPreviewBtn.disabled = false;
+  renderMassAddPreview();
+}
+
+function renderMassAddPreview() {
+  massAddResults.innerHTML = "";
+
+  massAddEntries.forEach(entry => {
+    if (entry.status === "ok") {
+      const row = document.createElement("label");
+      row.className = "mass-add-row mass-add-ok";
+      const newCount = (entry.card.ownedCount || 0) + entry.qty;
+      row.innerHTML = `<input type="checkbox" ${entry.selected ? "checked" : ""} />
+        <span>${entry.raw} — ${entry.card.name} (own ${entry.card.ownedCount || 0} → ${newCount})</span>`;
+      row.querySelector("input").addEventListener("change", e => {
+        entry.selected = e.target.checked;
+        updateMassAddConfirmButton();
+      });
+      entry.el = row;
+      massAddResults.appendChild(row);
+    } else {
+      const row = document.createElement("div");
+      row.className = "mass-add-row mass-add-fail";
+      row.textContent = `${entry.raw} — ${entry.message}`;
+      entry.el = row;
+      massAddResults.appendChild(row);
+    }
+  });
+
+  massAddConfirmBtn.hidden = !massAddEntries.some(e => e.status === "ok");
+  updateMassAddConfirmButton();
+}
+
+function updateMassAddConfirmButton() {
+  const selected = massAddEntries.filter(e => e.status === "ok" && e.selected);
+  massAddConfirmBtn.textContent = selected.length ? `Add ${selected.length} card${selected.length === 1 ? "" : "s"}` : "Add";
+  massAddConfirmBtn.disabled = selected.length === 0;
+}
+
+async function confirmMassAdd() {
+  const selected = massAddEntries.filter(e => e.status === "ok" && e.selected);
+  if (selected.length === 0) return;
+
+  massAddConfirmBtn.disabled = true;
+  massAddPreviewBtn.hidden = true;
+
+  for (const entry of selected) {
+    try {
+      await setOwned(entry.card.id, (entry.card.ownedCount || 0) + entry.qty);
+      entry.el.querySelector("span").textContent = `${entry.raw} — added ${entry.qty} × ${entry.card.name} ✓`;
+      entry.el.classList.remove("mass-add-ok");
+      entry.el.classList.add("mass-add-added");
+      entry.el.querySelector("input")?.remove();
+    } catch (err) {
+      entry.el.querySelector("span").textContent = `${entry.raw} — error: ${err.message}`;
+      entry.el.classList.add("mass-add-fail");
+    }
+  }
+
+  massAddConfirmBtn.hidden = true;
+  loadGrid();
+  loadFacets();
+}
+
+massAddPreviewBtn.addEventListener("click", previewMassAdd);
+massAddConfirmBtn.addEventListener("click", confirmMassAdd);
 
 /* ---------------- Scan overlay ---------------- */
 const overlay = document.getElementById("scanOverlay");
@@ -268,6 +511,7 @@ const scanStatus = document.getElementById("scanStatus");
 const matchList = document.getElementById("matchList");
 const ocrDebug = document.getElementById("ocrDebug");
 const manualNumber = document.getElementById("manualNumber");
+const manualSetCode = document.getElementById("manualSetCode");
 
 document.getElementById("openScan").addEventListener("click", () => {
   resetScanSheet();
@@ -287,6 +531,19 @@ function resetScanSheet() {
   ocrDebug.hidden = true;
   ocrDebug.textContent = "";
   manualNumber.value = "";
+  manualSetCode.value = "";
+}
+
+// Best-effort client-side guess used only to pre-fill the manual correction fields when a scan
+// comes back with no confident match — not authoritative, the server does the real parsing.
+function guessFromOcrText(text) {
+  if (!text) return { number: null, setCode: null };
+  const numberMatch = /(\d{1,3})\s*[\/\\|]?\s*\d{0,3}/.exec(text);
+  const setMatch = /\b([A-Z]{2,4})\b/.exec(text);
+  return {
+    number: numberMatch ? parseInt(numberMatch[1], 10) : null,
+    setCode: setMatch ? setMatch[1] : null,
+  };
 }
 
 async function handleScanFile(file) {
@@ -324,7 +581,10 @@ function renderScanResult(result) {
   }
 
   if (result.matches.length === 0) {
-    scanStatus.textContent = "No match found. Try a closer, well-lit, right-side-up shot of the corner — or type the number below instead.";
+    scanStatus.textContent = "No match found. Try a closer, well-lit, right-side-up shot of the corner — or adjust the number/set below.";
+    const guess = guessFromOcrText(cleanOcr);
+    if (guess.number && !manualNumber.value) manualNumber.value = guess.number;
+    if (guess.setCode && !manualSetCode.value) manualSetCode.value = guess.setCode;
     return;
   }
 
@@ -360,6 +620,7 @@ function renderScanResult(result) {
 document.getElementById("manualLookupBtn").addEventListener("click", async () => {
   const number = parseInt(manualNumber.value, 10);
   if (!number || number <= 0) return;
+  const setCode = manualSetCode.value.trim().toUpperCase() || state.setId;
 
   scanPreview.hidden = false;
   scanPreviewImg.style.display = "none";
@@ -369,16 +630,16 @@ document.getElementById("manualLookupBtn").addEventListener("click", async () =>
   scanStatus.textContent = "Looking up…";
 
   try {
-    const cards = await api(`/api/cards/lookup?${qs({ setId: state.setId, number })}`);
+    const cards = await api(`/api/cards/lookup?${qs({ setId: setCode, number })}`);
     renderScanResult({
       method: cards.length === 1 ? "manual" : cards.length > 1 ? "ocr-ambiguous" : "manual-none",
       matches: cards.map(card => ({ card, confidence: 100 })),
       debugOcrText: "",
     });
     if (cards.length === 0) {
-      scanStatus.textContent = state.setId
-        ? `No card #${number} found in ${state.setId}. Try "All sets" or sync the right set first.`
-        : `No card numbered ${number} in any synced set.`;
+      scanStatus.textContent = setCode
+        ? `No card #${number} found in ${setCode}. Try clearing the set field or check the number.`
+        : `No card numbered ${number} in the catalog.`;
     }
   } catch (err) {
     scanStatus.textContent = "Lookup failed: " + err.message;
@@ -425,6 +686,13 @@ let liveInterval = null;
 let liveInFlight = false;
 let liveHitPending = false;
 
+// Temporal voting: a single fast/low-res frame is unreliable, but the live loop fires roughly
+// every 800ms while pointed at the same card, so require a few consecutive frames to agree on the
+// same card before surfacing a match — trades a little latency for far fewer wrong hits.
+const LIVE_VOTE_THRESHOLD = 3;
+let liveVoteKey = null;
+let liveVoteCount = 0;
+
 liveScanBtn.addEventListener("click", startLiveScan);
 
 async function startLiveScan() {
@@ -448,6 +716,8 @@ async function startLiveScan() {
   liveScanView.hidden = false;
   liveHit.hidden = true;
   liveHitPending = false;
+  liveVoteKey = null;
+  liveVoteCount = 0;
   liveReadoutText.textContent = "—";
   setLiveStatus("Point the camera at a card…", true);
 
@@ -459,6 +729,8 @@ function stopLiveScan() {
   if (liveStream) { liveStream.getTracks().forEach(t => t.stop()); liveStream = null; }
   liveVideo.srcObject = null;
   liveHitPending = false;
+  liveVoteKey = null;
+  liveVoteCount = 0;
   liveHit.hidden = true;
   liveHit.innerHTML = "";
   liveReadoutText.textContent = "—";
@@ -508,13 +780,26 @@ function handleLiveResult(result) {
   liveReadoutText.textContent = cleanOcrSnippet(result.debugOcrText);
 
   if (liveHitPending) return;
-  if (!["ocr", "manual"].includes(result.method) || result.matches.length !== 1) {
+
+  const isCandidate = ["ocr", "manual"].includes(result.method) && result.matches.length === 1;
+  const key = isCandidate ? `${result.matches[0].card.setId}|${result.matches[0].card.collectorNumber}` : null;
+
+  if (key && key === liveVoteKey) {
+    liveVoteCount++;
+  } else {
+    liveVoteKey = key;
+    liveVoteCount = key ? 1 : 0;
+  }
+
+  if (!key || liveVoteCount < LIVE_VOTE_THRESHOLD) {
     setLiveStatus("Scanning…", true);
     return;
   }
 
   const match = result.matches[0];
   liveHitPending = true;
+  liveVoteKey = null;
+  liveVoteCount = 0;
   setLiveStatus("Found a match", false);
   liveHit.hidden = false;
   liveHit.innerHTML = `
@@ -834,8 +1119,6 @@ document.addEventListener("keydown", e => {
 
 /* ---------------- Init ---------------- */
 (async function init() {
-  const sets = await api("/api/sets");
-  if (sets.length > 0) state.setId = sets[0].setId;
   await loadSets();
   await loadFacets();
   await loadStats();

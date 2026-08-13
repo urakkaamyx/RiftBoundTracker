@@ -22,12 +22,7 @@ public class ScanService(
     public async Task<ScanResult> ScanAsync(Stream imageStream, string? setHint, bool fast = false, CancellationToken ct = default)
     {
         using var raw = await Image.LoadAsync<Rgba32>(imageStream, ct);
-        // A light blur before anything else: it smooths out high-frequency sensor noise, and
-        // especially moiré (the wavy interference pattern you get photographing a screen instead
-        // of a physical card — two overlapping pixel grids beating against each other). Doesn't
-        // fully remove moiré — that's an optical effect, not something software can undo — but it
-        // keeps it from corrupting the boundary detection, OCR, and art-hash steps that follow.
-        raw.Mutate(x => x.AutoOrient().GaussianBlur(0.8f));
+        raw.Mutate(x => x.AutoOrient());
 
         // Photos of the whole card usually include some background (table, hand, etc.) — find the
         // card within the frame so both OCR crop regions and the art hash work relative to the
@@ -40,9 +35,9 @@ public class ScanService(
 
         foreach (var candidate in candidates)
         {
-            // Trust the set the user already has active in the UI over an OCR-guessed set code —
-            // a stray letter sequence picked up from the card's rules text is far less reliable
-            // than context the user explicitly chose.
+            // Trust the set the user already has active in the UI over anything OCR guessed — a
+            // stray letter sequence picked up from the card's rules text is far less reliable than
+            // context the user explicitly chose.
             if (setHint is not null)
             {
                 var hinted = await cache.FindByNumberAsync(setHint, candidate.Number, ct);
@@ -50,20 +45,28 @@ public class ScanService(
                     return new ScanResult("ocr", [new CardMatch(hinted, 100, "ocr")], ocrText);
             }
 
-            if (candidate.SetCode is not null && candidate.SetCode != setHint)
-            {
-                var bySetCode = await cache.FindByNumberAsync(candidate.SetCode, candidate.Number, ct);
-                if (bySetCode is not null)
-                    return new ScanResult("ocr", [new CardMatch(bySetCode, 95, "ocr")], ocrText);
-            }
-
-            // No usable set context (or it didn't match) — the number might still be unique across the whole cache.
+            // With the full catalog cached locally (not just whatever set was last synced), "this
+            // collector number is unique across every set" is a much stronger signal than a shaky
+            // OCR read of a 2-4 letter set code — check it before trusting the guessed set code.
             var all = await cache.FindAllByNumberAsync(candidate.Number, ct);
             if (all.Count == 1)
                 return new ScanResult("ocr", [new CardMatch(all[0], 85, "ocr")], ocrText);
+
             if (all.Count > 1)
+            {
+                // Ambiguous across sets — the OCR-guessed set code only ever breaks a tie between
+                // cards that are genuinely ambiguous candidates; it's never used to fetch a card
+                // that isn't already one of them.
+                if (candidate.SetCode is not null && candidate.SetCode != setHint)
+                {
+                    var bySetCode = all.FirstOrDefault(c => c.SetId == candidate.SetCode);
+                    if (bySetCode is not null)
+                        return new ScanResult("ocr", [new CardMatch(bySetCode, 95, "ocr")], ocrText);
+                }
+
                 return new ScanResult("ocr-ambiguous",
                     all.Select(c => new CardMatch(c, 50, "ocr")).ToList(), ocrText);
+            }
         }
 
         // The live loop wants speed over thoroughness — it fires several requests a second, so it
@@ -74,7 +77,12 @@ public class ScanService(
 
         logger.LogInformation("OCR found no cache match (text candidates: {Count}); falling back to image match", candidates.Count);
 
-        var photoHash = hasher.ComputeDHash(card);
+        // Blur only here, not before OCR: it smooths high-frequency sensor noise and moiré (the
+        // wavy interference pattern from photographing a screen instead of a physical card), which
+        // helps the perceptual art-hash match but would only soften the already-tiny print OCR
+        // needs to read.
+        using var blurredForHash = card.Clone(x => x.GaussianBlur(0.8f));
+        var photoHash = hasher.ComputeDHash(blurredForHash);
         var pool = await cache.GetCardsWithHashesAsync(setHint, ct);
 
         var ranked = pool

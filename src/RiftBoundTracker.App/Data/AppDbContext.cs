@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<DeckEntity> Decks => Set<DeckEntity>();
     public DbSet<DeckCardEntity> DeckCards => Set<DeckCardEntity>();
     public DbSet<PriceSnapshotEntity> PriceSnapshots => Set<PriceSnapshotEntity>();
+    public DbSet<PriceQueueEntity> PriceQueue => Set<PriceQueueEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -44,6 +45,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         price.HasOne(p => p.Card)
             .WithMany(c => c.PriceSnapshots)
             .HasForeignKey(p => p.CardId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        var priceQueue = modelBuilder.Entity<PriceQueueEntity>();
+        priceQueue.HasKey(q => q.CardId);
+        priceQueue.HasIndex(q => q.QueuedAt);
+        priceQueue.HasOne(q => q.Card)
+            .WithOne(c => c.PriceQueueItem)
+            .HasForeignKey<PriceQueueEntity>(q => q.CardId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

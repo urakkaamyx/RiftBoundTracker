@@ -45,4 +45,6 @@ public class CardEntity
     public ICollection<DeckCardEntity> DeckCards { get; set; } = [];
     [JsonIgnore]
     public ICollection<PriceSnapshotEntity> PriceSnapshots { get; set; } = [];
+    [JsonIgnore]
+    public PriceQueueEntity? PriceQueueItem { get; set; }
 }

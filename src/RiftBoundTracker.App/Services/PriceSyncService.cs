@@ -4,6 +4,13 @@ using RiftBoundTracker.App.Data;
 namespace RiftBoundTracker.App.Services;
 
 public record PriceSyncResult(int RequestedCards, int PricedCards, int SnapshotsSaved, DateTimeOffset CompletedAt);
+public record PriceQueueItemDto(CardEntity Card, DateTimeOffset QueuedAt);
+public record PriceQueueDto(
+    List<PriceQueueItemDto> Items, int BatchSize, bool Configured, string Provider);
+public record PriceQueueUpdateDto(CardEntity Card, bool Queued, int QueueCount);
+public record PriceQueueSyncResult(
+    int RequestedCards, int PricedCards, int SnapshotsSaved, int RemainingQueued,
+    DateTimeOffset CompletedAt);
 public record LatestPriceDto(
     string CardId, string Provider, string VariantId, string Condition, string Printing,
     string Currency, double MarketPrice, double? Change24Hours, DateTimeOffset CapturedAt,
@@ -11,6 +18,96 @@ public record LatestPriceDto(
 
 public sealed class PriceSyncService(AppDbContext db, IEnumerable<IPriceProvider> providers)
 {
+    public async Task<PriceQueueDto> GetQueueAsync(CancellationToken ct = default)
+    {
+        var provider = providers.FirstOrDefault(p => p.IsConfigured);
+        var rows = await db.PriceQueue
+            .AsNoTracking()
+            .Include(q => q.Card)
+            .ToListAsync(ct);
+        var items = rows
+            .OrderBy(q => q.QueuedAt)
+            .Select(q => new PriceQueueItemDto(q.Card, q.QueuedAt))
+            .ToList();
+
+        return new PriceQueueDto(
+            items,
+            JustTcgPriceProvider.FreeTierBatchSize,
+            provider is not null,
+            provider?.Name ?? "JustTCG");
+    }
+
+    public async Task<PriceQueueUpdateDto?> SetQueuedAsync(
+        string cardId,
+        bool queued,
+        CancellationToken ct = default)
+    {
+        var card = await db.Cards.FindAsync([cardId], ct);
+        if (card is null) return null;
+
+        var existing = await db.PriceQueue.FindAsync([cardId], ct);
+        if (queued && existing is null)
+        {
+            if (string.IsNullOrWhiteSpace(card.TcgplayerId))
+                throw new InvalidOperationException("This card does not have a pricing ID and cannot be checked yet.");
+
+            db.PriceQueue.Add(new PriceQueueEntity
+            {
+                CardId = cardId,
+                QueuedAt = DateTimeOffset.UtcNow,
+            });
+        }
+        else if (!queued && existing is not null)
+        {
+            db.PriceQueue.Remove(existing);
+        }
+
+        await db.SaveChangesAsync(ct);
+        return new PriceQueueUpdateDto(card, queued, await db.PriceQueue.CountAsync(ct));
+    }
+
+    public async Task<int> ClearQueueAsync(CancellationToken ct = default)
+    {
+        var removed = await db.PriceQueue.ExecuteDeleteAsync(ct);
+        return removed;
+    }
+
+    public async Task<PriceQueueSyncResult> SyncNextQueueBatchAsync(CancellationToken ct = default)
+    {
+        var provider = providers.FirstOrDefault(p => p.IsConfigured)
+            ?? throw new InvalidOperationException("Pricing is not configured. Add a JustTCG API key in Settings.");
+
+        var queueRows = await db.PriceQueue
+            .Include(q => q.Card)
+            .ToListAsync(ct);
+        var queued = queueRows
+            .OrderBy(q => q.QueuedAt)
+            .Take(JustTcgPriceProvider.FreeTierBatchSize)
+            .ToList();
+        if (queued.Count == 0)
+        {
+            return new PriceQueueSyncResult(
+                0, 0, 0, 0, DateTimeOffset.UtcNow);
+        }
+
+        var quotes = await provider.GetPricesAsync(queued.Select(q => q.Card).ToList(), ct);
+        var now = DateTimeOffset.UtcNow;
+        foreach (var quote in quotes)
+        {
+            db.PriceSnapshots.Add(ToSnapshot(quote, now));
+        }
+
+        db.PriceQueue.RemoveRange(queued);
+        await db.SaveChangesAsync(ct);
+
+        return new PriceQueueSyncResult(
+            queued.Count,
+            quotes.Count,
+            quotes.Count,
+            await db.PriceQueue.CountAsync(ct),
+            now);
+    }
+
     public async Task<PriceSyncResult> SyncTrackedAsync(bool includeAllCards, CancellationToken ct = default)
     {
         var provider = providers.FirstOrDefault(p => p.IsConfigured)
@@ -37,19 +134,7 @@ public sealed class PriceSyncService(AppDbContext db, IEnumerable<IPriceProvider
             var now = DateTimeOffset.UtcNow;
             foreach (var quote in quotes)
             {
-                db.PriceSnapshots.Add(new PriceSnapshotEntity
-                {
-                    CardId = quote.CardId,
-                    Provider = quote.Provider,
-                    VariantId = quote.VariantId,
-                    Condition = quote.Condition,
-                    Printing = quote.Printing,
-                    Currency = quote.Currency,
-                    MarketPrice = quote.MarketPrice,
-                    Change24Hours = quote.Change24Hours,
-                    CapturedAt = now,
-                    SourceUpdatedAt = quote.SourceUpdatedAt,
-                });
+                db.PriceSnapshots.Add(ToSnapshot(quote, now));
                 saved++;
             }
             await db.SaveChangesAsync(ct);
@@ -90,4 +175,18 @@ public sealed class PriceSyncService(AppDbContext db, IEnumerable<IPriceProvider
                 p.MarketPrice, p.Change24Hours, p.CapturedAt, p.SourceUpdatedAt))
             .ToList();
     }
+
+    private static PriceSnapshotEntity ToSnapshot(PriceQuote quote, DateTimeOffset capturedAt) => new()
+    {
+        CardId = quote.CardId,
+        Provider = quote.Provider,
+        VariantId = quote.VariantId,
+        Condition = quote.Condition,
+        Printing = quote.Printing,
+        Currency = quote.Currency,
+        MarketPrice = quote.MarketPrice,
+        Change24Hours = quote.Change24Hours,
+        CapturedAt = capturedAt,
+        SourceUpdatedAt = quote.SourceUpdatedAt,
+    };
 }

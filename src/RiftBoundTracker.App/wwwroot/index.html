@@ -26,6 +26,7 @@
         <button class="nav-item" data-page="decks"><i data-icon="layers"></i><span>Decks</span><b id="navDeckCount"></b></button>
         <button class="nav-item" data-page="favorites"><i data-icon="heart"></i><span>Favorites</span><b id="navFavoriteCount"></b></button>
         <button class="nav-item" data-page="binder"><i data-icon="book-open"></i><span>Trade Binder</span><b id="navBinderCount"></b></button>
+        <button class="nav-item" data-page="price-checker"><i data-icon="list-plus"></i><span>Price Checker</span><b id="navPriceQueueCount"></b></button>
         <button class="nav-item" data-page="analytics"><i data-icon="chart"></i><span>Analytics</span></button>
         <button class="nav-item" data-page="settings"><i data-icon="settings"></i><span>Settings</span></button>
       </nav>
@@ -57,6 +58,7 @@
         </label>
         <div class="top-actions">
           <button class="command-btn" id="openQuickAdd"><i data-icon="plus-circle"></i><span>Quick Add</span></button>
+          <button class="command-btn" id="openMassAdd" title="Mass Add"><i data-icon="list-plus"></i><span>Mass Add</span></button>
           <button class="command-btn" id="openScan"><i data-icon="scan"></i><span>Scan Card</span></button>
           <button class="command-btn quiet" id="openConnection" title="Connect a phone"><i data-icon="qr"></i><span>Connect</span></button>
         </div>
@@ -94,7 +96,6 @@
           <div class="collection-toolbar">
             <div><strong id="vaultResultCount">0 cards</strong><span id="vaultResultMeta">in your catalog</span></div>
             <label>Sort <select id="sortFilter"><option value="num-asc">Collector number</option><option value="num-desc">Collector number descending</option><option value="name-asc">Name</option><option value="rarity">Rarity</option><option value="domain">Domain</option><option value="owned">Owned first</option></select></label>
-            <button class="command-btn quiet" id="openMassAdd"><i data-icon="list-plus"></i>Mass Add</button>
           </div>
 
           <div class="vault-content">
@@ -130,6 +131,26 @@
           <div class="binder-summary" id="binderSummary"></div>
           <div class="card-grid page-card-grid" id="binderGrid"></div>
           <div class="page-empty" id="binderEmpty" hidden><i data-icon="book-open"></i><h2>Your binder is empty</h2></div>
+        </section>
+
+        <section class="page" id="page-price-checker" data-title="Price Checker" data-eyebrow="Pricing">
+          <div class="page-toolbar price-queue-toolbar">
+            <div><h2>Price Checker</h2><p id="priceQueueMeta">0 cards queued</p></div>
+            <button class="icon-btn" id="priceQueueSettings" title="Pricing settings"><i data-icon="settings"></i></button>
+            <button class="command-btn quiet" id="clearPriceQueue"><i data-icon="trash"></i>Clear</button>
+            <button class="command-btn gold" id="checkPriceQueue"><i data-icon="refresh"></i>Check Next Batch</button>
+          </div>
+          <div class="price-queue-summary">
+            <div class="price-batch-meter">
+              <div><span>Next API batch</span><b id="priceBatchCount">0 / 20</b></div>
+              <div class="price-batch-track"><span id="priceBatchProgress"></span></div>
+            </div>
+            <div class="price-queue-stat"><span>Open slots</span><b id="priceQueueSlots">20</b></div>
+            <div class="price-queue-stat"><span>Requests queued</span><b id="priceQueueRequests">0</b></div>
+            <div class="price-queue-stat"><span>Provider</span><b id="priceQueueProvider">JustTCG</b></div>
+          </div>
+          <div class="price-queue-list" id="priceQueueList"></div>
+          <div class="page-empty" id="priceQueueEmpty"><i data-icon="list-plus"></i><h2>No cards queued</h2></div>
         </section>
 
         <section class="page" id="page-analytics" data-title="Analytics" data-eyebrow="Collection Insights">
@@ -186,6 +207,15 @@
 
   <div class="modal-layer" id="testHandModal" hidden><div class="modal"><div class="modal-head"><div><span>Test Draw</span><h2>Opening Hand</h2></div><button class="icon-btn" data-close="testHandModal"><i data-icon="x"></i></button></div><div class="test-hand" id="testHand"></div><div class="modal-actions"><button class="command-btn gold" id="redrawHand"><i data-icon="refresh"></i>Draw Again</button></div></div></div>
 
+  <div class="modal-layer image-viewer" id="imageViewer" hidden>
+    <button class="icon-btn image-viewer-close" data-close="imageViewer" title="Close full-screen image" aria-label="Close full-screen image"><i data-icon="x"></i></button>
+    <div class="image-viewer-stage">
+      <img id="imageViewerImage" alt="" />
+      <div class="image-viewer-caption"><strong id="imageViewerName"></strong><span id="imageViewerCode"></span></div>
+    </div>
+  </div>
+
+  <div class="card-context-menu" id="cardContextMenu" role="menu" aria-label="Card actions" hidden></div>
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>
   <script src="icons.js"></script>
   <script src="app.js"></script>

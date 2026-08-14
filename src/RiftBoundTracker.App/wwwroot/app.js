@@ -5,11 +5,12 @@ const DOMAIN_COLOR = {
 };
 const RARITY_COLOR = {
   Common: "var(--faint)", Uncommon: "var(--blue)", Rare: "var(--green)",
-  Epic: "var(--purple)", Legendary: "var(--gold-bright)", Champion: "var(--orange)"
+  Epic: "var(--violet)", Legendary: "var(--gold-bright)", Champion: "var(--orange)"
 };
 const PAGE_LABELS = {
   vault: ["Collection", "Your Vault"], decks: ["Builder", "Decks"],
   favorites: ["Saved Cards", "Favorites"], binder: ["Collection", "Trade Binder"],
+  "price-checker": ["Pricing", "Price Checker"],
   analytics: ["Collection Insights", "Analytics"], settings: ["Vault", "Settings"]
 };
 
@@ -17,7 +18,10 @@ const state = {
   page: "vault", setId: null, owned: "all", search: "", rarity: "", type: "",
   domain: "", sort: "num-asc", view: "grid", selectedCardId: null,
   sets: [], overview: null, prices: {}, decks: [], activeDeckId: null,
-  activeDeck: null, deckSearchTimer: null
+  activeDeck: null, deckSearchTimer: null, contextCardId: null,
+  contextMenuX: 0, contextMenuY: 0,
+  priceQueue: { items: [], batchSize: 20, configured: false, provider: "JustTCG" },
+  priceQueueIds: new Set()
 };
 const cardsById = new Map();
 let massEntries = [];
@@ -64,6 +68,10 @@ function cardImage(card) {
   return card.localImagePath || card.imageUrl || "";
 }
 
+function cardImagePopout(card) {
+  return `<button type="button" class="image-popout" data-fullscreen-card="${escapeHtml(card.id)}" title="View full-screen image" aria-label="View ${escapeHtml(card.name)} image full screen">${icon("maximize")}</button>`;
+}
+
 function registerCards(cards) {
   cards.forEach(card => cardsById.set(card.id, card));
 }
@@ -107,6 +115,161 @@ function closeModal(id) {
   if (!modal) return;
   modal.hidden = true;
   if (id === "scanModal") stopLiveScan();
+  if (id === "imageViewer") document.body.classList.remove("image-viewer-open");
+}
+
+function openFullscreenCardImage(cardId) {
+  const card = cardsById.get(cardId);
+  if (!card) return;
+  const image = document.getElementById("imageViewerImage");
+  image.src = cardImage(card);
+  image.alt = card.name;
+  document.getElementById("imageViewerName").textContent = card.name;
+  document.getElementById("imageViewerCode").textContent = `${card.setId}-${cardCode(card)}`;
+  document.body.classList.add("image-viewer-open");
+  showModal("imageViewer");
+}
+
+function closeCardContextMenu() {
+  const menu = document.getElementById("cardContextMenu");
+  menu.hidden = true;
+  state.contextCardId = null;
+}
+
+function positionCardContextMenu(x, y) {
+  const menu = document.getElementById("cardContextMenu");
+  const edge = 8;
+  menu.hidden = false;
+  menu.style.left = `${x}px`;
+  menu.style.top = `${y}px`;
+  const bounds = menu.getBoundingClientRect();
+  menu.style.left = `${Math.max(edge, Math.min(x, window.innerWidth - bounds.width - edge))}px`;
+  menu.style.top = `${Math.max(edge, Math.min(y, window.innerHeight - bounds.height - edge))}px`;
+}
+
+function contextMenuHeader(card) {
+  return `<div class="context-card-head"><strong>${escapeHtml(card.name)}</strong><span>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))}</span></div>`;
+}
+
+function contextMenuItem(action, iconName, label, meta = "", disabled = false) {
+  return `<button type="button" class="context-menu-item" role="menuitem" data-context-action="${action}"${disabled ? " disabled" : ""}>${icon(iconName)}<span>${escapeHtml(label)}</span>${meta ? `<small>${escapeHtml(meta)}</small>` : ""}</button>`;
+}
+
+function showCardContextMenu(card, x, y) {
+  const menu = document.getElementById("cardContextMenu");
+  const price = state.prices[card.id];
+  state.contextCardId = card.id;
+  state.contextMenuX = x;
+  state.contextMenuY = y;
+  menu.innerHTML = `${contextMenuHeader(card)}
+    ${contextMenuItem("view", "eye", "View Card")}
+    ${contextMenuItem("search-name", "search", "Search by Name", "All Sets")}
+    ${contextMenuItem("pricing", "dollar", "View Pricing", price ? formatMoney(price.marketPrice) : "--")}
+    ${contextMenuItem(
+      "price-queue",
+      "list-plus",
+      state.priceQueueIds.has(card.id) ? "Remove from Price Checker" : "Add to Price Checker",
+      state.priceQueueIds.has(card.id) ? "Queued" : (!card.tcgplayerId ? "No pricing ID" : ""),
+      !state.priceQueueIds.has(card.id) && !card.tcgplayerId)}
+    <div class="context-menu-separator"></div>
+    ${contextMenuItem("add-copy", "plus-circle", "Add Copy", `Owned ${card.ownedCount}`)}
+    ${contextMenuItem("remove-copy", "minus", "Remove Copy", "", card.ownedCount <= 0)}
+    ${contextMenuItem("favorite", "star", card.isFavorite ? "Remove Favorite" : "Add to Favorites")}
+    ${contextMenuItem("trade", "book-open", card.binderCount > 0 ? "Remove from Trade" : "Mark for Trade", "", card.ownedCount <= 0)}
+    <div class="context-menu-separator"></div>
+    ${contextMenuItem("decks", "layers", "Add to Deck...", state.decks.length ? `${state.decks.length}` : "None")}
+    ${contextMenuItem("copy-id", "copy", "Copy Card ID", `${card.setId}-${cardCode(card)}`)}`;
+  renderIcons(menu);
+  positionCardContextMenu(x, y);
+  menu.querySelector("button:not(:disabled)")?.focus();
+}
+
+function showContextDeckChoices(card) {
+  const menu = document.getElementById("cardContextMenu");
+  menu.innerHTML = `${contextMenuHeader(card)}
+    ${contextMenuItem("back", "chevron-left", "Back")}
+    <div class="context-menu-separator"></div>
+    <div class="context-deck-list">${state.decks.length
+      ? state.decks.map(deck => `<button type="button" class="context-menu-item" role="menuitem" data-context-deck="${deck.id}">${icon("layers")}<span>${escapeHtml(deck.name)}</span><small>${(deck.mainCount || 0) + (deck.sideboardCount || 0)}</small></button>`).join("")
+      : `<div class="context-menu-empty">Create a deck first</div>`}</div>`;
+  renderIcons(menu);
+  positionCardContextMenu(state.contextMenuX, state.contextMenuY);
+  menu.querySelector("button:not(:disabled)")?.focus();
+}
+
+function openCardContextSection(card, selector) {
+  closeCardContextMenu();
+  openCard(card.id);
+  if (!selector) return;
+  setTimeout(() => {
+    const root = window.matchMedia("(max-width: 1180px)").matches
+      ? document.getElementById("mobileCardDetail")
+      : document.getElementById("cardInspector");
+    const section = root.querySelector(selector);
+    section?.scrollIntoView({ behavior: "smooth", block: "center" });
+    section?.classList.add("context-highlight");
+    setTimeout(() => section?.classList.remove("context-highlight"), 1100);
+  }, 50);
+}
+
+async function copyCardId(card) {
+  const value = `${card.setId}-${cardCode(card)}`;
+  try {
+    await navigator.clipboard.writeText(value);
+  } catch {
+    const input = document.createElement("textarea");
+    input.value = value;
+    input.style.position = "fixed";
+    input.style.opacity = "0";
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand("copy");
+    input.remove();
+  }
+  toast(`${value} copied`);
+}
+
+async function addContextCardToDeck(card, deckId) {
+  const deck = state.decks.find(item => item.id === deckId);
+  if (!deck) return;
+  const detail = await api(`/api/decks/${deckId}`);
+  const existing = detail.cards.find(row => row.cardId === card.id && row.section === "main");
+  await api(`/api/decks/${deckId}/cards`, jsonOptions("POST", {
+    cardId: card.id, quantity: (existing?.quantity || 0) + 1, section: "main"
+  }));
+  state.decks = await api("/api/decks");
+  toast(`${card.name} added to ${deck.name}`);
+}
+
+async function handleCardContextAction(action) {
+  const card = cardsById.get(state.contextCardId);
+  if (!card) return closeCardContextMenu();
+  if (action === "back") return showCardContextMenu(card, state.contextMenuX, state.contextMenuY);
+  if (action === "decks") return showContextDeckChoices(card);
+  closeCardContextMenu();
+  if (action === "view") return openCardContextSection(card);
+  if (action === "search-name") return searchCardNameAcrossSets(card);
+  if (action === "pricing") return openCardContextSection(card, ".inspector-price");
+  if (action === "price-queue") return setPriceQueue(card, !state.priceQueueIds.has(card.id));
+  if (action === "add-copy") return changeOwned(card, 1);
+  if (action === "remove-copy") return changeOwned(card, -1);
+  if (action === "favorite") return changeFavorite(card);
+  if (action === "trade") return setBinderAvailability(card, card.binderCount <= 0);
+  if (action === "copy-id") return copyCardId(card);
+}
+
+function searchCardNameAcrossSets(card) {
+  state.setId = null;
+  state.search = card.name;
+  state.owned = "all";
+  state.rarity = "";
+  state.type = "";
+  state.domain = "";
+  document.getElementById("globalSearch").value = card.name;
+  document.querySelectorAll(".vault-tab").forEach(tab =>
+    tab.classList.toggle("active", tab.dataset.owned === "all"));
+  renderSetNavigation();
+  navigate("vault");
 }
 
 function navigate(page) {
@@ -126,6 +289,7 @@ async function refreshCurrentPage() {
     case "decks": await loadDecks(); break;
     case "favorites": await loadFavorites(); break;
     case "binder": await loadBinder(); break;
+    case "price-checker": await loadPriceChecker(); break;
     case "analytics": await loadAnalytics(); break;
     case "settings": await loadSettings(); break;
   }
@@ -168,6 +332,15 @@ async function loadOverview() {
 
 async function loadPrices() {
   state.prices = await api("/api/pricing/latest");
+}
+
+async function loadPriceQueue(renderPage = true) {
+  state.priceQueue = await api("/api/pricing/queue");
+  state.priceQueueIds = new Set(state.priceQueue.items.map(item => item.card.id));
+  registerCards(state.priceQueue.items.map(item => item.card));
+  document.getElementById("navPriceQueueCount").textContent = state.priceQueue.items.length || "";
+  if (renderPage && state.page === "price-checker") renderPriceChecker();
+  return state.priceQueue;
 }
 
 async function loadVault() {
@@ -239,9 +412,11 @@ function cardTile(card, context) {
   const price = state.prices[card.id];
   return `
     <article class="card-tile${card.ownedCount <= 0 ? " missing" : ""}${state.selectedCardId === card.id ? " selected" : ""}" data-card-open="${escapeHtml(card.id)}">
-      <div class="card-art">
+      <div class="card-art${card.orientation === "landscape" ? " landscape" : ""}">
         <div class="card-domain">${domains.map(domain => `<span style="background:${DOMAIN_COLOR[domain] || DOMAIN_COLOR.Colorless}"></span>`).join("")}</div>
         <img src="${escapeHtml(cardImage(card))}" alt="${escapeHtml(card.name)}" loading="lazy" />
+        ${cardImagePopout(card)}
+        ${card.binderCount > 0 ? `<span class="trade-banner">Trading</span>` : ""}
         ${card.energy != null ? `<span class="energy-badge">${card.energy}</span>` : ""}
         <button class="favorite-fab${card.isFavorite ? " active" : ""}" data-favorite-card="${escapeHtml(card.id)}" title="${card.isFavorite ? "Remove from favorites" : "Add to favorites"}">${icon("star")}</button>
         ${card.ownedCount > 0 ? `<span class="owned-badge">x${card.ownedCount}</span>` : `<span class="missing-badge">MISSING</span>`}
@@ -254,7 +429,7 @@ function cardTile(card, context) {
           ${context === "binderGrid"
             ? `<button class="binder-chip" data-binder-delta="-1" data-card-id="${escapeHtml(card.id)}" title="Remove one copy from Trade Binder">Remove</button>`
             : card.ownedCount > 0
-              ? `<button class="binder-chip" data-binder-delta="${card.binderCount > 0 ? -1 : 1}" data-card-id="${escapeHtml(card.id)}" title="${card.binderCount > 0 ? "Remove one binder copy" : "Add a copy to Trade Binder"}">B${card.binderCount || 0}</button>`
+              ? `<label class="card-trade-toggle" title="Mark this card as available for trade"><span>Trade</span><input type="checkbox" data-card-trade-toggle="${escapeHtml(card.id)}"${card.binderCount > 0 ? " checked" : ""} /><i aria-hidden="true"></i></label>`
               : ""}
           ${price ? `<span class="price-label">${formatMoney(price.marketPrice)}</span>` : ""}
         </div>
@@ -282,12 +457,16 @@ function cardDetailMarkup(card, mobile) {
   const domains = card.domains?.length ? card.domains : ["Colorless"];
   const deckOptions = state.decks.map(deck => `<option value="${deck.id}">${escapeHtml(deck.name)}</option>`).join("");
   return `
-    <div class="inspector-card-art${card.orientation === "landscape" ? " landscape" : ""}"><img src="${escapeHtml(cardImage(card))}" alt="${escapeHtml(card.name)}" /></div>
+    <div class="inspector-card-art${card.orientation === "landscape" ? " landscape" : ""}"><img src="${escapeHtml(cardImage(card))}" alt="${escapeHtml(card.name)}" /><button class="favorite-fab${card.isFavorite ? " active" : ""}" data-favorite-card="${escapeHtml(card.id)}" title="${card.isFavorite ? "Remove from favorites" : "Add to favorites"}">${icon("star")}</button>${cardImagePopout(card)}</div>
     <div class="inspector-head"><h2>${escapeHtml(card.name)}</h2><p>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))} / ${escapeHtml(card.rarity)}</p></div>
     <div class="inspector-commands">
-      <button class="command-btn" data-inspector-owned>${card.ownedCount > 0 ? `Owned x${card.ownedCount}` : "Add Copy"}</button>
-      <div class="mini-stepper"><button data-inspector-binder-delta="-1"${card.binderCount <= 0 ? " disabled" : ""}>-</button><span>B${card.binderCount || 0}</span><button data-inspector-binder-delta="1"${card.binderCount >= card.ownedCount ? " disabled" : ""}>+</button></div>
-      <button class="icon-btn favorite-fab${card.isFavorite ? " active" : ""}" data-favorite-card="${escapeHtml(card.id)}" title="Favorite">${icon("star")}</button>
+      <div class="owned-editor">
+        <span>Owned</span>
+        <button type="button" data-inspector-owned-delta="-1" aria-label="Remove one owned copy" title="Remove one copy"${card.ownedCount <= 0 ? " disabled" : ""}>${icon("minus")}</button>
+        <input type="number" min="0" step="1" inputmode="numeric" value="${card.ownedCount}" data-inspector-owned-input aria-label="Owned copies" />
+        <button type="button" data-inspector-owned-delta="1" aria-label="Add one owned copy" title="Add one copy">${icon("plus")}</button>
+      </div>
+      <label class="trade-toggle" title="Mark this card as available for trade"><span>Trade</span><input type="checkbox" data-inspector-binder-toggle${card.binderCount > 0 ? " checked" : ""}${card.ownedCount <= 0 ? " disabled" : ""} /><i aria-hidden="true"></i></label>
     </div>
     <div class="inspector-stats">
       <span>Type</span><b>${escapeHtml([card.supertype, card.type].filter(Boolean).join(" "))}</b>
@@ -304,8 +483,32 @@ function cardDetailMarkup(card, mobile) {
 }
 
 function wireInspector(root, card) {
-  root.querySelector("[data-inspector-owned]")?.addEventListener("click", () => changeOwned(card, 1));
-  root.querySelectorAll("[data-inspector-binder-delta]").forEach(button => button.addEventListener("click", () => changeBinder(card, Number(button.dataset.inspectorBinderDelta))));
+  const currentCard = () => cardsById.get(card.id) || card;
+  root.querySelectorAll("[data-inspector-owned-delta]").forEach(button => button.addEventListener("click", () =>
+    changeOwned(currentCard(), Number(button.dataset.inspectorOwnedDelta)).catch(err => toast(err.message, true))));
+  const ownedInput = root.querySelector("[data-inspector-owned-input]");
+  let ownedSaveTimer;
+  let lastRequestedQuantity = ownedInput?.value;
+  const saveOwnedInput = () => {
+    clearTimeout(ownedSaveTimer);
+    if (!ownedInput || ownedInput.value === lastRequestedQuantity) return;
+    lastRequestedQuantity = ownedInput.value;
+    setOwnedCount(currentCard(), ownedInput.value).catch(err => {
+      lastRequestedQuantity = String(currentCard().ownedCount);
+      toast(err.message, true);
+      refreshVisibleCardDetails(currentCard());
+    });
+  };
+  ownedInput?.addEventListener("input", () => {
+    clearTimeout(ownedSaveTimer);
+    ownedSaveTimer = setTimeout(saveOwnedInput, 500);
+  });
+  ownedInput?.addEventListener("change", saveOwnedInput);
+  ownedInput?.addEventListener("keydown", event => {
+    if (event.key === "Enter") { event.preventDefault(); saveOwnedInput(); ownedInput.blur(); }
+  });
+  root.querySelector("[data-inspector-binder-toggle]")?.addEventListener("change", event =>
+    setBinderAvailability(currentCard(), event.target.checked).catch(err => toast(err.message, true)));
   root.querySelector("[data-add-to-deck]")?.addEventListener("click", async () => {
     const deckId = Number(root.querySelector("[data-deck-picker]").value);
     const detail = await api(`/api/decks/${deckId}`);
@@ -320,6 +523,7 @@ async function openCard(cardId) {
   if (!card) return;
   if (window.matchMedia("(max-width: 1180px)").matches) {
     const root = document.getElementById("mobileCardDetail");
+    root.dataset.cardId = card.id;
     root.innerHTML = cardDetailMarkup(card, true);
     renderIcons(root);
     wireInspector(root, card);
@@ -329,18 +533,37 @@ async function openCard(cardId) {
   }
 }
 
-async function changeOwned(card, delta) {
-  const updated = await api(`/api/collection/${encodeURIComponent(card.id)}`, jsonOptions("POST", { owned: Math.max(0, card.ownedCount + delta) }));
+function refreshVisibleCardDetails(card) {
+  if (state.selectedCardId === card.id) renderInspector(card);
+  const modal = document.getElementById("cardDetailModal");
+  const root = document.getElementById("mobileCardDetail");
+  if (!modal.hidden && root.dataset.cardId === card.id) {
+    root.innerHTML = cardDetailMarkup(card, true);
+    renderIcons(root);
+    wireInspector(root, card);
+  }
+}
+
+async function setOwnedCount(card, ownedCount) {
+  const parsed = Number(ownedCount);
+  const next = Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : card.ownedCount;
+  if (next === card.ownedCount) return refreshVisibleCardDetails(card);
+  const updated = await api(`/api/collection/${encodeURIComponent(card.id)}`, jsonOptions("POST", { owned: next }));
   cardsById.set(updated.id, updated);
-  toast(delta > 0 ? `${card.name} added` : `${card.name} updated`);
+  toast(`${card.name}: ${updated.ownedCount} owned`);
   await Promise.all([loadOverview(), refreshCurrentPage()]);
-  if (state.selectedCardId === card.id && cardsById.has(card.id)) renderInspector(cardsById.get(card.id));
+  refreshVisibleCardDetails(updated);
+}
+
+async function changeOwned(card, delta) {
+  return setOwnedCount(card, card.ownedCount + delta);
 }
 
 async function changeFavorite(card) {
   const updated = await api(`/api/favorites/${encodeURIComponent(card.id)}`, jsonOptions("POST", { favorite: !card.isFavorite }));
   cardsById.set(updated.id, updated);
   await Promise.all([loadOverview(), refreshCurrentPage()]);
+  refreshVisibleCardDetails(updated);
   toast(updated.isFavorite ? "Added to favorites" : "Removed from favorites");
 }
 
@@ -351,6 +574,16 @@ async function changeBinder(card, delta) {
   cardsById.set(updated.id, updated);
   await Promise.all([loadOverview(), refreshCurrentPage()]);
   toast(`${card.name}: ${updated.binderCount} in binder`);
+}
+
+async function setBinderAvailability(card, available) {
+  if (card.ownedCount <= 0) return toast("Add a copy to your collection first", true);
+  const count = available ? 1 : 0;
+  const updated = await api(`/api/binder/${encodeURIComponent(card.id)}`, jsonOptions("POST", { count }));
+  cardsById.set(updated.id, updated);
+  await Promise.all([loadOverview(), refreshCurrentPage()]);
+  refreshVisibleCardDetails(updated);
+  toast(available ? `${card.name} marked for trade` : `${card.name} removed from Trade Binder`);
 }
 
 async function loadFavorites() {
@@ -371,6 +604,80 @@ async function loadBinder() {
   document.getElementById("binderSummary").innerHTML = `
     <div><b>${cards.length}</b><span>Unique cards</span></div><div><b>${copies}</b><span>Total copies</span></div><div><b>${state.overview?.hasPricing ? formatMoney(state.overview.binderValue) : "--"}</b><span>Market value</span></div>`;
   renderCardGrid(document.getElementById("binderGrid"), cards);
+}
+
+async function loadPriceChecker() {
+  await Promise.all([loadPriceQueue(false), loadPrices()]);
+  renderPriceChecker();
+}
+
+function renderPriceChecker() {
+  const queue = state.priceQueue;
+  const items = queue.items || [];
+  const batchSize = queue.batchSize || 20;
+  const nextCount = Math.min(items.length, batchSize);
+  const openSlots = Math.max(0, batchSize - nextCount);
+  const requestCount = Math.ceil(items.length / batchSize);
+
+  document.getElementById("priceQueueMeta").textContent = `${items.length} card${items.length === 1 ? "" : "s"} queued`;
+  document.getElementById("priceBatchCount").textContent = `${nextCount} / ${batchSize}`;
+  document.getElementById("priceBatchProgress").style.width = `${nextCount * 100 / batchSize}%`;
+  document.getElementById("priceQueueSlots").textContent = openSlots;
+  document.getElementById("priceQueueRequests").textContent = requestCount;
+  document.getElementById("priceQueueProvider").textContent = queue.configured ? queue.provider : "Key required";
+  document.getElementById("priceQueueEmpty").hidden = items.length > 0;
+  document.getElementById("clearPriceQueue").disabled = items.length === 0;
+  const checkButton = document.getElementById("checkPriceQueue");
+  checkButton.disabled = items.length === 0 || !queue.configured;
+  checkButton.title = queue.configured ? "Check up to 20 queued cards" : "Add a pricing API key in Settings";
+
+  const root = document.getElementById("priceQueueList");
+  root.innerHTML = items.map((item, index) => {
+    const card = item.card;
+    const price = state.prices[card.id];
+    const batchNumber = Math.floor(index / batchSize) + 1;
+    return `<div class="price-queue-row" data-card-open="${escapeHtml(card.id)}">
+      <span class="price-queue-position">${String(index + 1).padStart(2, "0")}</span>
+      <div class="price-queue-art${card.orientation === "landscape" ? " landscape" : ""}"><img src="${escapeHtml(cardImage(card))}" alt="" loading="lazy" />${cardImagePopout(card)}</div>
+      <div class="price-queue-card"><strong>${escapeHtml(card.name)}</strong><span>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))} / ${escapeHtml(card.rarity || card.type)}</span><small>Queued ${formatRelativeTime(item.queuedAt)}</small></div>
+      <div class="price-queue-price"><span>Market</span><b>${price ? formatMoney(price.marketPrice) : "--"}</b><small>${price ? formatRelativeTime(price.capturedAt) : "Not checked"}</small></div>
+      <span class="price-queue-batch${batchNumber === 1 ? " active" : ""}">Batch ${batchNumber}</span>
+      <button class="icon-btn" data-price-queue-remove="${escapeHtml(card.id)}" title="Remove from Price Checker" aria-label="Remove ${escapeHtml(card.name)} from Price Checker">${icon("trash")}</button>
+    </div>`;
+  }).join("");
+  renderIcons(root);
+}
+
+async function setPriceQueue(card, queued) {
+  await api(`/api/pricing/queue/${encodeURIComponent(card.id)}`, jsonOptions("POST", { queued }));
+  await loadPriceQueue();
+  toast(queued ? `${card.name} added to Price Checker` : `${card.name} removed from Price Checker`);
+}
+
+async function clearPriceQueue() {
+  if (!state.priceQueue.items.length || !confirm("Clear every card from the Price Checker queue?")) return;
+  const result = await api("/api/pricing/queue", { method: "DELETE" });
+  await loadPriceQueue();
+  toast(`${result.removed} queued card${result.removed === 1 ? "" : "s"} removed`);
+}
+
+async function checkPriceQueue() {
+  const button = document.getElementById("checkPriceQueue");
+  button.disabled = true;
+  button.innerHTML = `${icon("refresh")}Checking...`;
+  renderIcons(button);
+  try {
+    const result = await api("/api/pricing/queue/check", { method: "POST" });
+    await Promise.all([loadPriceQueue(false), loadPrices(), loadOverview()]);
+    renderPriceChecker();
+    toast(`${result.pricedCards} of ${result.requestedCards} cards priced`);
+  } catch (err) {
+    toast(err.message, true);
+  } finally {
+    button.innerHTML = `${icon("refresh")}Check Next Batch`;
+    renderIcons(button);
+    button.disabled = state.priceQueue.items.length === 0 || !state.priceQueue.configured;
+  }
 }
 
 async function loadDecks() {
@@ -437,7 +744,7 @@ function deckGroupMarkup(group, rows) {
   const count = rows.reduce((sum, row) => sum + row.quantity, 0);
   return `<section class="deck-group"><div class="deck-group-head"><span>${escapeHtml(group)}</span><b>${count}</b></div>${rows.map(row => `
     <div class="deck-row">
-      <img src="${escapeHtml(cardImage(row.card))}" alt="" />
+      <div class="deck-row-art"><img src="${escapeHtml(cardImage(row.card))}" alt="" />${cardImagePopout(row.card)}</div>
       <div class="deck-row-copy"><strong>${escapeHtml(row.card.name)}</strong><span>${escapeHtml(row.card.setId)}-${escapeHtml(cardCode(row.card))} / ${escapeHtml(row.section)}</span></div>
       <span class="deck-owned${row.missing > 0 ? " missing" : ""}">${row.missing > 0 ? `${row.missing} missing` : `${row.owned} owned`}</span>
       <div class="mini-stepper"><button data-deck-qty="${row.quantity - 1}" data-card-id="${escapeHtml(row.cardId)}" data-section="${row.section}">-</button><span>${row.quantity}</span><button data-deck-qty="${row.quantity + 1}" data-card-id="${escapeHtml(row.cardId)}" data-section="${row.section}">+</button></div>
@@ -480,7 +787,7 @@ async function searchDeckCards(search, section) {
   const cards = await api(`/api/cards?${queryString({ search: search.trim(), sort: "name-asc" })}`);
   registerCards(cards);
   root.innerHTML = cards.slice(0, 30).map(card => `
-    <div class="deck-search-row"><img src="${escapeHtml(cardImage(card))}" alt="" /><div><strong>${escapeHtml(card.name)}</strong><span>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))} / own ${card.ownedCount}</span></div><button class="icon-btn" data-add-deck-card="${escapeHtml(card.id)}" data-section="${section}">${icon("plus")}</button></div>`).join("");
+    <div class="deck-search-row"><div class="deck-search-art"><img src="${escapeHtml(cardImage(card))}" alt="" />${cardImagePopout(card)}</div><div><strong>${escapeHtml(card.name)}</strong><span>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))} / own ${card.ownedCount}</span></div><button class="icon-btn" data-add-deck-card="${escapeHtml(card.id)}" data-section="${section}">${icon("plus")}</button></div>`).join("");
   renderIcons(root);
   root.querySelectorAll("[data-add-deck-card]").forEach(button => button.addEventListener("click", async () => {
     const existing = state.activeDeck.cards.find(row => row.cardId === button.dataset.addDeckCard && row.section === button.dataset.section);
@@ -521,7 +828,9 @@ function openTestHand() {
   if (!pool.length) return toast("Add cards to the deck first", true);
   const draw = () => {
     const shuffled = [...pool].sort(() => Math.random() - .5).slice(0, Math.min(7, pool.length));
-    document.getElementById("testHand").innerHTML = shuffled.map(card => `<img src="${escapeHtml(cardImage(card))}" alt="${escapeHtml(card.name)}" title="${escapeHtml(card.name)}" />`).join("");
+    const root = document.getElementById("testHand");
+    root.innerHTML = shuffled.map(card => `<div class="test-hand-card"><img src="${escapeHtml(cardImage(card))}" alt="${escapeHtml(card.name)}" title="${escapeHtml(card.name)}" />${cardImagePopout(card)}</div>`).join("");
+    renderIcons(root);
   };
   draw();
   document.getElementById("redrawHand").onclick = draw;
@@ -531,6 +840,7 @@ function openTestHand() {
 async function loadAnalytics() {
   await loadOverview();
   const data = state.overview;
+  registerCards(data.mostValuable.map(row => row.card));
   document.getElementById("analyticsKpis").innerHTML = [
     ["archive", data.ownedCards, "Unique owned"], ["layers", data.ownedCopies, "Total copies"],
     ["dollar", data.hasPricing ? formatMoney(data.collectionValue) : "--", "Collection value"],
@@ -540,11 +850,11 @@ async function loadAnalytics() {
   document.getElementById("setCompletionMeta").textContent = `${data.ownedCards}/${data.totalCards} cards`;
   document.getElementById("analyticsSets").innerHTML = data.sets.map(set => `
     <div class="set-progress-row"><span class="set-code">${escapeHtml(set.setId)}</span><div><span>${escapeHtml(set.setLabel || set.setId)}</span><div class="analytics-progress"><span style="width:${set.completion}%"></span></div></div><b>${Math.round(set.completion)}%</b></div>`).join("");
-  renderDistribution("analyticsRarities", data.rarities, "var(--gold)");
-  renderDistribution("analyticsDomains", data.domains, "var(--purple)");
+  renderDistribution("analyticsRarities", data.rarities, row => RARITY_COLOR[row.label] || "var(--gold)");
+  renderDistribution("analyticsDomains", data.domains, row => DOMAIN_COLOR[row.label] || "var(--c-colorless)");
   document.getElementById("pricingState").textContent = data.hasPricing ? "Latest local snapshots" : "Pricing not configured";
   document.getElementById("valuableCards").innerHTML = data.mostValuable.length ? data.mostValuable.map(row => `
-    <div class="valuable-row"><img src="${escapeHtml(cardImage(row.card))}" alt="" /><div><strong>${escapeHtml(row.card.name)}</strong><span>${row.card.ownedCount} copies at ${formatMoney(row.unitPrice)}</span></div><b>${formatMoney(row.collectionValue)}</b></div>`).join("") : `<span class="loading-line">No price snapshots yet</span>`;
+    <div class="valuable-row"><div class="valuable-art"><img src="${escapeHtml(cardImage(row.card))}" alt="" />${cardImagePopout(row.card)}</div><div><strong>${escapeHtml(row.card.name)}</strong><span>${row.card.ownedCount} copies at ${formatMoney(row.unitPrice)}</span></div><b>${formatMoney(row.collectionValue)}</b></div>`).join("") : `<span class="loading-line">No price snapshots yet</span>`;
   document.getElementById("deckReadiness").innerHTML = data.deckReadiness.length ? data.deckReadiness.map(deck => {
     const total = deck.mainCount + deck.sideboardCount;
     const pct = total ? Math.round(deck.ownedCount * 100 / total) : 0;
@@ -554,9 +864,8 @@ async function loadAnalytics() {
 }
 
 function renderDistribution(id, rows, color) {
-  const max = Math.max(1, ...rows.map(row => row.cards));
   document.getElementById(id).innerHTML = rows.map(row => `
-    <div class="distribution-row"><span>${escapeHtml(row.label)}</span><div class="distribution-bar"><span style="width:${row.cards * 100 / max}%;background:${color}"></span></div><b>${row.owned}/${row.cards}</b></div>`).join("");
+    <div class="distribution-row"><span>${escapeHtml(row.label)}</span><div class="distribution-bar"><span style="width:${row.cards ? row.owned * 100 / row.cards : 0}%;background:${typeof color === "function" ? color(row) : color}"></span></div><b>${row.owned}/${row.cards}</b></div>`).join("");
 }
 
 async function loadSettings() {
@@ -621,7 +930,8 @@ async function quickAdd() {
   const cards = await api(`/api/cards/lookup?${queryString(parsed)}`);
   registerCards(cards);
   if (!cards.length) { root.innerHTML = `<div class="result-row error">No matching card found.</div>`; return; }
-  root.innerHTML = cards.map(card => `<div class="result-row"><img src="${escapeHtml(cardImage(card))}" alt="" /><div><strong>${escapeHtml(card.name)}</strong><span>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))} / own ${card.ownedCount}</span></div><button class="command-btn gold" data-quick-add-card="${escapeHtml(card.id)}">Add</button></div>`).join("");
+  root.innerHTML = cards.map(card => `<div class="result-row"><div class="result-card-art"><img src="${escapeHtml(cardImage(card))}" alt="" />${cardImagePopout(card)}</div><div><strong>${escapeHtml(card.name)}</strong><span>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))} / own ${card.ownedCount}</span></div><button class="command-btn gold" data-quick-add-card="${escapeHtml(card.id)}">Add</button></div>`).join("");
+  renderIcons(root);
   root.querySelectorAll("[data-quick-add-card]").forEach(button => button.addEventListener("click", async () => {
     await changeOwned(cardsById.get(button.dataset.quickAddCard), 1);
     input.value = "";
@@ -758,7 +1068,8 @@ function renderScanResult(result) {
     return;
   }
   status.textContent = result.matches.length === 1 ? "Card matched" : "Choose the correct card";
-  root.innerHTML = result.matches.map(match => `<div class="result-row"><img src="${escapeHtml(cardImage(match.card))}" alt="" /><div><strong>${escapeHtml(match.card.name)}</strong><span>${escapeHtml(match.card.setId)}-${escapeHtml(cardCode(match.card))} / ${match.confidence}%</span></div><button class="command-btn gold" data-scan-add="${escapeHtml(match.card.id)}">Add</button></div>`).join("");
+  root.innerHTML = result.matches.map(match => `<div class="result-row"><div class="result-card-art"><img src="${escapeHtml(cardImage(match.card))}" alt="" />${cardImagePopout(match.card)}</div><div><strong>${escapeHtml(match.card.name)}</strong><span>${escapeHtml(match.card.setId)}-${escapeHtml(cardCode(match.card))} / ${match.confidence}%</span></div><button class="command-btn gold" data-scan-add="${escapeHtml(match.card.id)}">Add</button></div>`).join("");
+  renderIcons(root);
   root.querySelectorAll("[data-scan-add]").forEach(button => button.addEventListener("click", async () => {
     await changeOwned(cardsById.get(button.dataset.scanAdd), 1);
     root.innerHTML = "";
@@ -825,7 +1136,8 @@ function showLiveHit(match) {
   scan.hitPending = true;
   registerCards([match.card]);
   const root = document.getElementById("liveHit");
-  root.innerHTML = `<div class="result-row"><img src="${escapeHtml(cardImage(match.card))}" alt="" /><div><strong>${escapeHtml(match.card.name)}</strong><span>${escapeHtml(match.card.setId)}-${escapeHtml(cardCode(match.card))}</span></div><button class="command-btn gold" id="liveAdd">Add</button></div>`;
+  root.innerHTML = `<div class="result-row"><div class="result-card-art"><img src="${escapeHtml(cardImage(match.card))}" alt="" />${cardImagePopout(match.card)}</div><div><strong>${escapeHtml(match.card.name)}</strong><span>${escapeHtml(match.card.setId)}-${escapeHtml(cardCode(match.card))}</span></div><button class="command-btn gold" id="liveAdd">Add</button></div>`;
+  renderIcons(root);
   document.getElementById("liveStatus").textContent = "Card matched";
   document.getElementById("liveAdd").onclick = async () => {
     await changeOwned(match.card, 1);
@@ -867,21 +1179,76 @@ function wireEvents() {
   });
   document.addEventListener("keydown", event => {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); document.getElementById("globalSearch").focus(); }
-    if (event.key === "Escape") document.querySelectorAll(".modal-layer:not([hidden])").forEach(modal => closeModal(modal.id));
+    if (event.key === "Escape") {
+      closeCardContextMenu();
+      document.querySelectorAll(".modal-layer:not([hidden])").forEach(modal => closeModal(modal.id));
+    }
+  });
+  document.addEventListener("contextmenu", event => {
+    const tile = event.target.closest("[data-card-open]");
+    if (!tile) return closeCardContextMenu();
+    const card = cardsById.get(tile.dataset.cardOpen);
+    if (!card) return;
+    event.preventDefault();
+    showCardContextMenu(card, event.clientX, event.clientY);
+  });
+  document.getElementById("cardContextMenu").addEventListener("keydown", event => {
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const buttons = [...event.currentTarget.querySelectorAll("button:not(:disabled)")];
+    if (!buttons.length) return;
+    const current = buttons.indexOf(document.activeElement);
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
+      : event.key === 'ArrowDown' ? (current + 1) % buttons.length
+        : (current - 1 + buttons.length) % buttons.length;
+    buttons[next].focus();
+  });
+  document.getElementById("cardContextMenu").addEventListener("click", event => {
+    event.stopPropagation();
+    const deckButton = event.target.closest("[data-context-deck]");
+    if (deckButton) {
+      const card = cardsById.get(state.contextCardId);
+      closeCardContextMenu();
+      if (card) addContextCardToDeck(card, Number(deckButton.dataset.contextDeck)).catch(err => toast(err.message, true));
+      return;
+    }
+    const action = event.target.closest("[data-context-action]");
+    if (action) handleCardContextAction(action.dataset.contextAction).catch(err => toast(err.message, true));
   });
   document.addEventListener("click", event => {
+    if (!event.target.closest("#cardContextMenu")) closeCardContextMenu();
+    const imagePopout = event.target.closest("[data-fullscreen-card]");
+    if (imagePopout) { event.preventDefault(); event.stopPropagation(); openFullscreenCardImage(imagePopout.dataset.fullscreenCard); return; }
+    if (event.target.closest(".card-trade-toggle")) { event.stopPropagation(); return; }
     const owned = event.target.closest("[data-owned-delta]");
     if (owned) { event.preventDefault(); event.stopPropagation(); const card = cardsById.get(owned.dataset.cardId); if (card) changeOwned(card, Number(owned.dataset.ownedDelta)); return; }
     const favorite = event.target.closest("[data-favorite-card]");
     if (favorite) { event.preventDefault(); event.stopPropagation(); const card = cardsById.get(favorite.dataset.favoriteCard); if (card) changeFavorite(card); return; }
     const binder = event.target.closest("[data-binder-delta]");
     if (binder) { event.preventDefault(); event.stopPropagation(); const card = cardsById.get(binder.dataset.cardId); if (card) changeBinder(card, Number(binder.dataset.binderDelta)); return; }
+    const priceQueueRemove = event.target.closest("[data-price-queue-remove]");
+    if (priceQueueRemove) { event.preventDefault(); event.stopPropagation(); const card = cardsById.get(priceQueueRemove.dataset.priceQueueRemove); if (card) setPriceQueue(card, false).catch(err => toast(err.message, true)); return; }
     const card = event.target.closest("[data-card-open]");
     if (card) { openCard(card.dataset.cardOpen); return; }
     const deck = event.target.closest("[data-deck-id]");
     if (deck) { state.activeDeckId = Number(deck.dataset.deckId); loadDecks(); return; }
     if (event.target.closest("[data-new-deck]")) openNewDeckModal();
   });
+  document.addEventListener("change", event => {
+    const toggle = event.target.closest("[data-card-trade-toggle]");
+    if (!toggle) return;
+    const card = cardsById.get(toggle.dataset.cardTradeToggle);
+    if (!card) return;
+    setBinderAvailability(card, toggle.checked).catch(err => {
+      toggle.checked = !toggle.checked;
+      toast(err.message, true);
+    });
+  });
+  window.addEventListener("resize", closeCardContextMenu);
+  window.addEventListener("scroll", event => {
+    if (event.target instanceof Element && event.target.closest("#cardContextMenu")) return;
+    closeCardContextMenu();
+  }, true);
   document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => closeModal(button.dataset.close)));
   document.querySelectorAll(".modal-layer").forEach(layer => layer.addEventListener("click", event => { if (event.target === layer) closeModal(layer.id); }));
   document.getElementById("openQuickAdd").addEventListener("click", () => { document.getElementById("quickAddResult").innerHTML = ""; showModal("quickAddModal"); setTimeout(() => document.getElementById("quickAddInput").focus(), 0); });
@@ -900,6 +1267,9 @@ function wireEvents() {
   document.getElementById("clearPricingKey").addEventListener("click", clearPricingKey);
   document.getElementById("refreshTrackedPrices").addEventListener("click", () => refreshPrices(false));
   document.getElementById("refreshAllPrices").addEventListener("click", () => refreshPrices(true));
+  document.getElementById("clearPriceQueue").addEventListener("click", () => clearPriceQueue().catch(err => toast(err.message, true)));
+  document.getElementById("checkPriceQueue").addEventListener("click", checkPriceQueue);
+  document.getElementById("priceQueueSettings").addEventListener("click", () => navigate("settings"));
   document.getElementById("checkUpdateBtn").addEventListener("click", checkForUpdates);
   document.querySelectorAll("#themeControl button").forEach(button => button.addEventListener("click", () => setTheme(button.dataset.themeValue)));
   document.getElementById("openScan").addEventListener("click", () => { resetScanner(); showModal("scanModal"); });
@@ -962,7 +1332,7 @@ async function init() {
   wireEvents();
   renderIcons(document);
   try {
-    const [server] = await Promise.all([api("/api/server-info"), loadSets(), loadPrices(), loadOverview(), loadDecks()]);
+    const [server] = await Promise.all([api("/api/server-info"), loadSets(), loadPrices(), loadPriceQueue(), loadOverview(), loadDecks()]);
     document.getElementById("currentVersion").textContent = server.version;
     document.getElementById("settingsVersion").textContent = server.version;
     await loadVault();

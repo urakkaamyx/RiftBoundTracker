@@ -394,6 +394,38 @@ internal static class Program
         app.MapGet("/api/pricing/history/{cardId}", async (string cardId, int? days, PriceSyncService prices, CancellationToken ct) =>
             Results.Ok(await prices.GetHistoryAsync(cardId, days ?? 30, ct)));
 
+        app.MapGet("/api/pricing/queue", async (PriceSyncService prices, CancellationToken ct) =>
+            Results.Ok(await prices.GetQueueAsync(ct)));
+
+        app.MapPost("/api/pricing/queue/{cardId}", async (
+            string cardId, PriceQueueRequest body, PriceSyncService prices, CancellationToken ct) =>
+        {
+            try
+            {
+                var updated = await prices.SetQueuedAsync(cardId, body.Queued, ct);
+                return updated is null ? Results.NotFound() : Results.Ok(updated);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(new { error = ex.Message });
+            }
+        });
+
+        app.MapDelete("/api/pricing/queue", async (PriceSyncService prices, CancellationToken ct) =>
+            Results.Ok(new { removed = await prices.ClearQueueAsync(ct) }));
+
+        app.MapPost("/api/pricing/queue/check", async (PriceSyncService prices, CancellationToken ct) =>
+        {
+            try
+            {
+                return Results.Ok(await prices.SyncNextQueueBatchAsync(ct));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(new { error = ex.Message });
+            }
+        });
+
         app.MapPost("/api/pricing/refresh", async (PriceRefreshRequest body, PriceSyncService prices, CancellationToken ct) =>
             Results.Ok(await prices.SyncTrackedAsync(body.IncludeAllCards, ct)));
 
@@ -484,3 +516,4 @@ internal static class Program
 public record OwnedRequest(int Owned);
 public record PricingKeyRequest(string ApiKey);
 public record PriceRefreshRequest(bool IncludeAllCards);
+public record PriceQueueRequest(bool Queued);

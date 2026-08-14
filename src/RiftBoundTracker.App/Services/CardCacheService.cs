@@ -144,9 +144,11 @@ public partial class CardCacheService(
             query = query.Where(c => c.DomainsCsv.Contains(q.Domain));
         if (!string.IsNullOrWhiteSpace(q.Search))
         {
-            var search = q.Search.Trim();
-            query = query.Where(c => c.Name.Contains(search) || c.Id.Contains(search)
-                || c.CollectorNumber.ToString().Contains(search) || c.CollectorCode.Contains(search));
+            // SQLite translates string.Contains to instr(), which is case-sensitive. Normalize
+            // both sides so searches such as "blade" still match a name beginning with "Blade".
+            var search = q.Search.Trim().ToLowerInvariant();
+            query = query.Where(c => c.Name.ToLower().Contains(search) || c.Id.ToLower().Contains(search)
+                || c.CollectorNumber.ToString().Contains(search) || c.CollectorCode.ToLower().Contains(search));
         }
         if (q.Owned == "owned")
             query = query.Where(c => c.OwnedCount > 0);

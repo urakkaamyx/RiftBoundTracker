@@ -433,8 +433,11 @@ async function previewMassAdd() {
           entry.card = cards[0];
           entry.selected = true;
         } else if (cards.length > 1) {
-          entry.status = "error";
-          entry.message = `ambiguous across ${cards.length} sets, add a set code (e.g. "OGN-${entry.code}")`;
+          // Genuinely ambiguous (e.g. "001" matches a card in every set) — list every match as
+          // its own pickable row instead of dead-ending with an error telling the user to retype.
+          entry.status = "ambiguous";
+          entry.candidates = cards;
+          entry.selectedIds = new Set();
         } else {
           entry.status = "error";
           entry.message = "no matching card found";
@@ -467,6 +470,33 @@ function renderMassAddPreview() {
       });
       entry.el = row;
       massAddResults.appendChild(row);
+    } else if (entry.status === "ambiguous") {
+      const group = document.createElement("div");
+      group.className = "mass-add-group";
+
+      const header = document.createElement("div");
+      header.className = "mass-add-row mass-add-group-header";
+      header.textContent = `${entry.raw} — matches ${entry.candidates.length} cards, pick the ones you mean:`;
+      group.appendChild(header);
+
+      entry.candidateEls = new Map();
+      entry.candidates.forEach(card => {
+        const sub = document.createElement("label");
+        sub.className = "mass-add-row mass-add-subrow";
+        const newCount = (card.ownedCount || 0) + entry.qty;
+        sub.innerHTML = `<input type="checkbox" />
+          <span>${card.setId}·${cardCode(card)} — ${card.name} (own ${card.ownedCount || 0} → ${newCount})</span>`;
+        sub.querySelector("input").addEventListener("change", e => {
+          if (e.target.checked) entry.selectedIds.add(card.id);
+          else entry.selectedIds.delete(card.id);
+          updateMassAddConfirmButton();
+        });
+        entry.candidateEls.set(card.id, sub);
+        group.appendChild(sub);
+      });
+
+      entry.el = group;
+      massAddResults.appendChild(group);
     } else {
       const row = document.createElement("div");
       row.className = "mass-add-row mass-add-fail";
@@ -476,33 +506,58 @@ function renderMassAddPreview() {
     }
   });
 
-  massAddConfirmBtn.hidden = !massAddEntries.some(e => e.status === "ok");
+  massAddConfirmBtn.hidden = !massAddEntries.some(e => e.status === "ok" || e.status === "ambiguous");
   updateMassAddConfirmButton();
 }
 
+function countMassAddSelected() {
+  let n = 0;
+  for (const entry of massAddEntries) {
+    if (entry.status === "ok" && entry.selected) n++;
+    if (entry.status === "ambiguous") n += entry.selectedIds.size;
+  }
+  return n;
+}
+
 function updateMassAddConfirmButton() {
-  const selected = massAddEntries.filter(e => e.status === "ok" && e.selected);
-  massAddConfirmBtn.textContent = selected.length ? `Add ${selected.length} card${selected.length === 1 ? "" : "s"}` : "Add";
-  massAddConfirmBtn.disabled = selected.length === 0;
+  const n = countMassAddSelected();
+  massAddConfirmBtn.textContent = n ? `Add ${n} card${n === 1 ? "" : "s"}` : "Add";
+  massAddConfirmBtn.disabled = n === 0;
 }
 
 async function confirmMassAdd() {
-  const selected = massAddEntries.filter(e => e.status === "ok" && e.selected);
-  if (selected.length === 0) return;
+  if (countMassAddSelected() === 0) return;
 
   massAddConfirmBtn.disabled = true;
   massAddPreviewBtn.hidden = true;
 
-  for (const entry of selected) {
-    try {
-      await setOwned(entry.card.id, (entry.card.ownedCount || 0) + entry.qty);
-      entry.el.querySelector("span").textContent = `${entry.raw} — added ${entry.qty} × ${entry.card.name} ✓`;
-      entry.el.classList.remove("mass-add-ok");
-      entry.el.classList.add("mass-add-added");
-      entry.el.querySelector("input")?.remove();
-    } catch (err) {
-      entry.el.querySelector("span").textContent = `${entry.raw} — error: ${err.message}`;
-      entry.el.classList.add("mass-add-fail");
+  for (const entry of massAddEntries) {
+    if (entry.status === "ok" && entry.selected) {
+      try {
+        await setOwned(entry.card.id, (entry.card.ownedCount || 0) + entry.qty);
+        entry.el.querySelector("span").textContent = `${entry.raw} — added ${entry.qty} × ${entry.card.name} ✓`;
+        entry.el.classList.remove("mass-add-ok");
+        entry.el.classList.add("mass-add-added");
+        entry.el.querySelector("input")?.remove();
+      } catch (err) {
+        entry.el.querySelector("span").textContent = `${entry.raw} — error: ${err.message}`;
+        entry.el.classList.add("mass-add-fail");
+      }
+    } else if (entry.status === "ambiguous") {
+      for (const card of entry.candidates) {
+        if (!entry.selectedIds.has(card.id)) continue;
+        const sub = entry.candidateEls.get(card.id);
+        try {
+          await setOwned(card.id, (card.ownedCount || 0) + entry.qty);
+          sub.querySelector("span").textContent = `${card.setId}·${cardCode(card)} — added ${entry.qty} × ${card.name} ✓`;
+          sub.classList.remove("mass-add-subrow");
+          sub.classList.add("mass-add-added");
+          sub.querySelector("input")?.remove();
+        } catch (err) {
+          sub.querySelector("span").textContent = `${card.setId}·${cardCode(card)} — error: ${err.message}`;
+          sub.classList.add("mass-add-fail");
+        }
+      }
     }
   }
 

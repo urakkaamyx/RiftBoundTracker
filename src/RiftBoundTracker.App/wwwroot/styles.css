@@ -320,6 +320,13 @@ select.sort { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--bor
 .mass-add-row.mass-add-added { color: var(--accent-text); }
 .mass-add-row.mass-add-fail { color: var(--danger); }
 
+.mass-add-group-header {
+  font: 700 11.5px var(--font-ui); text-transform: uppercase; letter-spacing: .03em;
+  color: var(--text-faint); background: var(--surface);
+}
+.mass-add-subrow { padding-left: 24px; cursor: pointer; color: var(--text); }
+.mass-add-subrow input[type="checkbox"] { flex-shrink: 0; accent-color: var(--accent); }
+
 /* ---------- Connection overlay ---------- */
 .connection-sheet { max-width: 380px; }
 .connection-body { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }

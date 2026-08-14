@@ -292,6 +292,18 @@ select.sort { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--bor
 .manual-entry { padding-top: 14px; border-top: 1px solid var(--border); }
 
 /* ---------- Mass add overlay ---------- */
+/* ---------- Quick add confirm overlay ---------- */
+.quick-add-confirm-sheet { max-width: 360px; }
+.quick-add-confirm-body { display: flex; gap: 14px; align-items: center; }
+.quick-add-confirm-body img {
+  width: 96px; height: 134px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);
+  flex-shrink: 0; background: var(--surface-2);
+}
+.quick-add-confirm-body .info h4 { margin: 0 0 6px; font: 700 16px var(--font-card); color: var(--text); }
+.quick-add-confirm-body .info .meta { font: 600 12px var(--font-mono); color: var(--text-dim); }
+.quick-add-confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.quick-add-confirm-actions .btn { min-width: 88px; }
+
 .mass-add-sheet { max-width: 480px; }
 .mass-add-hint { margin: 0; font: 500 12.5px/1.5 var(--font-ui); color: var(--text-dim); }
 .mass-add-hint code {

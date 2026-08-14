@@ -86,7 +86,7 @@
         <div class="toolbar-actions">
           <div class="quick-add" id="quickAdd">
             <input class="field" id="quickAddInput" placeholder="Quick add: OGN-045 or VEN-R01" />
-            <button class="btn primary" id="quickAddBtn">Add</button>
+            <button class="btn primary" id="quickAddBtn" title="Shift-click to add without confirming">Add</button>
           </div>
           <button class="scan-fab secondary" id="openMassAdd">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h11M4 12h7M4 18h11"/><path d="M19 15v6M16 18h6"/></svg>
@@ -187,6 +187,22 @@
           <input class="field" id="manualNumber" type="text" placeholder="e.g. 147 or R01" maxlength="6" />
           <button class="btn primary" id="manualLookupBtn">Find</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="quickAddConfirmOverlay" hidden>
+    <div class="sheet quick-add-confirm-sheet">
+      <div class="sheet-head">
+        <h2>Add this card?</h2>
+        <button id="closeQuickAddConfirm" aria-label="Close">✕</button>
+      </div>
+
+      <div class="quick-add-confirm-body" id="quickAddConfirmBody"></div>
+
+      <div class="quick-add-confirm-actions">
+        <button class="btn" id="quickAddConfirmCancelBtn">Cancel</button>
+        <button class="btn primary" id="quickAddConfirmYesBtn">Add</button>
       </div>
     </div>
   </div>

@@ -229,9 +229,14 @@ async function setOwned(cardId, owned) {
     body: JSON.stringify({ owned }),
   });
   cardsById.set(cardId, updated);
-  renderGrid([...cardsById.values()]);
+  // Re-query with the current filters (state is untouched by this) rather than just re-rendering
+  // whatever happened to already be in cardsById — otherwise a card that stops matching the active
+  // filter (e.g. marking the last copy of a "Missing"-filtered card as owned) stays visibly stuck
+  // in the grid until something else triggers a real refresh.
+  await loadGrid();
   loadStats();
   loadSets();
+  return updated;
 }
 
 document.getElementById("ownedToggle").addEventListener("click", e => {
@@ -327,7 +332,7 @@ function parseQuickAddInput(raw) {
   return null;
 }
 
-async function quickAdd() {
+async function quickAdd(skipConfirm) {
   const parsed = parseQuickAddInput(quickAddInput.value);
   if (!parsed) {
     alert('Type a card code (e.g. "45" or "R01") or set + code (e.g. "OGN-045" or "VEN-R01").');
@@ -338,11 +343,14 @@ async function quickAdd() {
   try {
     const cards = await api(`/api/cards/lookup?${qs({ setId: parsed.setId, code: parsed.code })}`);
     if (cards.length === 1) {
-      await setOwned(cards[0].id, (cards[0].ownedCount || 0) + 1);
-      quickAddInput.value = "";
-      quickAddBtn.textContent = "Added ✓";
-      setTimeout(() => { quickAddBtn.textContent = "Add"; }, 1200);
+      if (skipConfirm) {
+        await commitQuickAdd(cards[0]);
+      } else {
+        showQuickAddConfirm(cards[0]);
+      }
     } else if (cards.length > 1) {
+      // Genuinely ambiguous — the manual-lookup picker already shows an image per candidate, so
+      // that list itself is the confirmation step; no extra popup needed on top of it.
       resetScanSheet();
       overlay.hidden = false;
       manualNumber.value = parsed.code;
@@ -360,8 +368,48 @@ async function quickAdd() {
   }
 }
 
-quickAddBtn.addEventListener("click", quickAdd);
-quickAddInput.addEventListener("keydown", e => { if (e.key === "Enter") quickAdd(); });
+async function commitQuickAdd(card) {
+  await setOwned(card.id, (card.ownedCount || 0) + 1);
+  quickAddInput.value = "";
+  quickAddBtn.textContent = "Added ✓";
+  setTimeout(() => { quickAddBtn.textContent = "Add"; }, 1200);
+}
+
+/* ---------------- Quick add confirmation popup ---------------- */
+const quickAddConfirmOverlay = document.getElementById("quickAddConfirmOverlay");
+const quickAddConfirmBody = document.getElementById("quickAddConfirmBody");
+let quickAddPendingCard = null;
+
+function showQuickAddConfirm(card) {
+  quickAddPendingCard = card;
+  const newCount = (card.ownedCount || 0) + 1;
+  quickAddConfirmBody.innerHTML = `
+    <img src="${card.localImagePath || ""}" alt="${card.name}" />
+    <div class="info">
+      <h4>${card.name}</h4>
+      <div class="meta">${card.setId}·${cardCode(card)} — own ${card.ownedCount || 0} → ${newCount}</div>
+    </div>
+  `;
+  quickAddConfirmOverlay.hidden = false;
+}
+
+function closeQuickAddConfirm() {
+  quickAddConfirmOverlay.hidden = true;
+  quickAddPendingCard = null;
+}
+
+document.getElementById("quickAddConfirmYesBtn").addEventListener("click", async () => {
+  const card = quickAddPendingCard;
+  closeQuickAddConfirm();
+  if (card) await commitQuickAdd(card);
+});
+document.getElementById("quickAddConfirmCancelBtn").addEventListener("click", closeQuickAddConfirm);
+document.getElementById("closeQuickAddConfirm").addEventListener("click", closeQuickAddConfirm);
+quickAddConfirmOverlay.addEventListener("click", e => { if (e.target === quickAddConfirmOverlay) closeQuickAddConfirm(); });
+
+// Shift-click (or Shift+Enter) bypasses the confirmation popup and adds immediately.
+quickAddBtn.addEventListener("click", e => quickAdd(e.shiftKey));
+quickAddInput.addEventListener("keydown", e => { if (e.key === "Enter") quickAdd(e.shiftKey); });
 
 /* ---------------- Mass add ---------------- */
 const massAddOverlay = document.getElementById("massAddOverlay");
@@ -1170,12 +1218,13 @@ function renderCardDetail(c) {
   `;
 
   detailBody.querySelector('[data-act="dec"]').addEventListener("click", async () => {
-    await setOwned(c.id, Math.max(0, c.ownedCount - 1));
-    renderCardDetail(cardsById.get(c.id));
+    // Use the entity setOwned returns directly rather than re-reading cardsById afterward — the
+    // refreshed grid (now filtered) may no longer include this card at all (e.g. it just stopped
+    // matching an active "Missing" filter), which would otherwise render the detail view blank.
+    renderCardDetail(await setOwned(c.id, Math.max(0, c.ownedCount - 1)));
   });
   detailBody.querySelector('[data-act="inc"]').addEventListener("click", async () => {
-    await setOwned(c.id, c.ownedCount + 1);
-    renderCardDetail(cardsById.get(c.id));
+    renderCardDetail(await setOwned(c.id, c.ownedCount + 1));
   });
 }
 

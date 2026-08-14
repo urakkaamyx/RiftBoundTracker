@@ -178,7 +178,7 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
 .collection-toolbar select { height: 32px; min-width: 160px; text-transform: none; }
 .collection-toolbar .command-btn { min-height: 32px; }
 
-.vault-content { display: grid; grid-template-columns: minmax(0, 1fr) 292px; gap: 18px; padding-top: 14px; }
+.vault-content { display: grid; grid-template-columns: minmax(0, 1fr) 312px; gap: 18px; padding-top: 14px; }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(164px, 1fr)); align-content: start; gap: 14px; }
 .card-tile { position: relative; min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 7px; background: var(--panel); transition: transform .13s ease, border-color .13s ease, box-shadow .13s ease; }
 .card-tile:hover, .card-tile.selected { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 10px 28px rgba(0,0,0,.26); }
@@ -244,7 +244,7 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
 .card-grid.list-view .missing-badge { left: 3px; bottom: 3px; padding: 3px; font-size: 0; }
 .card-grid.list-view .missing-badge::after { content: "MISS"; font-size: 7px; }
 
-.card-inspector { position: sticky; top: calc(var(--topbar-height) + 14px); height: calc(100vh - var(--topbar-height) - 28px); overflow-y: auto; border-left: 1px solid var(--border-soft); padding-left: 16px; }
+.card-inspector { position: sticky; top: calc(var(--topbar-height) + 14px); height: calc(100vh - var(--topbar-height) - 28px); overflow-y: auto; scrollbar-gutter: stable; border-left: 1px solid var(--border-soft); padding: 0 10px 18px 16px; }
 .inspector-empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--faint); }
 .inspector-empty .icon { width: 28px; height: 28px; }
 .inspector-empty strong { color: var(--muted); }
@@ -275,10 +275,10 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
 .trade-toggle:has(input:disabled) { opacity: .45; cursor: not-allowed; }
 .inspector-stats { display: grid; grid-template-columns: 1fr auto; row-gap: 8px; padding: 13px 0; border-bottom: 1px solid var(--border-soft); font-size: 11px; }
 .inspector-stats span { color: var(--faint); }
-.inspector-stats b { text-align: right; font-weight: 600; }
-.inspector-rules { padding: 13px 0; color: var(--muted); font-size: 11px; line-height: 1.55; white-space: pre-wrap; }
+.inspector-stats b { min-width: 0; overflow-wrap: anywhere; text-align: right; font-weight: 600; }
+.inspector-rules { padding: 13px 0; overflow-wrap: anywhere; color: var(--muted); font-size: 11px; line-height: 1.55; white-space: pre-wrap; }
 .inspector-price { margin-top: 4px; padding: 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--panel); }
-.inspector-price-current { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.inspector-price-current { min-width: 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .inspector-price-current > span { color: var(--faint); font-size: 10px; }
 .inspector-price-current > b { display: flex; align-items: baseline; gap: 5px; min-width: 0; font: 700 13px var(--mono); white-space: nowrap; }
 .inspector-price-current > b a, .inspector-price-current > b span { overflow: hidden; color: var(--gold-bright); text-overflow: ellipsis; text-decoration: none; }

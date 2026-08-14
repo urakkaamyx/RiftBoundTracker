@@ -381,6 +381,7 @@ async function loadVault() {
       domain: state.domain, owned: state.owned, sort: state.sort
     })}`);
   }
+  cards = applyPriceSort(cards);
   registerCards(cards);
   renderVaultHero(facetCards);
   renderCardGrid(document.getElementById("vaultGrid"), cards);
@@ -389,6 +390,20 @@ async function loadVault() {
 
   if (state.selectedCardId && cardsById.has(state.selectedCardId))
     renderInspector(cardsById.get(state.selectedCardId));
+}
+
+function applyPriceSort(cards) {
+  if (state.sort !== "price-asc" && state.sort !== "price-desc") return cards;
+  const direction = state.sort === "price-asc" ? 1 : -1;
+  return [...cards].sort((a, b) => {
+    const aPrice = Number(state.prices[a.id]?.marketPrice);
+    const bPrice = Number(state.prices[b.id]?.marketPrice);
+    const aPriced = Number.isFinite(aPrice) && aPrice > 0;
+    const bPriced = Number.isFinite(bPrice) && bPrice > 0;
+    if (aPriced !== bPriced) return aPriced ? -1 : 1;
+    if (aPriced && aPrice !== bPrice) return (aPrice - bPrice) * direction;
+    return a.collectorNumber - b.collectorNumber || a.name.localeCompare(b.name);
+  });
 }
 
 function applyClientFilters(cards) {

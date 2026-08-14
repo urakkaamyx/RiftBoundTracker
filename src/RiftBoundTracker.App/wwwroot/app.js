@@ -461,7 +461,7 @@ function cardTile(card, context) {
       </div>
       <div class="card-body">
         <h3>${escapeHtml(card.name)}</h3>
-        <div class="card-meta"><span><i class="rarity-gem" style="background:${RARITY_COLOR[card.rarity] || "var(--faint)"}"></i>${escapeHtml(card.rarity || card.type)}</span><span>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))}</span></div>
+        <div class="card-meta"><span><i class="rarity-gem" style="background:${RARITY_COLOR[card.rarity] || "var(--faint)"}"></i>${escapeHtml(card.rarity || card.type)}</span><span class="card-meta-end"><span class="card-code">${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))}</span>${compactPriceMarkup(price)}</span></div>
         <div class="card-actions">
           <div class="mini-stepper"><button data-owned-delta="-1" data-card-id="${escapeHtml(card.id)}" aria-label="Remove copy">-</button><span>${card.ownedCount}</span><button data-owned-delta="1" data-card-id="${escapeHtml(card.id)}" aria-label="Add copy">+</button></div>
           ${context === "binderGrid"
@@ -469,7 +469,6 @@ function cardTile(card, context) {
             : card.ownedCount > 0
               ? `<label class="card-trade-toggle" title="Mark this card as available for trade"><span>Trade</span><input type="checkbox" data-card-trade-toggle="${escapeHtml(card.id)}"${card.binderCount > 0 ? " checked" : ""} /><i aria-hidden="true"></i></label>`
               : ""}
-          ${compactPriceMarkup(price)}
         </div>
       </div>
     </article>`;

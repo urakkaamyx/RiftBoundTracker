@@ -204,21 +204,22 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
 .card-body { padding: 9px 10px 10px; }
 .card-body h3 { margin: 0; min-height: 34px; display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font: 700 13px/1.25 var(--serif); }
 .card-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px; color: var(--faint); font-size: 9px; }
-.card-meta span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-meta > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-meta-end { min-width: 0; max-width: 72%; display: flex; align-items: center; justify-content: flex-end; gap: 7px; }
+.card-code { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rarity-gem { width: 7px; height: 7px; display: inline-block; margin-right: 5px; transform: rotate(45deg); background: var(--faint); }
-.card-actions { display: grid; grid-template-columns: 72px minmax(0, 1fr) max-content; align-items: center; gap: 6px; margin-top: 8px; }
+.card-actions { display: grid; grid-template-columns: 72px max-content; align-items: center; gap: 6px; margin-top: 8px; }
 .mini-stepper { width: max-content; height: 27px; display: grid; grid-template-columns: 27px 28px 27px; align-items: center; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
 .card-actions .mini-stepper { width: 72px; grid-template-columns: repeat(3, 24px); }
 .mini-stepper button { height: 100%; border: 0; background: var(--panel-2); color: var(--muted); }
 .mini-stepper button:hover { color: var(--text); background: var(--accent-soft); }
 .mini-stepper span { text-align: center; font: 600 10px var(--mono); }
 .price-label { display: flex; justify-content: flex-end; align-items: center; margin-left: 0; font-family: var(--mono); white-space: nowrap; }
-.card-actions > .price-label { grid-column: 3; }
+.card-meta-end .price-label { flex: 0 0 auto; }
 .price-label b { color: var(--green); font-size: 10px; text-align: right; }
 .binder-chip { min-width: 27px; height: 27px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 5px; color: var(--faint); font-size: 10px; }
 #binderGrid .card-actions { display: grid; grid-template-columns: 82px minmax(0, 1fr); align-items: center; }
 #binderGrid .binder-chip { width: 100%; padding: 0 8px; }
-#binderGrid .price-label { grid-column: 1 / -1; width: 100%; margin-left: 0; }
 .card-trade-toggle { grid-column: 2; justify-self: start; height: 27px; display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--panel-2); color: var(--muted); font-size: 9px; cursor: pointer; }
 .card-trade-toggle:hover { border-color: var(--accent); color: var(--text); }
 .card-trade-toggle input { position: absolute; width: 1px; height: 1px; padding: 0; opacity: 0; pointer-events: none; }

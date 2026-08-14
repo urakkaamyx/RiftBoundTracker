@@ -9,4 +9,5 @@ public class SyncStateEntity
     public bool LastFullSyncOk { get; set; }
     public int TotalSetsKnown { get; set; }
     public int TotalCardsSynced { get; set; }
+    public int CatalogContentRevision { get; set; }
 }

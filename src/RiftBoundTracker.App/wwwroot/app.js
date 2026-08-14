@@ -20,6 +20,7 @@ const state = {
   sets: [], overview: null, prices: {}, decks: [], activeDeckId: null,
   activeDeck: null, deckSearchTimer: null, contextCardId: null,
   contextMenuX: 0, contextMenuY: 0,
+  cardTextSymbols: new Map(),
   priceQueue: { items: [], batchSize: 20, configured: false, provider: "JustTCG" },
   priceQueueIds: new Set()
 };
@@ -34,6 +35,71 @@ function escapeHtml(value) {
   return node.innerHTML;
 }
 
+function safeSymbolColor(value, fallback) {
+  return /^(#[0-9a-f]{6}|transparent)$/i.test(value || "") ? value : fallback;
+}
+
+function descriptionText(card) {
+  const source = card.textRich || card.textPlain || "";
+  if (!source) return "";
+
+  const doc = new DOMParser().parseFromString(`<body>${source}</body>`, "text/html");
+  doc.body.querySelectorAll("br").forEach(br => br.replaceWith("\n"));
+  doc.body.querySelectorAll("li").forEach(item => {
+    item.prepend("\u2022 ");
+    item.append("\n");
+  });
+  doc.body.querySelectorAll("p").forEach(paragraph => paragraph.append("\n"));
+  return (doc.body.textContent || "")
+    .replace(/\r/g, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function keywordSymbolMarkup(content) {
+  const normalized = content.trim().replace(/\s+\d+$/i, "").toLowerCase();
+  if (normalized === "no text") return "";
+
+  const definition = state.cardTextSymbols.get(`keyword:${normalized}`);
+  if (definition?.kind === "separator") {
+    const lines = normalized === ">>" ? 2 : 1;
+    return `<span class="rules-divider double-${lines}" role="img" aria-label="then"></span>`;
+  }
+  if (!definition) return `<span class="rules-token-unknown">${escapeHtml(`[${content}]`)}</span>`;
+
+  const foreground = safeSymbolColor(definition.foregroundColor, "#ffffff");
+  const background = safeSymbolColor(definition.backgroundColor, "#777a78");
+  const border = safeSymbolColor(definition.borderColor, background);
+  return `<span class="rules-keyword" style="--keyword-fg:${foreground};--keyword-bg:${background};--keyword-border:${border}" title="${escapeHtml(definition.label)}">${escapeHtml(content.toUpperCase())}</span>`;
+}
+
+function inlineSymbolMarkup(token) {
+  const definition = state.cardTextSymbols.get(token.toLowerCase());
+  const safeAsset = /^\/assets\/riftbound-symbols\/[a-z0-9_-]+\.svg$/i.test(definition?.assetPath || "")
+    ? definition.assetPath : "";
+  if (!definition || !safeAsset) return `<span class="rules-token-unknown">${escapeHtml(token)}</span>`;
+  return `<img class="rules-symbol rules-symbol-${escapeHtml(definition.kind)}" src="${escapeHtml(safeAsset)}" alt="${escapeHtml(definition.label)}" title="${escapeHtml(definition.label)}" />`;
+}
+
+function cardRulesMarkup(card) {
+  const text = descriptionText(card);
+  if (!text) return "";
+
+  const pattern = /:rb_[a-z0-9_]+:|\[[^\]\r\n]+\]/gi;
+  let result = "";
+  let cursor = 0;
+  for (const match of text.matchAll(pattern)) {
+    result += escapeHtml(text.slice(cursor, match.index));
+    result += match[0].startsWith(":")
+      ? inlineSymbolMarkup(match[0])
+      : keywordSymbolMarkup(match[0].slice(1, -1));
+    cursor = match.index + match[0].length;
+  }
+  result += escapeHtml(text.slice(cursor));
+  return result;
+}
+
 async function api(path, options = {}) {
   const response = await fetch(path, options);
   if (!response.ok) {
@@ -46,6 +112,11 @@ async function api(path, options = {}) {
   }
   if (response.status === 204) return null;
   return response.json();
+}
+
+async function loadCardTextSymbols() {
+  const definitions = await api("/api/card-text-symbols");
+  state.cardTextSymbols = new Map(definitions.map(definition => [definition.token.toLowerCase(), definition]));
 }
 
 function jsonOptions(method, body) {
@@ -474,9 +545,38 @@ function cardTile(card, context) {
     </article>`;
 }
 
+function cardListRow(card) {
+  const domains = card.domains?.length ? card.domains : ["Colorless"];
+  const price = state.prices[card.id];
+  const cardType = [card.supertype, card.type].filter(Boolean).join(" ") || "Card";
+  return `
+    <article class="card-list-row${card.ownedCount <= 0 ? " missing" : ""}${state.selectedCardId === card.id ? " selected" : ""}" data-card-open="${escapeHtml(card.id)}">
+      <div class="card-art list-card-art${card.orientation === "landscape" ? " landscape" : ""}">
+        <div class="card-domain">${domains.map(domain => `<span style="background:${DOMAIN_COLOR[domain] || DOMAIN_COLOR.Colorless}"></span>`).join("")}</div>
+        <img src="${escapeHtml(cardImage(card))}" alt="${escapeHtml(card.name)}" loading="lazy" />
+        ${cardImagePopout(card)}
+        <button class="favorite-fab${card.isFavorite ? " active" : ""}" data-favorite-card="${escapeHtml(card.id)}" title="${card.isFavorite ? "Remove from favorites" : "Add to favorites"}">${icon("star")}</button>
+      </div>
+      <div class="list-card-info">
+        <h3>${escapeHtml(card.name)}</h3>
+        <span><i class="rarity-gem" style="background:${RARITY_COLOR[card.rarity] || "var(--faint)"}"></i>${escapeHtml(card.rarity || "Unknown")}<em>${escapeHtml(cardType)}</em></span>
+      </div>
+      <div class="list-card-set"><b>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))}</b><span>${escapeHtml(card.setLabel || card.setId)}</span></div>
+      <div class="list-card-domains">${domains.map(domain => `<span><i style="background:${DOMAIN_COLOR[domain] || DOMAIN_COLOR.Colorless}"></i>${escapeHtml(domain)}</span>`).join("")}</div>
+      <div class="list-card-owned"><span class="list-mobile-label">Owned</span><div class="mini-stepper"><button data-owned-delta="-1" data-card-id="${escapeHtml(card.id)}" aria-label="Remove copy">-</button><span>${card.ownedCount}</span><button data-owned-delta="1" data-card-id="${escapeHtml(card.id)}" aria-label="Add copy">+</button></div></div>
+      <div class="list-card-trade">${card.ownedCount > 0
+        ? `<label class="card-trade-toggle" title="Mark this card as available for trade"><span>Trade</span><input type="checkbox" data-card-trade-toggle="${escapeHtml(card.id)}"${card.binderCount > 0 ? " checked" : ""} /><i aria-hidden="true"></i></label>`
+        : `<span class="list-empty">--</span>`}</div>
+      <div class="list-card-price"><span class="list-mobile-label">Market</span><b${price ? ` title="${escapeHtml(`${price.provider || "Price"}: ${formatMoney(price.marketPrice)}`)}"` : ""}>${price ? formatMoney(price.marketPrice) : "--"}</b></div>
+    </article>`;
+}
+
 function renderCardGrid(root, cards) {
-  root.classList.toggle("list-view", state.view === "list" && root.id === "vaultGrid");
-  root.innerHTML = cards.map(card => cardTile(card, root.id)).join("");
+  const isList = state.view === "list" && root.id === "vaultGrid";
+  root.classList.toggle("list-view", isList);
+  root.innerHTML = isList
+    ? `<div class="card-list-header" aria-hidden="true"><span></span><span>Card</span><span class="list-head-set">Set</span><span class="list-head-domains">Domains</span><span>Owned</span><span>Trade</span><span>Market</span></div>${cards.map(cardListRow).join("")}`
+    : cards.map(card => cardTile(card, root.id)).join("");
   renderIcons(root);
 }
 
@@ -513,7 +613,7 @@ function cardDetailMarkup(card, mobile) {
       ${card.power != null ? `<span>Power</span><b>${card.power}</b>` : ""}
       ${card.artist ? `<span>Artist</span><b>${escapeHtml(card.artist)}</b>` : ""}
     </div>
-    ${card.textPlain ? `<div class="inspector-rules">${escapeHtml(card.textPlain)}</div>` : ""}
+    ${card.textRich || card.textPlain ? `<div class="inspector-rules">${cardRulesMarkup(card)}</div>` : ""}
     ${deckOptions ? `<div class="inline-form"><select data-deck-picker>${deckOptions}</select><button class="command-btn" data-add-to-deck>Add to Deck</button></div>` : ""}
     <div class="inspector-price">
       <div class="inspector-price-current">
@@ -1374,7 +1474,7 @@ function wireEvents() {
   document.querySelectorAll(".view-toggle").forEach(button => button.addEventListener("click", () => {
     state.view = button.dataset.view;
     document.querySelectorAll(".view-toggle").forEach(item => item.classList.toggle("active", item === button));
-    document.getElementById("vaultGrid").classList.toggle("list-view", state.view === "list");
+    loadVault().catch(err => toast(err.message, true));
   }));
   let searchTimer;
   document.getElementById("globalSearch").addEventListener("input", event => {
@@ -1537,7 +1637,7 @@ async function init() {
   wireEvents();
   renderIcons(document);
   try {
-    const [server] = await Promise.all([api("/api/server-info"), loadSets(), loadPrices(), loadPriceQueue(), loadOverview(), loadDecks()]);
+    const [server] = await Promise.all([api("/api/server-info"), loadCardTextSymbols(), loadSets(), loadPrices(), loadPriceQueue(), loadOverview(), loadDecks()]);
     document.getElementById("currentVersion").textContent = server.version;
     document.getElementById("settingsVersion").textContent = server.version;
     await loadVault();

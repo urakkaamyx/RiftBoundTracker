@@ -18,6 +18,7 @@ public class CardEntity
     public string? Supertype { get; set; }
     public string Rarity { get; set; } = "";
     public string DomainsCsv { get; set; } = "";
+    public string? TextRich { get; set; }
     public string? TextPlain { get; set; }
     public string? Flavour { get; set; }
     public string ImageUrl { get; set; } = "";

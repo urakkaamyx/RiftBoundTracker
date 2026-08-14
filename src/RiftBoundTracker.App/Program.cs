@@ -165,6 +165,7 @@ internal static class Program
         builder.Services.AddScoped<DeckService>();
         builder.Services.AddScoped<VaultService>();
         builder.Services.AddScoped<PriceSyncService>();
+        builder.Services.AddScoped<CardTextSymbolCatalogService>();
         builder.Services.AddScoped<IPriceProvider, JustTcgPriceProvider>();
         builder.Services.AddSingleton<RiftboundGgPriceService>();
         builder.Services.AddSingleton<PricingSettingsService>();
@@ -180,11 +181,16 @@ internal static class Program
             var databaseSafety = scope.ServiceProvider.GetRequiredService<DatabaseSafetyService>();
             await databaseSafety.MigrateSafelyAsync(dbPath);
 
+            var symbolCatalog = scope.ServiceProvider.GetRequiredService<CardTextSymbolCatalogService>();
+            await symbolCatalog.EnsureSeededAsync();
+
             // First launch (or a DB that's never finished a full sync) — populate the whole
             // catalog automatically instead of requiring the old manual per-set sync. Runs in its
             // own background scope so it doesn't block app startup / the desktop window showing up.
             var catalogSync = scope.ServiceProvider.GetRequiredService<CatalogSyncService>();
-            if (!args.Contains("--no-catalog-sync") && !await catalogSync.HasEverSyncedAsync())
+            var needsInitialSync = !await catalogSync.HasEverSyncedAsync();
+            var needsContentRefresh = await catalogSync.NeedsContentRefreshAsync();
+            if (!args.Contains("--no-catalog-sync") && (needsInitialSync || needsContentRefresh))
             {
                 var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
                 _ = Task.Run(async () =>
@@ -288,6 +294,9 @@ internal static class Program
 
         app.MapGet("/api/sets", async (CardCacheService cache, CancellationToken ct)
             => Results.Ok(await cache.GetSetsAsync(ct)));
+
+        app.MapGet("/api/card-text-symbols", async (CardTextSymbolCatalogService symbols, CancellationToken ct) =>
+            Results.Ok(await symbols.GetAllAsync(ct)));
 
         app.MapPost("/api/sync/{setId}", async (string setId, CardCacheService cache, CancellationToken ct) =>
         {

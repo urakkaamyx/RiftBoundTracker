@@ -55,6 +55,7 @@ public partial class CardCacheService(
             entity.Supertype = card.Classification?.Supertype;
             entity.Rarity = card.Classification?.Rarity ?? "";
             entity.DomainsCsv = string.Join(',', card.Classification?.Domain ?? []);
+            entity.TextRich = card.Text?.Rich;
             entity.TextPlain = card.Text?.Plain;
             entity.Flavour = card.Text?.Flavour;
             entity.ImageUrl = card.Media?.ImageUrl ?? "";

@@ -10,6 +10,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<DeckCardEntity> DeckCards => Set<DeckCardEntity>();
     public DbSet<PriceSnapshotEntity> PriceSnapshots => Set<PriceSnapshotEntity>();
     public DbSet<PriceQueueEntity> PriceQueue => Set<PriceQueueEntity>();
+    public DbSet<CardTextSymbolEntity> CardTextSymbols => Set<CardTextSymbolEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,5 +55,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .WithOne(c => c.PriceQueueItem)
             .HasForeignKey<PriceQueueEntity>(q => q.CardId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        var symbol = modelBuilder.Entity<CardTextSymbolEntity>();
+        symbol.HasKey(s => s.Token);
+        symbol.HasIndex(s => new { s.Kind, s.SortOrder });
     }
 }

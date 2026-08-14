@@ -20,6 +20,7 @@ public class CatalogSyncService(
     AppDbContext db,
     ILogger<CatalogSyncService> logger)
 {
+    public const int CurrentContentRevision = 1;
     // Shared across scoped instances (one per request) since sync runs as a single background task
     // outliving any individual request scope.
     private static volatile bool _running;
@@ -86,6 +87,8 @@ public class CatalogSyncService(
         state.LastFullSyncOk = ok;
         state.TotalSetsKnown = setsKnown;
         state.TotalCardsSynced = cardsSynced;
+        if (ok)
+            state.CatalogContentRevision = CurrentContentRevision;
         if (db.Entry(state).State == EntityState.Detached)
             db.SyncState.Add(state);
         await db.SaveChangesAsync(ct);
@@ -106,5 +109,11 @@ public class CatalogSyncService(
     {
         var state = await db.SyncState.FindAsync([1], ct);
         return state is { LastFullSyncOk: true };
+    }
+
+    public async Task<bool> NeedsContentRefreshAsync(CancellationToken ct = default)
+    {
+        var state = await db.SyncState.FindAsync([1], ct);
+        return state is { LastFullSyncOk: true } && state.CatalogContentRevision < CurrentContentRevision;
     }
 }

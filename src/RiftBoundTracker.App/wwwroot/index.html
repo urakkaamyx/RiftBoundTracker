@@ -1,256 +1,193 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RiftBound Vault</title>
+  <meta name="theme-color" content="#0b0b12" />
+  <title>Riftbound Vault</title>
   <link rel="stylesheet" href="styles.css" />
   <script>
-    // Applied before first paint so switching theme doesn't flash the wrong one on load.
     (function () {
-      var saved = localStorage.getItem("riftbound-theme");
-      var theme = saved || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      var theme = localStorage.getItem("riftbound-theme") || "dark";
       document.documentElement.setAttribute("data-theme", theme);
     })();
   </script>
 </head>
 <body>
-  <div class="app">
-    <aside class="rail">
-      <div class="brand">
-        <span class="eyebrow">Riftbound Collection</span>
-        <h1>Your Vault</h1>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true">✦</div>
+        <div><strong>RIFTBOUND</strong><span>VAULT</span></div>
       </div>
 
-      <div class="update-box" id="updateBox">
-        <div class="update-row">
-          <span class="update-version">v<span id="currentVersion">—</span></span>
-          <button class="btn" id="checkUpdateBtn">Check for updates</button>
-        </div>
-        <div class="update-status" id="updateStatus" hidden></div>
-      </div>
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <button class="nav-item active" data-page="vault"><i data-icon="archive"></i><span>Vault</span></button>
+        <button class="nav-item" data-page="decks"><i data-icon="layers"></i><span>Decks</span><b id="navDeckCount"></b></button>
+        <button class="nav-item" data-page="favorites"><i data-icon="heart"></i><span>Favorites</span><b id="navFavoriteCount"></b></button>
+        <button class="nav-item" data-page="binder"><i data-icon="book-open"></i><span>Trade Binder</span><b id="navBinderCount"></b></button>
+        <button class="nav-item" data-page="analytics"><i data-icon="chart"></i><span>Analytics</span></button>
+        <button class="nav-item" data-page="settings"><i data-icon="settings"></i><span>Settings</span></button>
+      </nav>
 
-      <div class="filter-group catalog-status">
-        <h3>Catalog</h3>
-        <div class="catalog-status-body" id="catalogStatusBody">Loading…</div>
-        <button class="btn" id="refreshCatalogBtn">Refresh catalog</button>
-      </div>
+      <section class="sidebar-progress" aria-labelledby="progressHeading">
+        <div class="sidebar-section-head"><span id="progressHeading">Collection</span><b id="sidebarProgressPct">0%</b></div>
+        <div class="progress-track"><span id="sidebarProgressBar"></span></div>
+        <div class="progress-meta"><span><b id="sidebarOwned">0</b> owned</span><span><b id="sidebarTotal">0</b> cards</span></div>
+      </section>
 
-      <div class="filter-group">
-        <h3>Status</h3>
-        <div class="owned-toggle" id="ownedToggle" role="group">
-          <button data-owned="all" aria-pressed="true">All</button>
-          <button data-owned="owned" aria-pressed="false">Owned</button>
-          <button data-owned="missing" aria-pressed="false">Missing</button>
-        </div>
-      </div>
+      <section class="sidebar-sets" aria-labelledby="setsHeading">
+        <div class="sidebar-section-head"><span id="setsHeading">Sets</span><button class="icon-btn" id="sidebarRefresh" title="Refresh catalog"><i data-icon="refresh"></i></button></div>
+        <div class="set-nav" id="setNav"></div>
+      </section>
 
-      <div class="filter-group">
-        <h3>Search</h3>
-        <input class="search" id="search" type="text" placeholder="Card name or number…" />
+      <div class="sidebar-footer">
+        <span class="status-dot"></span><span>Local vault</span><b>v<span id="currentVersion">...</span></b>
       </div>
-
-      <div class="filter-group">
-        <h3>Rarity</h3>
-        <div class="chiprow" id="rarityChips"></div>
-      </div>
-
-      <div class="filter-group">
-        <h3>Type</h3>
-        <div class="chiprow" id="typeChips"></div>
-      </div>
-
-      <div class="filter-group">
-        <h3>Domain</h3>
-        <div class="chiprow" id="domainChips"></div>
-      </div>
-
     </aside>
 
-    <main class="main">
-      <div class="toolbar">
-        <div class="toolbar-stats">
-          <div class="ring-stat" id="ringStat">
-            <svg width="40" height="40" viewBox="0 0 40 40">
-              <circle cx="20" cy="20" r="16" fill="none" stroke="var(--border)" stroke-width="4"/>
-              <circle id="ringProgress" cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4"
-                stroke-linecap="round" transform="rotate(-90 20 20)"/>
-            </svg>
-            <div>
-              <div class="num" id="pctLabel">0%</div>
-              <div class="lbl"><span id="ownedLabel">0</span> / <span id="totalLabel">0</span></div>
+    <div class="workspace">
+      <header class="topbar">
+        <button class="icon-btn mobile-menu" id="mobileMenu" title="Open navigation"><i data-icon="menu"></i></button>
+        <div class="page-identity"><span id="pageEyebrow">Collection</span><h1 id="pageTitle">Your Vault</h1></div>
+        <label class="global-search">
+          <i data-icon="search"></i>
+          <input id="globalSearch" type="search" placeholder="Search cards..." autocomplete="off" />
+          <kbd>Ctrl K</kbd>
+        </label>
+        <div class="top-actions">
+          <button class="command-btn" id="openQuickAdd"><i data-icon="plus-circle"></i><span>Quick Add</span></button>
+          <button class="command-btn" id="openScan"><i data-icon="scan"></i><span>Scan Card</span></button>
+          <button class="command-btn quiet" id="openConnection" title="Connect a phone"><i data-icon="qr"></i><span>Connect</span></button>
+        </div>
+      </header>
+
+      <main class="page-stack">
+        <section class="page active" id="page-vault" data-title="Your Vault" data-eyebrow="Collection">
+          <div class="vault-tabs" role="tablist" aria-label="Collection view">
+            <button class="vault-tab active" data-owned="all">All Cards <b id="tabAllCount">0</b></button>
+            <button class="vault-tab" data-owned="owned">Owned <b id="tabOwnedCount">0</b></button>
+            <button class="vault-tab" data-owned="missing">Missing <b id="tabMissingCount">0</b></button>
+            <button class="vault-tab" data-owned="favorites">Favorites <b id="tabFavoriteCount">0</b></button>
+          </div>
+
+          <div class="filterbar">
+            <select id="rarityFilter" aria-label="Filter by rarity"><option value="">All rarities</option></select>
+            <select id="typeFilter" aria-label="Filter by type"><option value="">All types</option></select>
+            <select id="domainFilter" aria-label="Filter by domain"><option value="">All domains</option></select>
+            <button class="filter-reset" id="clearFilters"><i data-icon="sliders"></i> Clear filters</button>
+            <span class="filter-spacer"></span>
+            <button class="icon-btn view-toggle active" data-view="grid" title="Grid view"><i data-icon="grid"></i></button>
+            <button class="icon-btn view-toggle" data-view="list" title="List view"><i data-icon="list"></i></button>
+          </div>
+
+          <section class="set-hero" id="setHero">
+            <div class="set-emblem" id="setEmblem">ALL</div>
+            <div class="set-copy"><span>Selected set</span><h2 id="setHeroTitle">All Sets</h2><p id="setHeroMeta">Your complete Riftbound catalog</p></div>
+            <div class="set-hero-stats">
+              <div><b id="setOwnedCount">0</b><span>Owned</span></div>
+              <div><b id="setMissingCount">0</b><span>Missing</span></div>
+              <div class="hero-ring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19"></circle><circle id="setRing" cx="24" cy="24" r="19"></circle></svg><b id="setCompletion">0%</b></div>
+            </div>
+          </section>
+
+          <div class="collection-toolbar">
+            <div><strong id="vaultResultCount">0 cards</strong><span id="vaultResultMeta">in your catalog</span></div>
+            <label>Sort <select id="sortFilter"><option value="num-asc">Collector number</option><option value="num-desc">Collector number descending</option><option value="name-asc">Name</option><option value="rarity">Rarity</option><option value="domain">Domain</option><option value="owned">Owned first</option></select></label>
+            <button class="command-btn quiet" id="openMassAdd"><i data-icon="list-plus"></i>Mass Add</button>
+          </div>
+
+          <div class="vault-content">
+            <div class="card-grid" id="vaultGrid"></div>
+            <aside class="card-inspector" id="cardInspector">
+              <div class="inspector-empty"><i data-icon="mouse-pointer"></i><strong>Select a card</strong><span>Card details appear here</span></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="page" id="page-decks" data-title="Decks" data-eyebrow="Builder">
+          <div class="page-toolbar">
+            <div><h2>Deck Library</h2><p id="deckLibraryMeta">0 decks</p></div>
+            <button class="command-btn quiet" id="importDeckBtn"><i data-icon="upload"></i>Import</button>
+            <button class="command-btn gold" id="newDeckBtn"><i data-icon="plus"></i>New Deck</button>
+          </div>
+          <div class="deck-layout">
+            <aside class="deck-library" id="deckList"></aside>
+            <div class="deck-workspace" id="deckWorkspace">
+              <div class="empty-workspace"><i data-icon="layers"></i><h2>Create your first deck</h2><button class="command-btn gold" id="emptyNewDeck">New Deck</button></div>
             </div>
           </div>
-          <div class="count"><b id="resultCount">0</b> cards shown</div>
-        </div>
-        <div class="toolbar-actions">
-          <div class="quick-add" id="quickAdd">
-            <input class="field" id="quickAddInput" placeholder="Quick add: OGN-045 or VEN-R01" />
-            <button class="btn primary" id="quickAddBtn" title="Shift-click to add without confirming">Add</button>
+        </section>
+
+        <section class="page" id="page-favorites" data-title="Favorites" data-eyebrow="Saved Cards">
+          <div class="page-toolbar"><div><h2>Favorites</h2><p id="favoriteMeta">0 saved cards</p></div></div>
+          <div class="card-grid page-card-grid" id="favoritesGrid"></div>
+          <div class="page-empty" id="favoritesEmpty" hidden><i data-icon="heart"></i><h2>No favorites yet</h2></div>
+        </section>
+
+        <section class="page" id="page-binder" data-title="Trade Binder" data-eyebrow="Collection">
+          <div class="page-toolbar"><div><h2>Trade Binder</h2><p id="binderMeta">0 cards available to trade</p></div><div class="value-chip" id="binderValue">Pricing not configured</div></div>
+          <div class="binder-summary" id="binderSummary"></div>
+          <div class="card-grid page-card-grid" id="binderGrid"></div>
+          <div class="page-empty" id="binderEmpty" hidden><i data-icon="book-open"></i><h2>Your binder is empty</h2></div>
+        </section>
+
+        <section class="page" id="page-analytics" data-title="Analytics" data-eyebrow="Collection Insights">
+          <div class="analytics-kpis" id="analyticsKpis"></div>
+          <div class="analytics-grid">
+            <section class="analytics-panel wide"><div class="panel-head"><h2>Set Completion</h2><span id="setCompletionMeta"></span></div><div class="set-progress-list" id="analyticsSets"></div></section>
+            <section class="analytics-panel"><div class="panel-head"><h2>Rarity Breakdown</h2></div><div class="distribution-list" id="analyticsRarities"></div></section>
+            <section class="analytics-panel"><div class="panel-head"><h2>Domain Mix</h2></div><div class="distribution-list" id="analyticsDomains"></div></section>
+            <section class="analytics-panel wide"><div class="panel-head"><h2>Most Valuable</h2><span id="pricingState"></span></div><div class="valuable-list" id="valuableCards"></div></section>
+            <section class="analytics-panel wide"><div class="panel-head"><h2>Deck Readiness</h2></div><div class="deck-readiness" id="deckReadiness"></div></section>
           </div>
-          <button class="scan-fab secondary" id="openMassAdd">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h11M4 12h7M4 18h11"/><path d="M19 15v6M16 18h6"/></svg>
-            Mass add
-          </button>
-          <div class="sortbox">
-            <label for="sort">Sort</label>
-            <select class="sort" id="sort">
-              <option value="num-asc">Collector # ↑</option>
-              <option value="num-desc">Collector # ↓</option>
-              <option value="name-asc">Name A–Z</option>
-              <option value="rarity">Rarity</option>
-              <option value="domain">Domain</option>
-              <option value="owned">Owned first</option>
-            </select>
+        </section>
+
+        <section class="page" id="page-settings" data-title="Settings" data-eyebrow="Vault">
+          <div class="settings-grid">
+            <section class="settings-section"><div class="settings-icon"><i data-icon="database"></i></div><div><h2>Catalog</h2><p id="catalogStatus">Loading...</p><div class="settings-actions"><button class="command-btn" id="refreshCatalogBtn"><i data-icon="refresh"></i>Refresh Catalog</button></div></div></section>
+            <section class="settings-section"><div class="settings-icon"><i data-icon="dollar"></i></div><div><h2>Pricing</h2><p id="pricingStatus">Loading...</p><div class="inline-form"><input id="pricingKey" type="password" placeholder="JustTCG API key" autocomplete="off" /><button class="command-btn gold" id="savePricingKey">Save</button><button class="icon-btn" id="clearPricingKey" title="Remove stored API key"><i data-icon="trash"></i></button></div><div class="settings-actions"><button class="command-btn" id="refreshTrackedPrices"><i data-icon="refresh"></i>Refresh Tracked</button><button class="command-btn quiet" id="refreshAllPrices">Refresh All</button></div></div></section>
+            <section class="settings-section"><div class="settings-icon"><i data-icon="shield"></i></div><div><h2>Data Safety</h2><p id="databaseStatus">Loading...</p><div class="data-facts" id="databaseFacts"></div></div></section>
+            <section class="settings-section"><div class="settings-icon"><i data-icon="smartphone"></i></div><div><h2>Phone Connection</h2><p id="connectionSettingsStatus">Loading...</p><div class="settings-actions"><button class="command-btn" id="settingsConnection"><i data-icon="qr"></i>Show QR Code</button></div></div></section>
+            <section class="settings-section"><div class="settings-icon"><i data-icon="palette"></i></div><div><h2>Appearance</h2><p>Theme</p><div class="segmented" id="themeControl"><button data-theme-value="dark" class="active">Dark</button><button data-theme-value="light">Light</button></div></div></section>
+            <section class="settings-section"><div class="settings-icon"><i data-icon="download"></i></div><div><h2>Updates</h2><p id="updateStatus">Current version v<span id="settingsVersion">...</span></p><div class="settings-actions"><button class="command-btn" id="checkUpdateBtn"><i data-icon="refresh"></i>Check for Updates</button></div></div></section>
           </div>
-          <button class="theme-toggle" id="themeToggle" aria-label="Switch to light theme" title="Switch theme">
-            <svg class="icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12H5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>
-            <svg class="icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M20.5 14.7A8.5 8.5 0 1 1 9.3 3.5a7 7 0 0 0 11.2 11.2z"/></svg>
-          </button>
-          <button class="scan-fab secondary" id="openConnection">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01"/></svg>
-            Connection
-          </button>
-          <button class="scan-fab" id="openScan">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V6a2 2 0 0 1 2-2h3M21 9V6a2 2 0 0 0-2-2h-3M3 15v3a2 2 0 0 0 2 2h3M21 15v3a2 2 0 0 1-2 2h-3"/><circle cx="12" cy="12" r="3.2"/></svg>
-            Scan card
-          </button>
-        </div>
-      </div>
-
-      <div class="set-tabs" id="setTabs"></div>
-
-      <div class="grid" id="grid"></div>
-      <div class="empty" id="emptyState" hidden>No cards match these filters. The catalog may still be syncing — check the sidebar.</div>
-
-      <p class="note"><b>Cached locally.</b> The full card catalog is synced automatically and stored in SQLite + on disk — browsing, filtering, and scanning all run against that local cache, not the live API.</p>
-    </main>
-  </div>
-
-  <div class="overlay" id="scanOverlay" hidden>
-    <div class="sheet">
-      <div class="sheet-head">
-        <h2>Scan a card</h2>
-        <button id="closeScan" aria-label="Close">✕</button>
-      </div>
-
-      <div class="tab-bar" role="tablist">
-        <button class="tab-btn" id="tabBtnLive" data-tab="live" role="tab" aria-selected="true">Live Camera</button>
-        <button class="tab-btn" id="tabBtnPhoto" data-tab="photo" role="tab" aria-selected="false">Camera Picture</button>
-        <button class="tab-btn" id="tabBtnUpload" data-tab="upload" role="tab" aria-selected="false">Upload</button>
-      </div>
-
-      <div class="tab-panel" id="tabPanelLive" data-tab-panel="live">
-        <button class="btn primary live-start-btn" id="liveScanBtn">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-          Start live camera
-        </button>
-        <div class="live-scan" id="liveScanView" hidden>
-          <div class="live-video-wrap">
-            <video id="liveVideo" autoplay playsinline muted></video>
-            <div class="live-frame-guide"></div>
-          </div>
-          <div class="live-status" id="liveStatus">Point the camera at a card…</div>
-          <div class="live-readout" id="liveReadout">Reading: <span id="liveReadoutText">—</span></div>
-          <div class="live-hit" id="liveHit" hidden></div>
-        </div>
-      </div>
-
-      <div class="tab-panel" id="tabPanelPhoto" data-tab-panel="photo" hidden>
-        <label class="camera-input" id="cameraTrigger">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          <span>Tap to take a photo of the whole card — flat, well-lit, filling most of the frame</span>
-          <input type="file" accept="image/*" capture="environment" id="scanFile" hidden />
-        </label>
-      </div>
-
-      <div class="tab-panel" id="tabPanelUpload" data-tab-panel="upload" hidden>
-        <label class="camera-input" id="pickExistingTrigger">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-          <span>Choose an existing photo or screenshot</span>
-          <input type="file" accept="image/*" id="scanFileExisting" hidden />
-        </label>
-      </div>
-
-      <div class="scan-preview" id="scanPreview" hidden>
-        <img id="scanPreviewImg" alt="Captured card" />
-        <div class="scan-status" id="scanStatus">Reading card…</div>
-      </div>
-
-      <div class="match-list" id="matchList"></div>
-      <div class="ocr-debug" id="ocrDebug" hidden></div>
-
-      <div class="filter-group manual-entry">
-        <h3>Or type the number</h3>
-        <div class="sync-row">
-          <input class="field manual-set" id="manualSetCode" type="text" placeholder="Set" maxlength="8" />
-          <input class="field" id="manualNumber" type="text" placeholder="e.g. 147 or R01" maxlength="6" />
-          <button class="btn primary" id="manualLookupBtn">Find</button>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   </div>
 
-  <div class="overlay" id="quickAddConfirmOverlay" hidden>
-    <div class="sheet quick-add-confirm-sheet">
-      <div class="sheet-head">
-        <h2>Add this card?</h2>
-        <button id="closeQuickAddConfirm" aria-label="Close">✕</button>
-      </div>
+  <div class="modal-layer" id="cardDetailModal" hidden><div class="modal detail-modal"><button class="modal-close" data-close="cardDetailModal"><i data-icon="x"></i></button><div id="mobileCardDetail"></div></div></div>
 
-      <div class="quick-add-confirm-body" id="quickAddConfirmBody"></div>
+  <div class="modal-layer" id="quickAddModal" hidden>
+    <div class="modal compact-modal"><div class="modal-head"><div><span>Collection</span><h2>Quick Add</h2></div><button class="icon-btn" data-close="quickAddModal"><i data-icon="x"></i></button></div><div class="quick-add-form"><input id="quickAddInput" placeholder="OGN-045 or VEN-R01" autocomplete="off" /><button class="command-btn gold" id="quickAddBtn">Find Card</button></div><div id="quickAddResult"></div></div>
+  </div>
 
-      <div class="quick-add-confirm-actions">
-        <button class="btn" id="quickAddConfirmCancelBtn">Cancel</button>
-        <button class="btn primary" id="quickAddConfirmYesBtn">Add</button>
-      </div>
+  <div class="modal-layer" id="massAddModal" hidden>
+    <div class="modal"><div class="modal-head"><div><span>Collection</span><h2>Mass Add</h2></div><button class="icon-btn" data-close="massAddModal"><i data-icon="x"></i></button></div><textarea id="massAddInput" rows="9" placeholder="OGN-045&#10;VEN-R01 x2&#10;88"></textarea><div class="modal-actions"><button class="command-btn" id="massAddPreview">Preview</button><button class="command-btn gold" id="massAddConfirm" hidden>Add Selected</button></div><div class="result-list" id="massAddResults"></div></div>
+  </div>
+
+  <div class="modal-layer" id="scanModal" hidden>
+    <div class="modal scan-modal"><div class="modal-head"><div><span>Scanner</span><h2>Scan a Card</h2></div><button class="icon-btn" id="closeScan"><i data-icon="x"></i></button></div>
+      <div class="segmented scan-tabs"><button data-scan-tab="live" class="active">Live Camera</button><button data-scan-tab="photo">Take Photo</button><button data-scan-tab="upload">Upload</button></div>
+      <div class="scan-panel active" data-scan-panel="live"><button class="scan-launch" id="liveScanBtn"><i data-icon="camera"></i><span>Start Camera</span></button><div class="live-scan" id="liveScanView" hidden><div class="video-frame"><video id="liveVideo" autoplay playsinline muted></video><span></span></div><p id="liveStatus">Point the camera at a card</p><code id="liveReadoutText">...</code><div id="liveHit"></div></div></div>
+      <div class="scan-panel" data-scan-panel="photo"><label class="scan-launch"><i data-icon="camera"></i><span>Take Photo</span><input type="file" accept="image/*" capture="environment" id="scanFile" hidden /></label></div>
+      <div class="scan-panel" data-scan-panel="upload"><label class="scan-launch"><i data-icon="image"></i><span>Choose Image</span><input type="file" accept="image/*" id="scanFileExisting" hidden /></label></div>
+      <div class="scan-preview" id="scanPreview" hidden><img id="scanPreviewImg" alt="Card preview" /><div><strong id="scanStatus">Reading card...</strong><pre id="ocrDebug" hidden></pre></div></div><div class="result-list" id="matchList"></div>
+      <div class="manual-lookup"><span>Manual lookup</span><input id="manualSetCode" maxlength="8" placeholder="Set" /><input id="manualNumber" maxlength="6" placeholder="Number" /><button class="command-btn" id="manualLookupBtn">Find</button></div>
     </div>
   </div>
 
-  <div class="overlay" id="massAddOverlay" hidden>
-    <div class="sheet mass-add-sheet">
-      <div class="sheet-head">
-        <h2>Mass add</h2>
-        <button id="closeMassAdd" aria-label="Close">✕</button>
-      </div>
+  <div class="modal-layer" id="connectionModal" hidden><div class="modal compact-modal"><div class="modal-head"><div><span>Phone Scanner</span><h2>Connect</h2></div><button class="icon-btn" data-close="connectionModal"><i data-icon="x"></i></button></div><div class="connection-body" id="connectionBody"><div class="loading-line">Loading...</div></div></div></div>
 
-      <p class="mass-add-hint">One card per line — <code>OGN-045</code>, <code>45</code> (uses the active set tab),
-        <code>VEN-R01</code> (letter-coded cards like runes), <code>*-045</code> (search every set),
-        or add <code>x3</code> for multiple copies (e.g. <code>OGN-045 x3</code>). Commas also work as separators.</p>
+  <div class="modal-layer" id="deckModal" hidden><div class="modal compact-modal"><div class="modal-head"><div><span>Deck Builder</span><h2 id="deckModalTitle">New Deck</h2></div><button class="icon-btn" data-close="deckModal"><i data-icon="x"></i></button></div><div class="form-stack"><label>Name<input id="deckNameInput" maxlength="80" /></label><label>Format<select id="deckFormatInput"><option>Standard</option><option>Open</option><option>Draft</option></select></label><label>Description<textarea id="deckDescriptionInput" rows="3" maxlength="500"></textarea></label></div><div class="modal-actions"><button class="command-btn gold" id="saveDeckBtn">Create Deck</button></div></div></div>
 
-      <textarea class="mass-add-input" id="massAddInput" rows="8" placeholder="OGN-045&#10;VEN-R01 x2&#10;88"></textarea>
+  <div class="modal-layer" id="importDeckModal" hidden><div class="modal"><div class="modal-head"><div><span>Deck Builder</span><h2>Import Deck</h2></div><button class="icon-btn" data-close="importDeckModal"><i data-icon="x"></i></button></div><div class="form-stack"><label>Deck name<input id="importDeckName" value="Imported Deck" /></label><label>Deck list<textarea id="importDeckContents" rows="12" placeholder="3 OGN-045 Card Name"></textarea></label></div><div class="modal-actions"><button class="command-btn gold" id="confirmImportDeck">Import Deck</button></div><div id="importDeckResult"></div></div></div>
 
-      <button class="btn primary" id="massAddPreviewBtn">Preview</button>
+  <div class="modal-layer" id="testHandModal" hidden><div class="modal"><div class="modal-head"><div><span>Test Draw</span><h2>Opening Hand</h2></div><button class="icon-btn" data-close="testHandModal"><i data-icon="x"></i></button></div><div class="test-hand" id="testHand"></div><div class="modal-actions"><button class="command-btn gold" id="redrawHand"><i data-icon="refresh"></i>Draw Again</button></div></div></div>
 
-      <div class="mass-add-results" id="massAddResults"></div>
-
-      <button class="btn primary" id="massAddConfirmBtn" hidden>Add</button>
-    </div>
-  </div>
-
-  <div class="overlay" id="connectionOverlay" hidden>
-    <div class="sheet connection-sheet">
-      <div class="sheet-head">
-        <h2>Connect a phone</h2>
-        <button id="closeConnection" aria-label="Close">✕</button>
-      </div>
-
-      <div class="connection-body" id="connectionBody">
-        <div class="connection-status" id="connectionStatus">Loading…</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="overlay" id="cardDetailOverlay" hidden>
-    <div class="sheet detail-sheet">
-      <div class="sheet-head">
-        <h2 id="detailName">—</h2>
-        <button id="closeDetail" aria-label="Close">✕</button>
-      </div>
-      <div class="detail-body" id="detailBody"></div>
-    </div>
-  </div>
-
+  <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+  <script src="icons.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

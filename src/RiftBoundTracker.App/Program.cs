@@ -137,6 +137,12 @@ internal static class Program
             c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftBoundVault-UpdateChecker");
             c.Timeout = TimeSpan.FromSeconds(60);
         });
+        builder.Services.AddHttpClient("justtcg", c =>
+        {
+            c.BaseAddress = new Uri("https://api.justtcg.com");
+            c.Timeout = TimeSpan.FromSeconds(45);
+            c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftBoundVault-PriceTracker/2.0");
+        });
 
         builder.Services.AddSingleton<ImageHashService>();
         builder.Services.AddSingleton<OcrService>();
@@ -145,6 +151,12 @@ internal static class Program
         builder.Services.AddScoped<CardCacheService>();
         builder.Services.AddScoped<ScanService>();
         builder.Services.AddScoped<CatalogSyncService>();
+        builder.Services.AddScoped<DatabaseSafetyService>();
+        builder.Services.AddScoped<DeckService>();
+        builder.Services.AddScoped<VaultService>();
+        builder.Services.AddScoped<PriceSyncService>();
+        builder.Services.AddScoped<IPriceProvider, JustTcgPriceProvider>();
+        builder.Services.AddSingleton<PricingSettingsService>();
 
         var app = builder.Build();
 
@@ -152,24 +164,16 @@ internal static class Program
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            // An update should never cost the user their collection. If there's a real schema
-            // change (a migration to apply) rather than a first-ever launch, snapshot the DB
-            // first so a bad migration is recoverable instead of silently destructive.
-            var pending = (await db.Database.GetPendingMigrationsAsync()).ToList();
-            if (pending.Count > 0 && File.Exists(dbPath))
-            {
-                var backupPath = $"{dbPath}.bak-{DateTime.UtcNow:yyyyMMddHHmmss}";
-                File.Copy(dbPath, backupPath, overwrite: false);
-                app.Logger.LogInformation("Applying {Count} pending migration(s); backed up DB to {Backup}", pending.Count, backupPath);
-            }
-
-            await db.Database.MigrateAsync();
+            // Back up through SQLite's own online-backup API so WAL pages are included, verify the
+            // backup, run migrations, then prove that card and ownership totals are unchanged.
+            var databaseSafety = scope.ServiceProvider.GetRequiredService<DatabaseSafetyService>();
+            await databaseSafety.MigrateSafelyAsync(dbPath);
 
             // First launch (or a DB that's never finished a full sync) — populate the whole
             // catalog automatically instead of requiring the old manual per-set sync. Runs in its
             // own background scope so it doesn't block app startup / the desktop window showing up.
             var catalogSync = scope.ServiceProvider.GetRequiredService<CatalogSyncService>();
-            if (!await catalogSync.HasEverSyncedAsync())
+            if (!args.Contains("--no-catalog-sync") && !await catalogSync.HasEverSyncedAsync())
             {
                 var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
                 _ = Task.Run(async () =>
@@ -216,6 +220,17 @@ internal static class Program
 
         app.MapGet("/api/server-info", () =>
             Results.Ok(new { httpPort = port, httpsPort, version = UpdateService.CurrentVersion.ToString() }));
+
+        app.MapGet("/api/health", async (AppDbContext db, DatabaseSafetyService safety, CancellationToken ct) =>
+            Results.Ok(new
+            {
+                status = "ok",
+                database = safety.LastStatus,
+                cards = await db.Cards.CountAsync(ct),
+                ownedCards = await db.Cards.CountAsync(c => c.OwnedCount > 0, ct),
+                ownedCopies = await db.Cards.SumAsync(c => c.OwnedCount, ct),
+                migrations = await db.Database.GetAppliedMigrationsAsync(ct),
+            }));
 
         app.MapGet("/api/connection-info", () =>
         {
@@ -299,6 +314,88 @@ internal static class Program
             var updated = await cache.SetOwnedAsync(cardId, body.Owned, ct);
             return updated is null ? Results.NotFound() : Results.Ok(updated);
         });
+
+        app.MapPost("/api/favorites/{cardId}", async (string cardId, FavoriteRequest body, VaultService vault, CancellationToken ct) =>
+        {
+            var updated = await vault.SetFavoriteAsync(cardId, body.Favorite, ct);
+            return updated is null ? Results.NotFound() : Results.Ok(updated);
+        });
+
+        app.MapGet("/api/favorites", async (VaultService vault, CancellationToken ct) =>
+            Results.Ok(await vault.GetFavoritesAsync(ct)));
+
+        app.MapPost("/api/binder/{cardId}", async (string cardId, BinderRequest body, VaultService vault, CancellationToken ct) =>
+        {
+            var updated = await vault.SetBinderCountAsync(cardId, body.Count, ct);
+            return updated is null ? Results.NotFound() : Results.Ok(updated);
+        });
+
+        app.MapGet("/api/binder", async (VaultService vault, CancellationToken ct) =>
+            Results.Ok(await vault.GetBinderAsync(ct)));
+
+        app.MapGet("/api/analytics", async (VaultService vault, CancellationToken ct) =>
+            Results.Ok(await vault.GetOverviewAsync(ct)));
+
+        app.MapGet("/api/decks", async (DeckService decks, CancellationToken ct) =>
+            Results.Ok(await decks.GetAllAsync(ct)));
+
+        app.MapGet("/api/decks/{id:int}", async (int id, DeckService decks, CancellationToken ct) =>
+        {
+            var deck = await decks.GetAsync(id, ct);
+            return deck is null ? Results.NotFound() : Results.Ok(deck);
+        });
+
+        app.MapPost("/api/decks", async (CreateDeckRequest body, DeckService decks, CancellationToken ct) =>
+            Results.Created("/api/decks", await decks.CreateAsync(body, ct)));
+
+        app.MapPut("/api/decks/{id:int}", async (int id, UpdateDeckRequest body, DeckService decks, CancellationToken ct) =>
+        {
+            var deck = await decks.UpdateAsync(id, body, ct);
+            return deck is null ? Results.NotFound() : Results.Ok(deck);
+        });
+
+        app.MapDelete("/api/decks/{id:int}", async (int id, DeckService decks, CancellationToken ct) =>
+            await decks.DeleteAsync(id, ct) ? Results.NoContent() : Results.NotFound());
+
+        app.MapPost("/api/decks/{id:int}/cards", async (int id, SetDeckCardRequest body, DeckService decks, CancellationToken ct) =>
+        {
+            var deck = await decks.SetCardAsync(id, body, ct);
+            return deck is null ? Results.NotFound() : Results.Ok(deck);
+        });
+
+        app.MapPost("/api/decks/import", async (ImportDeckRequest body, DeckService decks, CancellationToken ct) =>
+            Results.Ok(await decks.ImportAsync(body, ct)));
+
+        app.MapGet("/api/decks/{id:int}/export", async (int id, DeckService decks, CancellationToken ct) =>
+        {
+            var contents = await decks.ExportAsync(id, ct);
+            return contents is null
+                ? Results.NotFound()
+                : Results.Text(contents, "text/plain", System.Text.Encoding.UTF8);
+        });
+
+        app.MapGet("/api/pricing/status", (PricingSettingsService settings) => Results.Ok(settings.GetStatus()));
+
+        app.MapPost("/api/pricing/configure", (PricingKeyRequest body, PricingSettingsService settings) =>
+        {
+            settings.SaveApiKey(body.ApiKey);
+            return Results.Ok(settings.GetStatus());
+        });
+
+        app.MapDelete("/api/pricing/configure", (PricingSettingsService settings) =>
+        {
+            settings.ClearStoredApiKey();
+            return Results.Ok(settings.GetStatus());
+        });
+
+        app.MapGet("/api/pricing/latest", async (PriceSyncService prices, CancellationToken ct) =>
+            Results.Ok(await prices.GetLatestAsync(ct)));
+
+        app.MapGet("/api/pricing/history/{cardId}", async (string cardId, int? days, PriceSyncService prices, CancellationToken ct) =>
+            Results.Ok(await prices.GetHistoryAsync(cardId, days ?? 30, ct)));
+
+        app.MapPost("/api/pricing/refresh", async (PriceRefreshRequest body, PriceSyncService prices, CancellationToken ct) =>
+            Results.Ok(await prices.SyncTrackedAsync(body.IncludeAllCards, ct)));
 
         app.MapGet("/api/cards/lookup", async (string? setId, int? number, string? code, CardCacheService cache, CancellationToken ct) =>
         {
@@ -385,3 +482,5 @@ internal static class Program
 }
 
 public record OwnedRequest(int Owned);
+public record PricingKeyRequest(string ApiKey);
+public record PriceRefreshRequest(bool IncludeAllCards);

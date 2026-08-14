@@ -171,6 +171,7 @@ public partial class CardCacheService(
         var card = await db.Cards.FindAsync([cardId], ct);
         if (card is null) return null;
         card.OwnedCount = Math.Max(0, ownedCount);
+        card.BinderCount = Math.Min(card.BinderCount, card.OwnedCount);
         card.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(ct);
         return card;

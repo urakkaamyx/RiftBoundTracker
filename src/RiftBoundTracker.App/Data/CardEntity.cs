@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace RiftBoundTracker.App.Data;
 
 public class CardEntity
@@ -29,6 +31,8 @@ public class CardEntity
     public int? Power { get; set; }
 
     public int OwnedCount { get; set; }
+    public bool IsFavorite { get; set; }
+    public int BinderCount { get; set; }
     public string? Notes { get; set; }
     public DateTimeOffset CachedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
@@ -36,4 +40,9 @@ public class CardEntity
     public string[] Domains => string.IsNullOrEmpty(DomainsCsv)
         ? Array.Empty<string>()
         : DomainsCsv.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+    [JsonIgnore]
+    public ICollection<DeckCardEntity> DeckCards { get; set; } = [];
+    [JsonIgnore]
+    public ICollection<PriceSnapshotEntity> PriceSnapshots { get; set; } = [];
 }

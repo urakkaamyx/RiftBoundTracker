@@ -48,13 +48,23 @@ public class ScanService(
                 if (setHint is not null)
                 {
                     var hintedByCode = await cache.FindByCodeAsync(setHint, candidate.Code, ct);
-                    if (hintedByCode.Count == 1)
-                        return new ScanResult("ocr", [new CardMatch(hintedByCode[0], 100, "ocr")], ocrText);
+                    var hintedByTotal = NarrowByPrintedTotal(hintedByCode, candidate.Total);
+                    if (hintedByTotal.Count == 1)
+                        return new ScanResult("ocr", [new CardMatch(hintedByTotal[0], 100, "ocr")], ocrText);
+                }
+
+                if (candidate.SetCode is not null && candidate.SetCode != setHint)
+                {
+                    var detectedByCode = await cache.FindByCodeAsync(candidate.SetCode, candidate.Code, ct);
+                    var detectedByTotal = NarrowByPrintedTotal(detectedByCode, candidate.Total);
+                    if (detectedByTotal.Count == 1)
+                        return new ScanResult("ocr", [new CardMatch(detectedByTotal[0], 95, "ocr")], ocrText);
                 }
 
                 var byCode = await cache.FindByCodeAsync(null, candidate.Code, ct);
-                if (byCode.Count == 1)
-                    return new ScanResult("ocr", [new CardMatch(byCode[0], 90, "ocr")], ocrText);
+                var byCodeAndTotal = NarrowByPrintedTotal(byCode, candidate.Total);
+                if (byCodeAndTotal.Count == 1)
+                    return new ScanResult("ocr", [new CardMatch(byCodeAndTotal[0], 90, "ocr")], ocrText);
             }
 
             // Trust the set the user already has active in the UI over anything OCR guessed — a
@@ -128,5 +138,13 @@ public class ScanService(
             .ToList();
 
         return new ScanResult(strong.Count > 0 ? "image-match" : "no-confident-match", matches, ocrText);
+    }
+
+    private static List<CardEntity> NarrowByPrintedTotal(List<CardEntity> cards, int? total)
+    {
+        if (total is null || cards.Count <= 1) return cards;
+        var suffix = $"-{total.Value:D3}";
+        var narrowed = cards.Where(card => card.Id.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)).ToList();
+        return narrowed.Count > 0 ? narrowed : cards;
     }
 }

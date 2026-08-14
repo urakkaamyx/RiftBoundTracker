@@ -1169,7 +1169,8 @@ async function activateLiveStream(stream) {
   scan.generation++;
   scan.inFlight = false;
   if (scan.timer) clearInterval(scan.timer);
-  scan.timer = setInterval(captureLiveFrame, 850);
+  captureLiveFrame();
+  scan.timer = setInterval(captureLiveFrame, 600);
 }
 
 async function startLiveScan() {
@@ -1315,15 +1316,17 @@ async function captureLiveFrame() {
     form.append("photo", blob, "card-id.jpg");
     form.append("fast", "true");
     form.append("cardIdOnly", "true");
-    if (state.setId) form.append("setId", state.setId);
     try {
       const result = await api("/api/scan", { method: "POST", body: form });
       if (generation !== scan.generation) return;
-      document.getElementById("liveReadoutText").textContent = (result.debugOcrText || "Nothing legible yet").replace(/\s+/g, " ").slice(0, 70);
       const candidate = result.method === "ocr" && result.matches.length === 1 ? result.matches[0] : null;
+      document.getElementById("liveReadoutText").textContent = candidate
+        ? `${candidate.card.setId}-${cardCode(candidate.card)}`
+        : (result.debugOcrText || "Nothing legible yet").replace(/\s+/g, " ").slice(0, 70);
       const key = candidate?.card.id || null;
       if (key && key === scan.voteKey) scan.voteCount++; else { scan.voteKey = key; scan.voteCount = key ? 1 : 0; }
-      if (candidate && scan.voteCount >= 3) showLiveHit(candidate);
+      const votesRequired = candidate?.confidence >= 95 ? 2 : 3;
+      if (candidate && scan.voteCount >= votesRequired) showLiveHit(candidate);
     } catch { }
     finally { scan.inFlight = false; }
   }, "image/jpeg", .84);

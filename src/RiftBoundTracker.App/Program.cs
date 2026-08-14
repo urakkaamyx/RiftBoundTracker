@@ -143,6 +143,16 @@ internal static class Program
             c.Timeout = TimeSpan.FromSeconds(45);
             c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftBoundVault-PriceTracker/2.0");
         });
+        builder.Services.AddHttpClient("riftbound-gg", c =>
+        {
+            c.BaseAddress = new Uri("https://api.dotgg.gg");
+            c.Timeout = TimeSpan.FromSeconds(45);
+            c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftBoundVault-PriceTracker/1.6");
+            c.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            c.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
+            c.DefaultRequestHeaders.Referrer = new Uri("https://riftbound.gg/prices/");
+            c.DefaultRequestHeaders.Add("Origin", "https://riftbound.gg");
+        });
 
         builder.Services.AddSingleton<ImageHashService>();
         builder.Services.AddSingleton<OcrService>();
@@ -156,6 +166,7 @@ internal static class Program
         builder.Services.AddScoped<VaultService>();
         builder.Services.AddScoped<PriceSyncService>();
         builder.Services.AddScoped<IPriceProvider, JustTcgPriceProvider>();
+        builder.Services.AddSingleton<RiftboundGgPriceService>();
         builder.Services.AddSingleton<PricingSettingsService>();
 
         var app = builder.Build();

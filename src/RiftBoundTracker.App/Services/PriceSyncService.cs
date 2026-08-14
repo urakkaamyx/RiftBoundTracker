@@ -14,9 +14,13 @@ public record PriceQueueSyncResult(
 public record LatestPriceDto(
     string CardId, string Provider, string VariantId, string Condition, string Printing,
     string Currency, double MarketPrice, double? Change24Hours, DateTimeOffset CapturedAt,
-    DateTimeOffset? SourceUpdatedAt);
+    DateTimeOffset? SourceUpdatedAt, double? Change7Days = null, string? SourceUrl = null);
 
-public sealed class PriceSyncService(AppDbContext db, IEnumerable<IPriceProvider> providers)
+public sealed class PriceSyncService(
+    AppDbContext db,
+    IEnumerable<IPriceProvider> providers,
+    RiftboundGgPriceService riftboundGg,
+    ILogger<PriceSyncService> logger)
 {
     public async Task<PriceQueueDto> GetQueueAsync(CancellationToken ct = default)
     {
@@ -153,11 +157,39 @@ public sealed class PriceSyncService(AppDbContext db, IEnumerable<IPriceProvider
         var rows = await db.PriceSnapshots
             .AsNoTracking()
             .ToListAsync(ct);
-        return rows.OrderByDescending(p => p.CapturedAt).DistinctBy(p => p.CardId).ToDictionary(
+        var latest = rows.OrderByDescending(p => p.CapturedAt).DistinctBy(p => p.CardId).ToDictionary(
             p => p.CardId,
             p => new LatestPriceDto(
                 p.CardId, p.Provider, p.VariantId, p.Condition, p.Printing, p.Currency,
                 p.MarketPrice, p.Change24Hours, p.CapturedAt, p.SourceUpdatedAt));
+
+        try
+        {
+            var cards = await db.Cards.AsNoTracking().ToListAsync(ct);
+            var livePrices = await riftboundGg.GetLatestAsync(cards, ct);
+            foreach (var price in livePrices.Values)
+            {
+                latest[price.CardId] = new LatestPriceDto(
+                    price.CardId,
+                    "riftbound.gg",
+                    price.ProviderCardId,
+                    "Market",
+                    price.Printing,
+                    "USD",
+                    price.MarketPrice,
+                    price.Change24Hours,
+                    price.FetchedAt,
+                    null,
+                    price.Change7Days,
+                    price.SourceUrl);
+            }
+        }
+        catch (Exception ex) when (!ct.IsCancellationRequested)
+        {
+            logger.LogWarning(ex, "Could not load live Riftbound.gg prices; using stored snapshots");
+        }
+
+        return latest;
     }
 
     public async Task<List<LatestPriceDto>> GetHistoryAsync(string cardId, int days, CancellationToken ct = default)

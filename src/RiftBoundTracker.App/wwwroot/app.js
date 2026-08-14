@@ -88,6 +88,29 @@ function formatMoney(value) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value || 0);
 }
 
+function formatPriceChange(value) {
+  if (value === null || value === undefined || !Number.isFinite(Number(value))) return "--";
+  const amount = Number(value);
+  const formatted = formatMoney(Math.abs(amount));
+  return amount > 0 ? `+${formatted}` : amount < 0 ? `-${formatted}` : formatted;
+}
+
+function priceChangeClass(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount === 0) return "flat";
+  return amount > 0 ? "up" : "down";
+}
+
+function compactPriceMarkup(price) {
+  if (!price) return "";
+  const title = `${price.provider || "Price"}: ${formatMoney(price.marketPrice)} | 24 hrs ${formatPriceChange(price.change24Hours)} | 7 days ${formatPriceChange(price.change7Days)}`;
+  return `<span class="price-label" title="${escapeHtml(title)}"><b>${formatMoney(price.marketPrice)}</b><small class="${priceChangeClass(price.change24Hours)}">24h ${formatPriceChange(price.change24Hours)}</small><small class="${priceChangeClass(price.change7Days)}">7d ${formatPriceChange(price.change7Days)}</small></span>`;
+}
+
+function priceTrendMarkup(label, value) {
+  return `<span class="price-change ${priceChangeClass(value)}"><em>${escapeHtml(label)}</em><b>${formatPriceChange(value)}</b></span>`;
+}
+
 function formatRelativeTime(iso) {
   if (!iso) return "Never";
   const minutes = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
@@ -431,7 +454,7 @@ function cardTile(card, context) {
             : card.ownedCount > 0
               ? `<label class="card-trade-toggle" title="Mark this card as available for trade"><span>Trade</span><input type="checkbox" data-card-trade-toggle="${escapeHtml(card.id)}"${card.binderCount > 0 ? " checked" : ""} /><i aria-hidden="true"></i></label>`
               : ""}
-          ${price ? `<span class="price-label">${formatMoney(price.marketPrice)}</span>` : ""}
+          ${compactPriceMarkup(price)}
         </div>
       </div>
     </article>`;
@@ -478,7 +501,16 @@ function cardDetailMarkup(card, mobile) {
     </div>
     ${card.textPlain ? `<div class="inspector-rules">${escapeHtml(card.textPlain)}</div>` : ""}
     ${deckOptions ? `<div class="inline-form"><select data-deck-picker>${deckOptions}</select><button class="command-btn" data-add-to-deck>Add to Deck</button></div>` : ""}
-    <div class="inspector-price"><div><span>Market price</span><b>${price ? formatMoney(price.marketPrice) : "--"}</b></div><small>${price ? `${escapeHtml(price.provider)} / ${formatRelativeTime(price.capturedAt)}` : "Pricing not configured or no match"}</small></div>
+    <div class="inspector-price">
+      <div class="inspector-price-current">
+        <span>Current Price</span>
+        <b>${price
+          ? `${price.sourceUrl ? `<a href="${escapeHtml(price.sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(price.provider)}</a>` : `<span>${escapeHtml(price.provider)}</span>`}<i>:</i><strong>${formatMoney(price.marketPrice)}</strong>`
+          : `<span>riftbound.gg</span><i>:</i><strong>--</strong>`}</b>
+      </div>
+      <div class="price-change-grid">${priceTrendMarkup("24 hrs", price?.change24Hours)}${priceTrendMarkup("7 days", price?.change7Days)}</div>
+      <small>${price ? `${escapeHtml(price.printing || "Market")} price / Updated ${formatRelativeTime(price.capturedAt)}` : "No Riftbound.gg price is available for this printing"}</small>
+    </div>
   `;
 }
 
@@ -852,7 +884,7 @@ async function loadAnalytics() {
     <div class="set-progress-row"><span class="set-code">${escapeHtml(set.setId)}</span><div><span>${escapeHtml(set.setLabel || set.setId)}</span><div class="analytics-progress"><span style="width:${set.completion}%"></span></div></div><b>${Math.round(set.completion)}%</b></div>`).join("");
   renderDistribution("analyticsRarities", data.rarities, row => RARITY_COLOR[row.label] || "var(--gold)");
   renderDistribution("analyticsDomains", data.domains, row => DOMAIN_COLOR[row.label] || "var(--c-colorless)");
-  document.getElementById("pricingState").textContent = data.hasPricing ? "Latest local snapshots" : "Pricing not configured";
+  document.getElementById("pricingState").textContent = data.hasPricing ? "Live Riftbound.gg prices" : "Pricing unavailable";
   document.getElementById("valuableCards").innerHTML = data.mostValuable.length ? data.mostValuable.map(row => `
     <div class="valuable-row"><div class="valuable-art"><img src="${escapeHtml(cardImage(row.card))}" alt="" />${cardImagePopout(row.card)}</div><div><strong>${escapeHtml(row.card.name)}</strong><span>${row.card.ownedCount} copies at ${formatMoney(row.unitPrice)}</span></div><b>${formatMoney(row.collectionValue)}</b></div>`).join("") : `<span class="loading-line">No price snapshots yet</span>`;
   document.getElementById("deckReadiness").innerHTML = data.deckReadiness.length ? data.deckReadiness.map(deck => {
@@ -877,8 +909,8 @@ async function loadSettings() {
     ? `Syncing ${sync.currentSet || "catalog"}: ${sync.setsDone}/${sync.setsTotal} sets`
     : `${sync.totalCards} cards across ${sync.totalSets} sets. Last synced ${formatRelativeTime(sync.lastSyncedAt)}.`;
   document.getElementById("pricingStatus").textContent = pricing.configured
-    ? `${pricing.provider} configured (${pricing.source}, ${pricing.keyHint}).`
-    : "No pricing provider configured.";
+    ? `Riftbound.gg live pricing enabled. ${pricing.provider} snapshots configured (${pricing.source}, ${pricing.keyHint}).`
+    : "Riftbound.gg live pricing enabled. JustTCG snapshots are optional.";
   const db = health.database;
   document.getElementById("databaseStatus").textContent = db
     ? `Database verified: ${db.integrity}. Protected collection totals are checked at startup.`

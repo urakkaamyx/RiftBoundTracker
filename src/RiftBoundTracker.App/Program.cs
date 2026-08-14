@@ -300,11 +300,14 @@ internal static class Program
             return updated is null ? Results.NotFound() : Results.Ok(updated);
         });
 
-        app.MapGet("/api/cards/lookup", async (string? setId, int number, CardCacheService cache, CancellationToken ct) =>
+        app.MapGet("/api/cards/lookup", async (string? setId, int? number, string? code, CardCacheService cache, CancellationToken ct) =>
         {
-            var matches = string.IsNullOrWhiteSpace(setId)
-                ? await cache.FindAllByNumberAsync(number, ct)
-                : (await cache.FindByNumberAsync(setId, number, ct) is { } single ? [single] : new List<CardEntity>());
+            // "code" (e.g. "R01", "007A") is the printed collector code — the only way to tell
+            // apart cards that share a bare CollectorNumber (see CardEntity.CollectorCode). Falls
+            // back to the plain numeric lookup when the caller doesn't have a code to give.
+            var matches = !string.IsNullOrWhiteSpace(code)
+                ? await cache.FindByCodeAsync(setId, code, ct)
+                : await cache.FindAllByNumberAsync(setId, number ?? 0, ct);
             return Results.Ok(matches);
         });
 

@@ -85,7 +85,7 @@
         </div>
         <div class="toolbar-actions">
           <div class="quick-add" id="quickAdd">
-            <input class="field" id="quickAddInput" placeholder="Quick add: OGN-045 or 45" />
+            <input class="field" id="quickAddInput" placeholder="Quick add: OGN-045 or VEN-R01" />
             <button class="btn primary" id="quickAddBtn">Add</button>
           </div>
           <button class="scan-fab secondary" id="openMassAdd">
@@ -184,7 +184,7 @@
         <h3>Or type the number</h3>
         <div class="sync-row">
           <input class="field manual-set" id="manualSetCode" type="text" placeholder="Set" maxlength="8" />
-          <input class="field" id="manualNumber" type="number" inputmode="numeric" placeholder="e.g. 147" min="1" />
+          <input class="field" id="manualNumber" type="text" placeholder="e.g. 147 or R01" maxlength="6" />
           <button class="btn primary" id="manualLookupBtn">Find</button>
         </div>
       </div>
@@ -199,9 +199,10 @@
       </div>
 
       <p class="mass-add-hint">One card per line — <code>OGN-045</code>, <code>45</code> (uses the active set tab),
+        <code>VEN-R01</code> (letter-coded cards like runes), <code>*-045</code> (search every set),
         or add <code>x3</code> for multiple copies (e.g. <code>OGN-045 x3</code>). Commas also work as separators.</p>
 
-      <textarea class="mass-add-input" id="massAddInput" rows="8" placeholder="OGN-045&#10;VEN-012 x2&#10;88"></textarea>
+      <textarea class="mass-add-input" id="massAddInput" rows="8" placeholder="OGN-045&#10;VEN-R01 x2&#10;88"></textarea>
 
       <button class="btn primary" id="massAddPreviewBtn">Preview</button>
 

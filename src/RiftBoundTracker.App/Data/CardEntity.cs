@@ -5,6 +5,11 @@ public class CardEntity
     public string Id { get; set; } = ""; // riftbound_id, e.g. "ven-147-166"
     public string Name { get; set; } = "";
     public int CollectorNumber { get; set; }
+    // The number as actually printed on the card, e.g. "001", "R01" (rune), "007A" (alt art) —
+    // Riftcodex's own collector_number field is purely numeric and drops any letter prefix/suffix,
+    // so two different cards (e.g. VEN "001" and VEN "R01") can share the same CollectorNumber.
+    // Derived from RiftboundId at sync time; see CardCacheService.ExtractCollectorCode.
+    public string CollectorCode { get; set; } = "";
     public string SetId { get; set; } = "";
     public string SetLabel { get; set; } = "";
     public string Type { get; set; } = "";

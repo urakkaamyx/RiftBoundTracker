@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using RiftBoundTracker.App.Data;
 
@@ -16,7 +17,7 @@ public record CardQuery(
 
 public record SyncProgress(string SetId, int Synced, int Total);
 
-public class CardCacheService(
+public partial class CardCacheService(
     AppDbContext db,
     RiftcodexClient riftcodex,
     ImageHashService hasher,
@@ -47,6 +48,7 @@ public class CardCacheService(
 
             entity.Name = card.Name;
             entity.CollectorNumber = card.CollectorNumber;
+            entity.CollectorCode = ExtractCollectorCode(card.RiftboundId);
             entity.SetId = card.Set?.SetId ?? setId;
             entity.SetLabel = card.Set?.Label ?? "";
             entity.Type = card.Classification?.Type ?? "";
@@ -119,6 +121,15 @@ public class CardCacheService(
         return string.Concat(id.Select(c => invalid.Contains(c) ? '_' : c));
     }
 
+    // riftbound_id is "{setId}-{code}" or "{setId}-{code}-{something}" (e.g. "ven-001-166",
+    // "ven-r01", "sfd-223*-221", "opp-007b-298") — the second hyphen-separated segment is
+    // consistently the printed collector code across every id shape observed from the API.
+    private static string ExtractCollectorCode(string riftboundId)
+    {
+        var parts = riftboundId.Split('-');
+        return (parts.Length >= 2 ? parts[1] : riftboundId).ToUpperInvariant();
+    }
+
     public Task<List<CardEntity>> QueryAsync(CardQuery q, CancellationToken ct = default)
     {
         var query = db.Cards.AsQueryable();
@@ -135,7 +146,7 @@ public class CardCacheService(
         {
             var search = q.Search.Trim();
             query = query.Where(c => c.Name.Contains(search) || c.Id.Contains(search)
-                || c.CollectorNumber.ToString().Contains(search));
+                || c.CollectorNumber.ToString().Contains(search) || c.CollectorCode.Contains(search));
         }
         if (q.Owned == "owned")
             query = query.Where(c => c.OwnedCount > 0);
@@ -173,16 +184,54 @@ public class CardCacheService(
         return query.ToListAsync(ct);
     }
 
-    public Task<CardEntity?> FindByNumberAsync(string? setId, int number, CancellationToken ct = default)
+    public Task<List<CardEntity>> FindAllByNumberAsync(string? setId, int number, CancellationToken ct = default)
     {
         var query = db.Cards.Where(c => c.CollectorNumber == number);
         if (!string.IsNullOrWhiteSpace(setId))
             query = query.Where(c => c.SetId == setId.ToUpper());
-        return query.FirstOrDefaultAsync(ct);
+        return query.ToListAsync(ct);
     }
 
-    public Task<List<CardEntity>> FindAllByNumberAsync(int number, CancellationToken ct = default)
-        => db.Cards.Where(c => c.CollectorNumber == number).ToListAsync(ct);
+    // Prefix allows up to 2 letters — most lettered codes are single-letter ("R01"), but some are
+    // two ("SP1" for signature/promo cards).
+    [GeneratedRegex(@"^(?<prefix>[A-Za-z]{0,2})(?<num>\d{1,3})(?<suffix>[A-Za-z])?$")]
+    private static partial Regex CollectorCodePattern();
+
+    // Decomposes a collector code into (letter prefix, numeric value, letter suffix) so codes can
+    // be compared regardless of zero-padding — Riftcodex's own padding isn't even consistent across
+    // numbering schemes ("R01" is 2 digits, "007A" is 3), so exact string equality isn't reliable.
+    private static (string? Prefix, int? Number, string? Suffix) DecomposeCode(string code)
+    {
+        var m = CollectorCodePattern().Match(code.Trim());
+        if (!m.Success) return (null, null, null);
+        return (
+            m.Groups["prefix"].Value.Length > 0 ? m.Groups["prefix"].Value.ToUpperInvariant() : null,
+            int.Parse(m.Groups["num"].Value),
+            m.Groups["suffix"].Success ? m.Groups["suffix"].Value.ToUpperInvariant() : null
+        );
+    }
+
+    /// <summary>
+    /// Looks up by the actual printed code (e.g. "R01", "007A", or a plain "45") rather than just
+    /// the bare number — the only way to tell apart cards like VEN "001" and VEN "R01", which share
+    /// CollectorNumber but are different physical cards. Falls back to <see cref="FindAllByNumberAsync"/>
+    /// for the numeric part, then filters in memory since the prefix/suffix decomposition can't be
+    /// translated into SQL.
+    /// </summary>
+    public async Task<List<CardEntity>> FindByCodeAsync(string? setId, string code, CancellationToken ct = default)
+    {
+        var (prefix, number, suffix) = DecomposeCode(code);
+        if (number is null) return [];
+
+        var candidates = await FindAllByNumberAsync(setId, number.Value, ct);
+        return candidates.Where(c =>
+        {
+            var (cPrefix, cNumber, cSuffix) = DecomposeCode(c.CollectorCode);
+            // A candidate whose own code doesn't decompose (unrecognized shape) must never be
+            // treated as "no prefix/suffix" by default — that would make it match ANY plain query.
+            return cNumber is not null && cPrefix == prefix && cSuffix == suffix;
+        }).ToList();
+    }
 
     public record SetSummary(string SetId, string SetLabel, int Total, int Owned);
 

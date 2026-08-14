@@ -35,20 +35,42 @@ public class ScanService(
 
         foreach (var candidate in candidates)
         {
+            // A letter prefix/suffix (e.g. "R01", "007A") is the only way to tell apart cards that
+            // share a bare collector number — try it first, whenever OCR actually read one, since
+            // it's a precise signal a plain number never can be.
+            if (candidate.Code is not null)
+            {
+                if (setHint is not null)
+                {
+                    var hintedByCode = await cache.FindByCodeAsync(setHint, candidate.Code, ct);
+                    if (hintedByCode.Count == 1)
+                        return new ScanResult("ocr", [new CardMatch(hintedByCode[0], 100, "ocr")], ocrText);
+                }
+
+                var byCode = await cache.FindByCodeAsync(null, candidate.Code, ct);
+                if (byCode.Count == 1)
+                    return new ScanResult("ocr", [new CardMatch(byCode[0], 90, "ocr")], ocrText);
+            }
+
             // Trust the set the user already has active in the UI over anything OCR guessed — a
             // stray letter sequence picked up from the card's rules text is far less reliable than
-            // context the user explicitly chose.
+            // context the user explicitly chose. Never silently pick one of several matches here —
+            // cards like VEN "001" and VEN "R01" share a CollectorNumber, so a set+number combo can
+            // still be genuinely ambiguous even with a trusted set.
             if (setHint is not null)
             {
-                var hinted = await cache.FindByNumberAsync(setHint, candidate.Number, ct);
-                if (hinted is not null)
-                    return new ScanResult("ocr", [new CardMatch(hinted, 100, "ocr")], ocrText);
+                var hinted = await cache.FindAllByNumberAsync(setHint, candidate.Number, ct);
+                if (hinted.Count == 1)
+                    return new ScanResult("ocr", [new CardMatch(hinted[0], 100, "ocr")], ocrText);
+                if (hinted.Count > 1)
+                    return new ScanResult("ocr-ambiguous",
+                        hinted.Select(c => new CardMatch(c, 50, "ocr")).ToList(), ocrText);
             }
 
             // With the full catalog cached locally (not just whatever set was last synced), "this
             // collector number is unique across every set" is a much stronger signal than a shaky
             // OCR read of a 2-4 letter set code — check it before trusting the guessed set code.
-            var all = await cache.FindAllByNumberAsync(candidate.Number, ct);
+            var all = await cache.FindAllByNumberAsync(null, candidate.Number, ct);
             if (all.Count == 1)
                 return new ScanResult("ocr", [new CardMatch(all[0], 85, "ocr")], ocrText);
 
@@ -56,12 +78,14 @@ public class ScanService(
             {
                 // Ambiguous across sets — the OCR-guessed set code only ever breaks a tie between
                 // cards that are genuinely ambiguous candidates; it's never used to fetch a card
-                // that isn't already one of them.
+                // that isn't already one of them, and never trusted if it's still ambiguous even
+                // after narrowing to that set (e.g. a set-code guess landing on VEN with both "001"
+                // and "R01" still in play).
                 if (candidate.SetCode is not null && candidate.SetCode != setHint)
                 {
-                    var bySetCode = all.FirstOrDefault(c => c.SetId == candidate.SetCode);
-                    if (bySetCode is not null)
-                        return new ScanResult("ocr", [new CardMatch(bySetCode, 95, "ocr")], ocrText);
+                    var bySetCode = all.Where(c => c.SetId == candidate.SetCode).ToList();
+                    if (bySetCode.Count == 1)
+                        return new ScanResult("ocr", [new CardMatch(bySetCode[0], 95, "ocr")], ocrText);
                 }
 
                 return new ScanResult("ocr-ambiguous",

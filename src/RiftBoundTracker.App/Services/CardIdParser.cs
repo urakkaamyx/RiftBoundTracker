@@ -2,15 +2,20 @@ using System.Text.RegularExpressions;
 
 namespace RiftBoundTracker.App.Services;
 
-public record ParsedCardId(int Number, int? Total, string? SetCode);
+// Code is the printed collector code when a letter prefix/suffix was actually legible (e.g. "R01",
+// "007A") — null when the OCR text only had a plain number, since a plain number carries no extra
+// signal beyond Number itself.
+public record ParsedCardId(int Number, int? Total, string? SetCode, string? Code);
 
 public static partial class CardIdParser
 {
     // Each digit slot also accepts common OCR misreads of a digit (O/o/Q for 0, I/l/i/| for 1, S/s
     // for 5, B for 8) — normalized back to the real digit before parsing. The separator accepts an
     // actual slash-like glyph, or falls back to bare whitespace for photos where OCR drops the
-    // slash entirely (e.g. "123 252" instead of "123/252").
-    [GeneratedRegex(@"(?<num>[0-9OoQIl|iSsB]{1,3})(?:\s*[/\\|]\s*|\s+)(?<total>[0-9OoQIl|iSsB]{1,3})")]
+    // slash entirely (e.g. "123 252" instead of "123/252"). An optional single letter directly
+    // adjacent to the digits (no space) captures a printed prefix/suffix like "R01" or "007A" —
+    // restricted to no-space adjacency so it doesn't grab onto stray letters from nearby rules text.
+    [GeneratedRegex(@"(?<prefix>[A-Za-z])?(?<num>[0-9OoQIl|iSsB]{1,3})(?<suffix>[A-Za-z])?(?:\s*[/\\|]\s*|\s+)(?<total>[0-9OoQIl|iSsB]{1,3})")]
     private static partial Regex NumberSlashTotal();
 
     [GeneratedRegex(@"\b(?<code>[A-Z]{2,4})\b")]
@@ -50,7 +55,11 @@ public static partial class CardIdParser
             var window = ocrText[windowStart..windowEnd];
             var setCode = SetCodeWord().Match(window) is { Success: true } sm ? sm.Groups["code"].Value : null;
 
-            results.Add(new ParsedCardId(num, total, setCode));
+            var prefix = m.Groups["prefix"].Success ? m.Groups["prefix"].Value : null;
+            var suffix = m.Groups["suffix"].Success ? m.Groups["suffix"].Value : null;
+            var code = prefix is not null || suffix is not null ? $"{prefix}{num}{suffix}".ToUpperInvariant() : null;
+
+            results.Add(new ParsedCardId(num, total, setCode, code));
         }
 
         return results

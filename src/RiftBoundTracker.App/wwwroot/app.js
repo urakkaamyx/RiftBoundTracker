@@ -51,6 +51,13 @@ function qs(params) {
   return p.toString();
 }
 
+// The actual printed collector code (e.g. "R01", "007A") when known — falls back to the bare
+// zero-padded number for cards with a plain code (collectorCode is always populated by the
+// server, but this stays defensive against any stale cached card object).
+function cardCode(c) {
+  return c.collectorCode || String(c.collectorNumber).padStart(3, "0");
+}
+
 async function loadSets() {
   const sets = await api("/api/sets");
   const el = document.getElementById("setTabs");
@@ -199,7 +206,7 @@ function renderCardTile(c) {
     <h4>${c.name}</h4>
     <div class="meta">
       <span class="rarity"><span class="dot" style="background:${RARITY_COLOR[c.rarity] || "var(--text-faint)"}"></span>${c.rarity}</span>
-      <span class="num">${c.setId}·${String(c.collectorNumber).padStart(3, "0")}</span>
+      <span class="num">${c.setId}·${cardCode(c)}</span>
     </div>
   `;
   const stepper = document.createElement("div");
@@ -305,25 +312,31 @@ pollCatalogStatus();
 const quickAddInput = document.getElementById("quickAddInput");
 const quickAddBtn = document.getElementById("quickAddBtn");
 
+// "code" is the printed collector code, letters and all (e.g. "45", "R01", "007A") — matched on
+// the server against the actual card code rather than just the bare number, so set+code entries
+// like "VEN-R01" resolve to the right card instead of colliding with "VEN-001". A bare code with
+// no set token searches every set already (when no set tab is active it's forwarded as-is with no
+// setId filter) — "*-045"/"* 045" is an explicit override to search every set even while a
+// specific set tab IS active, surfacing every "045" across the whole catalog as ambiguous matches.
 function parseQuickAddInput(raw) {
   const cleaned = raw.trim();
-  const withSet = /^([A-Za-z]{2,4})[\s-]*(\d{1,3})$/.exec(cleaned);
-  if (withSet) return { setId: withSet[1].toUpperCase(), number: parseInt(withSet[2], 10) };
-  const bare = /^(\d{1,3})$/.exec(cleaned);
-  if (bare) return { setId: state.setId, number: parseInt(bare[1], 10) };
+  const withSet = /^([A-Za-z]{2,4}|\*)[\s-]*([A-Za-z]?\d{1,3}[A-Za-z]?)$/.exec(cleaned);
+  if (withSet) return { setId: withSet[1] === "*" ? null : withSet[1].toUpperCase(), code: withSet[2].toUpperCase() };
+  const bare = /^([A-Za-z]?\d{1,3}[A-Za-z]?)$/.exec(cleaned);
+  if (bare) return { setId: state.setId, code: bare[1].toUpperCase() };
   return null;
 }
 
 async function quickAdd() {
   const parsed = parseQuickAddInput(quickAddInput.value);
   if (!parsed) {
-    alert('Type a card number (e.g. "45") or set + number (e.g. "OGN-045").');
+    alert('Type a card code (e.g. "45" or "R01") or set + code (e.g. "OGN-045" or "VEN-R01").');
     return;
   }
 
   quickAddBtn.disabled = true;
   try {
-    const cards = await api(`/api/cards/lookup?${qs({ setId: parsed.setId, number: parsed.number })}`);
+    const cards = await api(`/api/cards/lookup?${qs({ setId: parsed.setId, code: parsed.code })}`);
     if (cards.length === 1) {
       await setOwned(cards[0].id, (cards[0].ownedCount || 0) + 1);
       quickAddInput.value = "";
@@ -332,13 +345,13 @@ async function quickAdd() {
     } else if (cards.length > 1) {
       resetScanSheet();
       overlay.hidden = false;
-      manualNumber.value = String(parsed.number);
+      manualNumber.value = parsed.code;
       if (parsed.setId) manualSetCode.value = parsed.setId;
       document.getElementById("manualLookupBtn").click();
     } else {
       alert(parsed.setId
-        ? `No card #${parsed.number} found in ${parsed.setId}.`
-        : `No card numbered ${parsed.number} in any synced set.`);
+        ? `No card ${parsed.code} found in ${parsed.setId}.`
+        : `No card ${parsed.code} in any synced set.`);
     }
   } catch (err) {
     alert("Quick add failed: " + err.message);
@@ -394,7 +407,7 @@ function parseMassAddLine(line) {
   const base = qtyMatch ? trimmed.slice(0, qtyMatch.index).trim() : trimmed;
 
   const parsed = parseQuickAddInput(base);
-  return parsed ? { raw: trimmed, setId: parsed.setId, number: parsed.number, qty } : { raw: trimmed, error: true };
+  return parsed ? { raw: trimmed, setId: parsed.setId, code: parsed.code, qty } : { raw: trimmed, error: true };
 }
 
 async function previewMassAdd() {
@@ -414,14 +427,14 @@ async function previewMassAdd() {
       entry.message = `couldn't parse (try "OGN-045" or "45")`;
     } else {
       try {
-        const cards = await api(`/api/cards/lookup?${qs({ setId: entry.setId, number: entry.number })}`);
+        const cards = await api(`/api/cards/lookup?${qs({ setId: entry.setId, code: entry.code })}`);
         if (cards.length === 1) {
           entry.status = "ok";
           entry.card = cards[0];
           entry.selected = true;
         } else if (cards.length > 1) {
           entry.status = "error";
-          entry.message = `ambiguous across ${cards.length} sets, add a set code (e.g. "OGN-${entry.number}")`;
+          entry.message = `ambiguous across ${cards.length} sets, add a set code (e.g. "OGN-${entry.code}")`;
         } else {
           entry.status = "error";
           entry.message = "no matching card found";
@@ -537,11 +550,11 @@ function resetScanSheet() {
 // Best-effort client-side guess used only to pre-fill the manual correction fields when a scan
 // comes back with no confident match — not authoritative, the server does the real parsing.
 function guessFromOcrText(text) {
-  if (!text) return { number: null, setCode: null };
-  const numberMatch = /(\d{1,3})\s*[\/\\|]?\s*\d{0,3}/.exec(text);
+  if (!text) return { code: null, setCode: null };
+  const codeMatch = /([A-Za-z]?\d{1,3}[A-Za-z]?)\s*[\/\\|]?\s*\d{0,3}/.exec(text);
   const setMatch = /\b([A-Z]{2,4})\b/.exec(text);
   return {
-    number: numberMatch ? parseInt(numberMatch[1], 10) : null,
+    code: codeMatch ? codeMatch[1].toUpperCase() : null,
     setCode: setMatch ? setMatch[1] : null,
   };
 }
@@ -583,7 +596,7 @@ function renderScanResult(result) {
   if (result.matches.length === 0) {
     scanStatus.textContent = "No match found. Try a closer, well-lit, right-side-up shot of the corner — or adjust the number/set below.";
     const guess = guessFromOcrText(cleanOcr);
-    if (guess.number && !manualNumber.value) manualNumber.value = guess.number;
+    if (guess.code && !manualNumber.value) manualNumber.value = guess.code;
     if (guess.setCode && !manualSetCode.value) manualSetCode.value = guess.setCode;
     return;
   }
@@ -602,7 +615,7 @@ function renderScanResult(result) {
       <img src="${m.card.localImagePath || ""}" alt="${m.card.name}" />
       <div class="info">
         <h4>${m.card.name}</h4>
-        <div class="meta"><span class="num">${m.card.setId}·${String(m.card.collectorNumber).padStart(3, "0")}</span></div>
+        <div class="meta"><span class="num">${m.card.setId}·${cardCode(m.card)}</span></div>
       </div>
       <div class="conf">${m.confidence}%</div>
     `;
@@ -618,8 +631,8 @@ function renderScanResult(result) {
 }
 
 document.getElementById("manualLookupBtn").addEventListener("click", async () => {
-  const number = parseInt(manualNumber.value, 10);
-  if (!number || number <= 0) return;
+  const code = manualNumber.value.trim().toUpperCase();
+  if (!code) return;
   const setCode = manualSetCode.value.trim().toUpperCase() || state.setId;
 
   scanPreview.hidden = false;
@@ -630,7 +643,7 @@ document.getElementById("manualLookupBtn").addEventListener("click", async () =>
   scanStatus.textContent = "Looking up…";
 
   try {
-    const cards = await api(`/api/cards/lookup?${qs({ setId: setCode, number })}`);
+    const cards = await api(`/api/cards/lookup?${qs({ setId: setCode, code })}`);
     renderScanResult({
       method: cards.length === 1 ? "manual" : cards.length > 1 ? "ocr-ambiguous" : "manual-none",
       matches: cards.map(card => ({ card, confidence: 100 })),
@@ -638,8 +651,8 @@ document.getElementById("manualLookupBtn").addEventListener("click", async () =>
     });
     if (cards.length === 0) {
       scanStatus.textContent = setCode
-        ? `No card #${number} found in ${setCode}. Try clearing the set field or check the number.`
-        : `No card numbered ${number} in the catalog.`;
+        ? `No card ${code} found in ${setCode}. Try clearing the set field or check the number.`
+        : `No card ${code} in the catalog.`;
     }
   } catch (err) {
     scanStatus.textContent = "Lookup failed: " + err.message;
@@ -782,7 +795,7 @@ function handleLiveResult(result) {
   if (liveHitPending) return;
 
   const isCandidate = ["ocr", "manual"].includes(result.method) && result.matches.length === 1;
-  const key = isCandidate ? `${result.matches[0].card.setId}|${result.matches[0].card.collectorNumber}` : null;
+  const key = isCandidate ? result.matches[0].card.id : null;
 
   if (key && key === liveVoteKey) {
     liveVoteCount++;
@@ -806,7 +819,7 @@ function handleLiveResult(result) {
     <img src="${match.card.localImagePath || ""}" alt="${match.card.name}" />
     <div class="info">
       <h4>${match.card.name}</h4>
-      <div class="num">${match.card.setId}·${String(match.card.collectorNumber).padStart(3, "0")} — own ${match.card.ownedCount}</div>
+      <div class="num">${match.card.setId}·${cardCode(match.card)} — own ${match.card.ownedCount}</div>
     </div>
     <button class="btn primary" id="liveAddBtn">Add +1</button>
   `;
@@ -1089,7 +1102,7 @@ function renderCardDetail(c) {
     </div>
     <div class="detail-info">
       <div class="detail-meta-row">
-        <span class="num">${escapeHtml(c.setLabel || c.setId)} · ${c.setId}-${String(c.collectorNumber).padStart(3, "0")}</span>
+        <span class="num">${escapeHtml(c.setLabel || c.setId)} · ${c.setId}-${cardCode(c)}</span>
         <span class="rarity"><span class="dot" style="background:${RARITY_COLOR[c.rarity] || "var(--text-faint)"}"></span>${escapeHtml(c.rarity)}</span>
       </div>
       <div class="detail-type">${c.supertype ? `<b>${escapeHtml(c.supertype)}</b> ` : ""}${escapeHtml(c.type)}</div>

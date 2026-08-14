@@ -103,8 +103,8 @@ function priceChangeClass(value) {
 
 function compactPriceMarkup(price) {
   if (!price) return "";
-  const title = `${price.provider || "Price"}: ${formatMoney(price.marketPrice)} | 24 hrs ${formatPriceChange(price.change24Hours)} | 7 days ${formatPriceChange(price.change7Days)}`;
-  return `<span class="price-label" title="${escapeHtml(title)}"><b>${formatMoney(price.marketPrice)}</b><small class="${priceChangeClass(price.change24Hours)}">24h ${formatPriceChange(price.change24Hours)}</small><small class="${priceChangeClass(price.change7Days)}">7d ${formatPriceChange(price.change7Days)}</small></span>`;
+  const title = `${price.provider || "Price"}: ${formatMoney(price.marketPrice)}`;
+  return `<span class="price-label" title="${escapeHtml(title)}"><b>${formatMoney(price.marketPrice)}</b></span>`;
 }
 
 function priceTrendMarkup(label, value) {

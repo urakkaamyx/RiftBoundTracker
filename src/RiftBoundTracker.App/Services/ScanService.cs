@@ -19,7 +19,12 @@ public class ScanService(
 {
     private const int ImageMatchMaxDistance = 56; // out of 256 bits; lower = stricter
 
-    public async Task<ScanResult> ScanAsync(Stream imageStream, string? setHint, bool fast = false, CancellationToken ct = default)
+    public async Task<ScanResult> ScanAsync(
+        Stream imageStream,
+        string? setHint,
+        bool fast = false,
+        bool cardIdOnly = false,
+        CancellationToken ct = default)
     {
         using var raw = await Image.LoadAsync<Rgba32>(imageStream, ct);
         raw.Mutate(x => x.AutoOrient());
@@ -27,10 +32,10 @@ public class ScanService(
         // Photos of the whole card usually include some background (table, hand, etc.) — find the
         // card within the frame so both OCR crop regions and the art hash work relative to the
         // card itself, not raw-photo percentages.
-        var cardBounds = PhotoBoundaryDetector.DetectCardBounds(raw);
+        var cardBounds = cardIdOnly ? raw.Bounds : PhotoBoundaryDetector.DetectCardBounds(raw);
         using var card = cardBounds == raw.Bounds ? raw.Clone() : raw.Clone(x => x.Crop(cardBounds));
 
-        var ocrText = await ocr.ReadCardNumberTextAsync(card, fast, ct);
+        var ocrText = await ocr.ReadCardNumberTextAsync(card, fast, cardIdOnly, ct);
         var candidates = CardIdParser.Parse(ocrText);
 
         foreach (var candidate in candidates)
@@ -96,7 +101,7 @@ public class ScanService(
         // The live loop wants speed over thoroughness — it fires several requests a second, so it
         // skips the image-hash search (an O(n) scan + hash compute over the whole cached set) and
         // just reports what OCR saw. The full still-photo/manual flows always run the fallback.
-        if (fast)
+        if (fast || cardIdOnly)
             return new ScanResult("no-confident-match", [], ocrText);
 
         logger.LogInformation("OCR found no cache match (text candidates: {Count}); falling back to image match", candidates.Count);

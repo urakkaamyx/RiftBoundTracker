@@ -463,8 +463,14 @@ internal static class Program
 
             var setHint = form["setId"].ToString();
             var fast = form["fast"].ToString() == "true";
+            var cardIdOnly = form["cardIdOnly"].ToString() == "true";
             await using var stream = file.OpenReadStream();
-            var result = await scanner.ScanAsync(stream, string.IsNullOrWhiteSpace(setHint) ? null : setHint, fast, ct);
+            var result = await scanner.ScanAsync(
+                stream,
+                string.IsNullOrWhiteSpace(setHint) ? null : setHint,
+                fast,
+                cardIdOnly,
+                ct);
             return Results.Ok(result);
         });
 

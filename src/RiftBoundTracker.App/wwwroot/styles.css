@@ -218,6 +218,10 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
 .price-label small.down { color: var(--red); }
 .price-label small.flat { color: var(--faint); }
 .binder-chip { min-width: 27px; height: 27px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 5px; color: var(--faint); font-size: 10px; }
+#binderGrid .card-actions { display: grid; grid-template-columns: 82px minmax(0, 1fr); align-items: center; }
+#binderGrid .binder-chip { width: 100%; padding: 0 8px; }
+#binderGrid .price-label { grid-column: 1 / -1; width: 100%; grid-template-columns: 1fr auto auto; margin-left: 0; }
+#binderGrid .price-label b { grid-column: auto; text-align: left; }
 .card-trade-toggle { height: 27px; display: inline-flex; align-items: center; gap: 5px; padding: 0 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--panel-2); color: var(--faint); font-size: 9px; cursor: pointer; }
 .card-trade-toggle:hover { border-color: var(--accent); color: var(--text); }
 .card-trade-toggle input { position: absolute; width: 1px; height: 1px; padding: 0; opacity: 0; pointer-events: none; }
@@ -475,9 +479,16 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .scan-launch { width: 100%; min-height: 154px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 11px; border: 1px dashed var(--border); border-radius: 7px; background: var(--panel-2); color: var(--muted); }
 .scan-launch:hover { border-color: var(--accent); color: var(--accent-bright); }
 .scan-launch .icon { width: 30px; height: 30px; }
-.video-frame { position: relative; aspect-ratio: 3 / 4; overflow: hidden; border-radius: 7px; background: #000; }
+.video-frame { position: relative; height: min(58vh, 560px); min-height: 300px; overflow: hidden; border-radius: 7px; background: #000; }
 .video-frame video { width: 100%; height: 100%; object-fit: cover; }
-.video-frame span { position: absolute; inset: 8% 14%; border: 2px solid rgba(255,255,255,.5); border-radius: 8px; }
+.camera-flip { position: absolute; top: 10px; right: 10px; z-index: 4; width: 38px; height: 38px; display: grid; place-items: center; padding: 0; border: 1px solid rgba(255,255,255,.38); border-radius: 50%; background: rgba(5,5,8,.78); color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+.camera-flip:hover { border-color: var(--gold-bright); color: var(--gold-bright); background: rgba(8,8,10,.94); }
+.camera-flip:disabled { opacity: .45; cursor: wait; }
+.camera-flip .icon { width: 18px; height: 18px; }
+.card-id-guide { position: absolute; left: 12%; top: 62%; width: 76%; height: clamp(42px, 10%, 62px); transform: translateY(-50%); border: 2px solid var(--gold-bright); border-radius: 5px; box-shadow: 0 0 0 999px rgba(0,0,0,.42), 0 0 16px rgba(223,177,69,.28); pointer-events: none; }
+.card-id-guide::before, .card-id-guide::after { content: ""; position: absolute; top: 50%; width: 8px; height: 1px; background: var(--gold-bright); }
+.card-id-guide::before { left: 5px; }
+.card-id-guide::after { right: 5px; }
 .live-scan p { text-align: center; color: var(--muted); }
 .live-scan code { display: block; padding: 8px; background: var(--panel-2); color: var(--gold-bright); text-align: center; }
 .scan-preview { display: grid; grid-template-columns: 74px 1fr; gap: 12px; align-items: center; margin-top: 13px; }

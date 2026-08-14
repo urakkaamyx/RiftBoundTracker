@@ -58,7 +58,11 @@ public class OcrService
     /// ~800ms and needs to come back quickly; the still-photo/manual flows try every candidate
     /// region since latency doesn't matter there.
     /// </summary>
-    public async Task<string> ReadCardNumberTextAsync(Image<Rgba32> image, bool fast, CancellationToken ct = default)
+    public async Task<string> ReadCardNumberTextAsync(
+        Image<Rgba32> image,
+        bool fast,
+        bool fullFrameOnly = false,
+        CancellationToken ct = default)
     {
         if (_engine is null) return "";
 
@@ -71,7 +75,9 @@ public class OcrService
         var tightRegion = new Rectangle(0, (int)(h * 0.80), (int)(w * 0.45), (int)(h * 0.20));
         var wideRegion = new Rectangle(0, (int)(h * 0.82), w, (int)(h * 0.18));
         var fullRegion = image.Bounds;
-        var regions = fast ? [tightRegion, fullRegion] : new[] { tightRegion, wideRegion, fullRegion };
+        Rectangle[] regions = fullFrameOnly
+            ? [fullRegion]
+            : fast ? [tightRegion, fullRegion] : [tightRegion, wideRegion, fullRegion];
 
         var combined = new System.Text.StringBuilder();
         foreach (var region in regions)

@@ -1076,11 +1076,16 @@ async function importDeck() {
 /* Scanner */
 const scan = {
   stream: null, timer: null, inFlight: false, hitPending: false,
-  voteKey: null, voteCount: 0, canvas: document.createElement("canvas")
+  voteKey: null, voteCount: 0, canvas: document.createElement("canvas"),
+  facingMode: "environment", deviceId: null, cameras: [], starting: false, switching: false, generation: 0
 };
 
 function resetScanner() {
   stopLiveScan();
+  scan.hitPending = false; scan.voteKey = null; scan.voteCount = 0;
+  document.getElementById("liveStatus").textContent = "Align the printed Card ID inside the box";
+  document.getElementById("liveReadoutText").textContent = "...";
+  document.getElementById("liveHit").innerHTML = "";
   document.getElementById("scanPreview").hidden = true;
   document.getElementById("matchList").innerHTML = "";
   document.getElementById("ocrDebug").hidden = true;
@@ -1132,43 +1137,188 @@ async function manualLookup() {
   renderScanResult({ method: cards.length === 1 ? "manual" : "ocr-ambiguous", matches: cards.map(card => ({ card, confidence: 100 })), debugOcrText: "" });
 }
 
-async function startLiveScan() {
-  if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) return toast("Live camera requires the HTTPS phone connection", true);
-  try { scan.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false }); }
-  catch (err) { return toast(err.message, true); }
+async function requestCameraStream(deviceId, facingMode) {
+  const video = { width: { ideal: 1920 }, height: { ideal: 1080 } };
+  if (deviceId) video.deviceId = { exact: deviceId };
+  else video.facingMode = { ideal: facingMode };
+  return navigator.mediaDevices.getUserMedia({ video, audio: false });
+}
+
+async function activateLiveStream(stream) {
+  scan.stream = stream;
+  const track = stream.getVideoTracks()[0];
+  try {
+    const capabilities = track?.getCapabilities?.();
+    if (capabilities?.focusMode?.includes("continuous"))
+      await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] });
+  } catch { }
+  const settings = track?.getSettings?.() || {};
+  scan.deviceId = settings.deviceId || scan.deviceId;
+  scan.facingMode = settings.facingMode || scan.facingMode;
+  try {
+    scan.cameras = (await navigator.mediaDevices.enumerateDevices())
+      .filter(device => device.kind === "videoinput" && device.deviceId);
+  } catch { scan.cameras = []; }
   const video = document.getElementById("liveVideo");
-  video.srcObject = scan.stream;
+  video.srcObject = stream;
+  await video.play().catch(() => { });
   document.getElementById("liveScanBtn").hidden = true;
   document.getElementById("liveScanView").hidden = false;
+  document.getElementById("liveStatus").textContent = "Align the printed Card ID inside the box";
   scan.voteKey = null; scan.voteCount = 0; scan.hitPending = false;
+  scan.generation++;
+  scan.inFlight = false;
+  if (scan.timer) clearInterval(scan.timer);
   scan.timer = setInterval(captureLiveFrame, 850);
 }
 
-function stopLiveScan() {
+async function startLiveScan() {
+  if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) return toast("Live camera requires the HTTPS phone connection", true);
+  if (scan.stream || scan.starting) return;
+  scan.starting = true;
+  const button = document.getElementById("liveScanBtn");
+  button.disabled = true;
+  const requestGeneration = scan.generation;
+  try {
+    let stream;
+    try { stream = await requestCameraStream(scan.deviceId, scan.facingMode); }
+    catch (err) {
+      if (!scan.deviceId) throw err;
+      scan.deviceId = null;
+      stream = await requestCameraStream(null, scan.facingMode);
+    }
+    if (requestGeneration !== scan.generation) {
+      stream.getTracks().forEach(track => track.stop());
+      return;
+    }
+    await activateLiveStream(stream);
+  } catch (err) {
+    if (requestGeneration === scan.generation) toast(err.message, true);
+  } finally {
+    scan.starting = false;
+    button.disabled = false;
+  }
+}
+
+function releaseLiveStream() {
   if (scan.timer) clearInterval(scan.timer);
   scan.timer = null;
   if (scan.stream) scan.stream.getTracks().forEach(track => track.stop());
   scan.stream = null;
+  scan.generation++;
+  scan.inFlight = false;
   const video = document.getElementById("liveVideo");
   if (video) video.srcObject = null;
+}
+
+function stopLiveScan() {
+  releaseLiveStream();
   document.getElementById("liveScanView").hidden = true;
   document.getElementById("liveScanBtn").hidden = false;
+}
+
+async function flipLiveCamera() {
+  if (!scan.stream || scan.switching) return;
+  scan.switching = true;
+  const button = document.getElementById("flipCamera");
+  button.disabled = true;
+  const previousDeviceId = scan.stream.getVideoTracks()[0]?.getSettings?.().deviceId || scan.deviceId;
+  const previousFacingMode = scan.facingMode;
+  let targetDeviceId = null;
+  let targetFacingMode = previousFacingMode === "environment" ? "user" : "environment";
+
+  try {
+    let cameras = [];
+    try {
+      cameras = (await navigator.mediaDevices.enumerateDevices())
+        .filter(device => device.kind === "videoinput" && device.deviceId);
+    } catch { }
+    scan.cameras = cameras;
+    if (cameras.length > 1) {
+      const currentIndex = cameras.findIndex(device => device.deviceId === previousDeviceId);
+      targetDeviceId = cameras[(currentIndex + 1 + cameras.length) % cameras.length].deviceId;
+    }
+
+    document.getElementById("liveStatus").textContent = "Switching camera...";
+    releaseLiveStream();
+    const requestGeneration = scan.generation;
+    const stream = await requestCameraStream(targetDeviceId, targetFacingMode);
+    if (requestGeneration !== scan.generation) {
+      stream.getTracks().forEach(track => track.stop());
+      return;
+    }
+    scan.deviceId = targetDeviceId;
+    scan.facingMode = targetFacingMode;
+    await activateLiveStream(stream);
+    const activeDeviceId = stream.getVideoTracks()[0]?.getSettings?.().deviceId;
+    if (!targetDeviceId && previousDeviceId && activeDeviceId === previousDeviceId)
+      toast("No other camera is available", true);
+  } catch (err) {
+    if (!document.getElementById("scanModal").hidden) {
+      scan.deviceId = previousDeviceId;
+      scan.facingMode = previousFacingMode;
+      const fallbackGeneration = scan.generation;
+      try {
+        const fallbackStream = await requestCameraStream(previousDeviceId, previousFacingMode);
+        if (fallbackGeneration !== scan.generation) fallbackStream.getTracks().forEach(track => track.stop());
+        else await activateLiveStream(fallbackStream);
+      }
+      catch { stopLiveScan(); }
+      toast(err.message || "Unable to switch cameras", true);
+    }
+  } finally {
+    scan.switching = false;
+    button.disabled = false;
+  }
+}
+
+function liveScanSourceRect(video) {
+  const guide = document.getElementById("liveScanGuide");
+  if (!guide || !video.videoWidth || !video.videoHeight) return null;
+
+  const videoRect = video.getBoundingClientRect();
+  const guideRect = guide.getBoundingClientRect();
+  const coverScale = Math.max(videoRect.width / video.videoWidth, videoRect.height / video.videoHeight);
+  const renderedWidth = video.videoWidth * coverScale;
+  const renderedHeight = video.videoHeight * coverScale;
+  const cropOffsetX = (renderedWidth - videoRect.width) / 2;
+  const cropOffsetY = (renderedHeight - videoRect.height) / 2;
+  const x = (guideRect.left - videoRect.left + cropOffsetX) / coverScale;
+  const y = (guideRect.top - videoRect.top + cropOffsetY) / coverScale;
+  const width = guideRect.width / coverScale;
+  const height = guideRect.height / coverScale;
+  const safeX = Math.max(0, Math.min(video.videoWidth - 1, x));
+  const safeY = Math.max(0, Math.min(video.videoHeight - 1, y));
+  return {
+    x: safeX,
+    y: safeY,
+    width: Math.max(1, Math.min(video.videoWidth - safeX, width)),
+    height: Math.max(1, Math.min(video.videoHeight - safeY, height))
+  };
 }
 
 async function captureLiveFrame() {
   const video = document.getElementById("liveVideo");
   if (scan.inFlight || scan.hitPending || video.readyState < 2) return;
   scan.inFlight = true;
-  const scale = Math.min(1, 900 / Math.max(video.videoWidth, video.videoHeight));
-  scan.canvas.width = Math.round(video.videoWidth * scale);
-  scan.canvas.height = Math.round(video.videoHeight * scale);
-  scan.canvas.getContext("2d").drawImage(video, 0, 0, scan.canvas.width, scan.canvas.height);
+  const generation = scan.generation;
+  const source = liveScanSourceRect(video);
+  if (!source) { scan.inFlight = false; return; }
+  scan.canvas.width = Math.round(source.width);
+  scan.canvas.height = Math.round(source.height);
+  scan.canvas.getContext("2d").drawImage(
+    video, source.x, source.y, source.width, source.height,
+    0, 0, scan.canvas.width, scan.canvas.height);
   scan.canvas.toBlob(async blob => {
-    if (!blob) { scan.inFlight = false; return; }
-    const form = new FormData(); form.append("photo", blob, "frame.jpg"); form.append("fast", "true");
+    if (!blob || generation !== scan.generation) { scan.inFlight = false; return; }
+    const form = new FormData();
+    form.append("photo", blob, "card-id.jpg");
+    form.append("fast", "true");
+    form.append("cardIdOnly", "true");
     if (state.setId) form.append("setId", state.setId);
     try {
       const result = await api("/api/scan", { method: "POST", body: form });
+      if (generation !== scan.generation) return;
       document.getElementById("liveReadoutText").textContent = (result.debugOcrText || "Nothing legible yet").replace(/\s+/g, " ").slice(0, 70);
       const candidate = result.method === "ocr" && result.matches.length === 1 ? result.matches[0] : null;
       const key = candidate?.card.id || null;
@@ -1190,9 +1340,14 @@ function showLiveHit(match) {
     await changeOwned(match.card, 1);
     root.innerHTML = "";
     scan.hitPending = false; scan.voteKey = null; scan.voteCount = 0;
-    document.getElementById("liveStatus").textContent = "Point the camera at a card";
+    document.getElementById("liveStatus").textContent = "Align the printed Card ID inside the box";
   };
-  setTimeout(() => { if (scan.hitPending) { root.innerHTML = ""; scan.hitPending = false; scan.voteKey = null; scan.voteCount = 0; } }, 4500);
+  setTimeout(() => {
+    if (!scan.hitPending) return;
+    root.innerHTML = "";
+    scan.hitPending = false; scan.voteKey = null; scan.voteCount = 0;
+    document.getElementById("liveStatus").textContent = "Align the printed Card ID inside the box";
+  }, 4500);
 }
 
 function wireEvents() {
@@ -1330,6 +1485,7 @@ function wireEvents() {
   document.getElementById("scanFileExisting").addEventListener("change", event => handleScanFile(event.target.files[0]));
   document.getElementById("manualLookupBtn").addEventListener("click", manualLookup);
   document.getElementById("liveScanBtn").addEventListener("click", startLiveScan);
+  document.getElementById("flipCamera").addEventListener("click", flipLiveCamera);
 }
 
 function openNewDeckModal() {

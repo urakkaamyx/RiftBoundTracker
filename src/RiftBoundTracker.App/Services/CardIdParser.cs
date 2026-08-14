@@ -2,9 +2,9 @@ using System.Text.RegularExpressions;
 
 namespace RiftBoundTracker.App.Services;
 
-// Code is the printed collector code when a letter prefix/suffix was actually legible (e.g. "R01",
-// "007A") — null when the OCR text only had a plain number, since a plain number carries no extra
-// signal beyond Number itself.
+// Code preserves the printed collector code, including leading zeroes and any letter prefix/suffix
+// (e.g. "002", "R01", "007A"). That distinction is required for sets where 002, R02, and SP2 all
+// share the same numeric CollectorNumber.
 public record ParsedCardId(int Number, int? Total, string? SetCode, string? Code);
 
 public static partial class CardIdParser
@@ -57,7 +57,8 @@ public static partial class CardIdParser
 
             var prefix = m.Groups["prefix"].Success ? m.Groups["prefix"].Value : null;
             var suffix = m.Groups["suffix"].Success ? m.Groups["suffix"].Value : null;
-            var code = prefix is not null || suffix is not null ? $"{prefix}{num}{suffix}".ToUpperInvariant() : null;
+            var normalizedDigits = NormalizeDigits(m.Groups["num"].Value);
+            var code = $"{prefix}{normalizedDigits}{suffix}".ToUpperInvariant();
 
             results.Add(new ParsedCardId(num, total, setCode, code));
         }
@@ -69,7 +70,9 @@ public static partial class CardIdParser
 
     private static bool TryNormalizeNumber(string raw, out int value)
     {
-        var normalized = new string(raw.Select(c => DigitConfusions.GetValueOrDefault(c, c)).ToArray());
-        return int.TryParse(normalized, out value);
+        return int.TryParse(NormalizeDigits(raw), out value);
     }
+
+    private static string NormalizeDigits(string raw) =>
+        new(raw.Select(c => DigitConfusions.GetValueOrDefault(c, c)).ToArray());
 }

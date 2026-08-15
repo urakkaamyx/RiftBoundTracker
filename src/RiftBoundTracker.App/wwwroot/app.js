@@ -17,6 +17,17 @@ const RARITY_COLOR = {
   Common: "var(--faint)", Uncommon: "var(--blue)", Rare: "var(--green)",
   Epic: "var(--violet)", Legendary: "var(--gold-bright)", Champion: "var(--orange)"
 };
+const RARITY_ASSET = {
+  Common: "rarity_common.svg", Uncommon: "rarity_uncommon.svg", Rare: "rarity_rare.svg",
+  Epic: "rarity_epic.svg", Promo: "rarity_promo.svg", Showcase: "rarity_showcase.svg",
+  Legendary: "rarity_legendary.svg", Champion: "rarity_champion.svg",
+  Overnumbered: "rarity_overnumbered.svg"
+};
+const CARD_TYPE_ASSET = {
+  battlefield: "card_type_battlefield.svg", champion: "card_type_champion.svg",
+  gear: "card_type_gear.svg", legend: "card_type_legend.svg", rune: "card_type_rune.svg",
+  spell: "card_type_spell.svg", unit: "card_type_unit.svg"
+};
 const PAGE_LABELS = {
   vault: ["Collection", "Your Vault"], decks: ["Builder", "Decks"],
   favorites: ["Saved Cards", "Favorites"], binder: ["Collection", "Trade Binder"],
@@ -71,6 +82,17 @@ function cardDomainThemeClasses(domains) {
   const primary = domainKey(domains[0]);
   const secondary = domainKey(domains[1] || domains[0]);
   return ` row-domain-${primary} row-domain-secondary-${secondary}`;
+}
+
+function cardTypeAsset(card) {
+  const type = `${card.supertype || ""} ${card.type || ""}`.toLowerCase();
+  return Object.entries(CARD_TYPE_ASSET).find(([key]) => type.includes(key))?.[1] || null;
+}
+
+function listFacetMarkup(label, asset, kind) {
+  return `<div class="list-card-facet ${kind}" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">
+    ${asset ? `<img src="/assets/riftbound-symbols/${asset}" alt="" aria-hidden="true" loading="lazy" />` : ""}
+  </div>`;
 }
 
 function safeSymbolColor(value, fallback) {
@@ -587,6 +609,7 @@ function cardListRow(card) {
   const domains = card.domains?.length ? card.domains : ["Colorless"];
   const price = state.prices[card.id];
   const cardType = [card.supertype, card.type].filter(Boolean).join(" ") || "Card";
+  const rarity = card.rarity || "Unknown";
   return `
     <article class="card-list-row${cardDomainThemeClasses(domains)}${card.ownedCount <= 0 ? " missing" : ""}${state.selectedCardId === card.id ? " selected" : ""}" data-card-open="${escapeHtml(card.id)}">
       ${domainSceneMarkup(domains)}
@@ -598,9 +621,10 @@ function cardListRow(card) {
       </div>
       <div class="list-card-info">
         <h3>${escapeHtml(card.name)}</h3>
-        <span><i class="rarity-gem" style="background:${RARITY_COLOR[card.rarity] || "var(--faint)"}"></i>${escapeHtml(card.rarity || "Unknown")}<em>${escapeHtml(cardType)}</em></span>
       </div>
       <div class="list-card-set"><b>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))}</b><span>${escapeHtml(card.setLabel || card.setId)}</span></div>
+      <div class="list-card-rarity">${listFacetMarkup(rarity, RARITY_ASSET[rarity] || null, "rarity")}</div>
+      <div class="list-card-type">${listFacetMarkup(cardType, cardTypeAsset(card), "type")}</div>
       <div class="list-card-owned"><span class="list-mobile-label">Owned</span><div class="mini-stepper"><button data-owned-delta="-1" data-card-id="${escapeHtml(card.id)}" aria-label="Remove copy">-</button><span>${card.ownedCount}</span><button data-owned-delta="1" data-card-id="${escapeHtml(card.id)}" aria-label="Add copy">+</button></div></div>
       <div class="list-card-trade">${card.ownedCount > 0
         ? `<label class="card-trade-toggle" title="Mark this card as available for trade"><span>Trade</span><input type="checkbox" data-card-trade-toggle="${escapeHtml(card.id)}"${card.binderCount > 0 ? " checked" : ""} /><i aria-hidden="true"></i></label>`
@@ -613,7 +637,7 @@ function renderCardGrid(root, cards) {
   const isList = state.view === "list" && root.id === "vaultGrid";
   root.classList.toggle("list-view", isList);
   root.innerHTML = isList
-    ? `<div class="card-list-header" aria-hidden="true"><span></span><span>Card</span><span class="list-head-set">Set</span><span>Owned</span><span>Trade</span><span>Market</span></div>${cards.map(cardListRow).join("")}`
+    ? `<div class="card-list-header" aria-hidden="true"><span></span><span>Card</span><span class="list-head-set">Set</span><span>Rarity</span><span>Type</span><span>Owned</span><span>Trade</span><span>Market</span></div>${cards.map(cardListRow).join("")}`
     : cards.map(card => cardTile(card, root.id)).join("");
   renderIcons(root);
 }

@@ -26,7 +26,9 @@ Write-Host "== Publishing self-contained win-x64 build ==" -ForegroundColor Cyan
 # -> ArgumentNullException at OCR time). A plain self-contained publish (a folder of loose files,
 # no separate .NET install needed) avoids the incompatibility entirely.
 if (Test-Path $publishDir) { Remove-Item $publishDir -Recurse -Force }
-dotnet publish $proj -c Release -r win-x64 --self-contained true -o $publishDir
+dotnet restore $proj -r win-x64
+if ($LASTEXITCODE -ne 0) { throw "Restore failed" }
+dotnet publish $proj -c Release -r win-x64 --self-contained true --no-restore -o $publishDir
 if ($LASTEXITCODE -ne 0) { throw "Publish failed" }
 
 Write-Host "== Zipping ==" -ForegroundColor Cyan

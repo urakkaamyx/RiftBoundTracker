@@ -1,7 +1,17 @@
 const DOMAIN_COLOR = {
   Fury: "var(--c-fury)", Calm: "var(--c-calm)", Order: "var(--c-order)",
   Mind: "var(--c-mind)", Body: "var(--c-body)", Chaos: "var(--c-chaos)",
-  Colorless: "var(--c-colorless)"
+  Rainbow: "var(--c-rainbow)", Colorless: "var(--c-colorless)"
+};
+const DOMAIN_SCENE = {
+  Fury: "domain_fury.jpg", Calm: "domain_calm.jpg", Order: "domain_order.jpg",
+  Mind: "domain_mind.jpg", Body: "domain_body.jpg", Chaos: "domain_chaos.jpg",
+  Rainbow: "domain_colorless.jpg", Colorless: "domain_colorless.jpg"
+};
+const DOMAIN_CREST = {
+  Fury: "domain_fury.png", Calm: "domain_calm.png", Order: "domain_order.png",
+  Mind: "domain_mind.png", Body: "domain_body.png", Chaos: "domain_chaos.png",
+  Rainbow: "domain_colorless.png", Colorless: "domain_colorless.png"
 };
 const RARITY_COLOR = {
   Common: "var(--faint)", Uncommon: "var(--blue)", Rare: "var(--green)",
@@ -33,6 +43,34 @@ function escapeHtml(value) {
   const node = document.createElement("div");
   node.textContent = value == null ? "" : String(value);
   return node.innerHTML;
+}
+
+function domainName(value) {
+  return Object.hasOwn(DOMAIN_SCENE, value) ? value : "Colorless";
+}
+
+function domainKey(value) {
+  return domainName(value).toLowerCase();
+}
+
+function domainSceneMarkup(domains) {
+  const primary = domainName(domains[0]);
+  const secondary = domains[1] ? domainName(domains[1]) : null;
+  const crests = domains.slice(0, 2).map(value => {
+    const name = domainName(value);
+    return `<img src="/assets/domain-crests/${DOMAIN_CREST[name]}" alt="" aria-hidden="true" loading="lazy" decoding="async" />`;
+  }).join("");
+  return `<div class="list-domain-scene${secondary ? " dual-domain" : ""}" aria-hidden="true">
+    <img class="list-domain-scene-art primary" src="/assets/domain-scenes/${DOMAIN_SCENE[primary]}" alt="" loading="lazy" decoding="async" />
+    ${secondary ? `<img class="list-domain-scene-art secondary" src="/assets/domain-scenes/${DOMAIN_SCENE[secondary]}" alt="" loading="lazy" decoding="async" />` : ""}
+    <span class="list-domain-scene-crests">${crests}</span>
+  </div>`;
+}
+
+function cardDomainThemeClasses(domains) {
+  const primary = domainKey(domains[0]);
+  const secondary = domainKey(domains[1] || domains[0]);
+  return ` row-domain-${primary} row-domain-secondary-${secondary}`;
 }
 
 function safeSymbolColor(value, fallback) {
@@ -550,7 +588,8 @@ function cardListRow(card) {
   const price = state.prices[card.id];
   const cardType = [card.supertype, card.type].filter(Boolean).join(" ") || "Card";
   return `
-    <article class="card-list-row${card.ownedCount <= 0 ? " missing" : ""}${state.selectedCardId === card.id ? " selected" : ""}" data-card-open="${escapeHtml(card.id)}">
+    <article class="card-list-row${cardDomainThemeClasses(domains)}${card.ownedCount <= 0 ? " missing" : ""}${state.selectedCardId === card.id ? " selected" : ""}" data-card-open="${escapeHtml(card.id)}">
+      ${domainSceneMarkup(domains)}
       <div class="card-art list-card-art${card.orientation === "landscape" ? " landscape" : ""}">
         <div class="card-domain">${domains.map(domain => `<span style="background:${DOMAIN_COLOR[domain] || DOMAIN_COLOR.Colorless}"></span>`).join("")}</div>
         <img src="${escapeHtml(cardImage(card))}" alt="${escapeHtml(card.name)}" loading="lazy" />
@@ -562,7 +601,6 @@ function cardListRow(card) {
         <span><i class="rarity-gem" style="background:${RARITY_COLOR[card.rarity] || "var(--faint)"}"></i>${escapeHtml(card.rarity || "Unknown")}<em>${escapeHtml(cardType)}</em></span>
       </div>
       <div class="list-card-set"><b>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))}</b><span>${escapeHtml(card.setLabel || card.setId)}</span></div>
-      <div class="list-card-domains">${domains.map(domain => `<span><i style="background:${DOMAIN_COLOR[domain] || DOMAIN_COLOR.Colorless}"></i>${escapeHtml(domain)}</span>`).join("")}</div>
       <div class="list-card-owned"><span class="list-mobile-label">Owned</span><div class="mini-stepper"><button data-owned-delta="-1" data-card-id="${escapeHtml(card.id)}" aria-label="Remove copy">-</button><span>${card.ownedCount}</span><button data-owned-delta="1" data-card-id="${escapeHtml(card.id)}" aria-label="Add copy">+</button></div></div>
       <div class="list-card-trade">${card.ownedCount > 0
         ? `<label class="card-trade-toggle" title="Mark this card as available for trade"><span>Trade</span><input type="checkbox" data-card-trade-toggle="${escapeHtml(card.id)}"${card.binderCount > 0 ? " checked" : ""} /><i aria-hidden="true"></i></label>`
@@ -575,7 +613,7 @@ function renderCardGrid(root, cards) {
   const isList = state.view === "list" && root.id === "vaultGrid";
   root.classList.toggle("list-view", isList);
   root.innerHTML = isList
-    ? `<div class="card-list-header" aria-hidden="true"><span></span><span>Card</span><span class="list-head-set">Set</span><span class="list-head-domains">Domains</span><span>Owned</span><span>Trade</span><span>Market</span></div>${cards.map(cardListRow).join("")}`
+    ? `<div class="card-list-header" aria-hidden="true"><span></span><span>Card</span><span class="list-head-set">Set</span><span>Owned</span><span>Trade</span><span>Market</span></div>${cards.map(cardListRow).join("")}`
     : cards.map(card => cardTile(card, root.id)).join("");
   renderIcons(root);
 }

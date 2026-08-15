@@ -1,0 +1,19 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="goldBase" x1="39" y1="24" x2="164" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF49A"/>
+      <stop offset="0.4" stop-color="#FFD600"/>
+      <stop offset="1" stop-color="#9B5D00"/>
+    </linearGradient>
+  </defs>
+  <path d="M100 3L184 51V149L100 197L16 149V51L100 3Z" fill="url(#goldBase)" stroke="#FFF1A8" stroke-width="2"/>
+  <path d="M100 3V100L55 29L100 3Z" fill="#FFF7B5" fill-opacity="0.78"/>
+  <path d="M100 3L145 29L100 100V3Z" fill="#E3A900" fill-opacity="0.55"/>
+  <path d="M16 51L55 29L100 100L16 51Z" fill="#E9B700" fill-opacity="0.66"/>
+  <path d="M184 51L145 29L100 100L184 51Z" fill="#FFDF16" fill-opacity="0.62"/>
+  <path d="M16 149V51L100 100L16 149Z" fill="#B37B00" fill-opacity="0.68"/>
+  <path d="M184 149V51L100 100L184 149Z" fill="#D99D00" fill-opacity="0.58"/>
+  <path d="M100 197L16 149L100 100V197Z" fill="#E0A800" fill-opacity="0.68"/>
+  <path d="M100 197L184 149L100 100V197Z" fill="#FFC800" fill-opacity="0.5"/>
+  <path d="M100 3V197M16 51L100 100L184 51M16 149L100 100L184 149" stroke="white" stroke-opacity="0.4"/>
+</svg>

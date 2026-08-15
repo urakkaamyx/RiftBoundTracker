@@ -1,0 +1,19 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="pearl" cx="0" cy="0" r="1" gradientTransform="translate(73 60) rotate(49) scale(142)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="0.38" stop-color="#DCE9F0"/>
+      <stop offset="0.68" stop-color="#B7CAD6"/>
+      <stop offset="0.86" stop-color="#F4ECA7"/>
+      <stop offset="1" stop-color="#A8B9C1"/>
+    </radialGradient>
+    <linearGradient id="pearlShine" x1="52" y1="28" x2="139" y2="155" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white" stop-opacity="0.92"/>
+      <stop offset="0.55" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="94" fill="url(#pearl)" stroke="#A8BBC4" stroke-width="2"/>
+  <path d="M36 83C43 49 69 27 105 24C77 36 58 54 48 86L36 83Z" fill="url(#pearlShine)"/>
+  <path d="M130 164C151 153 166 135 172 112" stroke="white" stroke-opacity="0.78" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="55" cy="145" r="4" fill="white" fill-opacity="0.78"/>
+</svg>

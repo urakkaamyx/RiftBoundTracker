@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "domains": {
+    "Body": "domain_body.svg",
+    "Calm": "domain_calm.svg",
+    "Chaos": "domain_chaos.svg",
+    "Fury": "domain_fury.svg",
+    "Mind": "domain_mind.svg",
+    "Order": "domain_order.svg",
+    "Rainbow": "domain_rainbow.svg",
+    "Colorless": "domain_colorless.svg"
+  },
+  "runes": {
+    "Body": "rune_body.svg",
+    "Calm": "rune_calm.svg",
+    "Chaos": "rune_chaos.svg",
+    "Fury": "rune_fury.svg",
+    "Mind": "rune_mind.svg",
+    "Order": "rune_order.svg",
+    "Rainbow": "rune_rainbow.svg"
+  },
+  "resources": {
+    "Energy0": "energy_0.svg",
+    "Energy1": "energy_1.svg",
+    "Energy2": "energy_2.svg",
+    "Energy3": "energy_3.svg",
+    "Energy4": "energy_4.svg",
+    "Energy5": "energy_5.svg",
+    "Energy6": "energy_6.svg",
+    "Energy7": "energy_7.svg",
+    "Energy8": "energy_8.svg",
+    "Energy9": "energy_9.svg",
+    "Energy10": "energy_10.svg",
+    "Energy11": "energy_11.svg",
+    "Energy12": "energy_12.svg",
+    "Might": "might.svg",
+    "Exhaust": "exhaust.svg"
+  },
+  "cardTypes": {
+    "Battlefield": "card_type_battlefield.svg",
+    "Champion": "card_type_champion.svg",
+    "Gear": "card_type_gear.svg",
+    "Legend": "card_type_legend.svg",
+    "Rune": "card_type_rune.svg",
+    "Spell": "card_type_spell.svg",
+    "Unit": "card_type_unit.svg"
+  },
+  "rarities": {
+    "Common": "rarity_common.svg",
+    "Uncommon": "rarity_uncommon.svg",
+    "Rare": "rarity_rare.svg",
+    "Epic": "rarity_epic.svg",
+    "Champion": "rarity_champion.svg",
+    "Promo": "rarity_promo.svg",
+    "Legendary": "rarity_legendary.svg",
+    "Showcase": "rarity_showcase.svg",
+    "Overnumbered": "rarity_overnumbered.svg"
+  },
+  "badges": {
+    "Teal": "badge_teal.svg",
+    "Gray": "badge_gray.svg",
+    "Lime": "badge_lime.svg",
+    "Magenta": "badge_magenta.svg"
+  },
+  "utility": {
+    "Artist": "artist.svg",
+    "Champion": "champion.svg",
+    "Colorless": "colorless.svg",
+    "Separator": "separator_single.svg",
+    "DoubleSeparator": "separator_double.svg"
+  }
+}

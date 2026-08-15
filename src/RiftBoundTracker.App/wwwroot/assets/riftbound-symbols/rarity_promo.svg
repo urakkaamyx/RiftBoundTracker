@@ -1,0 +1,12 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="promoGold" x1="41" y1="29" x2="160" y2="174" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF2A1"/>
+      <stop offset="0.46" stop-color="#E4B630"/>
+      <stop offset="1" stop-color="#815315"/>
+    </linearGradient>
+  </defs>
+  <path d="M100 4L122 55L175 25L145 78L196 100L145 122L175 175L122 145L100 196L78 145L25 175L55 122L4 100L55 78L25 25L78 55L100 4Z" fill="url(#promoGold)" stroke="#FFE997" stroke-width="2"/>
+  <circle cx="100" cy="100" r="48" fill="#B5811D" fill-opacity="0.52" stroke="#FFF0A8"/>
+  <path d="M100 58L111 86L141 88L118 107L125 137L100 120L75 137L82 107L59 88L89 86L100 58Z" fill="#FFF0A8"/>
+</svg>

@@ -1,0 +1,12 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="championGem" x1="49" y1="19" x2="156" y2="181" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD889"/>
+      <stop offset="0.48" stop-color="#DD7A28"/>
+      <stop offset="1" stop-color="#7A301C"/>
+    </linearGradient>
+  </defs>
+  <path d="M100 4L178 33L196 113L143 180L57 180L4 113L22 33L100 4Z" fill="url(#championGem)" stroke="#FFE5A8" stroke-width="2"/>
+  <path d="M52 72L79 91L100 54L121 91L148 72L139 132H61L52 72Z" fill="#FFF1BB" fill-opacity="0.9"/>
+  <path d="M67 143H133" stroke="#FFF1BB" stroke-width="9" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,16 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cyanBase" x1="100" y1="7" x2="100" y2="191" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E9FFFF"/>
+      <stop offset="0.48" stop-color="#5EDBE5"/>
+      <stop offset="1" stop-color="#087E98"/>
+    </linearGradient>
+  </defs>
+  <path d="M100 7L195 191H5L100 7Z" fill="url(#cyanBase)" stroke="#36BBC8" stroke-width="2"/>
+  <path d="M100 7L100 126L47 94L100 7Z" fill="#D8FBFF" fill-opacity="0.72"/>
+  <path d="M100 7L153 94L100 126V7Z" fill="#78DDE7" fill-opacity="0.52"/>
+  <path d="M5 191L47 94L100 126L5 191Z" fill="#1899AE" fill-opacity="0.68"/>
+  <path d="M195 191L153 94L100 126L195 191Z" fill="#006C87" fill-opacity="0.75"/>
+  <path d="M5 191L100 126L195 191H5Z" fill="#0D8FA5" fill-opacity="0.62"/>
+  <path d="M100 7V126M5 191L100 126L195 191" stroke="white" stroke-opacity="0.34"/>
+</svg>

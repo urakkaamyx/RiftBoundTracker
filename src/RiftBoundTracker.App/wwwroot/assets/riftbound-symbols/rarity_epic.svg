@@ -1,0 +1,18 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="epicBase" x1="48" y1="18" x2="155" y2="183" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD23F"/>
+      <stop offset="0.42" stop-color="#F08A00"/>
+      <stop offset="1" stop-color="#A42A0A"/>
+    </linearGradient>
+  </defs>
+  <path d="M100 4L194 73L158 191H42L6 73L100 4Z" fill="url(#epicBase)" stroke="#FFE28B" stroke-width="2"/>
+  <path d="M100 4V111L52 54L100 4Z" fill="#FFF0A0" fill-opacity="0.58"/>
+  <path d="M100 4L148 54L100 111V4Z" fill="#D54A0A" fill-opacity="0.55"/>
+  <path d="M6 73L52 54L100 111L6 73Z" fill="#F2A100" fill-opacity="0.62"/>
+  <path d="M194 73L148 54L100 111L194 73Z" fill="#E15D00" fill-opacity="0.74"/>
+  <path d="M42 191L6 73L100 111L42 191Z" fill="#B63A0A" fill-opacity="0.64"/>
+  <path d="M158 191L194 73L100 111L158 191Z" fill="#D34A00" fill-opacity="0.58"/>
+  <path d="M42 191L100 111L158 191H42Z" fill="#E46E00" fill-opacity="0.5"/>
+  <path d="M100 4V111M6 73L100 111L194 73M42 191L100 111L158 191" stroke="white" stroke-opacity="0.38"/>
+</svg>

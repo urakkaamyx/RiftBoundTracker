@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.13.3 — Recommended tab now matches Legend variants
+
+- Fixed the Recommended tab only matching community data logged under the exact Legend print in your deck. Choosing VEN-193/166 now also pulls recommendations recorded under its sibling print VEN-147/166 (and any other print of the same Legend) instead of showing "no community data yet".
+
 ## v1.13.2 — Vault performance + upgrade prices
 
 - Fixed Vault lag on every Add/Remove click — it was re-fetching the entire card catalog twice per click (once just for filter dropdowns, which never change from an ownership edit). Now only re-fetches when you switch sets.

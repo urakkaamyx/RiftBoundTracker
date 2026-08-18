@@ -18,8 +18,30 @@ public sealed class CommunityRecommendationService(AppDbContext db)
     public async Task<List<CardRecommendationDto>> GetRecommendationsAsync(
         int deckId, string legendCardId, CancellationToken ct = default)
     {
+        // TopDeck logs decklists under whatever specific print a player happened to submit —
+        // that has nothing to do with deckbuilding strategy, so "do I already own/have this
+        // card" must be checked across every print sharing the same base name, not just the
+        // exact print id the community data references. Otherwise a card the user owns under a
+        // different print (e.g. a Rune reprint) shows as "own 0" and gets recommended as an
+        // upgrade they already effectively have.
+        var allCards = await db.Cards.AsNoTracking().Select(c => new { c.Id, c.Name, c.OwnedCount }).ToListAsync(ct);
+        var ownedByBase = allCards
+            .GroupBy(c => BaseName(c.Name))
+            .ToDictionary(g => g.Key, g => g.Sum(c => c.OwnedCount));
+        var cardNameById = allCards.ToDictionary(c => c.Id, c => c.Name);
+
+        // Same reasoning applies to which Legend the community data is even matched against:
+        // a deck built around "Eye of Twilight [VEN-193]" and one built around the exact same
+        // Legend under its "[VEN-147]" print are the same deck archetype — pull community data
+        // from every print of the chosen Legend, not just the one exact print id.
+        var legendBaseName = BaseName(cardNameById.GetValueOrDefault(legendCardId, legendCardId));
+        var legendFamilyIds = allCards
+            .Where(c => BaseName(c.Name) == legendBaseName)
+            .Select(c => c.Id)
+            .ToHashSet();
+
         var decks = await db.CommunityDecks
-            .Where(d => d.LegendCardId == legendCardId)
+            .Where(d => d.LegendCardId != null && legendFamilyIds.Contains(d.LegendCardId))
             .Select(d => new { d.Id, d.TournamentId })
             .ToListAsync(ct);
         var totalDecks = decks.Count;
@@ -33,21 +55,9 @@ public sealed class CommunityRecommendationService(AppDbContext db)
         var deckToTournament = decks.ToDictionary(d => d.Id, d => d.TournamentId);
 
         var communityCards = await db.CommunityDeckCards
-            .Where(c => deckIds.Contains(c.CommunityDeckId) && c.CardId != legendCardId)
+            .Where(c => deckIds.Contains(c.CommunityDeckId) && !legendFamilyIds.Contains(c.CardId))
             .Include(c => c.Card)
             .ToListAsync(ct);
-
-        // TopDeck logs decklists under whatever specific print a player happened to submit —
-        // that has nothing to do with deckbuilding strategy, so "do I already own/have this
-        // card" must be checked across every print sharing the same base name, not just the
-        // exact print id the community data references. Otherwise a card the user owns under a
-        // different print (e.g. a Rune reprint) shows as "own 0" and gets recommended as an
-        // upgrade they already effectively have.
-        var allCards = await db.Cards.AsNoTracking().Select(c => new { c.Id, c.Name, c.OwnedCount }).ToListAsync(ct);
-        var ownedByBase = allCards
-            .GroupBy(c => BaseName(c.Name))
-            .ToDictionary(g => g.Key, g => g.Sum(c => c.OwnedCount));
-        var cardNameById = allCards.ToDictionary(c => c.Id, c => c.Name);
 
         var currentDeckRows = await db.DeckCards
             .Where(dc => dc.DeckId == deckId)

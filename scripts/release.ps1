@@ -79,7 +79,31 @@ git -C $root push
 git -C $root push --tags
 
 Write-Host "== Creating GitHub release ==" -ForegroundColor Cyan
-$releaseNotes = if ($Notes) { $Notes } else { "Release v$Version" }
+# Default to the matching CHANGELOG.md section instead of a generic "Release vX" string, so the
+# GitHub release notes stay in sync with the changelog without anyone having to remember to pass
+# -Notes by hand (that's how v1.17.0/v1.18.0 ended up with real changelog entries in-repo but
+# blank-looking release pages). -Notes still overrides this when explicitly passed.
+function Get-ChangelogSection([string]$version) {
+    $changelogPath = Join-Path $root "CHANGELOG.md"
+    if (-not (Test-Path $changelogPath)) { return $null }
+    $lines = Get-Content $changelogPath
+    $escaped = [regex]::Escape($version)
+    $startIndex = -1
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if ($lines[$i] -match "^## v$escaped(\s|$)") { $startIndex = $i; break }
+    }
+    if ($startIndex -eq -1) { return $null }
+    $endIndex = $lines.Count - 1
+    for ($i = $startIndex + 1; $i -lt $lines.Count; $i++) {
+        if ($lines[$i] -match '^## v') { $endIndex = $i - 1; break }
+    }
+    # Drop the "## vX — Title" header line itself; gh's --title already carries the version, and
+    # the release page renders its own heading above the notes body.
+    $body = $lines[($startIndex + 1)..$endIndex] -join "`n"
+    return $body.Trim()
+}
+$releaseNotes = if ($Notes) { $Notes } else { Get-ChangelogSection $Version }
+if (-not $releaseNotes) { $releaseNotes = "Release v$Version" }
 gh release create "v$Version" $zipPath --title "v$Version" --notes "$releaseNotes"
 
 # gh release create has occasionally left a release stuck in draft state (a draft won't show up

@@ -86,6 +86,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .sidebar { position: sticky; top: 0; height: 100vh; z-index: 30; display: flex; flex-direction: column; background: var(--sidebar); border-right: 1px solid var(--border-soft); overflow: hidden; }
 .brand-lockup { height: var(--topbar-height); display: flex; align-items: center; gap: 11px; padding: 0 18px; border-bottom: 1px solid var(--border-soft); color: var(--gold-bright); }
 .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; color: var(--gold-bright); font-size: 27px; }
+.brand-mark img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
 .brand-lockup div:last-child { display: flex; flex-direction: column; line-height: 1.05; }
 .brand-lockup strong { font-size: 16px; font-weight: 700; }
 .brand-lockup span { margin-top: 4px; font-size: 10px; font-weight: 700; }

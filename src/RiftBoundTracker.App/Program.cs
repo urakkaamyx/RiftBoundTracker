@@ -68,7 +68,7 @@ internal static class Program
                 Environment.Exit(0);
             }));
 
-            new DesktopShell(port, lifetime).Run();
+            new DesktopShell(port, app.Environment.WebRootPath, lifetime).Run();
 
             // Must not run on this STA thread: WPF's Application.Run() (inside DesktopShell.Run())
             // installs a DispatcherSynchronizationContext that stays set on the thread even after

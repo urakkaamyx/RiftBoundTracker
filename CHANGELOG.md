@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.14.0 — RiftKeep branding, custom app chrome, launch screen
+
+- New logo and "RIFTKEEP" branding in the sidebar, browser tab icon, and taskbar/window icon.
+- Replaced the native Windows title bar with a custom dark/gold one (minimize, maximize/restore, close) — the app now opens maximized by default.
+- Added a launch screen: the full RiftKeep emblem on its own transparent, borderless window with an "Enter Vault" button. Clicking it plays a zoom-through-the-gate transition into the main window (drop a `wwwroot/sounds/door-open.mp3` or `.wav` in to add a sound — none is bundled yet).
+
 ## v1.13.3 — Recommended tab now matches Legend variants
 
 - Fixed the Recommended tab only matching community data logged under the exact Legend print in your deck. Choosing VEN-193/166 now also pulls recommendations recorded under its sibling print VEN-147/166 (and any other print of the same Legend) instead of showing "no community data yet".

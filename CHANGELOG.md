@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.18.1 — Deck import shows exactly which lines failed
+
+- Import Deck's "X lines did not match" message now lists each unmatched line so you can see exactly what to fix, instead of just a count.
+
 ## v1.18.0 — Fine-tuned Ask Rules model + card legality/errata questions
 
 - The local Ask Rules model is now fine-tuned on Riftbound's own rules, keywords, and card data (not the generic base model) — trained on real examples generated from the synced rules library, including how to answer a specific format when a card has more than one legality ruling (e.g. banned in both Constructed and 2v2 Constructed).

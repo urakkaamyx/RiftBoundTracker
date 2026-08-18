@@ -2021,9 +2021,13 @@ async function importDeck() {
   const contents = document.getElementById("importDeckContents").value;
   const result = await api("/api/decks/import", jsonOptions("POST", { name, format: "Standard", contents }));
   state.activeDeckId = result.deckId;
-  document.getElementById("importDeckResult").textContent = result.unmatchedLines.length
-    ? `${result.addedLines} lines added. ${result.unmatchedLines.length} lines did not match.`
-    : `${result.addedLines} lines added.`;
+  const resultEl = document.getElementById("importDeckResult");
+  if (result.unmatchedLines.length) {
+    resultEl.innerHTML = `<p>${result.addedLines} lines added. ${result.unmatchedLines.length} lines did not match:</p>
+      <ul class="import-unmatched-list">${result.unmatchedLines.map(line => `<li>${escapeHtml(line)}</li>`).join("")}</ul>`;
+  } else {
+    resultEl.textContent = `${result.addedLines} lines added.`;
+  }
   await Promise.all([loadDecks(), loadOverview()]);
   if (!result.unmatchedLines.length) closeModal("importDeckModal");
 }

@@ -862,6 +862,12 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .toast.error { border-left-color: var(--red); }
 @keyframes toast-in { from { transform: translateY(8px); opacity: 0; } }
 
+#importDeckResult { font-size: 11px; }
+#importDeckResult p { margin: 0 0 6px; color: var(--text); }
+.import-unmatched-list { list-style: none; margin: 0; padding: 0; max-height: 160px; overflow-y: auto; border: 1px solid var(--border); border-left: 3px solid var(--red); border-radius: 6px; background: var(--panel); }
+.import-unmatched-list li { padding: 5px 9px; font-family: var(--mono, monospace); color: var(--faint); border-bottom: 1px solid var(--border-soft); }
+.import-unmatched-list li:last-child { border-bottom: none; }
+
 @media (max-width: 1300px) {
   .card-list-header, .card-list-row { grid-template-columns: 132px minmax(120px, 1fr) minmax(78px, .44fr) 52px 52px 72px 58px 68px; column-gap: 8px; }
   .list-card-art { width: 60px; }

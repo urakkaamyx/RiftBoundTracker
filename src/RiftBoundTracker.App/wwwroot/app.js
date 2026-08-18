@@ -54,6 +54,7 @@ const state = {
   discoverCache: { key: null, cards: [] },
   recommendedCache: { key: null, recs: [] },
   recommendedRowsById: new Map(),
+  vaultFacetCache: { setId: undefined, cards: [] },
   legendPicker: { cards: [], search: "", ownedOnly: false, selectedBase: null, selectedVariantId: null, mode: "create" },
   cardTextSymbols: new Map(),
   priceQueue: { items: [], batchSize: 20, configured: false, provider: "JustTCG" },
@@ -539,7 +540,17 @@ async function loadPriceQueue(renderPage = true) {
 }
 
 async function loadVault() {
-  const facetCards = await api(`/api/cards?${queryString({ setId: state.setId })}`);
+  // The facet query (rarity/type/domain dropdown options + hero art) only depends on which
+  // cards exist in the selected set — never on ownership — so it doesn't need to be re-fetched
+  // on every add/remove click, just when the set changes. Re-fetching the full catalog (up to
+  // 1300+ rows) on every stepper click was the actual source of the reported Vault lag.
+  let facetCards;
+  if (state.vaultFacetCache.setId === state.setId) {
+    facetCards = state.vaultFacetCache.cards;
+  } else {
+    facetCards = await api(`/api/cards?${queryString({ setId: state.setId })}`);
+    state.vaultFacetCache = { setId: state.setId, cards: facetCards };
+  }
   registerCards(facetCards);
   updateFacetOptions(facetCards);
 
@@ -1124,8 +1135,12 @@ async function loadCommunityAnalysis(detail) {
 
   const upgrades = recs.filter(r => r.currentDeckQuantity === 0).slice(0, 5);
   upgradesEl.innerHTML = upgrades.length
-    ? upgrades.map(r => `
-      <div class="valuable-row"><div class="valuable-art"><img src="${escapeHtml(cardImage(r.card))}" alt="" />${cardImagePopout(r.card)}</div><div><strong>${escapeHtml(r.card.name)}</strong><span>${r.inclusionRate}% of decks &middot; avg ${r.averageCopies}x</span></div><b class="${r.ownedCount > 0 ? "owned" : "missing"}">${r.ownedCount > 0 ? "Owned" : "Missing"}</b></div>`).join("")
+    ? upgrades.map(r => {
+        const price = state.prices[r.card.id]?.marketPrice;
+        const status = r.ownedCount > 0 ? "Owned" : (price != null ? formatMoney(price) : "Missing");
+        return `
+      <div class="valuable-row"><div class="valuable-art"><img src="${escapeHtml(cardImage(r.card))}" alt="" />${cardImagePopout(r.card)}</div><div><strong>${escapeHtml(r.card.name)}</strong><span>${r.inclusionRate}% of decks &middot; avg ${r.averageCopies}x</span></div><b class="${r.ownedCount > 0 ? "owned" : "missing"}">${status}</b></div>`;
+      }).join("")
     : `<span class="loading-line">No missing staples &mdash; deck already has the community's top picks.</span>`;
   renderIcons(comparisonEl);
   renderIcons(upgradesEl);

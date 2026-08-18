@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.13.2 — Vault performance + upgrade prices
+
+- Fixed Vault lag on every Add/Remove click — it was re-fetching the entire card catalog twice per click (once just for filter dropdowns, which never change from an ownership edit). Now only re-fetches when you switch sets.
+- Top Recommended Upgrades now shows the market price for missing cards instead of just "Missing".
+
 ## v1.13.1 — Deck Builder fixes
 
 - Fixed a crash opening Recommended/Analysis for a deck that has the same card in both Main Deck and Sideboard.

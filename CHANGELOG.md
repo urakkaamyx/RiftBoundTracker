@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.15.0 — Rules library
+
+- New **Rules** tab: a searchable, locally-indexed copy of Riftbound's official Core Rules, Tournament Rules, card errata, and format legality/banned list — pulled from playriftbound.com and kept entirely offline afterward.
+- Search by rule number ("103.2.b"), official keyword ("exhaust"), player slang ("tap" finds Exhaust), or free text — results rank current Core Rules above historical material, never the reverse.
+- Rule detail view shows the rule's own text, its place in the rule hierarchy (parent/children, previous/next), explicit cross-references ("See rule 197..."), and which official keywords it touches.
+- Keyword glossary: every official keyword's canonical rule, aliases, every rule that mentions it, and every local card whose text uses it.
+- Errata and Banned Cards browsers show real official corrections and ban lists, cross-linked to local card names where they resolve.
+- New Settings section: **Rules Library** — manual "Sync Now" button (nothing syncs automatically), with last-synced time and rule/keyword/errata/legality counts.
+
 ## v1.14.2 — RiftDecks import support
 
 - Import now handles RiftDecks-style decklists (plain "{qty} {name}" lines with no set/collector code), resolving cards by exact name and always preferring the base print over a variant when a name is ambiguous.

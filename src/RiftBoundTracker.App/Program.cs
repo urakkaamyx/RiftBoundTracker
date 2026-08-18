@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using RiftBoundTracker.App.Data;
 using RiftBoundTracker.App.Desktop;
 using RiftBoundTracker.App.Services;
+using RiftBoundTracker.App.Services.Rules;
 
 namespace RiftBoundTracker.App;
 
@@ -160,6 +161,14 @@ internal static class Program
             c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftBoundVault-CommunitySync/1.0");
             c.DefaultRequestHeaders.Accept.ParseAdd("application/json");
         });
+        builder.Services.AddHttpClient("rules-source", c =>
+        {
+            c.Timeout = TimeSpan.FromSeconds(60);
+            c.DefaultRequestHeaders.UserAgent.ParseAdd(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+            c.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/pdf,*/*");
+            c.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
+        });
 
         builder.Services.AddSingleton<ImageHashService>();
         builder.Services.AddSingleton<OcrService>();
@@ -181,6 +190,14 @@ internal static class Program
         builder.Services.AddScoped<CommunityCardResolver>();
         builder.Services.AddScoped<CommunityDeckSyncService>();
         builder.Services.AddScoped<CommunityRecommendationService>();
+        builder.Services.AddScoped<NextJsArticlePageFetcher>();
+        builder.Services.AddScoped<RulesSourceDiscoveryService>();
+        builder.Services.AddScoped<RulesImportService>();
+        builder.Services.AddScoped<RulesKeywordCatalogService>();
+        builder.Services.AddScoped<RulesKeywordLinkerService>();
+        builder.Services.AddScoped<RulesSyncService>();
+        builder.Services.AddScoped<RulesSearchService>();
+        builder.Services.AddScoped<RulesService>();
 
         var app = builder.Build();
 
@@ -424,6 +441,67 @@ internal static class Program
             {
                 return Results.Problem(ex.Message, statusCode: 502);
             }
+        });
+
+        app.MapGet("/api/rules/search", async (
+            string q, bool? currentOnly, int? limit, RulesService rules, CancellationToken ct) =>
+            Results.Ok(await rules.SearchAsync(q, currentOnly ?? true, limit ?? 30, ct)));
+
+        app.MapGet("/api/rules/status", async (RulesSyncService sync, CancellationToken ct) =>
+            Results.Ok(await sync.GetStatusAsync(ct)));
+
+        app.MapPost("/api/rules/sync", async (RulesSyncService sync, CancellationToken ct) =>
+        {
+            try
+            {
+                return Results.Ok(await sync.SyncAsync(ct));
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message, statusCode: 502);
+            }
+        });
+
+        app.MapGet("/api/rules/keywords", async (RulesService rules, CancellationToken ct) =>
+            Results.Ok(await rules.GetKeywordsAsync(ct)));
+
+        app.MapGet("/api/rules/keywords/{id:int}", async (int id, RulesService rules, CancellationToken ct) =>
+        {
+            var detail = await rules.GetKeywordDetailAsync(id, ct);
+            return detail is null ? Results.NotFound() : Results.Ok(detail);
+        });
+
+        app.MapGet("/api/rules/documents", async (RulesService rules, CancellationToken ct) =>
+            Results.Ok(await rules.GetDocumentsAsync(ct)));
+
+        app.MapGet("/api/rules/documents/{id:int}", async (int id, RulesService rules, CancellationToken ct) =>
+        {
+            var detail = await rules.GetDocumentDetailAsync(id, ct);
+            return detail is null ? Results.NotFound() : Results.Ok(detail);
+        });
+
+        app.MapGet("/api/rules/errata", async (RulesService rules, CancellationToken ct) =>
+            Results.Ok(await rules.GetErrataAsync(ct)));
+
+        app.MapGet("/api/rules/errata/cards/{cardId}", async (string cardId, RulesService rules, CancellationToken ct) =>
+            Results.Ok(await rules.GetErrataForCardAsync(cardId, ct)));
+
+        app.MapGet("/api/rules/legality", async (RulesService rules, CancellationToken ct) =>
+            Results.Ok(await rules.GetLegalityAsync(ct)));
+
+        app.MapGet("/api/rules/legality/cards/{cardId}", async (string cardId, RulesService rules, CancellationToken ct) =>
+            Results.Ok(await rules.GetLegalityForCardAsync(cardId, ct)));
+
+        app.MapGet("/api/rules/cards/{cardId}", async (string cardId, RulesService rules, CancellationToken ct) =>
+            Results.Ok(await rules.GetCardRulesAsync(cardId, ct)));
+
+        // Registered after the more specific /api/rules/* routes above — ASP.NET Core's endpoint
+        // routing prefers literal segment matches ("search", "keywords", ...) over this
+        // parameterized one regardless of registration order, but keeping it last mirrors that.
+        app.MapGet("/api/rules/{id:int}", async (int id, RulesService rules, CancellationToken ct) =>
+        {
+            var detail = await rules.GetRuleDetailAsync(id, ct);
+            return detail is null ? Results.NotFound() : Results.Ok(detail);
         });
 
         app.MapGet("/api/pricing/status", (PricingSettingsService settings) => Results.Ok(settings.GetStatus()));

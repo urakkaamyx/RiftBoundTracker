@@ -23,8 +23,10 @@ App_Data/
 # Personal desktop shortcuts, not project content.
 *.lnk
 
-# Reference doc from another AI's handoff, not part of the app itself.
+# Reference docs from another AI's handoffs, not part of the app itself.
 /Riftbound_DeckBuilder_CommunityRecommendations_Handoff.md
+/Riftbound_Rules_Search_Architecture.md
+/Riftbound_Ask_Rules_Architecture.md
 
 # Working source art for logo/branding assets (Photoshop files, full-resolution masters) — only
 # the processed copies under wwwroot/ are actually shipped/used by the app.

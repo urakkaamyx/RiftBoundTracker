@@ -7,7 +7,7 @@
     <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.14.2</Version>
+    <Version>1.15.0</Version>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>app.ico</ApplicationIcon>
@@ -29,6 +29,11 @@
     <PackageReference Include="QRCoder" Version="1.8.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
+    <!-- Pure-managed PDF text extraction (no native deps) for parsing the official Core/Tournament
+         Rules PDFs — see RulesPdfParser. -->
+    <PackageReference Include="PdfPig" Version="0.1.10" />
+    <!-- HTML parsing for the Rules Hub / errata article pages — see RulesHubParser, ErrataArticleParser. -->
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.72" />
   </ItemGroup>
 
   <ItemGroup>

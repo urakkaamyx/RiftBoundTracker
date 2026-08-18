@@ -40,8 +40,21 @@ const PAGE_LABELS = {
   vault: ["Collection", "Your Vault"], decks: ["Builder", "Decks"],
   favorites: ["Saved Cards", "Favorites"], binder: ["Collection", "Trade Binder"],
   "price-checker": ["Pricing", "Price Checker"],
-  analytics: ["Collection Insights", "Analytics"], settings: ["Vault", "Settings"]
+  analytics: ["Collection Insights", "Analytics"], rules: ["Reference", "Rules"],
+  settings: ["Vault", "Settings"]
 };
+
+const RULES_QUICK_TOPICS = [
+  { label: "Deckbuilding", query: "domain identity" },
+  { label: "Combat", query: "combat" },
+  { label: "Chains", query: "chain" },
+  { label: "Reactions", query: "reaction" },
+  { label: "Domains", query: "domain" },
+  { label: "Keywords", mode: "glossary" },
+  { label: "Errata", mode: "errata" },
+  { label: "Tournament", query: "tournament" },
+  { label: "Banned Cards", mode: "legality" }
+];
 
 const state = {
   page: "vault", setId: null, owned: "all", search: "", rarity: "", type: "",
@@ -58,7 +71,8 @@ const state = {
   legendPicker: { cards: [], search: "", ownedOnly: false, selectedBase: null, selectedVariantId: null, mode: "create" },
   cardTextSymbols: new Map(),
   priceQueue: { items: [], batchSize: 20, configured: false, provider: "JustTCG" },
-  priceQueueIds: new Set()
+  priceQueueIds: new Set(),
+  rules: { mode: "search", query: "", results: [], glossary: [], errata: [], legality: [], selectedKind: null, selectedId: null, searchTimer: null }
 };
 const cardsById = new Map();
 let massEntries = [];
@@ -487,6 +501,7 @@ async function refreshCurrentPage() {
     case "binder": await loadBinder(); break;
     case "price-checker": await loadPriceChecker(); break;
     case "analytics": await loadAnalytics(); break;
+    case "rules": await loadRules(); break;
     case "settings": await loadSettings(); break;
   }
 }
@@ -1661,6 +1676,13 @@ async function loadSettings() {
   document.getElementById("communitySyncFacts").innerHTML = communitySync.lastSyncAt
     ? `<span>${communitySync.tournamentCount} tournaments</span><span>${communitySync.deckCount} decks</span><span>${communitySync.unresolvedCardCount} unresolved cards</span>`
     : "";
+  const rulesSync = await api("/api/rules/status");
+  document.getElementById("rulesSyncStatus").textContent = rulesSync.lastSuccessfulSyncAt
+    ? `Last synced ${formatRelativeTime(rulesSync.lastSuccessfulSyncAt)}${rulesSync.lastSyncOk ? "" : ` — failed: ${rulesSync.lastError}`}.`
+    : "Never synced yet — pulls the Core/Tournament Rules, errata, and banned-card list from playriftbound.com.";
+  document.getElementById("rulesSyncFacts").innerHTML = rulesSync.lastSuccessfulSyncAt
+    ? `<span>${rulesSync.rulesIndexed} rules</span><span>${rulesSync.keywordsIndexed} keywords</span><span>${rulesSync.errataIndexed} errata</span><span>${rulesSync.legalityEntriesIndexed} legality entries</span>`
+    : "";
   const db = health.database;
   document.getElementById("databaseStatus").textContent = db
     ? `Database verified: ${db.integrity}. Protected collection totals are checked at startup.`
@@ -2274,6 +2296,257 @@ function showLiveHit(match) {
   }, 4500);
 }
 
+// ---- Rules ----------------------------------------------------------------
+
+async function loadRules() {
+  const meta = document.getElementById("rulesLibraryMeta");
+  try {
+    const status = await api("/api/rules/status");
+    meta.textContent = status.lastSuccessfulSyncAt
+      ? `${status.rulesIndexed} rules · ${status.keywordsIndexed} keywords · updated ${formatRelativeTime(status.lastSuccessfulSyncAt)}`
+      : "Not synced yet — open Settings to sync the rules library.";
+  } catch {
+    meta.textContent = "Could not load rules library status.";
+  }
+  renderRulesQuickTopics();
+
+  if (state.rules.mode === "glossary") await showRulesGlossary();
+  else if (state.rules.mode === "errata") await showRulesErrata();
+  else if (state.rules.mode === "legality") await showRulesLegality();
+  else if (state.rules.query) await runRulesSearch(state.rules.query);
+}
+
+function renderRulesQuickTopics() {
+  const root = document.getElementById("rulesQuickTopics");
+  root.innerHTML = RULES_QUICK_TOPICS.map(t => `
+    <button type="button" class="rules-topic-btn${state.rules.mode === t.mode ? " active" : ""}" data-topic-label="${escapeHtml(t.label)}">${escapeHtml(t.label)}</button>`).join("");
+}
+
+function ruleResultRowMarkup({ id, kind, badgeNumber, title, subtitle, badgeText, badgeClass }) {
+  return `
+    <button type="button" class="rule-hit" data-result-kind="${kind}" data-result-id="${id}">
+      <div>
+        ${badgeNumber ? `<span class="rule-hit-number">${escapeHtml(badgeNumber)}</span>` : ""}
+        <strong>${escapeHtml(title)}</strong>
+        ${subtitle ? `<span>${escapeHtml(subtitle)}</span>` : ""}
+      </div>
+      ${badgeText ? `<span class="authority-badge ${badgeClass || "historical"}">${escapeHtml(badgeText)}</span>` : "<span></span>"}
+    </button>`;
+}
+
+function renderRulesResultList(items, metaText, mapFn) {
+  const root = document.getElementById("rulesResults");
+  const rows = items.map(mapFn).map(ruleResultRowMarkup).join("");
+  root.innerHTML = `<div class="rules-results-meta">${escapeHtml(metaText)}</div>${rows ||
+    `<div class="page-empty"><i data-icon="search"></i><h2>Nothing here</h2></div>`}`;
+  renderIcons(root);
+}
+
+function markActiveResult(id) {
+  document.querySelectorAll("#rulesResults .rule-hit").forEach(button =>
+    button.classList.toggle("active", button.dataset.resultId === String(id)));
+}
+
+async function runRulesSearch(query) {
+  state.rules.query = query;
+  state.rules.mode = "search";
+  renderRulesQuickTopics();
+  const root = document.getElementById("rulesResults");
+  if (!query.trim()) {
+    root.innerHTML = `<div class="page-empty"><i data-icon="search"></i><h2>Search for a rule</h2><span>Try a rule number, a keyword like "exhaust", or a card name.</span></div>`;
+    document.getElementById("rulesDetail").innerHTML = `<div class="page-empty"><i data-icon="book-open"></i><h2>Select a result</h2></div>`;
+    renderIcons(root);
+    renderIcons(document.getElementById("rulesDetail"));
+    return;
+  }
+  root.innerHTML = `<div class="loading-line" style="padding:20px">Searching...</div>`;
+  try {
+    const response = await api(`/api/rules/search?${queryString({ q: query })}`);
+    renderRulesResultList(response.results, `${response.total} result${response.total === 1 ? "" : "s"}`, r => ({
+      id: r.ruleId, kind: "rule", badgeNumber: r.ruleNumber, title: r.title,
+      subtitle: [r.section, r.document.title].filter(Boolean).join(" · "),
+      badgeText: r.document.current ? "Current" : "Historical", badgeClass: r.document.current ? "current" : "historical"
+    }));
+    if (response.results.length) {
+      await selectRuleResult(response.results[0].ruleId);
+      markActiveResult(response.results[0].ruleId);
+    } else {
+      const detail = document.getElementById("rulesDetail");
+      detail.innerHTML = `<div class="page-empty"><i data-icon="search"></i><h2>No matches</h2><span>Try a different search term.</span></div>`;
+      renderIcons(detail);
+    }
+  } catch (err) {
+    root.innerHTML = `<div class="page-empty"><i data-icon="alert-triangle"></i><h2>Search failed</h2><span>${escapeHtml(err.message)}</span></div>`;
+    renderIcons(root);
+  }
+}
+
+async function selectRuleResult(id) {
+  const root = document.getElementById("rulesDetail");
+  root.innerHTML = `<div class="loading-line">Loading...</div>`;
+  try {
+    renderRuleDetail(await api(`/api/rules/${id}`));
+    markActiveResult(id);
+  } catch {
+    root.innerHTML = `<div class="page-empty"><i data-icon="alert-triangle"></i><h2>Could not load rule</h2></div>`;
+    renderIcons(root);
+  }
+}
+
+function ruleLinkMarkup(r) {
+  return `<button type="button" class="rule-detail-link" data-rule-goto="${r.id}"><b>${escapeHtml(r.ruleNumber || "")}</b>${escapeHtml(r.title || r.text.slice(0, 90))}</button>`;
+}
+
+function renderRuleDetail(detail) {
+  const root = document.getElementById("rulesDetail");
+  const r = detail.rule;
+  root.innerHTML = `
+    <div class="rule-detail-head">
+      ${r.ruleNumber ? `<span class="rule-detail-number">${escapeHtml(r.ruleNumber)}</span>` : "<span></span>"}
+      <span class="authority-badge ${r.isCurrent ? "current" : "historical"}">${r.isCurrent ? "Current" : "Historical"} · ${escapeHtml(r.authority)}</span>
+    </div>
+    ${detail.parent ? `<p class="rule-detail-breadcrumb">${escapeHtml(detail.parent.title ? detail.parent.title : `Part of ${detail.parent.ruleNumber || ""}`)}</p>` : ""}
+    ${r.title ? `<h2>${escapeHtml(r.title)}</h2><p class="rule-detail-text">${escapeHtml(r.text)}</p>` : `<p class="rule-detail-text" style="font-size:13px">${escapeHtml(r.text)}</p>`}
+    ${detail.keywords.length ? `<div class="rule-detail-section"><h4>Keywords</h4><div class="rule-chip-row">${detail.keywords.map(k => `<button type="button" class="rule-chip" data-keyword-goto="${k.id}">${escapeHtml(k.name)}</button>`).join("")}</div></div>` : ""}
+    ${detail.children.length ? `<div class="rule-detail-section"><h4>Sub-Rules</h4><div class="rule-detail-link-list">${detail.children.map(ruleLinkMarkup).join("")}</div></div>` : ""}
+    ${detail.references.length ? `<div class="rule-detail-section"><h4>Related Rules</h4><div class="rule-detail-link-list">${detail.references.map(ruleLinkMarkup).join("")}</div></div>` : ""}
+    ${detail.referencedBy.length ? `<div class="rule-detail-section"><h4>Referenced By</h4><div class="rule-detail-link-list">${detail.referencedBy.map(ruleLinkMarkup).join("")}</div></div>` : ""}
+    <div class="rule-detail-nav">
+      <button type="button" class="command-btn quiet" ${detail.previous ? `data-rule-goto="${detail.previous.id}"` : "disabled"}>&larr; Previous</button>
+      <button type="button" class="command-btn quiet" ${detail.next ? `data-rule-goto="${detail.next.id}"` : "disabled"}>Next &rarr;</button>
+    </div>`;
+  renderIcons(root);
+}
+
+async function showRulesGlossary() {
+  state.rules.mode = "glossary";
+  state.rules.query = "";
+  document.getElementById("rulesSearchInput").value = "";
+  renderRulesQuickTopics();
+  const root = document.getElementById("rulesResults");
+  root.innerHTML = `<div class="loading-line" style="padding:20px">Loading glossary...</div>`;
+  try {
+    const keywords = await api("/api/rules/keywords");
+    state.rules.glossary = keywords;
+    renderRulesResultList(keywords, `${keywords.length} keywords`, k => ({
+      id: k.id, kind: "keyword", title: k.name, subtitle: k.category || ""
+    }));
+    if (keywords.length) await selectKeywordResult(keywords[0].id);
+  } catch {
+    root.innerHTML = `<div class="page-empty"><i data-icon="alert-triangle"></i><h2>Could not load glossary</h2></div>`;
+    renderIcons(root);
+  }
+}
+
+async function selectKeywordResult(id) {
+  const root = document.getElementById("rulesDetail");
+  root.innerHTML = `<div class="loading-line">Loading...</div>`;
+  try {
+    renderKeywordDetail(await api(`/api/rules/keywords/${id}`));
+    markActiveResult(id);
+  } catch {
+    root.innerHTML = `<div class="page-empty"><i data-icon="alert-triangle"></i><h2>Could not load keyword</h2></div>`;
+    renderIcons(root);
+  }
+}
+
+function renderKeywordDetail(detail) {
+  const root = document.getElementById("rulesDetail");
+  root.innerHTML = `
+    <div class="rule-detail-head"><span class="rule-detail-number">${escapeHtml(detail.category || "Keyword")}</span></div>
+    <h2>${escapeHtml(detail.name)}</h2>
+    ${detail.canonicalRule
+      ? `<p class="rule-detail-text">${escapeHtml(detail.canonicalRule.text)}</p><div class="rule-detail-section"><button type="button" class="command-btn quiet" data-rule-goto="${detail.canonicalRule.id}">View Rule ${escapeHtml(detail.canonicalRule.ruleNumber || "")}</button></div>`
+      : `<p class="rule-detail-text">No official rule text is directly linked to this keyword yet.</p>`}
+    ${detail.aliases.length ? `<div class="rule-detail-section"><h4>Also Known As</h4><div class="rule-chip-row">${detail.aliases.map(a => `<span class="rule-chip">${escapeHtml(a)}</span>`).join("")}</div></div>` : ""}
+    ${detail.mentionedIn.length ? `<div class="rule-detail-section"><h4>Related Rules</h4><div class="rule-detail-link-list">${detail.mentionedIn.slice(0, 12).map(ruleLinkMarkup).join("")}</div></div>` : ""}
+    ${detail.cards.length ? `<div class="rule-detail-section"><h4>Cards Using ${escapeHtml(detail.name)}</h4><div class="rule-chip-row">${detail.cards.slice(0, 20).map(c => `<span class="rule-chip">${escapeHtml(c.name)}</span>`).join("")}${detail.cards.length > 20 ? `<span class="rule-chip">+${detail.cards.length - 20} more</span>` : ""}</div></div>` : ""}`;
+  renderIcons(root);
+}
+
+async function showRulesErrata() {
+  state.rules.mode = "errata";
+  state.rules.query = "";
+  document.getElementById("rulesSearchInput").value = "";
+  renderRulesQuickTopics();
+  const root = document.getElementById("rulesResults");
+  root.innerHTML = `<div class="loading-line" style="padding:20px">Loading errata...</div>`;
+  try {
+    const entries = await api("/api/rules/errata");
+    state.rules.errata = entries;
+    renderRulesResultList(entries, `${entries.length} errata entries`, e => ({
+      id: e.id, kind: "errata", title: e.cardName, subtitle: e.cardId ? "" : "Unresolved card name"
+    }));
+    if (entries.length) selectErrataResult(entries[0].id);
+  } catch {
+    root.innerHTML = `<div class="page-empty"><i data-icon="alert-triangle"></i><h2>Could not load errata</h2></div>`;
+    renderIcons(root);
+  }
+}
+
+function selectErrataResult(id) {
+  const entry = state.rules.errata.find(e => e.id === id);
+  const root = document.getElementById("rulesDetail");
+  if (!entry) return;
+  root.innerHTML = `
+    <div class="rule-detail-head"><span class="authority-badge current">Official Errata</span></div>
+    <h2>${escapeHtml(entry.cardName)}</h2>
+    <div class="rule-errata-block">
+      <div class="old-text"><h5>Old Text</h5>${escapeHtml(entry.originalText || "—")}</div>
+      <div class="new-text"><h5>New Text</h5>${escapeHtml(entry.correctedText || "—")}</div>
+    </div>`;
+  renderIcons(root);
+  markActiveResult(id);
+}
+
+async function showRulesLegality() {
+  state.rules.mode = "legality";
+  state.rules.query = "";
+  document.getElementById("rulesSearchInput").value = "";
+  renderRulesQuickTopics();
+  const root = document.getElementById("rulesResults");
+  root.innerHTML = `<div class="loading-line" style="padding:20px">Loading banned list...</div>`;
+  try {
+    const entries = await api("/api/rules/legality");
+    state.rules.legality = entries;
+    renderRulesResultList(entries, `${entries.length} banned entries`, e => ({
+      id: e.id, kind: "legality", title: e.cardName, subtitle: e.format, badgeText: e.status
+    }));
+    if (entries.length) selectLegalityResult(entries[0].id);
+  } catch {
+    root.innerHTML = `<div class="page-empty"><i data-icon="alert-triangle"></i><h2>Could not load banned list</h2></div>`;
+    renderIcons(root);
+  }
+}
+
+function selectLegalityResult(id) {
+  const entry = state.rules.legality.find(e => e.id === id);
+  const root = document.getElementById("rulesDetail");
+  if (!entry) return;
+  root.innerHTML = `
+    <div class="rule-detail-head"><span class="authority-badge historical">${escapeHtml(entry.status)}</span></div>
+    <h2>${escapeHtml(entry.cardName)}</h2>
+    <p class="rule-detail-text">Not legal in ${escapeHtml(entry.format)}.</p>`;
+  renderIcons(root);
+  markActiveResult(id);
+}
+
+async function syncRulesData() {
+  const button = document.getElementById("syncRulesBtn");
+  button.disabled = true;
+  try {
+    const result = await api("/api/rules/sync", { method: "POST" });
+    toast(result.ok
+      ? `Synced ${result.documentsUpdated} documents, ${result.rulesIndexed} rules`
+      : `Sync failed: ${result.error}`, !result.ok);
+  } catch (err) {
+    toast(err.message, true);
+  } finally {
+    button.disabled = false;
+    await loadSettings();
+  }
+}
+
 function wireEvents() {
   document.addEventListener("mouseover", event => {
     const row = event.target.closest("[data-hover-card]");
@@ -2424,6 +2697,41 @@ function wireEvents() {
   document.getElementById("saveTopdeckKey").addEventListener("click", saveTopdeckKey);
   document.getElementById("clearTopdeckKey").addEventListener("click", clearTopdeckKey);
   document.getElementById("syncCommunityBtn").addEventListener("click", syncCommunityData);
+  document.getElementById("syncRulesBtn").addEventListener("click", syncRulesData);
+  document.getElementById("rulesSearchInput").addEventListener("input", event => {
+    clearTimeout(state.rules.searchTimer);
+    const value = event.target.value;
+    state.rules.searchTimer = setTimeout(() => runRulesSearch(value), 250);
+  });
+  document.getElementById("rulesQuickTopics").addEventListener("click", event => {
+    const button = event.target.closest("[data-topic-label]");
+    if (!button) return;
+    const topic = RULES_QUICK_TOPICS.find(t => t.label === button.dataset.topicLabel);
+    if (!topic) return;
+    if (topic.mode === "glossary") showRulesGlossary().catch(err => toast(err.message, true));
+    else if (topic.mode === "errata") showRulesErrata().catch(err => toast(err.message, true));
+    else if (topic.mode === "legality") showRulesLegality().catch(err => toast(err.message, true));
+    else {
+      document.getElementById("rulesSearchInput").value = topic.query;
+      runRulesSearch(topic.query).catch(err => toast(err.message, true));
+    }
+  });
+  document.getElementById("rulesResults").addEventListener("click", event => {
+    const button = event.target.closest("[data-result-id]");
+    if (!button) return;
+    const id = Number(button.dataset.resultId);
+    const kind = button.dataset.resultKind;
+    if (kind === "rule") selectRuleResult(id);
+    else if (kind === "keyword") selectKeywordResult(id);
+    else if (kind === "errata") selectErrataResult(id);
+    else if (kind === "legality") selectLegalityResult(id);
+  });
+  document.getElementById("rulesDetail").addEventListener("click", event => {
+    const ruleBtn = event.target.closest("[data-rule-goto]");
+    if (ruleBtn) { selectRuleResult(Number(ruleBtn.dataset.ruleGoto)); return; }
+    const keywordBtn = event.target.closest("[data-keyword-goto]");
+    if (keywordBtn) selectKeywordResult(Number(keywordBtn.dataset.keywordGoto));
+  });
   document.getElementById("refreshTrackedPrices").addEventListener("click", () => refreshPrices(false));
   document.getElementById("refreshAllPrices").addEventListener("click", () => refreshPrices(true));
   document.getElementById("clearPriceQueue").addEventListener("click", () => clearPriceQueue().catch(err => toast(err.message, true)));

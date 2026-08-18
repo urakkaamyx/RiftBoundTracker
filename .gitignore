@@ -19,3 +19,9 @@ App_Data/
 # WebView2 per-install user-data cache (created next to any exe that embeds WebView2, wherever
 # it's run from) — never something to commit regardless of which folder it shows up in.
 **/*.WebView2/
+
+# Personal desktop shortcuts, not project content.
+*.lnk
+
+# Reference doc from another AI's handoff, not part of the app itself.
+/Riftbound_DeckBuilder_CommunityRecommendations_Handoff.md

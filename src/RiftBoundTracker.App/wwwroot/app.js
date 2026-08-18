@@ -28,6 +28,14 @@ const CARD_TYPE_ASSET = {
   gear: "card_type_gear.svg", legend: "card_type_legend.svg", rune: "card_type_rune.svg",
   spell: "card_type_spell.svg", unit: "card_type_unit.svg"
 };
+// Champion is a Supertype on Unit rows (and rarely Legend), never a Type of its own —
+// confirmed against the live catalog. Deck groups still want Champions split out from
+// plain Units, so group by this derived key rather than raw card.type.
+const TYPE_GROUP_ORDER = ["Legend", "Champion", "Unit", "Spell", "Gear", "Battlefield", "Rune"];
+function groupKey(card) {
+  if (card.type === "Unit" && card.supertype === "Champion") return "Champion";
+  return card.type || "Other";
+}
 const PAGE_LABELS = {
   vault: ["Collection", "Your Vault"], decks: ["Builder", "Decks"],
   favorites: ["Saved Cards", "Favorites"], binder: ["Collection", "Trade Binder"],
@@ -41,6 +49,10 @@ const state = {
   sets: [], overview: null, prices: {}, decks: [], activeDeckId: null,
   activeDeck: null, deckSearchTimer: null, contextCardId: null,
   contextMenuX: 0, contextMenuY: 0,
+  deckTab: "builder", discoverTab: "recommended", discoverSearch: "", discoverSection: "main",
+  discoverVariantSelection: new Map(), discoverPage: 1, discoverPageSize: 25,
+  discoverCache: { key: null, cards: [] },
+  legendPicker: { cards: [], search: "", ownedOnly: false, selectedBase: null, selectedVariantId: null, mode: "create" },
   cardTextSymbols: new Map(),
   priceQueue: { items: [], batchSize: 20, configured: false, provider: "JustTCG" },
   priceQueueIds: new Set()
@@ -426,6 +438,32 @@ function searchCardNameAcrossSets(card) {
   navigate("vault");
 }
 
+const NAV_STATE_KEY = "riftbound-nav-state";
+
+// Remembers which page/deck/tab/set the user was on so a refresh (or the WebView2 shell
+// reloading after a self-update) lands back where they were instead of resetting to Vault.
+// Session-scoped deliberately — a genuinely fresh app launch still starts at Vault.
+function saveNavState() {
+  try {
+    sessionStorage.setItem(NAV_STATE_KEY, JSON.stringify({
+      page: state.page, activeDeckId: state.activeDeckId, deckTab: state.deckTab,
+      setId: state.setId, owned: state.owned
+    }));
+  } catch { /* storage unavailable (e.g. private mode) — non-fatal, just skip persistence */ }
+}
+
+function restoreNavState() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(NAV_STATE_KEY) || "null");
+    if (!saved) return;
+    if (PAGE_LABELS[saved.page]) state.page = saved.page;
+    if (typeof saved.activeDeckId === "number") state.activeDeckId = saved.activeDeckId;
+    if (saved.deckTab === "builder" || saved.deckTab === "analysis") state.deckTab = saved.deckTab;
+    if (typeof saved.setId === "string" || saved.setId === null) state.setId = saved.setId;
+    if (typeof saved.owned === "string") state.owned = saved.owned;
+  } catch { /* corrupt/missing entry — fall back to defaults */ }
+}
+
 function navigate(page) {
   if (!PAGE_LABELS[page]) return;
   state.page = page;
@@ -434,6 +472,7 @@ function navigate(page) {
   document.getElementById("pageEyebrow").textContent = PAGE_LABELS[page][0];
   document.getElementById("pageTitle").textContent = PAGE_LABELS[page][1];
   document.getElementById("sidebar").classList.remove("open");
+  saveNavState();
   refreshCurrentPage().catch(err => toast(err.message, true));
 }
 
@@ -915,11 +954,163 @@ function renderDeckList() {
     </button>`).join("");
 }
 
+// Pure aggregation over a deck's cards + the shared price cache — single source of truth
+// reused by both the Deck Summary sparkline and the full Analysis tab.
+function computeDeckStats(cards, prices) {
+  const energyCurve = new Array(8).fill(0); // index 0-6 individual energy costs, 7 = "7+"
+  const typeCounts = new Map();
+  const domainCounts = new Map();
+  let full = 0, partial = 0, missing = 0, missingCost = 0;
+  const missingRows = [];
+
+  for (const row of cards) {
+    const card = row.card;
+    if (typeof card.energy === "number") energyCurve[Math.max(0, Math.min(7, card.energy))] += row.quantity;
+
+    const type = groupKey(card);
+    typeCounts.set(type, (typeCounts.get(type) || 0) + row.quantity);
+
+    const domains = card.domains?.length ? card.domains : ["Colorless"];
+    for (const domain of domains) {
+      const name = domainName(domain);
+      domainCounts.set(name, (domainCounts.get(name) || 0) + row.quantity);
+    }
+
+    if (row.owned <= 0) missing++;
+    else if (row.missing > 0) partial++;
+    else full++;
+
+    if (row.missing > 0) {
+      const unitPrice = Number(prices[card.id]?.marketPrice) || 0;
+      const cost = unitPrice * row.missing;
+      missingCost += cost;
+      missingRows.push({ card, missing: row.missing, unitPrice, cost });
+    }
+  }
+
+  const typeTotal = [...typeCounts.values()].reduce((sum, n) => sum + n, 0) || 1;
+  const typeDistribution = TYPE_GROUP_ORDER.filter(type => typeCounts.has(type))
+    .map(type => ({ label: type, count: typeCounts.get(type), pct: typeCounts.get(type) * 100 / typeTotal }));
+
+  const domainTotal = [...domainCounts.values()].reduce((sum, n) => sum + n, 0) || 1;
+  const domainBalance = [...domainCounts.entries()].sort((a, b) => b[1] - a[1])
+    .map(([label, count]) => ({ label, count, pct: count * 100 / domainTotal }));
+
+  return {
+    energyCurve, typeDistribution, domainBalance,
+    completion: { full, partial, missing },
+    missingCost,
+    mostExpensiveMissing: missingRows.sort((a, b) => b.cost - a.cost).slice(0, 4)
+  };
+}
+
+function deckSummaryMarkup(detail) {
+  const summary = detail.summary;
+  const legend = detail.cards.find(row => row.card.type === "Legend")?.card;
+  const domains = legend?.domains?.length ? legend.domains : [];
+  const stats = computeDeckStats(detail.cards, state.prices);
+  const maxEnergy = Math.max(1, ...stats.energyCurve);
+  const totalCards = summary.mainCount + summary.sideboardCount;
+  const ownedPct = totalCards ? Math.round(summary.ownedCount * 100 / totalCards) : 0;
+  return `
+    <aside class="deck-summary">
+      <div class="deck-summary-hero">${legend ? `<img src="${escapeHtml(cardImage(legend))}" alt="" />` : ""}</div>
+      <button type="button" class="command-btn quiet deck-change-legend" id="changeLegendBtn">${icon("refresh")}Change Legend</button>
+      ${legend
+        ? `<h3>${escapeHtml(legend.name)}</h3><div class="deck-summary-domains">${domains.map(d => `<span style="color:${DOMAIN_COLOR[domainName(d)] || "var(--c-colorless)"}">${escapeHtml(domainName(d))}</span>`).join(" &middot; ")}</div>`
+        : `<h3>No Legend</h3>`}
+      <div class="analytics-progress deck-summary-completion"><span style="width:${ownedPct}%"></span></div>
+      <span class="deck-summary-completion-label">${ownedPct}% complete</span>
+      <div class="mini-curve">${stats.energyCurve.map(count => `<span class="mini-curve-bar" style="height:${count ? Math.max(8, count * 100 / maxEnergy) : 2}%"></span>`).join("")}</div>
+      <div class="deck-summary-dots">
+        <div class="deck-summary-dot-row"><span class="dot full"></span>Fully Owned<b>${stats.completion.full}</b></div>
+        <div class="deck-summary-dot-row"><span class="dot partial"></span>Partially Owned<b>${stats.completion.partial}</b></div>
+        <div class="deck-summary-dot-row"><span class="dot missing"></span>Missing<b>${stats.completion.missing}</b></div>
+      </div>
+      <div class="deck-summary-cost"><span>Estimated Missing Cost</span><b>${formatMoney(stats.missingCost)}</b></div>
+      <button type="button" class="command-btn deck-view-analysis" id="viewAnalysisBtn">${icon("chart")}View Analysis</button>
+    </aside>`;
+}
+
+function energyCurveChartMarkup(energyCurve) {
+  const max = Math.max(1, ...energyCurve);
+  const labels = ["0", "1", "2", "3", "4", "5", "6", "7+"];
+  return `<div class="energy-curve-chart">${energyCurve.map((count, i) => `
+    <div class="energy-curve-col"><span class="energy-curve-count">${count || ""}</span><span class="energy-curve-bar" style="height:${count ? Math.max(6, count * 100 / max) : 2}%"></span><label>${labels[i]}</label></div>`).join("")}</div>`;
+}
+
+function countDistributionMarkup(rows, colorFor) {
+  return `<div class="distribution-list">${rows.map(row => `
+    <div class="distribution-row"><span>${escapeHtml(row.label)}</span><div class="distribution-bar"><span style="width:${row.pct}%;background:${colorFor ? colorFor(row) : "var(--gold)"}"></span></div><b>${row.count}</b></div>`).join("")}</div>`;
+}
+
+function renderDeckAnalysis(root, detail) {
+  const stats = computeDeckStats(detail.cards, state.prices);
+  const totalQty = detail.cards.reduce((sum, row) => sum + row.quantity, 0) || 1;
+  const weightedEnergy = detail.cards.reduce((sum, row) =>
+    sum + (typeof row.card.energy === "number" ? row.card.energy * row.quantity : 0), 0);
+  const totalUnique = detail.cards.length || 1;
+  const completePct = Math.round(stats.completion.full * 100 / totalUnique);
+  root.innerHTML = `
+    <div class="deck-analysis analytics-grid">
+      <div class="analytics-panel">
+        <div class="panel-head"><h2>Energy Curve</h2><span>Avg ${(weightedEnergy / totalQty).toFixed(1)}</span></div>
+        ${energyCurveChartMarkup(stats.energyCurve)}
+      </div>
+      <div class="analytics-panel">
+        <div class="panel-head"><h2>Card Type Distribution</h2></div>
+        ${stats.typeDistribution.length ? countDistributionMarkup(stats.typeDistribution) : `<span class="loading-line">Deck is empty</span>`}
+      </div>
+      <div class="analytics-panel">
+        <div class="panel-head"><h2>Collection Completion</h2><span>${completePct}%</span></div>
+        <div class="analytics-progress"><span style="width:${completePct}%"></span></div>
+        <div class="distribution-list" style="margin-top:12px">
+          <div class="distribution-row"><span>Fully owned</span><div></div><b>${stats.completion.full}</b></div>
+          <div class="distribution-row"><span>Partially owned</span><div></div><b>${stats.completion.partial}</b></div>
+          <div class="distribution-row"><span>Missing</span><div></div><b>${stats.completion.missing}</b></div>
+        </div>
+      </div>
+      <div class="analytics-panel">
+        <div class="panel-head"><h2>Domain Balance</h2></div>
+        ${stats.domainBalance.length ? countDistributionMarkup(stats.domainBalance, row => DOMAIN_COLOR[row.label] || "var(--c-colorless)") : `<span class="loading-line">Deck is empty</span>`}
+      </div>
+      <div class="analytics-panel"><div class="panel-head"><h2>Community Comparison</h2></div><div id="deckCommunityComparison"></div></div>
+      <div class="analytics-panel">
+        <div class="panel-head"><h2>Cost &amp; Ownership Insights</h2></div>
+        <div class="distribution-list">
+          <div class="distribution-row"><span>Fully owned cards</span><div></div><b>${stats.completion.full}</b></div>
+          <div class="distribution-row"><span>Partially owned cards</span><div></div><b>${stats.completion.partial}</b></div>
+          <div class="distribution-row"><span>Missing cards</span><div></div><b>${stats.completion.missing}</b></div>
+        </div>
+        <div class="deck-summary-cost" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-soft);"><span>Estimated missing cost</span><b>${formatMoney(stats.missingCost)}</b></div>
+      </div>
+      <div class="analytics-panel"><div class="panel-head"><h2>Top Recommended Upgrades</h2></div><div id="deckTopUpgrades"></div></div>
+      <div class="analytics-panel wide">
+        <div class="panel-head"><h2>Most Expensive Missing Cards</h2></div>
+        <div class="valuable-list">${stats.mostExpensiveMissing.length ? stats.mostExpensiveMissing.map(row => `
+          <div class="valuable-row"><div class="valuable-art"><img src="${escapeHtml(cardImage(row.card))}" alt="" />${cardImagePopout(row.card)}</div><div><strong>${escapeHtml(row.card.name)}</strong><span>${row.missing} missing</span></div><b>${formatMoney(row.cost)}</b></div>`).join("")
+          : `<span class="loading-line">Nothing missing &mdash; deck is complete</span>`}</div>
+      </div>
+    </div>`;
+  renderIcons(root);
+  renderEmptyPanel(document.getElementById("deckCommunityComparison"), {
+    icon: "chart", title: "No community data yet", body: "Community deck comparisons aren't synced yet."
+  });
+  renderEmptyPanel(document.getElementById("deckTopUpgrades"), {
+    icon: "star", title: "No community data yet", body: "Upgrade suggestions need synced tournament data."
+  });
+}
+
 function renderDeckWorkspace() {
   const root = document.getElementById("deckWorkspace");
   const detail = state.activeDeck;
   const summary = detail.summary;
-  const groups = [...new Set(detail.cards.map(row => row.card.type || "Other"))];
+  const sectionCards = detail.cards.filter(row => row.section === state.discoverSection);
+  const groups = [...new Set(sectionCards.map(row => groupKey(row.card)))]
+    .sort((a, b) => {
+      const ai = TYPE_GROUP_ORDER.indexOf(a), bi = TYPE_GROUP_ORDER.indexOf(b);
+      return (ai === -1 ? TYPE_GROUP_ORDER.length : ai) - (bi === -1 ? TYPE_GROUP_ORDER.length : bi);
+    });
   const ownedPct = summary.mainCount + summary.sideboardCount
     ? Math.round(summary.ownedCount * 100 / (summary.mainCount + summary.sideboardCount)) : 0;
   root.innerHTML = `
@@ -938,23 +1129,74 @@ function renderDeckWorkspace() {
         <div class="deck-actions"><button class="command-btn" id="testDrawBtn">${icon("shuffle")}Test Draw</button><button class="command-btn quiet" id="exportDeckBtn">${icon("download")}Export</button><button class="command-btn quiet" id="deleteDeckBtn">${icon("trash")}Delete</button></div>
       </div>
     </section>
-    <div class="deck-builder">
-      <div class="deck-card-list">
-        ${groups.length ? groups.map(group => deckGroupMarkup(group, detail.cards.filter(row => (row.card.type || "Other") === group))).join("") : `<div class="page-empty"><h2>Deck is empty</h2></div>`}
-      </div>
-      <aside class="deck-search-panel"><h3>Add Cards</h3><input id="deckCardSearch" placeholder="Search by name or number" /><div class="segmented" id="deckSectionPicker"><button class="active" data-section="main">Main</button><button data-section="sideboard">Sideboard</button></div><div class="deck-search-results" id="deckSearchResults"></div></aside>
-    </div>`;
+    <div class="deck-tabs">
+      <button class="deck-tab${state.deckTab === "builder" ? " active" : ""}" data-deck-tab="builder">Builder</button>
+      <button class="deck-tab${state.deckTab === "analysis" ? " active" : ""}" data-deck-tab="analysis">Analysis</button>
+    </div>
+    <div id="deckTabBody"></div>`;
   renderIcons(root);
+  if (state.deckTab === "analysis") {
+    renderDeckAnalysis(document.getElementById("deckTabBody"), detail);
+  } else {
+    document.getElementById("deckTabBody").innerHTML = `
+      <div class="deck-builder">
+        ${deckSummaryMarkup(detail)}
+        <div class="deck-card-list">
+          <div class="deck-section-tabs">
+            <button type="button" class="deck-section-tab${state.discoverSection === "main" ? " active" : ""}" data-deck-section="main">Main Deck<b>${summary.mainCount}</b></button>
+            <button type="button" class="deck-section-tab${state.discoverSection === "sideboard" ? " active" : ""}" data-deck-section="sideboard">Sideboard<b>${summary.sideboardCount}</b></button>
+          </div>
+          ${groups.length ? groups.map(group => deckGroupMarkup(group, sectionCards.filter(row => groupKey(row.card) === group))).join("") : `<div class="page-empty"><h2>${state.discoverSection === "main" ? "Main deck" : "Sideboard"} is empty</h2></div>`}
+        </div>
+        ${discoverPanelMarkup()}
+      </div>`;
+    renderIcons(root);
+  }
   wireDeckWorkspace();
+}
+
+function ownershipPill(row) {
+  if (row.owned <= 0) return `<span class="ownership-badge missing" title="${row.missing} missing">${row.missing}</span>`;
+  if (row.missing > 0) return `<span class="ownership-badge partial" title="${row.owned}/${row.quantity} owned, ${row.missing} missing">${row.missing}</span>`;
+  return `<span class="ownership-badge full" title="Fully owned">${icon("check")}</span>`;
+}
+
+function showDeckRowPopup(cardId, event) {
+  const card = cardsById.get(cardId);
+  if (!card) return;
+  const popup = document.getElementById("deckRowPopup");
+  popup.innerHTML = `<img src="${escapeHtml(cardImage(card))}" alt="" />`;
+  popup.hidden = false;
+  positionDeckRowPopup(event);
+}
+
+function positionDeckRowPopup(event) {
+  const popup = document.getElementById("deckRowPopup");
+  if (popup.hidden) return;
+  const margin = 16;
+  const width = popup.offsetWidth || 260;
+  const height = popup.offsetHeight || 363;
+  // Anchor the popup's bottom-left corner near the cursor: it opens up and to the right.
+  let x = event.clientX + margin;
+  if (x + width > window.innerWidth - 8) x = event.clientX - margin - width; // flip left if no room on the right
+  let y = event.clientY - height - margin;
+  if (y < 8) y = event.clientY + margin; // flip below if no room above
+  y = Math.max(8, Math.min(y, window.innerHeight - height - 8));
+  popup.style.left = `${x}px`;
+  popup.style.top = `${y}px`;
+}
+
+function hideDeckRowPopup() {
+  document.getElementById("deckRowPopup").hidden = true;
 }
 
 function deckGroupMarkup(group, rows) {
   const count = rows.reduce((sum, row) => sum + row.quantity, 0);
   return `<section class="deck-group"><div class="deck-group-head"><span>${escapeHtml(group)}</span><b>${count}</b></div>${rows.map(row => `
-    <div class="deck-row">
-      <div class="deck-row-art"><img src="${escapeHtml(cardImage(row.card))}" alt="" />${cardImagePopout(row.card)}</div>
+    <div class="deck-row" data-hover-card="${escapeHtml(row.cardId)}">
+      <img class="deck-row-bust" src="${escapeHtml(cardImage(row.card))}" alt="" aria-hidden="true" />
       <div class="deck-row-copy"><strong>${escapeHtml(row.card.name)}</strong><span>${escapeHtml(row.card.setId)}-${escapeHtml(cardCode(row.card))} / ${escapeHtml(row.section)}</span></div>
-      <span class="deck-owned${row.missing > 0 ? " missing" : ""}">${row.missing > 0 ? `${row.missing} missing` : `${row.owned} owned`}</span>
+      ${ownershipPill(row)}
       <div class="mini-stepper"><button data-deck-qty="${row.quantity - 1}" data-card-id="${escapeHtml(row.cardId)}" data-section="${row.section}">-</button><span>${row.quantity}</span><button data-deck-qty="${row.quantity + 1}" data-card-id="${escapeHtml(row.cardId)}" data-section="${row.section}">+</button></div>
     </div>`).join("")}</section>`;
 }
@@ -966,19 +1208,30 @@ function wireDeckWorkspace() {
   root.querySelector("#activeDeckName")?.addEventListener("change", save);
   root.querySelector("#activeDeckDescription")?.addEventListener("change", save);
   root.querySelector("#deleteDeckBtn")?.addEventListener("click", deleteActiveDeck);
-  root.querySelector("#exportDeckBtn")?.addEventListener("click", exportActiveDeck);
+  root.querySelector("#exportDeckBtn")?.addEventListener("click", openExportModal);
   root.querySelector("#testDrawBtn")?.addEventListener("click", openTestHand);
+  root.querySelector("#changeLegendBtn")?.addEventListener("click", openChangeLegendModal);
+  root.querySelector("#viewAnalysisBtn")?.addEventListener("click", () => {
+    state.deckTab = "analysis";
+    saveNavState();
+    renderDeckWorkspace();
+  });
   root.querySelectorAll("[data-deck-qty]").forEach(button => button.addEventListener("click", () =>
     setDeckCard(state.activeDeckId, button.dataset.cardId, Number(button.dataset.deckQty), button.dataset.section)));
-  let section = "main";
-  root.querySelectorAll("#deckSectionPicker button").forEach(button => button.addEventListener("click", () => {
-    section = button.dataset.section;
-    root.querySelectorAll("#deckSectionPicker button").forEach(item => item.classList.toggle("active", item === button));
+  root.querySelectorAll(".deck-row[data-hover-card]").forEach(row => row.addEventListener("click", event => {
+    if (event.target.closest(".mini-stepper")) return;
+    openFullscreenCardImage(row.dataset.hoverCard);
   }));
-  root.querySelector("#deckCardSearch")?.addEventListener("input", event => {
-    clearTimeout(state.deckSearchTimer);
-    state.deckSearchTimer = setTimeout(() => searchDeckCards(event.target.value, section), 220);
-  });
+  root.querySelectorAll("[data-deck-tab]").forEach(button => button.addEventListener("click", () => {
+    state.deckTab = button.dataset.deckTab;
+    saveNavState();
+    renderDeckWorkspace();
+  }));
+  root.querySelectorAll("[data-deck-section]").forEach(button => button.addEventListener("click", () => {
+    state.discoverSection = button.dataset.deckSection;
+    renderDeckWorkspace();
+  }));
+  wireDiscoverPanel();
 }
 
 async function saveDeckMetadata() {
@@ -989,23 +1242,180 @@ async function saveDeckMetadata() {
   await loadDecks();
 }
 
-async function searchDeckCards(search, section) {
-  const root = document.getElementById("deckSearchResults");
-  if (!search.trim()) { root.innerHTML = ""; return; }
-  const cards = await api(`/api/cards?${queryString({ search: search.trim(), sort: "name-asc" })}`);
+const DISCOVER_TABS = [
+  { id: "recommended", label: "Recommended" },
+  { id: "collection", label: "My Collection" },
+  { id: "all", label: "All Cards" },
+  { id: "missing", label: "Missing" }
+];
+
+function discoverPanelMarkup() {
+  return `
+    <aside class="discover-panel">
+      <div class="discover-tabs">${DISCOVER_TABS.map(tab => `<button class="discover-tab${state.discoverTab === tab.id ? " active" : ""}" data-discover-tab="${tab.id}">${escapeHtml(tab.label)}</button>`).join("")}</div>
+      <input id="discoverSearch" placeholder="Search by name or number" value="${escapeHtml(state.discoverSearch)}" />
+      <div class="discover-pagination" id="discoverPagination"></div>
+      <div class="discover-section-hint">Adding to <b>${state.discoverSection === "main" ? "Main Deck" : "Sideboard"}</b></div>
+      <div class="discover-results" id="discoverResults"></div>
+    </aside>`;
+}
+
+function discoverCardRow(card, group) {
+  const existing = state.activeDeck.cards.find(row => row.cardId === card.id && row.section === state.discoverSection);
+  const qty = existing?.quantity || 0;
+  const hasVariants = group && group.variants.length > 1;
+  return `
+    <div class="deck-search-row${card.ownedCount > 0 ? " owned" : ""}">
+      <div class="deck-search-art"><img src="${escapeHtml(cardImage(card))}" alt="" />${cardImagePopout(card)}</div>
+      <div><strong>${escapeHtml(hasVariants ? group.baseName : card.name)}</strong><span>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))} / own ${card.ownedCount}</span></div>
+      ${qty > 0
+        ? `<div class="mini-stepper"><button data-discover-qty="${qty - 1}" data-card-id="${escapeHtml(card.id)}">-</button><span>${qty}</span><button data-discover-qty="${qty + 1}" data-card-id="${escapeHtml(card.id)}">+</button></div>`
+        : `<button class="icon-btn" data-discover-add="${escapeHtml(card.id)}">${icon("plus")}</button>`}
+    </div>`;
+}
+
+function discoverGroupMarkup(group) {
+  if (group.variants.length === 1) return discoverCardRow(group.variants[0]);
+  const selectedId = state.discoverVariantSelection.get(group.baseName) || group.variants[0].id;
+  const card = group.variants.find(v => v.id === selectedId) || group.variants[0];
+  return `
+    <div class="discover-group-wrap">
+      ${discoverCardRow(card, group)}
+      <div class="discover-variant-strip">${group.variants.map(v => {
+        const caution = discoverVariantCaution(v);
+        return `
+        <button type="button" class="discover-variant-seg${v.id === card.id ? " active" : ""}${v.ownedCount > 0 ? " owned" : ""}" data-discover-group="${escapeHtml(group.baseName)}" data-discover-variant="${escapeHtml(v.id)}" title="${caution === "not-owned" ? "Not owned" : caution === "not-enough" ? `Only own ${v.ownedCount}, not enough for the deck` : `Owned (${v.ownedCount})`}">
+          ${caution ? `<span class="discover-variant-caution ${caution}">${icon("alert-triangle")}</span>` : ""}
+          ${escapeHtml(legendVariantLabel(v, group.variants))}
+        </button>`;
+      }).join("")}</div>
+    </div>`;
+}
+
+// Red = don't own this print at all. Orange = own some copies, but fewer than this deck
+// currently wants (only meaningful when the variant is actually in the deck).
+function discoverVariantCaution(v) {
+  if (v.ownedCount <= 0) return "not-owned";
+  const existing = state.activeDeck.cards.find(row => row.cardId === v.id && row.section === state.discoverSection);
+  const deckQty = existing?.quantity || 0;
+  if (deckQty > 0 && v.ownedCount < deckQty) return "not-enough";
+  return null;
+}
+
+// Implementation-neutral placeholder used by any not-yet-implemented module (Recommended
+// discovery tab today; Analysis' Community Comparison / Top Recommended Upgrades once the
+// TopDeck.gg-backed recommendation endpoint lands).
+function renderEmptyPanel(container, { icon: iconName, title, body }) {
+  container.innerHTML = `<div class="seam-empty">${icon(iconName)}<h4>${escapeHtml(title)}</h4><p>${escapeHtml(body)}</p></div>`;
+  renderIcons(container);
+}
+
+async function renderDiscoverResults() {
+  const root = document.getElementById("discoverResults");
+  const pageRoot = document.getElementById("discoverPagination");
+  if (!root) return;
+  if (state.discoverTab === "recommended") {
+    if (pageRoot) pageRoot.innerHTML = "";
+    renderEmptyPanel(root, {
+      icon: "star", title: "No community data yet",
+      body: "Community tournament recommendations aren't synced yet."
+    });
+    return;
+  }
+  const owned = state.discoverTab === "collection" ? "owned" : state.discoverTab === "missing" ? "missing" : "";
+  const search = state.discoverSearch.trim();
+  // Deck add/remove/qty changes re-render this panel constantly but never change which cards
+  // match the current search/tab — only re-fetch the (potentially 1000+ row) catalog query when
+  // the actual filter criteria changed, not on every deck mutation.
+  const cacheKey = `${state.discoverTab}|${search}`;
+  let cards;
+  if (state.discoverCache.key === cacheKey) {
+    cards = state.discoverCache.cards;
+  } else {
+    cards = await api(`/api/cards?${queryString({ search, owned, sort: "name-asc" })}`);
+    state.discoverCache = { key: cacheKey, cards };
+  }
   registerCards(cards);
-  root.innerHTML = cards.slice(0, 30).map(card => `
-    <div class="deck-search-row"><div class="deck-search-art"><img src="${escapeHtml(cardImage(card))}" alt="" />${cardImagePopout(card)}</div><div><strong>${escapeHtml(card.name)}</strong><span>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))} / own ${card.ownedCount}</span></div><button class="icon-btn" data-add-deck-card="${escapeHtml(card.id)}" data-section="${section}">${icon("plus")}</button></div>`).join("");
+  if (!cards.length) {
+    if (pageRoot) pageRoot.innerHTML = "";
+    renderEmptyPanel(root, { icon: "search", title: "No cards found", body: "Try a different search." });
+    return;
+  }
+  const allGroups = groupLegendVariants(cards);
+  const pageSize = state.discoverPageSize;
+  const totalPages = Math.max(1, Math.ceil(allGroups.length / pageSize));
+  state.discoverPage = Math.min(Math.max(1, state.discoverPage), totalPages);
+  const start = (state.discoverPage - 1) * pageSize;
+  const groups = allGroups.slice(start, start + pageSize);
+  root.innerHTML = groups.map(discoverGroupMarkup).join("");
+  if (pageRoot) pageRoot.innerHTML = discoverPaginationMarkup(allGroups.length, totalPages);
   renderIcons(root);
-  root.querySelectorAll("[data-add-deck-card]").forEach(button => button.addEventListener("click", async () => {
-    const existing = state.activeDeck.cards.find(row => row.cardId === button.dataset.addDeckCard && row.section === button.dataset.section);
-    await setDeckCard(state.activeDeckId, button.dataset.addDeckCard, (existing?.quantity || 0) + 1, button.dataset.section);
+  renderIcons(pageRoot);
+  root.querySelectorAll("[data-discover-add]").forEach(button => button.addEventListener("click", () =>
+    setDeckCard(state.activeDeckId, button.dataset.discoverAdd, 1, state.discoverSection)));
+  root.querySelectorAll("[data-discover-qty]").forEach(button => button.addEventListener("click", () =>
+    setDeckCard(state.activeDeckId, button.dataset.cardId, Number(button.dataset.discoverQty), state.discoverSection)));
+  root.querySelectorAll("[data-discover-variant]").forEach(button => button.addEventListener("click", () => {
+    state.discoverVariantSelection.set(button.dataset.discoverGroup, button.dataset.discoverVariant);
+    renderDiscoverResults().catch(err => toast(err.message, true));
   }));
+  pageRoot?.querySelectorAll("[data-discover-page]").forEach(button => button.addEventListener("click", () => {
+    state.discoverPage = Number(button.dataset.discoverPage);
+    renderDiscoverResults().catch(err => toast(err.message, true));
+  }));
+  pageRoot?.querySelector("#discoverPageSize")?.addEventListener("change", event => {
+    state.discoverPageSize = Number(event.target.value);
+    state.discoverPage = 1;
+    renderDiscoverResults().catch(err => toast(err.message, true));
+  });
+}
+
+function discoverPaginationMarkup(total, totalPages) {
+  const page = state.discoverPage;
+  return `
+    <label class="discover-page-size">Show
+      <select id="discoverPageSize">${[10, 25, 50, 100].map(n =>
+        `<option value="${n}"${n === state.discoverPageSize ? " selected" : ""}>${n}</option>`).join("")}</select>
+    </label>
+    <div class="discover-page-nav">
+      <button type="button" class="icon-btn" data-discover-page="${page - 1}"${page <= 1 ? " disabled" : ""}>&lsaquo;</button>
+      <span>${page}/${totalPages} &middot; ${total}</span>
+      <button type="button" class="icon-btn" data-discover-page="${page + 1}"${page >= totalPages ? " disabled" : ""}>&rsaquo;</button>
+    </div>`;
+}
+
+function wireDiscoverPanel() {
+  const root = document.getElementById("deckWorkspace");
+  const refresh = () => renderDiscoverResults().catch(err => toast(err.message, true));
+  root.querySelectorAll("[data-discover-tab]").forEach(button => button.addEventListener("click", () => {
+    state.discoverTab = button.dataset.discoverTab;
+    state.discoverPage = 1;
+    root.querySelectorAll("[data-discover-tab]").forEach(item => item.classList.toggle("active", item === button));
+    refresh();
+  }));
+  root.querySelector("#discoverSearch")?.addEventListener("input", event => {
+    state.discoverSearch = event.target.value;
+    state.discoverPage = 1;
+    clearTimeout(state.deckSearchTimer);
+    state.deckSearchTimer = setTimeout(refresh, 220);
+  });
+  refresh();
 }
 
 async function setDeckCard(deckId, cardId, quantity, section) {
+  // The POST response already IS the fresh DeckDetailDto — no need to re-fetch it via loadDecks().
+  // Only the sidebar deck list (counts change) needs a lightweight refresh alongside it.
   state.activeDeck = await api(`/api/decks/${deckId}/cards`, jsonOptions("POST", { cardId, quantity, section }));
-  await loadDecks();
+  registerCards(state.activeDeck.cards.map(row => row.card));
+  await refreshDeckSidebar();
+  renderDeckWorkspace();
+}
+
+async function refreshDeckSidebar() {
+  state.decks = await api("/api/decks");
+  document.getElementById("deckLibraryMeta").textContent = `${state.decks.length} deck${state.decks.length === 1 ? "" : "s"}`;
+  document.getElementById("navDeckCount").textContent = state.decks.length || "";
+  renderDeckList();
 }
 
 async function deleteActiveDeck() {
@@ -1017,16 +1427,48 @@ async function deleteActiveDeck() {
   await Promise.all([loadDecks(), loadOverview()]);
 }
 
-async function exportActiveDeck() {
-  const response = await fetch(`/api/decks/${state.activeDeckId}/export`);
-  if (!response.ok) return toast("Deck export failed", true);
-  const blob = await response.blob();
+function openExportModal() {
+  state.exportFormat = state.exportFormat || "riftkeep";
+  showModal("exportModal");
+  refreshExportPreview();
+}
+
+async function fetchExportText(format) {
+  const response = await fetch(`/api/decks/${state.activeDeckId}/export?${queryString({ format })}`);
+  if (!response.ok) throw new Error("Deck export failed");
+  return response.text();
+}
+
+async function refreshExportPreview() {
+  const root = document.getElementById("exportModal");
+  root.querySelectorAll("[data-export-preview]").forEach(button =>
+    button.classList.toggle("active", button.dataset.exportPreview === state.exportFormat));
+  const preview = document.getElementById("exportPreview");
+  preview.value = "Loading...";
+  try {
+    preview.value = await fetchExportText(state.exportFormat);
+  } catch (err) {
+    preview.value = "";
+    toast(err.message, true);
+  }
+}
+
+async function exportActiveDeck(format) {
+  let contents;
+  try {
+    contents = await fetchExportText(format);
+  } catch (err) {
+    return toast(err.message, true);
+  }
+  const blob = new Blob([contents], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
+  const base = state.activeDeck.summary.name.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "deck";
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${state.activeDeck.summary.name.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "deck"}.txt`;
+  link.download = format === "riftatlas" ? `${base}-riftatlas.txt` : `${base}.txt`;
   link.click();
   URL.revokeObjectURL(url);
+  toast("Deck exported");
 }
 
 function openTestHand() {
@@ -1211,15 +1653,172 @@ async function checkForUpdates() {
   finally { button.disabled = false; }
 }
 
-async function createDeck() {
-  const name = document.getElementById("deckNameInput").value.trim() || "New Deck";
-  const format = document.getElementById("deckFormatInput").value;
-  const description = document.getElementById("deckDescriptionInput").value.trim();
-  const created = await api("/api/decks", jsonOptions("POST", { name, format, description }));
+async function loadLegendPicker() {
+  const mode = state.legendPicker.mode || "create";
+  state.legendPicker = { cards: [], search: "", ownedOnly: false, selectedBase: null, selectedVariantId: null, mode };
+  document.getElementById("legendSearch").value = "";
+  document.getElementById("legendOwnedOnly").checked = false;
+  renderLegendDetail(null);
+  await refreshLegendPicker();
+}
+
+async function refreshLegendPicker() {
+  const cards = await api(`/api/cards?${queryString({ type: "Legend", owned: state.legendPicker.ownedOnly ? "owned" : "", sort: "name-asc" })}`);
+  registerCards(cards);
+  state.legendPicker.cards = cards;
+  renderLegendGrid();
+}
+
+// Different prints of the same Legend (Metal, Overnumbered, Signature, Starter, ...) share a
+// base name with the variant called out in a trailing "(...)" — e.g. "Ahri - Nine-Tailed Fox"
+// vs "Ahri - Nine-Tailed Fox (Metal)". Cards with no parenthetical are their own single-print group.
+function legendBaseName(name) {
+  const idx = name.indexOf(" (");
+  return idx === -1 ? name : name.slice(0, idx);
+}
+
+// Most reprints are distinguished by a "(Metal)"-style suffix, but a handful of Legends (mostly
+// an OPP organized-play promo sharing its name with the plain OGN rare, e.g. "Darius - Hand of
+// Noxus") have two variants with the exact same name and no suffix at all — label those by set
+// code instead of letting them both read as an indistinguishable "Base".
+const VARIANT_SUFFIX_ABBR = {
+  "Alternate Art": "ALT",
+  "Launch Exclusive": "EXL",
+  Signature: "SIG",
+  Metal: "MTL",
+  Overnumbered: "OVN",
+  Starter: "STR",
+  Ultimate: "ULT"
+};
+
+function legendVariantLabel(card, siblings) {
+  const match = card.name.match(/\(([^)]+)\)/);
+  if (match) return VARIANT_SUFFIX_ABBR[match[1]] || match[1];
+  const collides = siblings.some(v => v.id !== card.id && v.name === card.name);
+  return collides ? card.setId : "Base";
+}
+
+function groupLegendVariants(cards) {
+  const groups = new Map();
+  for (const card of cards) {
+    const key = legendBaseName(card.name);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(card);
+  }
+  return [...groups.entries()].map(([baseName, variants]) => ({
+    baseName,
+    // Shortest (base-print) name first so it's the default representative/selection.
+    variants: variants.sort((a, b) => a.name.length - b.name.length || a.name.localeCompare(b.name))
+  }));
+}
+
+function legendGroupTile(group) {
+  const card = group.variants[0];
+  const owned = group.variants.some(v => v.ownedCount > 0);
+  return `
+    <button type="button" class="legend-picker-card${state.legendPicker.selectedBase === group.baseName ? " selected" : ""}" data-legend-base="${escapeHtml(group.baseName)}">
+      <div class="legend-picker-art">
+        <img src="${escapeHtml(cardImage(card))}" alt="" />
+        ${group.variants.length > 1 ? `<span class="legend-variant-count">${group.variants.length}</span>` : ""}
+        ${owned ? `<span class="legend-owned-badge">${icon("check")}</span>` : ""}
+      </div>
+      <strong>${escapeHtml(group.baseName)}</strong>
+    </button>`;
+}
+
+function renderLegendGrid() {
+  const search = state.legendPicker.search.trim().toLowerCase();
+  const cards = search ? state.legendPicker.cards.filter(card => card.name.toLowerCase().includes(search)) : state.legendPicker.cards;
+  const groups = groupLegendVariants(cards);
+  const root = document.getElementById("legendPickerGrid");
+  root.innerHTML = groups.length ? groups.map(legendGroupTile).join("")
+    : `<div class="seam-empty">${icon("search")}<h4>No legends found</h4></div>`;
+  renderIcons(root);
+}
+
+function selectLegendGroup(baseName) {
+  const group = groupLegendVariants(state.legendPicker.cards).find(g => g.baseName === baseName);
+  if (!group) return;
+  state.legendPicker.selectedBase = baseName;
+  state.legendPicker.selectedVariantId = group.variants[0].id;
+  document.querySelectorAll("#legendPickerGrid [data-legend-base]").forEach(button =>
+    button.classList.toggle("selected", button.dataset.legendBase === baseName));
+  renderLegendDetail(group);
+}
+
+function legendVariationStripMarkup(group, activeCard) {
+  return `<div class="legend-variation-strip">${group.variants.map(v => `
+    <button type="button" class="legend-variation-seg${v.id === activeCard.id ? " active" : ""}" data-legend-variant="${escapeHtml(v.id)}" title="${escapeHtml(v.name)}">
+      <img src="${escapeHtml(cardImage(v))}" alt="" />
+      <span>${escapeHtml(legendVariantLabel(v, group.variants))}</span>
+    </button>`).join("")}</div>`;
+}
+
+function renderLegendDetail(group) {
+  const root = document.getElementById("legendDetailPanel");
+  const modal = document.getElementById("legendPickerModal");
+  if (!group) {
+    root.innerHTML = `<div class="seam-empty">${icon("layers")}<h4>Select a Legend</h4><p>Choose a card to see details.</p></div>`;
+    renderIcons(root);
+    if (modal) modal.dataset.domainGlow = "";
+    return;
+  }
+  const selectedCard = group.variants.find(v => v.id === state.legendPicker.selectedVariantId) || group.variants[0];
+  root.innerHTML = `
+    ${group.variants.length > 1 ? legendVariationStripMarkup(group, selectedCard) : ""}
+    <div id="legendDetailBody"></div>`;
+  renderIcons(root);
+  renderLegendDetailBody(group, selectedCard);
+
+  root.querySelectorAll("[data-legend-variant]").forEach(seg => {
+    const variant = group.variants.find(v => v.id === seg.dataset.legendVariant);
+    if (!variant) return;
+    // Hovering previews that print in the panel below without committing to it; clicking commits
+    // the selection (updates state + the active segment) and leaving the strip reverts the
+    // preview back to whatever is actually selected.
+    seg.addEventListener("mouseenter", () => renderLegendDetailBody(group, variant));
+    seg.addEventListener("mouseleave", () => {
+      const current = group.variants.find(v => v.id === state.legendPicker.selectedVariantId) || group.variants[0];
+      renderLegendDetailBody(group, current);
+    });
+    seg.addEventListener("click", () => {
+      state.legendPicker.selectedVariantId = variant.id;
+      root.querySelectorAll("[data-legend-variant]").forEach(s => s.classList.toggle("active", s === seg));
+      renderLegendDetailBody(group, variant);
+    });
+  });
+}
+
+function renderLegendDetailBody(group, card) {
+  const root = document.getElementById("legendDetailBody");
+  if (!root) return;
+  const modal = document.getElementById("legendPickerModal");
+  const domains = card.domains?.length ? card.domains : [];
+  root.innerHTML = `
+    <div class="legend-detail-art">
+      <img src="${escapeHtml(cardImage(card))}" alt="" />
+      ${cardImagePopout(card)}
+      ${card.ownedCount <= 0 ? `<span class="legend-not-owned-banner">Not Owned</span>` : ""}
+    </div>
+    <h3>${escapeHtml(group.baseName)}</h3>
+    <div class="legend-detail-domains">${domains.map(d => `<span style="color:${DOMAIN_COLOR[domainName(d)] || "var(--c-colorless)"}">${escapeHtml(domainName(d))}</span>`).join(" &middot; ")}</div>
+    <button type="button" class="command-btn gold legend-build-btn" id="buildDeckBtn">${state.legendPicker.mode === "change" ? "Use" : "Build With"} ${escapeHtml(group.baseName.split(",")[0])}</button>`;
+  renderIcons(root);
+  document.getElementById("buildDeckBtn").addEventListener("click", () => {
+    const action = state.legendPicker.mode === "change" ? changeDeckLegend(card) : createDeckWithLegend(card);
+    action.catch(err => toast(err.message, true));
+  });
+  if (modal) modal.dataset.domainGlow = domains.length ? domainKey(domains[0]) : "";
+}
+
+async function createDeckWithLegend(legend) {
+  const created = await api("/api/decks", jsonOptions("POST", { name: legend.name, description: "", coverCardId: legend.id }));
   state.activeDeckId = created.summary.id;
+  saveNavState();
+  await setDeckCard(created.summary.id, legend.id, 1, "main");
   closeModal("deckModal");
-  await Promise.all([loadDecks(), loadOverview()]);
-  toast("Deck created");
+  await loadOverview();
+  toast(`${legend.name} deck created`);
 }
 
 async function importDeck() {
@@ -1515,6 +2114,17 @@ function showLiveHit(match) {
 }
 
 function wireEvents() {
+  document.addEventListener("mouseover", event => {
+    const row = event.target.closest("[data-hover-card]");
+    if (row && !row.contains(event.relatedTarget)) showDeckRowPopup(row.dataset.hoverCard, event);
+  });
+  document.addEventListener("mousemove", event => {
+    if (event.target.closest("[data-hover-card]")) positionDeckRowPopup(event);
+  });
+  document.addEventListener("mouseout", event => {
+    const row = event.target.closest("[data-hover-card]");
+    if (row && !row.contains(event.relatedTarget)) hideDeckRowPopup();
+  });
   document.querySelectorAll(".nav-item").forEach(button => button.addEventListener("click", () => navigate(button.dataset.page)));
   document.getElementById("mobileMenu").addEventListener("click", () => document.getElementById("sidebar").classList.toggle("open"));
   document.getElementById("setNav").addEventListener("click", event => {
@@ -1524,6 +2134,7 @@ function wireEvents() {
   document.querySelectorAll(".vault-tab").forEach(button => button.addEventListener("click", () => {
     state.owned = button.dataset.owned;
     document.querySelectorAll(".vault-tab").forEach(item => item.classList.toggle("active", item === button));
+    saveNavState();
     loadVault().catch(err => toast(err.message, true));
   }));
   [["rarityFilter", "rarity"], ["typeFilter", "type"], ["domainFilter", "domain"], ["sortFilter", "sort"]].forEach(([id, key]) =>
@@ -1597,7 +2208,7 @@ function wireEvents() {
     const card = event.target.closest("[data-card-open]");
     if (card) { openCard(card.dataset.cardOpen); return; }
     const deck = event.target.closest("[data-deck-id]");
-    if (deck) { state.activeDeckId = Number(deck.dataset.deckId); loadDecks(); return; }
+    if (deck) { state.activeDeckId = Number(deck.dataset.deckId); saveNavState(); loadDecks(); return; }
     if (event.target.closest("[data-new-deck]")) openNewDeckModal();
   });
   document.addEventListener("change", event => {
@@ -1617,6 +2228,11 @@ function wireEvents() {
   }, true);
   document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => closeModal(button.dataset.close)));
   document.querySelectorAll(".modal-layer").forEach(layer => layer.addEventListener("click", event => { if (event.target === layer) closeModal(layer.id); }));
+  document.querySelectorAll("[data-export-preview]").forEach(button => button.addEventListener("click", () => {
+    state.exportFormat = button.dataset.exportPreview;
+    refreshExportPreview();
+  }));
+  document.getElementById("confirmExportBtn")?.addEventListener("click", () => exportActiveDeck(state.exportFormat));
   document.getElementById("openQuickAdd").addEventListener("click", () => { document.getElementById("quickAddResult").innerHTML = ""; showModal("quickAddModal"); setTimeout(() => document.getElementById("quickAddInput").focus(), 0); });
   document.getElementById("quickAddBtn").addEventListener("click", quickAdd);
   document.getElementById("quickAddInput").addEventListener("keydown", event => { if (event.key === "Enter") quickAdd(); });
@@ -1626,9 +2242,25 @@ function wireEvents() {
   ["openConnection", "settingsConnection"].forEach(id => document.getElementById(id).addEventListener("click", openConnection));
   ["sidebarRefresh", "refreshCatalogBtn"].forEach(id => document.getElementById(id).addEventListener("click", refreshCatalog));
   ["newDeckBtn", "emptyNewDeck"].forEach(id => document.getElementById(id).addEventListener("click", openNewDeckModal));
-  document.getElementById("saveDeckBtn").addEventListener("click", createDeck);
+  document.getElementById("legendSearch").addEventListener("input", event => {
+    state.legendPicker.search = event.target.value;
+    renderLegendGrid();
+  });
+  document.getElementById("legendOwnedOnly").addEventListener("change", event => {
+    state.legendPicker.ownedOnly = event.target.checked;
+    refreshLegendPicker().catch(err => toast(err.message, true));
+  });
+  document.getElementById("legendPickerGrid").addEventListener("click", event => {
+    const button = event.target.closest("[data-legend-base]");
+    if (button) selectLegendGroup(button.dataset.legendBase);
+  });
   document.getElementById("importDeckBtn").addEventListener("click", () => showModal("importDeckModal"));
   document.getElementById("confirmImportDeck").addEventListener("click", importDeck);
+  const importPlaceholders = { riftkeep: "3 OGN-045 Card Name", riftatlas: "3 Card Name [OGN-045]" };
+  document.querySelectorAll("[data-import-hint]").forEach(button => button.addEventListener("click", () => {
+    document.querySelectorAll("[data-import-hint]").forEach(b => b.classList.toggle("active", b === button));
+    document.getElementById("importDeckContents").placeholder = importPlaceholders[button.dataset.importHint];
+  }));
   document.getElementById("savePricingKey").addEventListener("click", savePricingKey);
   document.getElementById("clearPricingKey").addEventListener("click", clearPricingKey);
   document.getElementById("refreshTrackedPrices").addEventListener("click", () => refreshPrices(false));
@@ -1653,11 +2285,29 @@ function wireEvents() {
 }
 
 function openNewDeckModal() {
-  document.getElementById("deckNameInput").value = "";
-  document.getElementById("deckDescriptionInput").value = "";
-  document.getElementById("deckFormatInput").value = "Standard";
+  state.legendPicker.mode = "create";
   showModal("deckModal");
-  setTimeout(() => document.getElementById("deckNameInput").focus(), 0);
+  loadLegendPicker().catch(err => toast(err.message, true));
+  setTimeout(() => document.getElementById("legendSearch").focus(), 0);
+}
+
+function openChangeLegendModal() {
+  state.legendPicker.mode = "change";
+  showModal("deckModal");
+  loadLegendPicker().catch(err => toast(err.message, true));
+  setTimeout(() => document.getElementById("legendSearch").focus(), 0);
+}
+
+async function changeDeckLegend(newLegend) {
+  const oldLegendRow = state.activeDeck.cards.find(row => row.card.type === "Legend");
+  if (oldLegendRow && oldLegendRow.cardId !== newLegend.id) {
+    await api(`/api/decks/${state.activeDeckId}/cards`, jsonOptions("POST", { cardId: oldLegendRow.cardId, quantity: 0, section: oldLegendRow.section }));
+  }
+  await setDeckCard(state.activeDeckId, newLegend.id, 1, "main");
+  await api(`/api/decks/${state.activeDeckId}`, jsonOptions("PUT", { coverCardId: newLegend.id }));
+  closeModal("deckModal");
+  await loadDecks();
+  toast(`Legend changed to ${newLegend.name}`);
 }
 
 async function savePricingKey() {
@@ -1698,11 +2348,13 @@ function setTheme(theme) {
 async function init() {
   wireEvents();
   renderIcons(document);
+  restoreNavState();
   try {
     const [server] = await Promise.all([api("/api/server-info"), loadCardTextSymbols(), loadSets(), loadPrices(), loadPriceQueue(), loadOverview(), loadDecks()]);
     document.getElementById("currentVersion").textContent = server.version;
     document.getElementById("settingsVersion").textContent = server.version;
-    await loadVault();
+    document.querySelectorAll(".vault-tab").forEach(item => item.classList.toggle("active", item.dataset.owned === state.owned));
+    navigate(state.page);
   } catch (err) {
     toast(`Vault startup failed: ${err.message}`, true);
   }

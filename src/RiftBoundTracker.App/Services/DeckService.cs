@@ -131,12 +131,39 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
         var unmatched = new List<string>();
         var added = 0;
 
+        // Tracks which section subsequent card lines belong to as we scan — both export formats
+        // mark section boundaries with header lines rather than repeating "main"/"sideboard" per
+        // card, so the current section has to carry forward until the next header changes it.
+        // RiftKeep marks section boundaries as "# main" / "# sideboard" comment lines; RiftAtlas
+        // uses "Sideboard:" (and other non-sideboard headers like "Legend:"/"MainDeck:", which all
+        // map to "main" since this app only tracks two sections).
+        var currentSection = "main";
         foreach (var rawLine in request.Contents.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
         {
             var line = rawLine.Trim();
-            if (line.Length == 0 || line.StartsWith('#')) continue;
+            if (line.Length == 0) continue;
 
+            if (line.StartsWith('#'))
+            {
+                var comment = line.TrimStart('#').Trim();
+                if (string.Equals(comment, "sideboard", StringComparison.OrdinalIgnoreCase)) currentSection = "sideboard";
+                else if (string.Equals(comment, "main", StringComparison.OrdinalIgnoreCase)) currentSection = "main";
+                continue;
+            }
+
+            var headerMatch = SectionHeaderPattern().Match(line);
+            if (headerMatch.Success)
+            {
+                currentSection = string.Equals(headerMatch.Groups["name"].Value, "Sideboard", StringComparison.OrdinalIgnoreCase)
+                    ? "sideboard" : "main";
+                continue;
+            }
+
+            // Accept either RiftKeep's "{qty} {set}-{code} {name}" lines or RiftAtlas'
+            // "{qty} {name} [{set}-{code}]" lines — auto-detected per line so either export
+            // (or a mix of both, pasted together) imports without the user picking a format.
             var match = ImportLinePattern().Match(line);
+            if (!match.Success) match = RiftAtlasImportLinePattern().Match(line);
             if (!match.Success)
             {
                 unmatched.Add(line);
@@ -153,14 +180,14 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
                 continue;
             }
 
-            var existing = await db.DeckCards.FindAsync([created.Summary.Id, cards[0].Id, "main"], ct);
+            var existing = await db.DeckCards.FindAsync([created.Summary.Id, cards[0].Id, currentSection], ct);
             if (existing is null)
             {
                 db.DeckCards.Add(new DeckCardEntity
                 {
                     DeckId = created.Summary.Id,
                     CardId = cards[0].Id,
-                    Section = "main",
+                    Section = currentSection,
                     Quantity = Math.Clamp(quantity, 1, 99),
                 });
             }
@@ -181,11 +208,18 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
         return new DeckImportResult(created.Summary.Id, added, unmatched);
     }
 
-    public async Task<string?> ExportAsync(int id, CancellationToken ct = default)
+    public async Task<string?> ExportAsync(int id, string? format, CancellationToken ct = default)
     {
         var detail = await GetAsync(id, ct);
         if (detail is null) return null;
 
+        return string.Equals(format, "riftatlas", StringComparison.OrdinalIgnoreCase)
+            ? ExportRiftAtlas(detail)
+            : ExportRiftKeep(detail);
+    }
+
+    private static string ExportRiftKeep(DeckDetailDto detail)
+    {
         var text = new StringBuilder();
         text.AppendLine($"# {detail.Summary.Name}");
         text.AppendLine($"# Format: {detail.Summary.Format}");
@@ -200,6 +234,50 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
                 text.AppendLine($"{row.Quantity} {row.Card.SetId}-{CardCode(row.Card)} {row.Card.Name}");
         }
         return text.ToString();
+    }
+
+    // RiftAtlas' community decklist format: sections split out by role rather than by main/sideboard
+    // alone (Legend and Champion get their own headers even though both live in the "main" section),
+    // each line reading "{qty} {name} [{set}-{code}]". Sideboard stays a single flat list regardless
+    // of card type, matching how RiftAtlas exports it.
+    private static string ExportRiftAtlas(DeckDetailDto detail)
+    {
+        var main = detail.Cards.Where(c => c.Section == "main").ToLookup(AtlasCategory);
+        var side = detail.Cards.Where(c => c.Section == "sideboard").ToList();
+
+        var text = new StringBuilder();
+        AppendAtlasSection(text, "Legend", main["Legend"]);
+        AppendAtlasSection(text, "Champion", main["Champion"]);
+        AppendAtlasSection(text, "MainDeck", main["MainDeck"]);
+        AppendAtlasSection(text, "Battlefields", main["Battlefield"]);
+        AppendAtlasSection(text, "Runes", main["Rune"]);
+        AppendAtlasSection(text, "Sideboard", side);
+        return text.ToString();
+    }
+
+    private static string AtlasCategory(DeckCardDto row)
+    {
+        if (row.Card.Type == "Legend") return "Legend";
+        if (string.Equals(row.Card.Supertype, "Champion", StringComparison.OrdinalIgnoreCase)) return "Champion";
+        if (row.Card.Type == "Battlefield") return "Battlefield";
+        if (row.Card.Type == "Rune") return "Rune";
+        return "MainDeck";
+    }
+
+    private static void AppendAtlasSection(StringBuilder text, string title, IEnumerable<DeckCardDto> rows)
+    {
+        var ordered = rows
+            .OrderByDescending(r => r.Quantity)
+            .ThenBy(r => r.Card.SetId)
+            .ThenBy(r => r.Card.CollectorNumber)
+            .ThenBy(r => r.Card.CollectorCode)
+            .ThenBy(r => r.Card.Name)
+            .ToList();
+        if (ordered.Count == 0) return;
+        if (text.Length > 0) text.AppendLine();
+        text.AppendLine($"{title}:");
+        foreach (var row in ordered)
+            text.AppendLine($"{row.Quantity} {row.Card.Name} [{row.Card.SetId}-{CardCode(row.Card)}]");
     }
 
     private async Task<string?> ValidCardIdAsync(string? cardId, CancellationToken ct)
@@ -253,4 +331,10 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
 
     [GeneratedRegex(@"^(?:(?<qty>\d{1,2})\s*[xX]?\s+)?(?<set>[A-Za-z]{2,4})[-\s]+(?<code>[A-Za-z]{0,2}\d{1,3}[A-Za-z]?)\b")]
     private static partial Regex ImportLinePattern();
+
+    [GeneratedRegex(@"^(?<qty>\d{1,2})\s+.+?\[(?<set>[A-Za-z]{2,4})-(?<code>[A-Za-z]{0,2}\d{1,3}[A-Za-z]?)\]\s*$")]
+    private static partial Regex RiftAtlasImportLinePattern();
+
+    [GeneratedRegex(@"^(?<name>[A-Za-z][A-Za-z ]*):$")]
+    private static partial Regex SectionHeaderPattern();
 }

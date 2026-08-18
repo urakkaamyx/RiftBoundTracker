@@ -386,9 +386,9 @@ internal static class Program
         app.MapPost("/api/decks/import", async (ImportDeckRequest body, DeckService decks, CancellationToken ct) =>
             Results.Ok(await decks.ImportAsync(body, ct)));
 
-        app.MapGet("/api/decks/{id:int}/export", async (int id, DeckService decks, CancellationToken ct) =>
+        app.MapGet("/api/decks/{id:int}/export", async (int id, string? format, DeckService decks, CancellationToken ct) =>
         {
-            var contents = await decks.ExportAsync(id, ct);
+            var contents = await decks.ExportAsync(id, format, ct);
             return contents is null
                 ? Results.NotFound()
                 : Results.Text(contents, "text/plain", System.Text.Encoding.UTF8);

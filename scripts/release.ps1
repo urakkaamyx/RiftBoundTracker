@@ -25,11 +25,18 @@ Write-Host "== Ensuring local AI model is present ==" -ForegroundColor Cyan
 # the csproj's Models/*.gguf publish-output item, so `dotnet publish` below bundles it into the
 # release zip same as any other output file. Idempotent: does nothing if a dev already has it
 # cached locally from a previous release (or from local Ask Rules testing).
+#
+# This is RiftKeep's own fine-tuned model, not the stock base model: Qwen2.5-1.5B-Instruct,
+# LoRA fine-tuned on the real synced Riftbound rules corpus (rule text, keywords, concepts,
+# errata, legality — see scripts/training/ for the dataset generation and training scripts this
+# came from) and requantized to Q4_K_M. Hosted as a GitHub release asset in this same repo
+# (tag "ask-rules-model-v1", not an app version) rather than the original stock-model URL, since
+# the whole point of fine-tuning it was to ship the improved version, not the generic one.
 $modelDir = Join-Path $root "src\RiftBoundTracker.App\Models"
-$modelFile = "Qwen2.5-1.5B-Instruct-Q4_K_M.gguf"
+$modelFile = "riftkeep-ask-rules-Q4_K_M.gguf"
 $modelPath = Join-Path $modelDir $modelFile
-$modelUrl = "https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/$modelFile"
-$expectedBytes = 986048768
+$modelUrl = "https://github.com/urakkaamyx/RiftBoundTracker/releases/download/ask-rules-model-v1/$modelFile"
+$expectedBytes = 986047936
 if (-not (Test-Path $modelDir)) { New-Item -ItemType Directory -Path $modelDir | Out-Null }
 if ((Test-Path $modelPath) -and (Get-Item $modelPath).Length -eq $expectedBytes) {
     Write-Host "  (already present and verified)"

@@ -269,7 +269,10 @@ public partial class CardCacheService(
             .OrderBy(c => c.SetId).ThenBy(c => c.CollectorNumber)
             .ToListAsync(ct);
 
-    private static string SwapNameSeparator(string name)
+    // Internal (not private): RulesEvidenceService reuses this exact swap when checking whether a
+    // free-text question mentions a card by name, so a question phrased with the "other" style
+    // separator than the catalog happens to use still resolves — same reasoning as above.
+    internal static string SwapNameSeparator(string name)
     {
         var commaIdx = name.IndexOf(", ", StringComparison.Ordinal);
         if (commaIdx > 0) return string.Concat(name.AsSpan(0, commaIdx), " - ", name.AsSpan(commaIdx + 2));

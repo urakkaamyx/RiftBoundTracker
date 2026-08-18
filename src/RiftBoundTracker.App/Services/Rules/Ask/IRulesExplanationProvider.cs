@@ -1,6 +1,7 @@
 namespace RiftBoundTracker.App.Services.Rules;
 
-public sealed record RulesExplanationContext(string Question, List<RuleEvidence> Evidence, List<CardSummaryDto> CardContext);
+public sealed record RulesExplanationContext(
+    string Question, List<RuleEvidence> Evidence, List<CardSummaryDto> CardContext, List<CardEvidence> CardNotes);
 public sealed record RulesGeneratedAnswer(string? Answer, bool Success, string? Error);
 
 /// <summary>

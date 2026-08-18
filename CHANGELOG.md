@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.18.0 — Fine-tuned Ask Rules model + card legality/errata questions
+
+- The local Ask Rules model is now fine-tuned on Riftbound's own rules, keywords, and card data (not the generic base model) — trained on real examples generated from the synced rules library, including how to answer a specific format when a card has more than one legality ruling (e.g. banned in both Constructed and 2v2 Constructed).
+- Ask Rules can now answer questions about a specific card's ban status or errata history (e.g. "Is Called Shot banned in Constructed?", "Has Draven, Vanquisher received any errata?") — previously that data existed in the app but Ask Rules had no way to find it for a free-text question.
+- Training scripts are included (`scripts/training/`) so the model can be retrained later as the rules library grows.
+
 ## v1.17.0 — Fully local Ask Rules AI
 
 - Replaced the third-party AI option with a small language model that ships with the app and runs entirely on your machine — no account, no API key, no data ever leaves your PC. Settings → Ask Rules (Local AI) is now a single on/off toggle instead of endpoint/key configuration.

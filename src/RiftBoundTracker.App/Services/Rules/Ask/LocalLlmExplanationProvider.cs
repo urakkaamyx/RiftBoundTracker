@@ -126,9 +126,16 @@ public sealed class LocalLlmExplanationProvider(
 
     private static string BuildUserMessage(RulesExplanationContext context)
     {
-        var evidenceText = string.Join("\n\n", context.Evidence.Select(e =>
+        // Card evidence is deliberately formatted with the exact same "[Title] (Authority) Title\nText"
+        // shape as regular rule evidence below (matching what the training data used, see
+        // generate_dataset.py's errata/legality categories) — a differently-shaped evidence block
+        // the model never saw during fine-tuning caused it to contradict its own supplied evidence
+        // in testing, even though the underlying fact was correct.
+        var evidenceParts = context.Evidence.Select(e =>
             $"[{(e.Hit.RuleNumber is not null ? $"Rule {e.Hit.RuleNumber}" : e.Hit.Title)}] " +
-            $"({e.Hit.Document.Authority}{(e.Hit.Document.Current ? "" : ", historical")}) {e.Hit.Title}\n{e.Hit.Snippet}"));
+            $"({e.Hit.Document.Authority}{(e.Hit.Document.Current ? "" : ", historical")}) {e.Hit.Title}\n{e.Hit.Snippet}")
+            .Concat(context.CardNotes.Select(c => $"[{c.CardName}] ({c.Authority}) {c.CardName}\n{c.Note}"));
+        var evidenceText = string.Join("\n\n", evidenceParts);
 
         var cardText = context.CardContext.Count > 0
             ? "\n\nThe question is specifically about this card: " + string.Join(", ", context.CardContext.Select(c => c.Name))

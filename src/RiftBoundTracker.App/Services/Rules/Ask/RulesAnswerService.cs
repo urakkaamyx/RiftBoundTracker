@@ -2,7 +2,8 @@ namespace RiftBoundTracker.App.Services.Rules;
 
 public sealed record RulesAskResponse(
     string Question, string? Answer, bool AnswerGenerated, string Confidence,
-    List<DetectedKeywordDto> Keywords, List<DetectedConceptDto> Concepts, List<RuleCitationDto> Sources);
+    List<DetectedKeywordDto> Keywords, List<DetectedConceptDto> Concepts, List<RuleCitationDto> Sources,
+    List<CardEvidence> CardNotes);
 
 /// <summary>
 /// Orchestrates one question end to end (architecture doc section 4): analyze -> gather evidence
@@ -16,14 +17,14 @@ public sealed class RulesAnswerService(
     public async Task<RulesAskResponse> AskAsync(string question, string? cardId, CancellationToken ct = default)
     {
         var analysis = await questions.AnalyzeAsync(question, cardId, ct);
-        var evidence = await evidenceService.GatherAsync(analysis, currentOnly: true, limit: 12, ct);
-        var confidence = DetermineConfidence(evidence, analysis);
+        var result = await evidenceService.GatherAsync(analysis, currentOnly: true, limit: 12, ct);
+        var confidence = DetermineConfidence(result, analysis);
 
         string? answer = null;
         var answerGenerated = false;
-        if (evidence.Count > 0 && explanationProvider.IsConfigured)
+        if ((result.Rules.Count > 0 || result.Cards.Count > 0) && explanationProvider.IsConfigured)
         {
-            var context = new RulesExplanationContext(question, evidence, analysis.CardContext);
+            var context = new RulesExplanationContext(question, result.Rules, analysis.CardContext, result.Cards);
             var generated = await explanationProvider.ExplainAsync(context, ct);
             if (generated.Success)
             {
@@ -34,7 +35,7 @@ public sealed class RulesAnswerService(
 
         return new RulesAskResponse(
             question, answer, answerGenerated, confidence,
-            analysis.DetectedKeywords, analysis.DetectedConcepts, RulesCitationService.Format(evidence));
+            analysis.DetectedKeywords, analysis.DetectedConcepts, RulesCitationService.Format(result.Rules), result.Cards);
     }
 
     // High: an exact rule number resolved, or the question named exactly one official
@@ -46,11 +47,14 @@ public sealed class RulesAnswerService(
     // pulled in — a concept like "Card State" pulls in sibling keywords (Exhaust's evidence also
     // surfaces Ready/Stun) as useful related context, but that shouldn't by itself downgrade "How
     // does Exhaust work?" from a clean single-concept question to a multi-concept one.
-    private static string DetermineConfidence(List<RuleEvidence> evidence, RulesQuestionAnalysis analysis)
+    private static string DetermineConfidence(RulesEvidenceResult result, RulesQuestionAnalysis analysis)
     {
-        if (evidence.Count == 0) return "InsufficientEvidence";
-        if (evidence.Any(e => e.MatchedVia.Any(v => v.StartsWith("rule number", StringComparison.Ordinal))))
+        if (result.Rules.Count == 0 && result.Cards.Count == 0) return "InsufficientEvidence";
+        if (result.Rules.Any(e => e.MatchedVia.Any(v => v.StartsWith("rule number", StringComparison.Ordinal))))
             return "High";
+        // An exact card-name match (legality/errata) is as direct a hit as a rule number — the
+        // question named a specific card and evidence answers it about that exact card.
+        if (result.Cards.Count > 0) return "High";
 
         var directSignals = analysis.DetectedKeywords.Count
             + analysis.DetectedConcepts.Count(c => c.MatchedPhrase is not null);

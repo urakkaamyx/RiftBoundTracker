@@ -2579,13 +2579,15 @@ function renderAskRulesResult(result) {
     ...result.concepts.map(c => `<span class="rule-chip">${escapeHtml(c.name)}</span>`)
   ].join("");
 
+  const cardNotes = result.cardNotes || [];
+  const hasEvidence = result.sources.length > 0 || cardNotes.length > 0;
   const answerBlock = result.answerGenerated
     ? `<p class="ask-answer-text">${escapeHtml(result.answer)}</p>`
-    : result.sources.length
+    : hasEvidence
       ? `<p class="ask-answer-note">Local AI answers are off (Settings → Ask Rules), so here's the most relevant official rules text directly.</p>`
       : `<p class="ask-answer-note">I didn't find any official rule, keyword, or clarification that covers this question. Try rephrasing with an official term, or browse the Rules search instead.</p>`;
 
-  const evidenceRows = result.sources.map(s => `
+  const ruleEvidenceRows = result.sources.map(s => `
     <div class="ask-evidence-row">
       <div class="ask-evidence-row-head">
         <b>${escapeHtml(s.ruleNumber ? `Rule ${s.ruleNumber}` : s.document)}</b>
@@ -2593,6 +2595,15 @@ function renderAskRulesResult(result) {
       </div>
       <p>${escapeHtml(s.title.startsWith("Rule ") ? s.snippet : s.title)}</p>
       <span>${escapeHtml(s.document)} — matched via ${s.matchedVia.map(escapeHtml).join(", ")}</span>
+    </div>`).join("");
+
+  const cardEvidenceRows = cardNotes.map(c => `
+    <div class="ask-evidence-row">
+      <div class="ask-evidence-row-head">
+        <b>${escapeHtml(c.cardName)}</b>
+        <span class="authority-badge current">Card Status</span>
+      </div>
+      <p>${escapeHtml(c.note)}</p>
     </div>`).join("");
 
   root.innerHTML = `
@@ -2603,7 +2614,7 @@ function renderAskRulesResult(result) {
       </div>
       ${answerBlock}
       ${chips ? `<div class="rule-chip-row" style="margin-bottom:16px">${chips}</div>` : ""}
-      ${result.sources.length ? `<div class="rule-detail-section" style="margin-top:0;padding-top:0;border-top:0"><h4>Why?</h4><div class="ask-evidence-list">${evidenceRows}</div></div>` : ""}
+      ${hasEvidence ? `<div class="rule-detail-section" style="margin-top:0;padding-top:0;border-top:0"><h4>Why?</h4><div class="ask-evidence-list">${cardEvidenceRows}${ruleEvidenceRows}</div></div>` : ""}
     </div>`;
   renderIcons(root);
 }

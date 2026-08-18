@@ -61,7 +61,7 @@ public class DesktopShell(int port, string webRootPath, IHostApplicationLifetime
             if (_reallyExiting) return;
             e.Cancel = true;
             _window.Hide();
-            _trayIcon.ShowBalloonTip(2500, "RiftBound Vault", "Still running in the background — your phone can keep using it. Right-click the tray icon to exit.", ToolTipIcon.Info);
+            _trayIcon.ShowBalloonTip(2500, "RiftKeep", "Still running in the background — your phone can keep using it. Right-click the tray icon to exit.", ToolTipIcon.Info);
         };
 
         lifetime.ApplicationStopping.Register(() =>
@@ -135,7 +135,7 @@ public class DesktopShell(int port, string webRootPath, IHostApplicationLifetime
 
         var launcher = new Window
         {
-            Title = "RiftBound Vault",
+            Title = "RiftKeep",
             Width = side,
             Height = side,
             WindowStyle = WindowStyle.None,
@@ -211,17 +211,17 @@ public class DesktopShell(int port, string webRootPath, IHostApplicationLifetime
             if (!e.IsSuccess)
             {
                 MessageBox.Show(
-                    "RiftBound Vault couldn't start its embedded browser (WebView2). " +
+                    "RiftKeep couldn't start its embedded browser (WebView2). " +
                     "It's usually already installed on Windows 10/11, but you may need to install " +
                     "the \"WebView2 Runtime\" from Microsoft to use the desktop window.\n\n" +
                     $"Details: {e.InitializationException?.Message}",
-                    "RiftBound Vault", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    "RiftKeep", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         };
 
         var window = new Window
         {
-            Title = "RiftBound Vault",
+            Title = "RiftKeep",
             Width = 1280,
             Height = 860,
             MinWidth = 720,
@@ -272,7 +272,7 @@ public class DesktopShell(int port, string webRootPath, IHostApplicationLifetime
             brand.Children.Add(new Image { Source = logo, Width = 20, Height = 20, Margin = new Thickness(0, 0, 8, 0) });
         brand.Children.Add(new TextBlock
         {
-            Text = "RIFTBOUND VAULT",
+            Text = "RIFTKEEP",
             Foreground = ColorFromHex(GoldHex),
             FontSize = 11,
             FontWeight = FontWeights.Bold,
@@ -367,14 +367,14 @@ public class DesktopShell(int port, string webRootPath, IHostApplicationLifetime
     private NotifyIcon BuildTrayIcon(System.Drawing.Icon? icon)
     {
         var menu = new ContextMenuStrip();
-        menu.Items.Add("Open RiftBound Vault", null, (_, _) => ShowWindow());
+        menu.Items.Add("Open RiftKeep", null, (_, _) => ShowWindow());
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Exit", null, (_, _) => ExitApp());
 
         var tray = new NotifyIcon
         {
             Icon = icon ?? System.Drawing.SystemIcons.Application,
-            Text = "RiftBound Vault",
+            Text = "RiftKeep",
             Visible = true,
             ContextMenuStrip = menu,
         };

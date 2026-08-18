@@ -25,3 +25,10 @@ App_Data/
 
 # Reference doc from another AI's handoff, not part of the app itself.
 /Riftbound_DeckBuilder_CommunityRecommendations_Handoff.md
+
+# Working source art for logo/branding assets (Photoshop files, full-resolution masters) — only
+# the processed copies under wwwroot/ are actually shipped/used by the app.
+/Enter.png
+/Enter_Hover.png
+/logo.png
+*.psd

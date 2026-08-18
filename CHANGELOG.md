@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.14.1 — Sidebar cleanup
+
+- Removed the redundant RIFTKEEP logo/text block from the top of the sidebar (the launch screen already carries the branding) — the nav list now starts right at the top.
+- Renamed the title bar, taskbar tooltip, and tray menu from "RiftBound Vault" to "RiftKeep".
+
 ## v1.14.0 — RiftKeep branding, custom app chrome, launch screen
 
 - New logo and "RIFTKEEP" branding in the sidebar, browser tab icon, and taskbar/window icon.

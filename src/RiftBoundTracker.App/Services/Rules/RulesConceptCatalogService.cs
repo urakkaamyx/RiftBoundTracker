@@ -14,7 +14,12 @@ public class RulesConceptCatalogService(AppDbContext db)
 {
     private static readonly (string Name, string[] Phrases, string[] Keywords)[] Concepts =
     [
-        ("Unit Death", ["dies", "died", "destroyed", "killed", "defeated", "kill a unit"], ["Destroy"]),
+        // "Kill" isn't itself a glossary keyword (it's a plain rule action, not a card-facing
+        // keyword ability like "Destroy" is) — the rule that actually governs it (428.2: a killed
+        // permanent goes to the trash) is only reachable via the "Trash" keyword, which it's tagged
+        // under. Without it, a "my unit died" question never surfaces the one rule that explains
+        // what happens to it.
+        ("Unit Death", ["dies", "died", "destroyed", "killed", "defeated", "kill a unit"], ["Destroy", "Trash"]),
         ("Leaving Battlefield", ["leaves play", "leave the battlefield", "removed from the battle", "remove from combat", "leave the fight"], ["Banish", "Recycle", "Trash"]),
         ("Battlefield Control", ["control", "controls", "controlled", "occupied", "uncontrolled"], ["Control", "Conquer", "Battlefield"]),
         ("Hidden Cards", ["hidden", "facedown", "face down", "face-down"], ["Hidden"]),

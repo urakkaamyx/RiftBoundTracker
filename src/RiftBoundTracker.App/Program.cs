@@ -169,6 +169,11 @@ internal static class Program
             c.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/pdf,*/*");
             c.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
         });
+        builder.Services.AddHttpClient("rules-explanation", c =>
+        {
+            c.Timeout = TimeSpan.FromSeconds(45);
+            c.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+        });
 
         builder.Services.AddSingleton<ImageHashService>();
         builder.Services.AddSingleton<OcrService>();
@@ -194,10 +199,16 @@ internal static class Program
         builder.Services.AddScoped<RulesSourceDiscoveryService>();
         builder.Services.AddScoped<RulesImportService>();
         builder.Services.AddScoped<RulesKeywordCatalogService>();
+        builder.Services.AddScoped<RulesConceptCatalogService>();
         builder.Services.AddScoped<RulesKeywordLinkerService>();
         builder.Services.AddScoped<RulesSyncService>();
         builder.Services.AddScoped<RulesSearchService>();
         builder.Services.AddScoped<RulesService>();
+        builder.Services.AddSingleton<RulesExplanationSettingsService>();
+        builder.Services.AddScoped<IRulesExplanationProvider, OpenAiCompatibleExplanationProvider>();
+        builder.Services.AddScoped<RulesQuestionService>();
+        builder.Services.AddScoped<RulesEvidenceService>();
+        builder.Services.AddScoped<RulesAnswerService>();
 
         var app = builder.Build();
 
@@ -495,6 +506,42 @@ internal static class Program
         app.MapGet("/api/rules/cards/{cardId}", async (string cardId, RulesService rules, CancellationToken ct) =>
             Results.Ok(await rules.GetCardRulesAsync(cardId, ct)));
 
+        app.MapPost("/api/rules/ask", async (AskRuleQuestionRequest body, RulesAnswerService answers, CancellationToken ct) =>
+        {
+            if (string.IsNullOrWhiteSpace(body.Question))
+                return Results.BadRequest(new { error = "Ask a question." });
+            return Results.Ok(await answers.AskAsync(body.Question, body.CardId, ct));
+        });
+
+        app.MapPost("/api/rules/analyze-question", async (AskRuleQuestionRequest body, RulesQuestionService questions, CancellationToken ct) =>
+        {
+            if (string.IsNullOrWhiteSpace(body.Question))
+                return Results.BadRequest(new { error = "Ask a question." });
+            return Results.Ok(await questions.AnalyzeAsync(body.Question, body.CardId, ct));
+        });
+
+        app.MapGet("/api/rules/explanation-provider/status", (RulesExplanationSettingsService settings) =>
+            Results.Ok(settings.GetStatus()));
+
+        app.MapPost("/api/rules/explanation-provider/configure", (RulesExplanationProviderRequest body, RulesExplanationSettingsService settings) =>
+        {
+            try
+            {
+                settings.SaveSettings(body.ApiKey ?? "", body.BaseUrl, body.Model ?? "");
+                return Results.Ok(settings.GetStatus());
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { error = ex.Message });
+            }
+        });
+
+        app.MapDelete("/api/rules/explanation-provider/configure", (RulesExplanationSettingsService settings) =>
+        {
+            settings.ClearStoredSettings();
+            return Results.Ok(settings.GetStatus());
+        });
+
         // Registered after the more specific /api/rules/* routes above — ASP.NET Core's endpoint
         // routing prefers literal segment matches ("search", "keywords", ...) over this
         // parameterized one regardless of registration order, but keeping it last mirrors that.
@@ -667,5 +714,7 @@ public record OwnedRequest(int Owned);
 public record PricingKeyRequest(string ApiKey);
 public record TopDeckKeyRequest(string ApiKey);
 public record CommunitySyncRequest(int? Days);
+public record AskRuleQuestionRequest(string Question, string? CardId);
+public record RulesExplanationProviderRequest(string? ApiKey, string BaseUrl, string? Model);
 public record PriceRefreshRequest(bool IncludeAllCards);
 public record PriceQueueRequest(bool Queued);

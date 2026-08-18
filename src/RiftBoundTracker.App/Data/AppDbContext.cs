@@ -25,6 +25,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CardErrataEntity> CardErrata => Set<CardErrataEntity>();
     public DbSet<CardLegalityEntity> CardLegalities => Set<CardLegalityEntity>();
     public DbSet<RulesSyncStateEntity> RulesSyncState => Set<RulesSyncStateEntity>();
+    public DbSet<RuleConceptEntity> RuleConcepts => Set<RuleConceptEntity>();
+    public DbSet<RuleConceptKeywordEntity> RuleConceptKeywords => Set<RuleConceptKeywordEntity>();
+    public DbSet<RuleConceptPhraseEntity> RuleConceptPhrases => Set<RuleConceptPhraseEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -199,5 +202,28 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<RulesSyncStateEntity>().HasKey(s => s.Id);
+
+        var ruleConcept = modelBuilder.Entity<RuleConceptEntity>();
+        ruleConcept.HasKey(c => c.Id);
+        ruleConcept.HasIndex(c => c.NormalizedName).IsUnique();
+
+        var ruleConceptKeyword = modelBuilder.Entity<RuleConceptKeywordEntity>();
+        ruleConceptKeyword.HasKey(x => new { x.ConceptId, x.KeywordId });
+        ruleConceptKeyword.HasOne(x => x.Concept)
+            .WithMany(c => c.Keywords)
+            .HasForeignKey(x => x.ConceptId)
+            .OnDelete(DeleteBehavior.Cascade);
+        ruleConceptKeyword.HasOne(x => x.Keyword)
+            .WithMany()
+            .HasForeignKey(x => x.KeywordId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        var ruleConceptPhrase = modelBuilder.Entity<RuleConceptPhraseEntity>();
+        ruleConceptPhrase.HasKey(x => x.Id);
+        ruleConceptPhrase.HasIndex(x => x.NormalizedPhrase);
+        ruleConceptPhrase.HasOne(x => x.Concept)
+            .WithMany(c => c.Phrases)
+            .HasForeignKey(x => x.ConceptId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

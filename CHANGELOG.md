@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.16.0 — Ask Rules
+
+- The Rules tab now has an **Ask Rules** mode alongside search: ask a rules question in plain English and get back the real official rules that answer it, ranked with a confidence level (High/Medium/Low/Insufficient Evidence) based on how directly the evidence covers your question.
+- Understands official keywords, player slang ("tap" → Exhaust), and broader concepts your question implies even without the exact term ("my unit dies" → Unit Death, Leaving Battlefield) — every answer shows exactly which rules it drew from and why.
+- Never invents a ruling: with no AI configured, it shows the most relevant official rule text directly; nothing is fabricated either way.
+- New optional Settings section, **Ask Rules (AI Explanations)** — off by default. Point it at any OpenAI-compatible endpoint (OpenAI itself, or a local model server like Ollama/LM Studio) with your own key to get a written-out plain-language summary on top of the same rules evidence. Nothing is sent anywhere unless you configure this yourself.
+
 ## v1.15.0 — Rules library
 
 - New **Rules** tab: a searchable, locally-indexed copy of Riftbound's official Core Rules, Tournament Rules, card errata, and format legality/banned list — pulled from playriftbound.com and kept entirely offline afterward.

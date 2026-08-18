@@ -23,6 +23,7 @@ public sealed class RulesSyncService(
     NextJsArticlePageFetcher articleFetcher,
     RulesImportService import,
     RulesKeywordCatalogService keywordCatalog,
+    RulesConceptCatalogService conceptCatalog,
     RulesKeywordLinkerService keywordLinker,
     IHttpClientFactory httpClientFactory,
     ILogger<RulesSyncService> logger)
@@ -43,6 +44,7 @@ public sealed class RulesSyncService(
         try
         {
             await keywordCatalog.EnsureSeededAsync(ct);
+            await conceptCatalog.EnsureSeededAsync(ct);
 
             var discovered = await discovery.DiscoverAsync(ct);
             var documentsUpdated = 0;

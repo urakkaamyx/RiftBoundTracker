@@ -48,26 +48,14 @@ public sealed class RulesSearchService(AppDbContext db)
 
         var normalized = RulesKeywordCatalogService.Normalize(trimmed);
         var keyword = await db.RuleKeywords
-            .Include(k => k.CanonicalRule).ThenInclude(r => r!.Document)
             .Include(k => k.Aliases)
             .FirstOrDefaultAsync(k => k.NormalizedName == normalized || k.Aliases.Any(a => a.NormalizedAlias == normalized), ct);
 
         var scored = new Dictionary<int, (RuleEntryEntity Entry, string MatchType, double Score)>();
 
         if (keyword is not null)
-        {
-            if (keyword.CanonicalRule is not null && (!currentOnly || keyword.CanonicalRule.IsCurrent))
-                Consider(scored, keyword.CanonicalRule, "Keyword", CanonicalKeywordWeight);
-
-            var mentioned = await db.RuleEntryKeywords
-                .Where(rk => rk.KeywordId == keyword.Id)
-                .Include(rk => rk.RuleEntry).ThenInclude(r => r.Document)
-                .Select(rk => rk.RuleEntry)
-                .Where(r => !currentOnly || r.IsCurrent)
-                .ToListAsync(ct);
-            foreach (var entry in mentioned)
-                Consider(scored, entry, "Keyword", MentionedKeywordWeight);
-        }
+            foreach (var (entry, matchType, score) in await KeywordEvidenceAsync(keyword.Id, currentOnly, ct))
+                Consider(scored, entry, matchType, score);
 
         var titleMatches = await db.RuleEntries
             .Include(r => r.Document)
@@ -100,6 +88,42 @@ public sealed class RulesSearchService(AppDbContext db)
             results.Add(await ToHitAsync(entry, matchType, score, ct));
 
         return new RuleSearchResponse(query, trimmed, results.Count, results);
+    }
+
+    /// <summary>
+    /// Every rule tied to one keyword — its own canonical definition plus every rule whose text
+    /// mentions it. Shared by SearchAsync's exact-keyword branch and RulesEvidenceService (which
+    /// needs the same lookup per detected/concept-linked keyword when answering a free-text
+    /// question) so the two never diverge on what "evidence for this keyword" means.
+    /// </summary>
+    public async Task<List<RuleSearchHit>> SearchByKeywordIdAsync(int keywordId, bool currentOnly, CancellationToken ct = default)
+    {
+        var hits = new List<RuleSearchHit>();
+        foreach (var (entry, matchType, score) in await KeywordEvidenceAsync(keywordId, currentOnly, ct))
+            hits.Add(await ToHitAsync(entry, matchType, score, ct));
+        return hits;
+    }
+
+    private async Task<List<(RuleEntryEntity Entry, string MatchType, double Score)>> KeywordEvidenceAsync(
+        int keywordId, bool currentOnly, CancellationToken ct)
+    {
+        var results = new List<(RuleEntryEntity, string, double)>();
+        var keyword = await db.RuleKeywords
+            .Include(k => k.CanonicalRule).ThenInclude(r => r!.Document)
+            .FirstOrDefaultAsync(k => k.Id == keywordId, ct);
+        if (keyword?.CanonicalRule is { } canonicalRule && (!currentOnly || canonicalRule.IsCurrent))
+            results.Add((canonicalRule, "Keyword", CanonicalKeywordWeight));
+
+        var mentioned = await db.RuleEntryKeywords
+            .Where(rk => rk.KeywordId == keywordId)
+            .Include(rk => rk.RuleEntry).ThenInclude(r => r.Document)
+            .Select(rk => rk.RuleEntry)
+            .Where(r => !currentOnly || r.IsCurrent)
+            .ToListAsync(ct);
+        foreach (var entry in mentioned)
+            results.Add((entry, "Keyword", MentionedKeywordWeight));
+
+        return results;
     }
 
     private static void Consider(

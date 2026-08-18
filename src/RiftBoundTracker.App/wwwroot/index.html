@@ -164,19 +164,36 @@
         <section class="page" id="page-rules" data-title="Rules" data-eyebrow="Reference">
           <div class="page-toolbar">
             <div><h2>Riftbound Rules</h2><p id="rulesLibraryMeta">Loading...</p></div>
-          </div>
-          <div class="rules-search-row">
-            <i data-icon="search"></i>
-            <input id="rulesSearchInput" placeholder="Search rules, keywords, cards, or rule numbers..." autocomplete="off" />
-          </div>
-          <div class="rules-quick-topics" id="rulesQuickTopics"></div>
-          <div class="rules-layout">
-            <div class="rules-results" id="rulesResults">
-              <div class="page-empty"><i data-icon="search"></i><h2>Search for a rule</h2><span>Try a rule number, a keyword like "exhaust", or a card name.</span></div>
+            <div class="segmented" id="rulesModeTabs">
+              <button type="button" data-rules-mode="search" class="active">Search Rules</button>
+              <button type="button" data-rules-mode="ask">Ask Rules</button>
             </div>
-            <aside class="rules-detail" id="rulesDetail">
-              <div class="page-empty"><i data-icon="book-open"></i><h2>Select a result</h2></div>
-            </aside>
+          </div>
+
+          <div id="rulesSearchMode">
+            <div class="rules-search-row">
+              <i data-icon="search"></i>
+              <input id="rulesSearchInput" placeholder="Search rules, keywords, cards, or rule numbers..." autocomplete="off" />
+            </div>
+            <div class="rules-quick-topics" id="rulesQuickTopics"></div>
+            <div class="rules-layout">
+              <div class="rules-results" id="rulesResults">
+                <div class="page-empty"><i data-icon="search"></i><h2>Search for a rule</h2><span>Try a rule number, a keyword like "exhaust", or a card name.</span></div>
+              </div>
+              <aside class="rules-detail" id="rulesDetail">
+                <div class="page-empty"><i data-icon="book-open"></i><h2>Select a result</h2></div>
+              </aside>
+            </div>
+          </div>
+
+          <div id="rulesAskMode" hidden>
+            <div class="ask-rules-form">
+              <textarea id="askRulesInput" rows="2" placeholder="Ask a Riftbound rules question in plain English…"></textarea>
+              <button type="button" class="command-btn gold" id="askRulesBtn"><i data-icon="search"></i>Ask</button>
+            </div>
+            <div id="askRulesResult">
+              <div class="page-empty"><i data-icon="book-open"></i><h2>Ask a question</h2><span>The system only answers from real Riftbound rules evidence — it will say so if the evidence doesn't cover your exact question.</span></div>
+            </div>
           </div>
         </section>
 
@@ -186,6 +203,7 @@
             <section class="settings-section"><div class="settings-icon"><i data-icon="dollar"></i></div><div><h2>Pricing</h2><p id="pricingStatus">Loading...</p><div class="inline-form"><input id="pricingKey" type="password" placeholder="JustTCG API key" autocomplete="off" /><button class="command-btn gold" id="savePricingKey">Save</button><button class="icon-btn" id="clearPricingKey" title="Remove stored API key"><i data-icon="trash"></i></button></div><div class="settings-actions"><button class="command-btn" id="refreshTrackedPrices"><i data-icon="refresh"></i>Refresh Tracked</button><button class="command-btn quiet" id="refreshAllPrices">Refresh All</button></div></div></section>
             <section class="settings-section"><div class="settings-icon"><i data-icon="layers"></i></div><div><h2>Community Data</h2><p id="topdeckStatus">Loading...</p><div class="inline-form"><input id="topdeckKey" type="password" placeholder="TopDeck.gg API key" autocomplete="off" /><button class="command-btn gold" id="saveTopdeckKey">Save</button><button class="icon-btn" id="clearTopdeckKey" title="Remove stored API key"><i data-icon="trash"></i></button></div><p class="settings-hint">Each user supplies their own TopDeck.gg key — get one at <span>topdeck.gg</span>. Used to pull tournament decklists for the Recommended tab.</p><p id="communitySyncStatus" class="settings-hint">Loading sync status...</p><div class="data-facts" id="communitySyncFacts"></div><div class="settings-actions"><button class="command-btn" id="syncCommunityBtn"><i data-icon="refresh"></i>Sync Now</button></div></div></section>
             <section class="settings-section"><div class="settings-icon"><i data-icon="book-open"></i></div><div><h2>Rules Library</h2><p id="rulesSyncStatus">Loading...</p><div class="data-facts" id="rulesSyncFacts"></div><div class="settings-actions"><button class="command-btn" id="syncRulesBtn"><i data-icon="refresh"></i>Sync Now</button></div></div></section>
+            <section class="settings-section"><div class="settings-icon"><i data-icon="star"></i></div><div><h2>Ask Rules (AI Explanations)</h2><p id="askRulesProviderStatus">Loading...</p><div class="inline-form"><input id="askRulesBaseUrl" placeholder="https://api.openai.com/v1 (or a local model server)" autocomplete="off" /><input id="askRulesModel" placeholder="Model (e.g. gpt-4o-mini)" autocomplete="off" /></div><div class="inline-form"><input id="askRulesApiKey" type="password" placeholder="API key (optional for local models)" autocomplete="off" /><button class="command-btn gold" id="saveAskRulesProvider">Save</button><button class="icon-btn" id="clearAskRulesProvider" title="Remove stored settings"><i data-icon="trash"></i></button></div><p class="settings-hint">Optional and off by default. Ask Rules always answers from real local rules evidence — this just adds a plain-language summary on top, generated by whichever OpenAI-compatible endpoint you point it at (OpenAI itself, or a local model server like Ollama/LM Studio). Nothing is sent anywhere unless you configure this.</p></div></section>
             <section class="settings-section"><div class="settings-icon"><i data-icon="shield"></i></div><div><h2>Data Safety</h2><p id="databaseStatus">Loading...</p><div class="data-facts" id="databaseFacts"></div></div></section>
             <section class="settings-section"><div class="settings-icon"><i data-icon="smartphone"></i></div><div><h2>Phone Connection</h2><p id="connectionSettingsStatus">Loading...</p><div class="settings-actions"><button class="command-btn" id="settingsConnection"><i data-icon="qr"></i>Show QR Code</button></div></div></section>
             <section class="settings-section"><div class="settings-icon"><i data-icon="palette"></i></div><div><h2>Appearance</h2><p>Theme</p><div class="segmented" id="themeControl"><button data-theme-value="dark" class="active">Dark</button><button data-theme-value="light">Light</button></div></div></section>

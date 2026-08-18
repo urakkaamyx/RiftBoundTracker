@@ -72,7 +72,8 @@ const state = {
   cardTextSymbols: new Map(),
   priceQueue: { items: [], batchSize: 20, configured: false, provider: "JustTCG" },
   priceQueueIds: new Set(),
-  rules: { mode: "search", query: "", results: [], glossary: [], errata: [], legality: [], selectedKind: null, selectedId: null, searchTimer: null }
+  rules: { mode: "search", query: "", results: [], glossary: [], errata: [], legality: [], selectedKind: null, selectedId: null, searchTimer: null },
+  rulesPageMode: "search"
 };
 const cardsById = new Map();
 let massEntries = [];
@@ -1683,6 +1684,12 @@ async function loadSettings() {
   document.getElementById("rulesSyncFacts").innerHTML = rulesSync.lastSuccessfulSyncAt
     ? `<span>${rulesSync.rulesIndexed} rules</span><span>${rulesSync.keywordsIndexed} keywords</span><span>${rulesSync.errataIndexed} errata</span><span>${rulesSync.legalityEntriesIndexed} legality entries</span>`
     : "";
+  const askProvider = await api("/api/rules/explanation-provider/status");
+  document.getElementById("askRulesProviderStatus").textContent = askProvider.configured
+    ? `Configured: ${askProvider.baseUrl} (${askProvider.model}${askProvider.keyHint ? `, key ${askProvider.keyHint}` : ", no key"}).`
+    : "Not configured — Ask Rules will still answer from real rules evidence, just without a written-out explanation.";
+  document.getElementById("askRulesBaseUrl").value = askProvider.baseUrl || "";
+  document.getElementById("askRulesModel").value = askProvider.model || "";
   const db = health.database;
   document.getElementById("databaseStatus").textContent = db
     ? `Database verified: ${db.integrity}. Protected collection totals are checked at startup.`
@@ -2531,6 +2538,92 @@ function selectLegalityResult(id) {
   markActiveResult(id);
 }
 
+function setRulesPageMode(mode) {
+  state.rulesPageMode = mode;
+  document.querySelectorAll("#rulesModeTabs button").forEach(b => b.classList.toggle("active", b.dataset.rulesMode === mode));
+  document.getElementById("rulesSearchMode").hidden = mode !== "search";
+  document.getElementById("rulesAskMode").hidden = mode !== "ask";
+}
+
+async function askRulesQuestion() {
+  const input = document.getElementById("askRulesInput");
+  const question = input.value.trim();
+  const root = document.getElementById("askRulesResult");
+  if (!question) return;
+  const button = document.getElementById("askRulesBtn");
+  button.disabled = true;
+  root.innerHTML = `<div class="loading-line" style="padding:20px">Checking the rules...</div>`;
+  try {
+    const result = await api("/api/rules/ask", jsonOptions("POST", { question }));
+    renderAskRulesResult(result);
+  } catch (err) {
+    root.innerHTML = `<div class="page-empty"><i data-icon="alert-triangle"></i><h2>Couldn't answer that</h2><span>${escapeHtml(err.message)}</span></div>`;
+    renderIcons(root);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function renderAskRulesResult(result) {
+  const root = document.getElementById("askRulesResult");
+  const confidenceClass = result.confidence.toLowerCase();
+  const confidenceLabel = result.confidence.replace(/([a-z])([A-Z])/g, "$1 $2");
+
+  const chips = [
+    ...result.keywords.map(k => `<span class="rule-chip">${escapeHtml(k.name)}</span>`),
+    ...result.concepts.map(c => `<span class="rule-chip">${escapeHtml(c.name)}</span>`)
+  ].join("");
+
+  const answerBlock = result.answerGenerated
+    ? `<p class="ask-answer-text">${escapeHtml(result.answer)}</p>`
+    : result.sources.length
+      ? `<p class="ask-answer-note">No AI explanation is configured (Settings → Ask Rules), so here's the most relevant official rules text directly.</p>`
+      : `<p class="ask-answer-note">I didn't find any official rule, keyword, or clarification that covers this question. Try rephrasing with an official term, or browse the Rules search instead.</p>`;
+
+  const evidenceRows = result.sources.map(s => `
+    <div class="ask-evidence-row">
+      <div class="ask-evidence-row-head">
+        <b>${escapeHtml(s.ruleNumber ? `Rule ${s.ruleNumber}` : s.document)}</b>
+        <span class="authority-badge ${s.current ? "current" : "historical"}">${s.current ? "Current" : "Historical"} · ${escapeHtml(s.authority)}</span>
+      </div>
+      <p>${escapeHtml(s.title.startsWith("Rule ") ? s.snippet : s.title)}</p>
+      <span>${escapeHtml(s.document)} — matched via ${s.matchedVia.map(escapeHtml).join(", ")}</span>
+    </div>`).join("");
+
+  root.innerHTML = `
+    <div class="ask-answer-panel">
+      <div class="ask-confidence-row">
+        <h3>Answer</h3>
+        <span class="confidence-badge ${confidenceClass}">${escapeHtml(confidenceLabel)}</span>
+      </div>
+      ${answerBlock}
+      ${chips ? `<div class="rule-chip-row" style="margin-bottom:16px">${chips}</div>` : ""}
+      ${result.sources.length ? `<div class="rule-detail-section" style="margin-top:0;padding-top:0;border-top:0"><h4>Why?</h4><div class="ask-evidence-list">${evidenceRows}</div></div>` : ""}
+    </div>`;
+  renderIcons(root);
+}
+
+async function saveAskRulesProvider() {
+  const baseUrl = document.getElementById("askRulesBaseUrl").value.trim();
+  const model = document.getElementById("askRulesModel").value.trim();
+  const apiKey = document.getElementById("askRulesApiKey").value.trim();
+  if (!baseUrl) { toast("Enter a base URL first", true); return; }
+  try {
+    await api("/api/rules/explanation-provider/configure", jsonOptions("POST", { baseUrl, model, apiKey }));
+    document.getElementById("askRulesApiKey").value = "";
+    toast("Ask Rules explanation provider saved");
+    await loadSettings();
+  } catch (err) {
+    toast(err.message, true);
+  }
+}
+
+async function clearAskRulesProvider() {
+  await api("/api/rules/explanation-provider/configure", { method: "DELETE" });
+  toast("Ask Rules explanation provider removed");
+  await loadSettings();
+}
+
 async function syncRulesData() {
   const button = document.getElementById("syncRulesBtn");
   button.disabled = true;
@@ -2698,6 +2791,16 @@ function wireEvents() {
   document.getElementById("clearTopdeckKey").addEventListener("click", clearTopdeckKey);
   document.getElementById("syncCommunityBtn").addEventListener("click", syncCommunityData);
   document.getElementById("syncRulesBtn").addEventListener("click", syncRulesData);
+  document.getElementById("rulesModeTabs").addEventListener("click", event => {
+    const button = event.target.closest("[data-rules-mode]");
+    if (button) setRulesPageMode(button.dataset.rulesMode);
+  });
+  document.getElementById("askRulesBtn").addEventListener("click", askRulesQuestion);
+  document.getElementById("askRulesInput").addEventListener("keydown", event => {
+    if ((event.ctrlKey || event.metaKey) && event.key === "Enter") askRulesQuestion();
+  });
+  document.getElementById("saveAskRulesProvider").addEventListener("click", saveAskRulesProvider);
+  document.getElementById("clearAskRulesProvider").addEventListener("click", clearAskRulesProvider);
   document.getElementById("rulesSearchInput").addEventListener("input", event => {
     clearTimeout(state.rules.searchTimer);
     const value = event.target.value;

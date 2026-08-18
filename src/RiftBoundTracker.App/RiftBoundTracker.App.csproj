@@ -7,7 +7,7 @@
     <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.16.0</Version>
+    <Version>1.17.0</Version>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>app.ico</ApplicationIcon>
@@ -34,10 +34,23 @@
     <PackageReference Include="PdfPig" Version="0.1.10" />
     <!-- HTML parsing for the Rules Hub / errata article pages — see RulesHubParser, ErrataArticleParser. -->
     <PackageReference Include="HtmlAgilityPack" Version="1.11.72" />
+    <!-- Fully local LLM inference (llama.cpp bindings) for Ask Rules' optional plain-language
+         explanation layer — see LocalLlmExplanationProvider. CPU backend only: works on every
+         machine with no GPU/driver dependency, at the cost of being slower than a GPU backend
+         would be. A ~1B-2B GGUF model answering a few-sentence question from supplied evidence is
+         fast enough on CPU (a few seconds) that the extra complexity of also shipping CUDA/Vulkan
+         backends isn't worth it for this use case. -->
+    <PackageReference Include="LLamaSharp" Version="0.27.0" />
+    <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.27.0" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="Run with debug console.bat" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The GGUF model itself is deliberately NOT checked into git (a ~1GB binary would bloat the
+         repo's history forever) — scripts/release.ps1 downloads it into this folder before
+         `dotnet publish` runs, so it still ends up bundled in the shipped release zip. See
+         LocalLlmExplanationProvider for the expected filename/path. -->
+    <None Include="Models/*.gguf" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Sdk.Web copies any loose project-directory file into the publish output by default (Content

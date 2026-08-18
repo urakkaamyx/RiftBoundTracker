@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.17.0 — Fully local Ask Rules AI
+
+- Replaced the third-party AI option with a small language model that ships with the app and runs entirely on your machine — no account, no API key, no data ever leaves your PC. Settings → Ask Rules (Local AI) is now a single on/off toggle instead of endpoint/key configuration.
+- Off by default (loading the model uses about 1GB of memory and takes a few seconds per question) — turn it on any time from Settings.
+
 ## v1.16.0 — Ask Rules
 
 - The Rules tab now has an **Ask Rules** mode alongside search: ask a rules question in plain English and get back the real official rules that answer it, ranked with a confidence level (High/Medium/Low/Insufficient Evidence) based on how directly the evidence covers your question.

@@ -73,7 +73,8 @@ const state = {
   priceQueue: { items: [], batchSize: 20, configured: false, provider: "JustTCG" },
   priceQueueIds: new Set(),
   rules: { mode: "search", query: "", results: [], glossary: [], errata: [], legality: [], selectedKind: null, selectedId: null, searchTimer: null },
-  rulesPageMode: "search"
+  rulesPageMode: "search",
+  localAiEnabled: false
 };
 const cardsById = new Map();
 let massEntries = [];
@@ -1684,12 +1685,16 @@ async function loadSettings() {
   document.getElementById("rulesSyncFacts").innerHTML = rulesSync.lastSuccessfulSyncAt
     ? `<span>${rulesSync.rulesIndexed} rules</span><span>${rulesSync.keywordsIndexed} keywords</span><span>${rulesSync.errataIndexed} errata</span><span>${rulesSync.legalityEntriesIndexed} legality entries</span>`
     : "";
-  const askProvider = await api("/api/rules/explanation-provider/status");
-  document.getElementById("askRulesProviderStatus").textContent = askProvider.configured
-    ? `Configured: ${askProvider.baseUrl} (${askProvider.model}${askProvider.keyHint ? `, key ${askProvider.keyHint}` : ", no key"}).`
-    : "Not configured — Ask Rules will still answer from real rules evidence, just without a written-out explanation.";
-  document.getElementById("askRulesBaseUrl").value = askProvider.baseUrl || "";
-  document.getElementById("askRulesModel").value = askProvider.model || "";
+  const localAi = await api("/api/rules/local-ai/status");
+  state.localAiEnabled = localAi.enabled;
+  const toggleBtn = document.getElementById("toggleLocalAi");
+  toggleBtn.textContent = localAi.enabled ? "Disable" : "Enable";
+  toggleBtn.disabled = !localAi.modelAvailable;
+  document.getElementById("askRulesProviderStatus").textContent = !localAi.modelAvailable
+    ? "Model file not found — reinstall the app to restore it."
+    : localAi.enabled
+      ? `On — running ${localAi.modelFile} locally (${(localAi.modelBytes / 1e9).toFixed(1)} GB).`
+      : "Off — Ask Rules will still answer from real rules evidence, just without a written-out summary.";
   const db = health.database;
   document.getElementById("databaseStatus").textContent = db
     ? `Database verified: ${db.integrity}. Protected collection totals are checked at startup.`
@@ -2577,7 +2582,7 @@ function renderAskRulesResult(result) {
   const answerBlock = result.answerGenerated
     ? `<p class="ask-answer-text">${escapeHtml(result.answer)}</p>`
     : result.sources.length
-      ? `<p class="ask-answer-note">No AI explanation is configured (Settings → Ask Rules), so here's the most relevant official rules text directly.</p>`
+      ? `<p class="ask-answer-note">Local AI answers are off (Settings → Ask Rules), so here's the most relevant official rules text directly.</p>`
       : `<p class="ask-answer-note">I didn't find any official rule, keyword, or clarification that covers this question. Try rephrasing with an official term, or browse the Rules search instead.</p>`;
 
   const evidenceRows = result.sources.map(s => `
@@ -2603,25 +2608,17 @@ function renderAskRulesResult(result) {
   renderIcons(root);
 }
 
-async function saveAskRulesProvider() {
-  const baseUrl = document.getElementById("askRulesBaseUrl").value.trim();
-  const model = document.getElementById("askRulesModel").value.trim();
-  const apiKey = document.getElementById("askRulesApiKey").value.trim();
-  if (!baseUrl) { toast("Enter a base URL first", true); return; }
+async function toggleLocalAi() {
+  const button = document.getElementById("toggleLocalAi");
+  button.disabled = true;
   try {
-    await api("/api/rules/explanation-provider/configure", jsonOptions("POST", { baseUrl, model, apiKey }));
-    document.getElementById("askRulesApiKey").value = "";
-    toast("Ask Rules explanation provider saved");
+    const result = await api("/api/rules/local-ai/configure", jsonOptions("POST", { enabled: !state.localAiEnabled }));
+    toast(result.enabled ? "Local AI answers enabled" : "Local AI answers disabled");
     await loadSettings();
   } catch (err) {
     toast(err.message, true);
+    button.disabled = false;
   }
-}
-
-async function clearAskRulesProvider() {
-  await api("/api/rules/explanation-provider/configure", { method: "DELETE" });
-  toast("Ask Rules explanation provider removed");
-  await loadSettings();
 }
 
 async function syncRulesData() {
@@ -2799,8 +2796,7 @@ function wireEvents() {
   document.getElementById("askRulesInput").addEventListener("keydown", event => {
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") askRulesQuestion();
   });
-  document.getElementById("saveAskRulesProvider").addEventListener("click", saveAskRulesProvider);
-  document.getElementById("clearAskRulesProvider").addEventListener("click", clearAskRulesProvider);
+  document.getElementById("toggleLocalAi").addEventListener("click", toggleLocalAi);
   document.getElementById("rulesSearchInput").addEventListener("input", event => {
     clearTimeout(state.rules.searchTimer);
     const value = event.target.value;

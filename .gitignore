@@ -34,3 +34,8 @@ App_Data/
 /Enter_Hover.png
 /logo.png
 *.psd
+
+# Local LLM model for Ask Rules' explanation layer — a ~1GB binary that would bloat the repo's
+# history forever. scripts/release.ps1 downloads it fresh into this folder before publishing, so
+# it still ships inside the release zip without ever being committed. See LocalLlmExplanationProvider.
+/src/RiftBoundTracker.App/Models/*.gguf

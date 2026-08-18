@@ -169,11 +169,6 @@ internal static class Program
             c.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/pdf,*/*");
             c.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
         });
-        builder.Services.AddHttpClient("rules-explanation", c =>
-        {
-            c.Timeout = TimeSpan.FromSeconds(45);
-            c.DefaultRequestHeaders.Accept.ParseAdd("application/json");
-        });
 
         builder.Services.AddSingleton<ImageHashService>();
         builder.Services.AddSingleton<OcrService>();
@@ -204,8 +199,11 @@ internal static class Program
         builder.Services.AddScoped<RulesSyncService>();
         builder.Services.AddScoped<RulesSearchService>();
         builder.Services.AddScoped<RulesService>();
-        builder.Services.AddSingleton<RulesExplanationSettingsService>();
-        builder.Services.AddScoped<IRulesExplanationProvider, OpenAiCompatibleExplanationProvider>();
+        builder.Services.AddSingleton<RulesLocalAiSettingsService>();
+        // Singleton (not Scoped): holds the loaded model + context so it's loaded once and kept
+        // resident across requests instead of reloading a ~1GB model on every question.
+        builder.Services.AddSingleton<LocalLlmExplanationProvider>();
+        builder.Services.AddSingleton<IRulesExplanationProvider>(sp => sp.GetRequiredService<LocalLlmExplanationProvider>());
         builder.Services.AddScoped<RulesQuestionService>();
         builder.Services.AddScoped<RulesEvidenceService>();
         builder.Services.AddScoped<RulesAnswerService>();
@@ -520,26 +518,18 @@ internal static class Program
             return Results.Ok(await questions.AnalyzeAsync(body.Question, body.CardId, ct));
         });
 
-        app.MapGet("/api/rules/explanation-provider/status", (RulesExplanationSettingsService settings) =>
-            Results.Ok(settings.GetStatus()));
-
-        app.MapPost("/api/rules/explanation-provider/configure", (RulesExplanationProviderRequest body, RulesExplanationSettingsService settings) =>
+        app.MapGet("/api/rules/local-ai/status", (RulesLocalAiSettingsService settings, LocalLlmExplanationProvider provider) =>
         {
-            try
-            {
-                settings.SaveSettings(body.ApiKey ?? "", body.BaseUrl, body.Model ?? "");
-                return Results.Ok(settings.GetStatus());
-            }
-            catch (ArgumentException ex)
-            {
-                return Results.BadRequest(new { error = ex.Message });
-            }
+            var modelPath = provider.FindModelPath();
+            return Results.Ok(new RulesLocalAiStatusDto(
+                settings.IsEnabled(), modelPath is not null, modelPath is null ? null : Path.GetFileName(modelPath),
+                modelPath is null ? null : new FileInfo(modelPath).Length));
         });
 
-        app.MapDelete("/api/rules/explanation-provider/configure", (RulesExplanationSettingsService settings) =>
+        app.MapPost("/api/rules/local-ai/configure", (RulesLocalAiToggleRequest body, RulesLocalAiSettingsService settings) =>
         {
-            settings.ClearStoredSettings();
-            return Results.Ok(settings.GetStatus());
+            settings.SetEnabled(body.Enabled);
+            return Results.Ok(new { enabled = settings.IsEnabled() });
         });
 
         // Registered after the more specific /api/rules/* routes above — ASP.NET Core's endpoint
@@ -715,6 +705,6 @@ public record PricingKeyRequest(string ApiKey);
 public record TopDeckKeyRequest(string ApiKey);
 public record CommunitySyncRequest(int? Days);
 public record AskRuleQuestionRequest(string Question, string? CardId);
-public record RulesExplanationProviderRequest(string? ApiKey, string BaseUrl, string? Model);
+public record RulesLocalAiToggleRequest(bool Enabled);
 public record PriceRefreshRequest(bool IncludeAllCards);
 public record PriceQueueRequest(bool Queued);

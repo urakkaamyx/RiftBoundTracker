@@ -237,6 +237,46 @@ public partial class CardCacheService(
         }).ToList();
     }
 
+    /// <summary>
+    /// Exact name match for decklist formats that give no set/collector code at all (e.g. a
+    /// "RiftDecks" export — just "{qty} {name}" per line). An exact match against the full Name
+    /// field naturally prefers the base print over a variant: a plain query like "Stacked Deck"
+    /// only matches a card whose Name is literally that, never "Stacked Deck (Metal)". The rare
+    /// case of two prints sharing an identical unsuffixed name (a handful of Legends do — an OPP
+    /// promo and the OGN rare) falls back to the lowest set/collector number for a deterministic,
+    /// reasonable pick — still a base print either way, just not a unique one.
+    /// </summary>
+    public async Task<List<CardEntity>> FindByNameAsync(string name, CancellationToken ct = default)
+    {
+        var trimmed = name.Trim();
+        if (trimmed.Length == 0) return [];
+
+        var direct = await QueryExactNameAsync(trimmed, ct);
+        if (direct.Count > 0) return direct;
+
+        // "Champion, Title" style names are inconsistent about whether the separator is a comma
+        // or a dash — even our own catalog isn't consistent with itself card-to-card (confirmed:
+        // "Kennen, Storm of Shuriken" but "Nocturne - Horrifying"), so a decklist export using
+        // the other style than whatever this specific card happens to use would otherwise fail
+        // to resolve. Retry once with the separator swapped before giving up.
+        var swapped = SwapNameSeparator(trimmed);
+        return swapped == trimmed ? [] : await QueryExactNameAsync(swapped, ct);
+    }
+
+    private async Task<List<CardEntity>> QueryExactNameAsync(string name, CancellationToken ct) =>
+        await db.Cards
+            .Where(c => c.Name.ToLower() == name.ToLower())
+            .OrderBy(c => c.SetId).ThenBy(c => c.CollectorNumber)
+            .ToListAsync(ct);
+
+    private static string SwapNameSeparator(string name)
+    {
+        var commaIdx = name.IndexOf(", ", StringComparison.Ordinal);
+        if (commaIdx > 0) return string.Concat(name.AsSpan(0, commaIdx), " - ", name.AsSpan(commaIdx + 2));
+        var dashIdx = name.IndexOf(" - ", StringComparison.Ordinal);
+        return dashIdx > 0 ? string.Concat(name.AsSpan(0, dashIdx), ", ", name.AsSpan(dashIdx + 3)) : name;
+    }
+
     public record SetSummary(string SetId, string SetLabel, int Total, int Owned);
 
     public async Task<List<SetSummary>> GetSetsAsync(CancellationToken ct = default)

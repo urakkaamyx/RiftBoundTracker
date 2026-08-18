@@ -2419,11 +2419,6 @@ function wireEvents() {
   });
   document.getElementById("importDeckBtn").addEventListener("click", () => showModal("importDeckModal"));
   document.getElementById("confirmImportDeck").addEventListener("click", importDeck);
-  const importPlaceholders = { riftkeep: "3 OGN-045 Card Name", riftatlas: "3 Card Name [OGN-045]" };
-  document.querySelectorAll("[data-import-hint]").forEach(button => button.addEventListener("click", () => {
-    document.querySelectorAll("[data-import-hint]").forEach(b => b.classList.toggle("active", b === button));
-    document.getElementById("importDeckContents").placeholder = importPlaceholders[button.dataset.importHint];
-  }));
   document.getElementById("savePricingKey").addEventListener("click", savePricingKey);
   document.getElementById("clearPricingKey").addEventListener("click", clearPricingKey);
   document.getElementById("saveTopdeckKey").addEventListener("click", saveTopdeckKey);

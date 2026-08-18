@@ -171,22 +171,40 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
                 continue;
             }
 
-            // Accept either RiftKeep's "{qty} {set}-{code} {name}" lines or RiftAtlas'
-            // "{qty} {name} [{set}-{code}]" lines — auto-detected per line so either export
-            // (or a mix of both, pasted together) imports without the user picking a format.
+            // Accept RiftKeep's "{qty} {set}-{code} {name}" lines, RiftAtlas' "{qty} {name}
+            // [{set}-{code}]" lines, or a bare "{qty} {name}" line with no set/code at all (e.g.
+            // a RiftDecks export) — auto-detected per line, tried in that order, so a paste can
+            // even mix formats without the user picking one.
+            int quantity;
+            List<CardEntity> cards;
             var match = ImportLinePattern().Match(line);
-            if (!match.Success) match = RiftAtlasImportLinePattern().Match(line);
-            if (!match.Success)
+            if (match.Success)
+            {
+                quantity = match.Groups["qty"].Success ? int.Parse(match.Groups["qty"].Value) : 1;
+                cards = await cache.FindByCodeAsync(match.Groups["set"].Value, match.Groups["code"].Value, ct);
+                if (cards.Count != 1) cards = [];
+            }
+            else if ((match = RiftAtlasImportLinePattern().Match(line)).Success)
+            {
+                quantity = int.Parse(match.Groups["qty"].Value);
+                cards = await cache.FindByCodeAsync(match.Groups["set"].Value, match.Groups["code"].Value, ct);
+                if (cards.Count != 1) cards = [];
+            }
+            else if ((match = NameOnlyImportLinePattern().Match(line)).Success)
+            {
+                quantity = int.Parse(match.Groups["qty"].Value);
+                // Multiple matches (the rare pair of prints sharing an identical unsuffixed name)
+                // resolve to the first result — FindByNameAsync already orders those toward a
+                // deterministic base-print pick rather than rejecting the line outright.
+                cards = await cache.FindByNameAsync(match.Groups["name"].Value, ct);
+            }
+            else
             {
                 unmatched.Add(line);
                 continue;
             }
 
-            var quantity = match.Groups["qty"].Success ? int.Parse(match.Groups["qty"].Value) : 1;
-            var setId = match.Groups["set"].Value;
-            var code = match.Groups["code"].Value;
-            var cards = await cache.FindByCodeAsync(setId, code, ct);
-            if (cards.Count != 1)
+            if (cards.Count == 0)
             {
                 unmatched.Add(line);
                 continue;
@@ -349,6 +367,11 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
 
     [GeneratedRegex(@"^(?<qty>\d{1,2})\s+.+?\[(?<set>[A-Za-z]{2,4})-(?<code>[A-Za-z]{0,2}\d{1,3}[A-Za-z]?)\]\s*$")]
     private static partial Regex RiftAtlasImportLinePattern();
+
+    // Last-resort fallback for exports with no set/collector code at all (e.g. a RiftDecks
+    // export) — just "{qty} {name}". Tried only after both code-based patterns fail.
+    [GeneratedRegex(@"^(?<qty>\d{1,2})\s+(?<name>.+?)\s*$")]
+    private static partial Regex NameOnlyImportLinePattern();
 
     [GeneratedRegex(@"^(?<name>[A-Za-z][A-Za-z ]*):$")]
     private static partial Regex SectionHeaderPattern();

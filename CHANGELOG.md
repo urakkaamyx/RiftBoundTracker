@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.14.2 — RiftDecks import support
+
+- Import now handles RiftDecks-style decklists (plain "{qty} {name}" lines with no set/collector code), resolving cards by exact name and always preferring the base print over a variant when a name is ambiguous.
+- Fixed a name-resolution gap where "Champion, Title" cards fail to match when the decklist and our catalog disagree on comma vs. dash as the separator (e.g. "Nocturne, Horrifying" vs. "Nocturne - Horrifying") — now retried automatically with the separator swapped.
+- Simplified the Import modal: removed the RiftKeep/RiftAtlas format buttons since import already auto-detects the format per line.
+
 ## v1.14.1 — Sidebar cleanup
 
 - Removed the redundant RIFTKEEP logo/text block from the top of the sidebar (the launch screen already carries the branding) — the nav list now starts right at the top.

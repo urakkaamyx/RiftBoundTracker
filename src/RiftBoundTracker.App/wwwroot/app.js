@@ -52,6 +52,8 @@ const state = {
   deckTab: "builder", discoverTab: "recommended", discoverSearch: "", discoverSection: "main",
   discoverVariantSelection: new Map(), discoverPage: 1, discoverPageSize: 25,
   discoverCache: { key: null, cards: [] },
+  recommendedCache: { key: null, recs: [] },
+  recommendedRowsById: new Map(),
   legendPicker: { cards: [], search: "", ownedOnly: false, selectedBase: null, selectedVariantId: null, mode: "create" },
   cardTextSymbols: new Map(),
   priceQueue: { items: [], batchSize: 20, configured: false, provider: "JustTCG" },
@@ -1014,7 +1016,6 @@ function deckSummaryMarkup(detail) {
   const ownedPct = totalCards ? Math.round(summary.ownedCount * 100 / totalCards) : 0;
   return `
     <aside class="deck-summary">
-      <div class="deck-summary-hero">${legend ? `<img src="${escapeHtml(cardImage(legend))}" alt="" />` : ""}</div>
       <button type="button" class="command-btn quiet deck-change-legend" id="changeLegendBtn">${icon("refresh")}Change Legend</button>
       ${legend
         ? `<h3>${escapeHtml(legend.name)}</h3><div class="deck-summary-domains">${domains.map(d => `<span style="color:${DOMAIN_COLOR[domainName(d)] || "var(--c-colorless)"}">${escapeHtml(domainName(d))}</span>`).join(" &middot; ")}</div>`
@@ -1124,7 +1125,7 @@ async function loadCommunityAnalysis(detail) {
   const upgrades = recs.filter(r => r.currentDeckQuantity === 0).slice(0, 5);
   upgradesEl.innerHTML = upgrades.length
     ? upgrades.map(r => `
-      <div class="valuable-row"><div class="valuable-art"><img src="${escapeHtml(cardImage(r.card))}" alt="" />${cardImagePopout(r.card)}</div><div><strong>${escapeHtml(r.card.name)}</strong><span>${r.inclusionRate}% of decks &middot; avg ${r.averageCopies}x</span></div><b class="${r.card.ownedCount > 0 ? "owned" : "missing"}">${r.card.ownedCount > 0 ? "Owned" : "Missing"}</b></div>`).join("")
+      <div class="valuable-row"><div class="valuable-art"><img src="${escapeHtml(cardImage(r.card))}" alt="" />${cardImagePopout(r.card)}</div><div><strong>${escapeHtml(r.card.name)}</strong><span>${r.inclusionRate}% of decks &middot; avg ${r.averageCopies}x</span></div><b class="${r.ownedCount > 0 ? "owned" : "missing"}">${r.ownedCount > 0 ? "Owned" : "Missing"}</b></div>`).join("")
     : `<span class="loading-line">No missing staples &mdash; deck already has the community's top picks.</span>`;
   renderIcons(comparisonEl);
   renderIcons(upgradesEl);
@@ -1219,6 +1220,26 @@ function hideDeckRowPopup() {
   document.getElementById("deckRowPopup").hidden = true;
 }
 
+// Recommended-tab rows get a stats popup instead of the plain image popup other Discover tabs
+// use — the whole point of that tab is "why is this recommended", not "what does it look like".
+function showRecommendationPopup(cardId, event) {
+  const rec = state.recommendedRowsById?.get(cardId);
+  if (!rec) return;
+  const popup = document.getElementById("deckRowPopup");
+  popup.innerHTML = `
+    <div class="rec-popup">
+      <strong>${escapeHtml(rec.card.name)}</strong>
+      <div class="rec-popup-stat"><span>Played in</span><b>${rec.inclusionRate}% of decks</b></div>
+      <div class="rec-popup-stat"><span>Sample size</span><b>${rec.deckCount} / ${rec.totalDecks} decks</b></div>
+      <div class="rec-popup-stat"><span>Average copies</span><b>${rec.averageCopies}x</b></div>
+      <div class="rec-popup-stat"><span>Usually in</span><b>${rec.section === "sideboard" ? "Sideboard" : "Main Deck"}</b></div>
+      <div class="rec-popup-stat"><span>You own</span><b>${rec.ownedCount}</b></div>
+      ${rec.tournaments.length ? `<div class="rec-popup-tournaments"><span>Seen in</span><ul>${rec.tournaments.map(t => `<li>${escapeHtml(t)}</li>`).join("")}</ul></div>` : ""}
+    </div>`;
+  popup.hidden = false;
+  positionDeckRowPopup(event);
+}
+
 function deckGroupMarkup(group, rows) {
   const count = rows.reduce((sum, row) => sum + row.quantity, 0);
   return `<section class="deck-group"><div class="deck-group-head"><span>${escapeHtml(group)}</span><b>${count}</b></div>${rows.map(row => `
@@ -1294,7 +1315,7 @@ function discoverCardRow(card, group) {
   const qty = existing?.quantity || 0;
   const hasVariants = group && group.variants.length > 1;
   return `
-    <div class="deck-search-row${card.ownedCount > 0 ? " owned" : ""}">
+    <div class="deck-search-row${card.ownedCount > 0 ? " owned" : ""}" data-hover-card="${escapeHtml(card.id)}">
       <div class="deck-search-art"><img src="${escapeHtml(cardImage(card))}" alt="" />${cardImagePopout(card)}</div>
       <div><strong>${escapeHtml(hasVariants ? group.baseName : card.name)}</strong><span>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))} / own ${card.ownedCount}</span></div>
       ${qty > 0
@@ -1341,11 +1362,12 @@ function renderEmptyPanel(container, { icon: iconName, title, body }) {
 
 function recommendationRow(rec) {
   const card = rec.card;
-  const qty = rec.currentDeckQuantity;
+  const existing = state.activeDeck.cards.find(row => row.cardId === card.id && row.section === state.discoverSection);
+  const qty = existing?.quantity || 0;
   return `
-    <div class="deck-search-row${card.ownedCount > 0 ? " owned" : ""}">
+    <div class="deck-search-row${rec.ownedCount > 0 ? " owned" : ""}" data-hover-rec="${escapeHtml(card.id)}">
       <div class="deck-search-art"><img src="${escapeHtml(cardImage(card))}" alt="" />${cardImagePopout(card)}</div>
-      <div><strong>${escapeHtml(card.name)}</strong><span>${rec.inclusionRate}% of decks &middot; avg ${rec.averageCopies}x &middot; own ${card.ownedCount}</span></div>
+      <div><strong>${escapeHtml(card.name)}</strong><span>${rec.inclusionRate}% of decks &middot; avg ${rec.averageCopies}x &middot; own ${rec.ownedCount}</span></div>
       ${qty > 0
         ? `<div class="mini-stepper"><button data-discover-qty="${qty - 1}" data-card-id="${escapeHtml(card.id)}">-</button><span>${qty}</span><button data-discover-qty="${qty + 1}" data-card-id="${escapeHtml(card.id)}">+</button></div>`
         : `<button class="icon-btn" data-discover-add="${escapeHtml(card.id)}">${icon("plus")}</button>`}
@@ -1358,12 +1380,18 @@ async function renderRecommendedTab(root) {
     renderEmptyPanel(root, { icon: "star", title: "No Legend yet", body: "Choose a Legend for this deck first." });
     return;
   }
+  const cacheKey = `${state.activeDeckId}|${legendRow.cardId}`;
   let recs;
-  try {
-    recs = await api(`/api/decks/${state.activeDeckId}/recommendations?${queryString({ legendCardId: legendRow.cardId })}`);
-  } catch (err) {
-    renderEmptyPanel(root, { icon: "star", title: "Couldn't load recommendations", body: err.message });
-    return;
+  if (state.recommendedCache.key === cacheKey) {
+    recs = state.recommendedCache.recs;
+  } else {
+    try {
+      recs = await api(`/api/decks/${state.activeDeckId}/recommendations?${queryString({ legendCardId: legendRow.cardId })}`);
+    } catch (err) {
+      renderEmptyPanel(root, { icon: "star", title: "Couldn't load recommendations", body: err.message });
+      return;
+    }
+    state.recommendedCache = { key: cacheKey, recs };
   }
   if (!recs.length) {
     renderEmptyPanel(root, {
@@ -1373,7 +1401,16 @@ async function renderRecommendedTab(root) {
     return;
   }
   registerCards(recs.map(r => r.card));
-  root.innerHTML = recs.map(recommendationRow).join("");
+  // Match on the full printed name so "shen" matches "Shen, Eye of Twilight", "eye of twilight"
+  // matches it too, and any variant suffix (e.g. "(Metal)") is searchable the same way.
+  const search = state.discoverSearch.trim().toLowerCase();
+  const filtered = search ? recs.filter(r => r.card.name.toLowerCase().includes(search)) : recs;
+  if (!filtered.length) {
+    renderEmptyPanel(root, { icon: "search", title: "No cards found", body: "Try a different search." });
+    return;
+  }
+  state.recommendedRowsById = new Map(filtered.map(r => [r.card.id, r]));
+  root.innerHTML = filtered.map(recommendationRow).join("");
   renderIcons(root);
   root.querySelectorAll("[data-discover-add]").forEach(button => button.addEventListener("click", () =>
     setDeckCard(state.activeDeckId, button.dataset.discoverAdd, 1, state.discoverSection)));
@@ -2226,12 +2263,14 @@ function wireEvents() {
   document.addEventListener("mouseover", event => {
     const row = event.target.closest("[data-hover-card]");
     if (row && !row.contains(event.relatedTarget)) showDeckRowPopup(row.dataset.hoverCard, event);
+    const rec = event.target.closest("[data-hover-rec]");
+    if (rec && !rec.contains(event.relatedTarget)) showRecommendationPopup(rec.dataset.hoverRec, event);
   });
   document.addEventListener("mousemove", event => {
-    if (event.target.closest("[data-hover-card]")) positionDeckRowPopup(event);
+    if (event.target.closest("[data-hover-card], [data-hover-rec]")) positionDeckRowPopup(event);
   });
   document.addEventListener("mouseout", event => {
-    const row = event.target.closest("[data-hover-card]");
+    const row = event.target.closest("[data-hover-card], [data-hover-rec]");
     if (row && !row.contains(event.relatedTarget)) hideDeckRowPopup();
   });
   document.querySelectorAll(".nav-item").forEach(button => button.addEventListener("click", () => navigate(button.dataset.page)));

@@ -102,23 +102,34 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
         if (quantity == 0)
         {
             if (row is not null) db.DeckCards.Remove(row);
-        }
-        else if (row is null)
-        {
-            db.DeckCards.Add(new DeckCardEntity
-            {
-                DeckId = id,
-                CardId = request.CardId,
-                Section = section,
-                Quantity = quantity,
-            });
+            // Clear a stale cover pointing at the card that was just removed — otherwise ??=
+            // below never fires again (it's not null, just pointing at a card no longer in the
+            // deck) and the deck keeps showing art for a Legend it doesn't have anymore.
+            if (deck.CoverCardId == request.CardId) deck.CoverCardId = null;
         }
         else
         {
-            row.Quantity = quantity;
+            if (row is null)
+            {
+                db.DeckCards.Add(new DeckCardEntity
+                {
+                    DeckId = id,
+                    CardId = request.CardId,
+                    Section = section,
+                    Quantity = quantity,
+                });
+            }
+            else
+            {
+                row.Quantity = quantity;
+            }
+
+            // A newly-added Legend always takes over as the deck's cover — a deck should show
+            // its current Legend, not whichever card happened to be added first.
+            if (card.Type == "Legend") deck.CoverCardId = request.CardId;
+            else deck.CoverCardId ??= request.CardId;
         }
 
-        deck.CoverCardId ??= request.CardId;
         deck.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(ct);
         return await GetAsync(id, ct);
@@ -130,6 +141,7 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
             request.Name ?? "Imported Deck", request.Description, request.Format, null), ct);
         var unmatched = new List<string>();
         var added = 0;
+        string? legendCardId = null;
 
         // Tracks which section subsequent card lines belong to as we scan — both export formats
         // mark section boundaries with header lines rather than repeating "main"/"sideboard" per
@@ -180,6 +192,8 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
                 continue;
             }
 
+            if (cards[0].Type == "Legend") legendCardId ??= cards[0].Id;
+
             var existing = await db.DeckCards.FindAsync([created.Summary.Id, cards[0].Id, currentSection], ct);
             if (existing is null)
             {
@@ -201,6 +215,7 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
         var deck = await db.Decks.FindAsync([created.Summary.Id], ct);
         if (deck is not null)
         {
+            deck.CoverCardId ??= legendCardId;
             deck.UpdatedAt = DateTimeOffset.UtcNow;
             await db.SaveChangesAsync(ct);
         }

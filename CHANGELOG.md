@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.13.1 — Deck Builder fixes
+
+- Fixed a crash opening Recommended/Analysis for a deck that has the same card in both Main Deck and Sideboard.
+- Fixed the deck's cover art getting stuck on a removed Legend after swapping to a new one outside the "Change Legend" flow.
+- Fixed Import not setting the Legend as the deck's cover art.
+- Fixed the deck art being cropped instead of showing the whole card.
+- Fixed the deck description box visually bleeding into the stats row below it.
+- Removed the redundant duplicate card-art block in the deck summary column.
+- Added search to the Recommended tab, and hover popouts on Discover panel cards (a stats card for Recommended — inclusion rate, average copies, and which tournaments it appeared in — a normal image preview elsewhere).
+- Recommended-tab ownership/"already in deck" checks now count any print of a card, not just the exact print a tournament decklist happened to use.
+- Hid the Price Checker tab for now.
+
 ## v1.13.0 — Community Recommendations
 
 - New Settings section: **Community Data** — add your own TopDeck.gg API key and pull recent tournament decklists with a manual "Sync Now" button (shows last sync time, tournament/deck counts, unresolved-card count).

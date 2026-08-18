@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.13.0 — Community Recommendations
+
+- New Settings section: **Community Data** — add your own TopDeck.gg API key and pull recent tournament decklists with a manual "Sync Now" button (shows last sync time, tournament/deck counts, unresolved-card count).
+- Deck Builder's **Recommended** tab now shows real cards the community plays alongside your Legend — inclusion rate, average copies, and how many you own — with the same add/stepper controls as the other tabs.
+- Deck Analysis' **Community Comparison** and **Top Recommended Upgrades** panels now show real data instead of "not synced yet" placeholders.
+- Nothing syncs automatically — TopDeck.gg is only ever called when you press Sync Now, to respect its rate limits.
+
 ## v1.12.1 — View Changelog
 
 - Added a "View Changelog" button next to "Update and Restart" in Settings, so you can see what's new in an available update before installing it.

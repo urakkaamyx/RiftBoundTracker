@@ -153,6 +153,13 @@ internal static class Program
             c.DefaultRequestHeaders.Referrer = new Uri("https://riftbound.gg/prices/");
             c.DefaultRequestHeaders.Add("Origin", "https://riftbound.gg");
         });
+        builder.Services.AddHttpClient("topdeck", c =>
+        {
+            c.BaseAddress = new Uri("https://topdeck.gg");
+            c.Timeout = TimeSpan.FromSeconds(45);
+            c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftBoundVault-CommunitySync/1.0");
+            c.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+        });
 
         builder.Services.AddSingleton<ImageHashService>();
         builder.Services.AddSingleton<OcrService>();
@@ -169,6 +176,11 @@ internal static class Program
         builder.Services.AddScoped<IPriceProvider, JustTcgPriceProvider>();
         builder.Services.AddSingleton<RiftboundGgPriceService>();
         builder.Services.AddSingleton<PricingSettingsService>();
+        builder.Services.AddSingleton<TopDeckSettingsService>();
+        builder.Services.AddScoped<TopDeckClient>();
+        builder.Services.AddScoped<CommunityCardResolver>();
+        builder.Services.AddScoped<CommunityDeckSyncService>();
+        builder.Services.AddScoped<CommunityRecommendationService>();
 
         var app = builder.Build();
 
@@ -394,6 +406,26 @@ internal static class Program
                 : Results.Text(contents, "text/plain", System.Text.Encoding.UTF8);
         });
 
+        app.MapGet("/api/decks/{id:int}/recommendations", async (
+            int id, string legendCardId, CommunityRecommendationService recommendations, CancellationToken ct) =>
+            Results.Ok(await recommendations.GetRecommendationsAsync(id, legendCardId, ct)));
+
+        app.MapGet("/api/community-decks/status", async (CommunityDeckSyncService sync, CancellationToken ct) =>
+            Results.Ok(await sync.GetStatusAsync(ct)));
+
+        app.MapPost("/api/community-decks/sync", async (
+            CommunitySyncRequest? body, CommunityDeckSyncService sync, CancellationToken ct) =>
+        {
+            try
+            {
+                return Results.Ok(await sync.SyncAsync(body?.Days ?? 30, ct));
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message, statusCode: 502);
+            }
+        });
+
         app.MapGet("/api/pricing/status", (PricingSettingsService settings) => Results.Ok(settings.GetStatus()));
 
         app.MapPost("/api/pricing/configure", (PricingKeyRequest body, PricingSettingsService settings) =>
@@ -403,6 +435,20 @@ internal static class Program
         });
 
         app.MapDelete("/api/pricing/configure", (PricingSettingsService settings) =>
+        {
+            settings.ClearStoredApiKey();
+            return Results.Ok(settings.GetStatus());
+        });
+
+        app.MapGet("/api/topdeck/status", (TopDeckSettingsService settings) => Results.Ok(settings.GetStatus()));
+
+        app.MapPost("/api/topdeck/configure", (TopDeckKeyRequest body, TopDeckSettingsService settings) =>
+        {
+            settings.SaveApiKey(body.ApiKey);
+            return Results.Ok(settings.GetStatus());
+        });
+
+        app.MapDelete("/api/topdeck/configure", (TopDeckSettingsService settings) =>
         {
             settings.ClearStoredApiKey();
             return Results.Ok(settings.GetStatus());
@@ -541,5 +587,7 @@ internal static class Program
 
 public record OwnedRequest(int Owned);
 public record PricingKeyRequest(string ApiKey);
+public record TopDeckKeyRequest(string ApiKey);
+public record CommunitySyncRequest(int? Days);
 public record PriceRefreshRequest(bool IncludeAllCards);
 public record PriceQueueRequest(bool Queued);

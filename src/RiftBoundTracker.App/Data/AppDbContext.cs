@@ -11,6 +11,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<PriceSnapshotEntity> PriceSnapshots => Set<PriceSnapshotEntity>();
     public DbSet<PriceQueueEntity> PriceQueue => Set<PriceQueueEntity>();
     public DbSet<CardTextSymbolEntity> CardTextSymbols => Set<CardTextSymbolEntity>();
+    public DbSet<CommunityTournamentEntity> CommunityTournaments => Set<CommunityTournamentEntity>();
+    public DbSet<CommunityDeckEntity> CommunityDecks => Set<CommunityDeckEntity>();
+    public DbSet<CommunityDeckCardEntity> CommunityDeckCards => Set<CommunityDeckCardEntity>();
+    public DbSet<CommunitySyncStateEntity> CommunitySyncState => Set<CommunitySyncStateEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -59,5 +63,37 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         var symbol = modelBuilder.Entity<CardTextSymbolEntity>();
         symbol.HasKey(s => s.Token);
         symbol.HasIndex(s => new { s.Kind, s.SortOrder });
+
+        var tournament = modelBuilder.Entity<CommunityTournamentEntity>();
+        tournament.HasKey(t => t.Id);
+        tournament.HasIndex(t => t.ExternalTournamentId).IsUnique();
+        tournament.HasIndex(t => t.StartDate);
+
+        var communityDeck = modelBuilder.Entity<CommunityDeckEntity>();
+        communityDeck.HasKey(d => d.Id);
+        communityDeck.HasIndex(d => d.LegendCardId);
+        communityDeck.HasOne(d => d.Tournament)
+            .WithMany(t => t.Decks)
+            .HasForeignKey(d => d.TournamentId)
+            .OnDelete(DeleteBehavior.Cascade);
+        communityDeck.HasOne(d => d.LegendCard)
+            .WithMany()
+            .HasForeignKey(d => d.LegendCardId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        var communityDeckCard = modelBuilder.Entity<CommunityDeckCardEntity>();
+        communityDeckCard.HasKey(c => c.Id);
+        communityDeckCard.HasIndex(c => new { c.CommunityDeckId, c.CardId });
+        communityDeckCard.HasIndex(c => c.CardId);
+        communityDeckCard.HasOne(c => c.CommunityDeck)
+            .WithMany(d => d.Cards)
+            .HasForeignKey(c => c.CommunityDeckId)
+            .OnDelete(DeleteBehavior.Cascade);
+        communityDeckCard.HasOne(c => c.Card)
+            .WithMany()
+            .HasForeignKey(c => c.CardId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<CommunitySyncStateEntity>().HasKey(s => s.Id);
     }
 }

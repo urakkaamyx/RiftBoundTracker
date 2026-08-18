@@ -636,6 +636,7 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
 .valuable-row strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
 .valuable-row span { color: var(--faint); font-size: 9px; }
 .valuable-row b { color: var(--green); font: 600 11px var(--mono); white-space: nowrap; }
+.valuable-row b.missing { color: var(--red); }
 .deck-readiness { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
 .readiness-row { padding: 10px; border-left: 2px solid var(--accent); background: var(--panel-2); }
 .readiness-row div { display: flex; justify-content: space-between; gap: 8px; }
@@ -649,6 +650,7 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
 .settings-section p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .settings-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
 .inline-form { display: grid; grid-template-columns: minmax(160px, 360px) auto auto; gap: 7px; margin-top: 12px; }
+.settings-hint { margin: 10px 0 0; color: var(--faint); font-size: 11px; line-height: 1.5; }
 input, textarea, select { border: 1px solid var(--border); border-radius: 6px; background: var(--panel); color: var(--text); }
 input { height: 36px; padding: 0 11px; }
 textarea { padding: 10px 11px; resize: vertical; }

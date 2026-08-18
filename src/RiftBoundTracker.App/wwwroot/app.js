@@ -1099,6 +1099,35 @@ function renderDeckAnalysis(root, detail) {
   renderEmptyPanel(document.getElementById("deckTopUpgrades"), {
     icon: "star", title: "No community data yet", body: "Upgrade suggestions need synced tournament data."
   });
+  loadCommunityAnalysis(detail).catch(err => toast(err.message, true));
+}
+
+async function loadCommunityAnalysis(detail) {
+  const legendRow = detail.cards.find(row => row.card.type === "Legend");
+  if (!legendRow) return;
+
+  const recs = await api(`/api/decks/${detail.summary.id}/recommendations?${queryString({ legendCardId: legendRow.cardId })}`);
+  const comparisonEl = document.getElementById("deckCommunityComparison");
+  const upgradesEl = document.getElementById("deckTopUpgrades");
+  if (!comparisonEl || !upgradesEl || !recs.length) return;
+
+  registerCards(recs.map(r => r.card));
+
+  const comparisonRows = recs
+    .filter(r => r.currentDeckQuantity < Math.round(r.averageCopies))
+    .slice(0, 8);
+  comparisonEl.innerHTML = comparisonRows.length
+    ? comparisonRows.map(r => `
+      <div class="distribution-row"><span>${escapeHtml(r.card.name)}</span><div class="distribution-bar"><span style="width:${r.inclusionRate}%;background:var(--gold)"></span></div><b>${r.inclusionRate}%</b></div>`).join("")
+    : `<span class="loading-line">Your deck matches the community build closely.</span>`;
+
+  const upgrades = recs.filter(r => r.currentDeckQuantity === 0).slice(0, 5);
+  upgradesEl.innerHTML = upgrades.length
+    ? upgrades.map(r => `
+      <div class="valuable-row"><div class="valuable-art"><img src="${escapeHtml(cardImage(r.card))}" alt="" />${cardImagePopout(r.card)}</div><div><strong>${escapeHtml(r.card.name)}</strong><span>${r.inclusionRate}% of decks &middot; avg ${r.averageCopies}x</span></div><b class="${r.card.ownedCount > 0 ? "owned" : "missing"}">${r.card.ownedCount > 0 ? "Owned" : "Missing"}</b></div>`).join("")
+    : `<span class="loading-line">No missing staples &mdash; deck already has the community's top picks.</span>`;
+  renderIcons(comparisonEl);
+  renderIcons(upgradesEl);
 }
 
 function renderDeckWorkspace() {
@@ -1310,16 +1339,55 @@ function renderEmptyPanel(container, { icon: iconName, title, body }) {
   renderIcons(container);
 }
 
+function recommendationRow(rec) {
+  const card = rec.card;
+  const qty = rec.currentDeckQuantity;
+  return `
+    <div class="deck-search-row${card.ownedCount > 0 ? " owned" : ""}">
+      <div class="deck-search-art"><img src="${escapeHtml(cardImage(card))}" alt="" />${cardImagePopout(card)}</div>
+      <div><strong>${escapeHtml(card.name)}</strong><span>${rec.inclusionRate}% of decks &middot; avg ${rec.averageCopies}x &middot; own ${card.ownedCount}</span></div>
+      ${qty > 0
+        ? `<div class="mini-stepper"><button data-discover-qty="${qty - 1}" data-card-id="${escapeHtml(card.id)}">-</button><span>${qty}</span><button data-discover-qty="${qty + 1}" data-card-id="${escapeHtml(card.id)}">+</button></div>`
+        : `<button class="icon-btn" data-discover-add="${escapeHtml(card.id)}">${icon("plus")}</button>`}
+    </div>`;
+}
+
+async function renderRecommendedTab(root) {
+  const legendRow = state.activeDeck.cards.find(row => row.card.type === "Legend");
+  if (!legendRow) {
+    renderEmptyPanel(root, { icon: "star", title: "No Legend yet", body: "Choose a Legend for this deck first." });
+    return;
+  }
+  let recs;
+  try {
+    recs = await api(`/api/decks/${state.activeDeckId}/recommendations?${queryString({ legendCardId: legendRow.cardId })}`);
+  } catch (err) {
+    renderEmptyPanel(root, { icon: "star", title: "Couldn't load recommendations", body: err.message });
+    return;
+  }
+  if (!recs.length) {
+    renderEmptyPanel(root, {
+      icon: "star", title: "No community data yet",
+      body: `Sync tournament data in Settings, or nobody's reported a ${legendRow.card.name.split(" - ")[0]} deck yet.`
+    });
+    return;
+  }
+  registerCards(recs.map(r => r.card));
+  root.innerHTML = recs.map(recommendationRow).join("");
+  renderIcons(root);
+  root.querySelectorAll("[data-discover-add]").forEach(button => button.addEventListener("click", () =>
+    setDeckCard(state.activeDeckId, button.dataset.discoverAdd, 1, state.discoverSection)));
+  root.querySelectorAll("[data-discover-qty]").forEach(button => button.addEventListener("click", () =>
+    setDeckCard(state.activeDeckId, button.dataset.cardId, Number(button.dataset.discoverQty), state.discoverSection)));
+}
+
 async function renderDiscoverResults() {
   const root = document.getElementById("discoverResults");
   const pageRoot = document.getElementById("discoverPagination");
   if (!root) return;
   if (state.discoverTab === "recommended") {
     if (pageRoot) pageRoot.innerHTML = "";
-    renderEmptyPanel(root, {
-      icon: "star", title: "No community data yet",
-      body: "Community tournament recommendations aren't synced yet."
-    });
+    await renderRecommendedTab(root);
     return;
   }
   const owned = state.discoverTab === "collection" ? "owned" : state.discoverTab === "missing" ? "missing" : "";
@@ -1519,8 +1587,8 @@ function renderDistribution(id, rows, color) {
 }
 
 async function loadSettings() {
-  const [sync, pricing, health, connection, server] = await Promise.all([
-    api("/api/sync/status"), api("/api/pricing/status"), api("/api/health"),
+  const [sync, pricing, topdeck, health, connection, server] = await Promise.all([
+    api("/api/sync/status"), api("/api/pricing/status"), api("/api/topdeck/status"), api("/api/health"),
     api("/api/connection-info"), api("/api/server-info")
   ]);
   document.getElementById("catalogStatus").textContent = sync.running
@@ -1529,6 +1597,18 @@ async function loadSettings() {
   document.getElementById("pricingStatus").textContent = pricing.configured
     ? `Riftbound.gg live pricing enabled. ${pricing.provider} snapshots configured (${pricing.source}, ${pricing.keyHint}).`
     : "Riftbound.gg live pricing enabled. JustTCG snapshots are optional.";
+  document.getElementById("topdeckStatus").textContent = topdeck.configured
+    ? `Key configured (${topdeck.source}, ${topdeck.keyHint}).`
+    : "Add your own TopDeck.gg key to pull community tournament decklists.";
+  const communitySync = await api("/api/community-decks/status");
+  document.getElementById("communitySyncStatus").textContent = !communitySync.configured
+    ? "Add a TopDeck.gg key above, then sync to enable the Recommended tab."
+    : communitySync.lastSyncAt
+      ? `Last synced ${formatRelativeTime(communitySync.lastSyncAt)}${communitySync.lastSyncOk ? "" : ` — failed: ${communitySync.lastError}`}.`
+      : "Never synced yet.";
+  document.getElementById("communitySyncFacts").innerHTML = communitySync.lastSyncAt
+    ? `<span>${communitySync.tournamentCount} tournaments</span><span>${communitySync.deckCount} decks</span><span>${communitySync.unresolvedCardCount} unresolved cards</span>`
+    : "";
   const db = health.database;
   document.getElementById("databaseStatus").textContent = db
     ? `Database verified: ${db.integrity}. Protected collection totals are checked at startup.`
@@ -2292,6 +2372,9 @@ function wireEvents() {
   }));
   document.getElementById("savePricingKey").addEventListener("click", savePricingKey);
   document.getElementById("clearPricingKey").addEventListener("click", clearPricingKey);
+  document.getElementById("saveTopdeckKey").addEventListener("click", saveTopdeckKey);
+  document.getElementById("clearTopdeckKey").addEventListener("click", clearTopdeckKey);
+  document.getElementById("syncCommunityBtn").addEventListener("click", syncCommunityData);
   document.getElementById("refreshTrackedPrices").addEventListener("click", () => refreshPrices(false));
   document.getElementById("refreshAllPrices").addEventListener("click", () => refreshPrices(true));
   document.getElementById("clearPriceQueue").addEventListener("click", () => clearPriceQueue().catch(err => toast(err.message, true)));
@@ -2352,6 +2435,37 @@ async function clearPricingKey() {
   await api("/api/pricing/configure", { method: "DELETE" });
   toast("Stored pricing key removed");
   await loadSettings();
+}
+
+async function saveTopdeckKey() {
+  const apiKey = document.getElementById("topdeckKey").value.trim();
+  if (!apiKey) return;
+  await api("/api/topdeck/configure", jsonOptions("POST", { apiKey }));
+  document.getElementById("topdeckKey").value = "";
+  toast("TopDeck key saved locally");
+  await loadSettings();
+}
+
+async function clearTopdeckKey() {
+  await api("/api/topdeck/configure", { method: "DELETE" });
+  toast("Stored TopDeck key removed");
+  await loadSettings();
+}
+
+async function syncCommunityData() {
+  const button = document.getElementById("syncCommunityBtn");
+  button.disabled = true;
+  try {
+    const result = await api("/api/community-decks/sync", jsonOptions("POST", { days: 30 }));
+    toast(result.ok
+      ? `Synced ${result.tournamentCount} tournaments, ${result.deckCount} decks`
+      : `Sync failed: ${result.error}`, !result.ok);
+  } catch (err) {
+    toast(err.message, true);
+  } finally {
+    button.disabled = false;
+    await loadSettings();
+  }
 }
 
 async function refreshPrices(includeAllCards) {

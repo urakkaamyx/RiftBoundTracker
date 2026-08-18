@@ -1633,6 +1633,34 @@ async function openConnection() {
   } catch (err) { root.textContent = err.message; }
 }
 
+function renderChangelog(notes) {
+  if (!notes || !notes.trim()) return "<p>No release notes for this version.</p>";
+  const html = [];
+  let list = null;
+  const closeList = () => { if (list) { html.push("</ul>"); list = null; } };
+  for (const rawLine of notes.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) { closeList(); continue; }
+    const heading = line.match(/^#{1,4}\s+(.*)$/);
+    if (heading) { closeList(); html.push(`<h4>${escapeHtml(heading[1])}</h4>`); continue; }
+    const item = line.match(/^[-*]\s+(.*)$/);
+    if (item) {
+      if (!list) { html.push("<ul>"); list = true; }
+      html.push(`<li>${escapeHtml(item[1])}</li>`);
+      continue;
+    }
+    closeList();
+    html.push(`<p>${escapeHtml(line)}</p>`);
+  }
+  closeList();
+  return html.join("");
+}
+
+function openChangelog(notes) {
+  document.getElementById("changelogBody").innerHTML = renderChangelog(notes);
+  showModal("changelogModal");
+}
+
 async function checkForUpdates() {
   const button = document.getElementById("checkUpdateBtn");
   const status = document.getElementById("updateStatus");
@@ -1643,11 +1671,12 @@ async function checkForUpdates() {
     if (!result.selfUpdateSupported) status.textContent = result.unsupportedReason;
     else if (!result.updateAvailable) status.textContent = `Version ${result.currentVersion} is current.`;
     else {
-      status.innerHTML = `Version ${escapeHtml(result.latestVersion)} is available. <button class="command-btn gold" id="applyUpdate">Update and Restart</button>`;
+      status.innerHTML = `Version ${escapeHtml(result.latestVersion)} is available. <button class="command-btn gold" id="applyUpdate">Update and Restart</button> <button class="command-btn quiet" id="viewChangelog">View Changelog</button>`;
       document.getElementById("applyUpdate").onclick = async () => {
         await api("/api/update/apply", { method: "POST" });
         status.textContent = "Installing update...";
       };
+      document.getElementById("viewChangelog").onclick = () => openChangelog(result.releaseNotes);
     }
   } catch (err) { status.textContent = err.message; }
   finally { button.disabled = false; }

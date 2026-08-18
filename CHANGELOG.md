@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.12.1 — View Changelog
+
+- Added a "View Changelog" button next to "Update and Restart" in Settings, so you can see what's new in an available update before installing it.
+
 ## v1.12.0 — Deck Builder Redesign
 
 ### Legend Picker

@@ -709,6 +709,13 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .modal-head span { color: var(--accent); font-size: 9px; text-transform: uppercase; }
 .modal-head h2 { margin: 4px 0 0; font-size: 18px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 7px; margin-top: 13px; }
+.changelog-body { max-height: 60vh; overflow-y: auto; }
+.changelog-body h4 { margin: 16px 0 6px; color: var(--accent-bright); font-size: 12px; text-transform: uppercase; }
+.changelog-body h4:first-child { margin-top: 0; }
+.changelog-body ul { margin: 0 0 4px; padding-left: 18px; }
+.changelog-body li { margin: 4px 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.changelog-body p { margin: 6px 0; color: var(--muted); font-size: 13px; }
+
 .export-modal { width: min(560px, 100%); }
 .export-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .export-format-row { display: flex; gap: 7px; }

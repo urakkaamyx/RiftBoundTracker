@@ -373,14 +373,16 @@ def main():
     bracket_cards = [c for c in all_cards if BRACKET_KEYWORD_RE.search(c["TextPlain"])]
     plain_cards = [c for c in all_cards if not BRACKET_KEYWORD_RE.search(c["TextPlain"])]
     # Round 2 trained on the full bracket-card catalog (738) against only 200 plain cards — a
-    # roughly 3.7:1 skew. Tested directly against the resulting model: it started appending the
-    # bracket-keyword explanation sentence to Arena Kingpin's answer even though that card's text
-    # has no brackets at all ("I enter ready.Exhaust: Give a unit +3 Might this turn.") — a
-    # regression from round 1, where the same card was answered cleanly. Capping bracket cards and
-    # raising the plain sample brings the ratio close to even, on the theory that the skew itself
-    # (not just "not enough plain examples in absolute terms") was teaching the model to expect
-    # brackets by default.
-    bracket_sample = random.sample(bracket_cards, min(400, len(bracket_cards)))
+    # roughly 3.7:1 skew, which showed up directly as Arena Kingpin's answer picking up an
+    # inapplicable bracket-keyword sentence despite having no brackets at all. Round 3 capped
+    # bracket cards to 400 (matching the 400 plain sample) to fix that — but capping bracket
+    # coverage ALSO shrank category 7 as a whole (938 -> 800 examples) at the same time category 8
+    # nearly doubled, and that combination produced two separately-observed unstable training runs
+    # (repetition loops, a factually-reversed legality answer) neither of which happened in round
+    # 2. Keeping full bracket coverage here (matching round 2) while still raising plain cards to
+    # 400 (matching round 3's actual fix for Arena Kingpin) targets the one real problem without
+    # shrinking this category's total weight in the dataset the way round 3 did.
+    bracket_sample = list(bracket_cards)
     plain_sample_7 = random.sample(plain_cards, min(400, len(plain_cards)))
     sample_cards = bracket_sample + plain_sample_7
     random.shuffle(sample_cards)
@@ -423,10 +425,15 @@ def main():
     # question, the model correctly SAID the evidence didn't establish the answer — then, in the
     # same breath, guessed one anyway ("...it doesn't say anything about whether this triggers
     # during your opponent's turn... The answer to your question is no"). Stating the gap wasn't
-    # enough to stop it from also filling that gap with a guess. Round 3 raises the sample count
-    # (160 -> 320) and makes the answer template itself explicitly refuse to pick a side, rather
-    # than trailing off on a hedge a model can talk itself past.
-    partial_sample = random.sample(all_cards, min(320, len(all_cards)))
+    # enough to stop it from also filling that gap with a guess, so the answer template below was
+    # reworded to explicitly refuse to pick a side. Round 3 ALSO nearly doubled the sample count
+    # (160 -> 320) at the same time category 7 shrank — that specific combination (this category's
+    # share of the dataset roughly tripling, from ~17% to ~40%) produced two separately-observed
+    # unstable training runs (repetition loops, a factually-reversed legality answer on an unrelated
+    # question) that round 2 never showed. Keeping the reworded template but pulling the count back
+    # to a middle ground (220) tests whether the wording change alone (without also more than
+    # doubling this category's weight) gets the fix without the instability.
+    partial_sample = random.sample(all_cards, min(220, len(all_cards)))
     count8 = 0
     for card in partial_sample:
         name = card["Name"]

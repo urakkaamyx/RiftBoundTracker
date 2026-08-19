@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.22.0 — Faster releases and updates
+
+- The Ask Rules local AI model no longer ships inside the app itself — releases and self-updates used to bundle the same ~940MB model file every time, even for a one-line fix. It's now fetched separately (once, from Settings → Ask Rules, or automatically carried over from your existing install) and stored where app updates never touch it, so future releases and updates are dramatically smaller and faster.
+- A "Download Model" step with live progress replaces "Enable" if the model isn't downloaded yet; a small refresh button lets you pick up a newer model later without waiting on an app update.
+
 ## v1.21.1 — Settings layout follow-up
 
 - Settings now groups cards into three deliberate rows (system/device status, sync/version, then a dedicated full-width band for Pricing and Community Data) instead of an open masonry pack — same compact idea, more predictable grouping.

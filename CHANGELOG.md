@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.26.0 — Check Price, trade workflow, and Test Draw fix
+
+- New "Check Price" button next to Connect: scan a card (live camera, photo, or manual lookup) to look up its market price without adding it to your collection. Opens the card's detail panel with a price history graph (low/average/high and period change over the last 90 days) alongside the existing current-price and 24hr/7-day change figures.
+- Test Draw no longer pulls Runes into the hand — they're a separate resource played from their own Rune Deck and are never drawn alongside Main Deck cards in real play.
+- Vault: Import Pack's preview panel now has a Remove button alongside Import, subtracting that pack's card list from your collection (safely clamped to 0) — unlike Undo, this works from Vault at any time, not just right after importing.
+- Deck view: new "Mark for Trade" button flags every card the deck uses as available in the Trade Binder in one click.
+- Trade Binder: a new Confirm Trade action removes a card from your collection entirely once a trade actually completes, distinct from the existing Remove (which only un-flags it as tradeable but keeps it owned).
+
 ## v1.25.0 — Remote access over the internet (ngrok)
 
 - The Connect popup now has a LAN | WAN toggle. LAN is the existing same-Wi-Fi QR/URL, unchanged. WAN creates a temporary public link to the app using ngrok, reachable from anywhere — not just your home network — with the same QR/URL to scan or copy.

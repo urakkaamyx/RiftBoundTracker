@@ -39,6 +39,15 @@ match). Categories:
      directly: asked generically about Draven - Vanquisher (which has all three), the model dumped
      the raw evidence blocks almost verbatim and invented a fake "OfficialRuleHint:" label that
      appears nowhere in the real evidence or system prompt.
+  10. Might vs damage-marked scenario reasoning (templated, answer computed programmatically, never
+      self-distilled) — found by testing a real question about whether damage reduces a unit's
+      Might (it doesn't; damage is a separate marked value). Retrieval found the exactly-right
+      rules every time, but the model answered inconsistently across repeated identical questions.
+      None of categories 1-9 teach APPLYING a rule to a hypothetical numeric scenario — they're all
+      either direct lookup, self-distillation, or evidence recitation, which is a different skill
+      from "given this rule and these numbers, what happens." Swept across a range of Might/damage
+      combinations against the same three rules so the model sees the pattern generalized, not
+      memorized for one specific pair of numbers.
 
 IMPORTANT — keep this file's evidence formatting a faithful mirror of the C# it's training the
 model to match, not merely "close enough": LocalLlmExplanationProvider.cs's BuildUserMessage is the
@@ -503,6 +512,59 @@ def main():
         examples.append(make_example(question, sources, " ".join(answer_parts)))
         count9 += 1
     print(f"  {count9} examples")
+
+    print("Category 10: Might vs damage-marked scenario reasoning...")
+    # Reported directly: "If my card has 8 might and someone does 2 damage, does that make my
+    # might 6 or does my might stay at an 8...?" — RulesEvidenceService found exactly the right
+    # rules (142, 142.4.b, 143.2.a), but the trained model answered inconsistently across repeated
+    # identical questions, including once claiming Might is directly reduced by damage. It isn't —
+    # damage is tracked as a separate "marked" value; a unit's Might itself never changes from
+    # combat damage. None of categories 1-9 ever taught APPLYING a rule to a hypothetical numeric
+    # scenario — they're all either direct lookup, keyword self-distillation, or evidence
+    # recitation, none of which is the same skill as "given this rule and these numbers, what
+    # happens." This category is templated with the answer computed programmatically (never
+    # self-distilled — the model was already wrong at this, so its own output can't be a training
+    # target) across a spread of Might/damage combinations against the same three real rules, so
+    # the model sees the pattern applied consistently rather than to one specific number pair.
+    might_damage_source = [
+        {"ruleNumber": "142", "title": "Rule 142", "authority": "CoreRules", "current": True,
+         "text": "Damage is a marked value that is applied to Units."},
+        {"ruleNumber": "142.4.b", "title": "Rule 142.4.b", "authority": "CoreRules", "current": True,
+         "text": ("Lethal Damage for a Unit is a non-zero amount greater than or equal to that Unit's Might. "
+                   "Example: A unit has 5 [M] and 3 damage marked on it. Frigid Touch is played targeting that "
+                   "unit. When it resolves, the unit's Might becomes 3, and it will have lethal damage marked "
+                   "on it. Example: A unit has 0 [M]. In order to have lethal damage marked on it, it must "
+                   "have at least 1 damage marked on it.")},
+        {"ruleNumber": "143.2.a", "title": "Rule 143.2.a", "authority": "CoreRules", "current": True,
+         "text": "If a Unit ever has nonzero damage marked on it equalling or exceeding its Might, it is Killed."},
+    ]
+    might_question_templates = [
+        "If my unit has {might} might and takes {damage} damage, does its might become {remaining} or does its might stay at {might}?",
+        "My unit has {might} might. If it takes {damage} damage, is it dead?",
+        "Does {damage} damage reduce my {might}-might unit's might, or is damage tracked separately?",
+        "I have a {might} might unit with {damage} damage marked on it. How much more damage does it need to die?",
+    ]
+    count10 = 0
+    for might in range(2, 13):
+        damage_values = sorted({0, 1, might // 2, might - 1, might} & set(range(0, might + 1)))
+        for damage in damage_values:
+            needed = might - damage
+            is_dead = damage >= might
+            question = random.choice(might_question_templates).format(might=might, damage=damage, remaining=needed)
+            fate = (
+                f"With {damage} damage marked and {might} Might, the unit already has lethal damage marked "
+                f"on it and is Killed." if is_dead else
+                f"With {damage} damage marked and {might} Might, the unit is not dead — it would take a "
+                f"total of {might} damage marked to kill it, so {needed} more damage would do it."
+            )
+            answer = (
+                f"No — your unit's Might stays at {might}. Damage is a separate marked value, not a "
+                f"subtraction from Might (Rule 142: \"Damage is a marked value that is applied to Units.\"). "
+                f"A unit is Killed once its marked damage equals or exceeds its Might (Rule 143.2.a). {fate}"
+            )
+            examples.append(make_example(question, might_damage_source, answer))
+            count10 += 1
+    print(f"  {count10} examples")
 
     random.shuffle(examples)
     with open(OUT_PATH, "w", encoding="utf-8") as f:

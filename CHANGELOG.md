@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.26.2 — Ask Rules: seed the rest of the official Keyword Glossary
+
+- A real question about Tank ("do enemy spells have to target it first?") came back with no evidence found at all, even though the rules that answer it are indexed and searchable directly. The hand-curated list Ask Rules uses to recognize keywords in a question only had 6 of the game's 25 official Keyword Glossary keywords in it — added the other 19 (Tank, Shield, Assault, Backline, Equip, Level, Flow, and more). Takes effect the next time you run a Rules sync from Settings.
+
 ## v1.26.1 — Fix Check Price missing on mobile
 
 - Check Price lived in the top bar next to Connect, which is fully hidden (not just its label) below 720px since Connect is a desktop-only "scan this QR from your phone" feature — Check Price got hidden along with it. Moved it into the Vault tab's action row next to Scan Card, where it stays reachable at every screen width, same as Scan Card and Import Pack already are.

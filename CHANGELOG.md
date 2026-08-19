@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.24.1 — Ask Rules: card evidence priority, better name matching, retrained Qwen3
+
+- A question naming a specific card could lose that card's own evidence entirely if enough other rule evidence also matched — the shared evidence budget was filled by general rules first, sometimes before ever reaching the card's own text. Card evidence is now assembled first, every time.
+- Free-text card questions now match names without punctuation too ("Darius Trifarian" now finds the card "Darius - Trifarian"), not just the exact or comma/dash-swapped spelling.
+- Retrained the Qwen3 1.7B option: fixed a leaked `<think>` tag showing up at the start of answers, and fixed a card with more than one type of evidence (its own text plus a ban or errata) getting its raw evidence dumped back almost verbatim instead of a real answer.
+
 ## v1.24.0 — Retrained Ask Rules model + a second model option
 
 - Fully retrained the Ask Rules local model from scratch on a corrected training set — the old training data didn't include a card's own printed text as evidence at all, which was the root cause of cards with no ban/errata history (e.g. Arena Kingpin, Blazing Scorcher) getting a non-answer instead of a real description of what they do. Verified against a wide battery of real cards and rules questions with no regressions.

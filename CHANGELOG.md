@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.23.1 — Ask Rules: card evidence + a context-overflow bug from v1.23.0
+
+- Asking Ask Rules about a specific card by name (e.g. "the rules of Arena Kingpin") could come back with "I didn't find any official rule..." even for a real card, if that card had no ban/errata history — its own printed text was never used as evidence. It is now, run through the same symbol translator the rest of the app uses so the local model sees "Exhaust" instead of a raw `:rb_exhaust:` token.
+- Fixed a bug from v1.23.0: broad questions (e.g. "How does Exhaust work?") could silently return no answer at all. A Patch Notes article is indexed as one whole-section block and one such entry was 27,000+ characters as a single piece of evidence — enough on its own to overflow the local model's context window. Evidence sent to the model is now bounded per-item and in total.
+
 ## v1.23.0 — Layout cleanup, Ask Rules evidence fixes
 
 - Quick Add, Mass Add, Scan Card, and Import Pack moved off the top bar and onto the Vault tab, next to All Cards/Owned/Missing/Favorites; Quick Add itself was removed (Mass Add covers the same thing). The top bar now only holds the theme toggle and Connect, and the search box only shows on the Vault page.

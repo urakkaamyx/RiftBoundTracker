@@ -555,26 +555,42 @@ internal static class Program
             return Results.Ok(await questions.AnalyzeAsync(body.Question, body.CardId, ct));
         });
 
-        app.MapGet("/api/rules/local-ai/status", (RulesLocalAiSettingsService settings, LocalAiModelService modelService) =>
+        app.MapGet("/api/rules/local-ai/models", (RulesLocalAiSettingsService settings, LocalAiModelService modelService) =>
         {
-            var status = modelService.GetStatus();
-            return Results.Ok(new RulesLocalAiStatusDto(settings.IsEnabled(), status.Present, status.FileName, status.Bytes));
+            var selectedId = settings.GetSelectedModelId();
+            var models = LocalAiModelCatalog.Options.Select(o =>
+            {
+                var status = modelService.GetStatus(o.Id);
+                return new
+                {
+                    o.Id, o.DisplayName, o.Description, o.ApproxBytes,
+                    present = status.Present, bytes = status.Bytes, selected = o.Id == selectedId,
+                };
+            });
+            return Results.Ok(new { enabled = settings.IsEnabled(), models });
         });
 
-        app.MapGet("/api/rules/local-ai/model-progress", (LocalAiModelService modelService) =>
-            Results.Ok(modelService.GetStatus()));
+        app.MapGet("/api/rules/local-ai/model-progress", (string modelId, LocalAiModelService modelService) =>
+            Results.Ok(modelService.GetStatus(modelId)));
 
-        app.MapPost("/api/rules/local-ai/download-model", (LocalAiModelService modelService, ILogger<LocalAiModelService> logger) =>
+        app.MapPost("/api/rules/local-ai/download-model", (RulesLocalAiModelRequest body, LocalAiModelService modelService, ILogger<LocalAiModelService> logger) =>
         {
+            var modelId = LocalAiModelCatalog.Resolve(body.ModelId).Id;
             // Detached, same reasoning as the app self-update: the download can take a while, so
             // this request returns immediately and the client polls model-progress instead of
-            // holding one connection open for the whole ~940MB transfer.
+            // holding one connection open for the whole ~1GB+ transfer.
             _ = Task.Run(async () =>
             {
-                try { await modelService.DownloadAsync(CancellationToken.None); }
+                try { await modelService.DownloadAsync(modelId, CancellationToken.None); }
                 catch (Exception ex) { logger.LogError(ex, "Local AI model download failed"); }
             });
-            return Results.Ok(new { started = true });
+            return Results.Ok(new { started = true, modelId });
+        });
+
+        app.MapPost("/api/rules/local-ai/select-model", (RulesLocalAiModelRequest body, RulesLocalAiSettingsService settings) =>
+        {
+            settings.SetSelectedModelId(body.ModelId ?? LocalAiModelCatalog.DefaultModelId);
+            return Results.Ok(new { selectedModelId = settings.GetSelectedModelId() });
         });
 
         app.MapPost("/api/rules/local-ai/configure", (RulesLocalAiToggleRequest body, RulesLocalAiSettingsService settings) =>
@@ -757,5 +773,6 @@ public record TopDeckKeyRequest(string ApiKey);
 public record CommunitySyncRequest(int? Days);
 public record AskRuleQuestionRequest(string Question, string? CardId);
 public record RulesLocalAiToggleRequest(bool Enabled);
+public record RulesLocalAiModelRequest(string? ModelId);
 public record PriceRefreshRequest(bool IncludeAllCards);
 public record PriceQueueRequest(bool Queued);

@@ -20,37 +20,44 @@ file sealed class GitHubRelease
 }
 
 /// <summary>
-/// The Ask Rules GGUF model is a ~940MB asset that changes far less often than the app itself —
-/// bundling it into every app release zip meant every release (even a one-line CSS fix) re-zipped
-/// and re-uploaded/re-downloaded that same ~1GB blob. It now lives entirely on its own, hosted as
-/// the "ask-rules-model-v1" release tag (see scripts/training/README.md), and this service fetches
-/// it directly into App_Data — never into the install directory, since the self-update relauncher
+/// Ask Rules' GGUF models are ~1GB+ assets that change far less often than the app itself —
+/// bundling one into every app release zip meant every release (even a one-line CSS fix) re-zipped
+/// and re-uploaded/re-downloaded that same blob. Each model in LocalAiModelCatalog lives entirely
+/// on its own, hosted under its own release tag, and this service fetches whichever one is asked
+/// for directly into App_Data — never into the install directory, since the self-update relauncher
 /// wholesale-replaces everything except App_Data (see UpdateService's relaunch script), which would
 /// otherwise delete a model that isn't part of the new app zip.
+///
+/// Each model gets its own subfolder (App_Data/Models/{modelId}/) so more than one can be
+/// downloaded at once — switching which model Ask Rules uses (RulesLocalAiSettingsService's
+/// SelectedModelId) shouldn't require re-downloading one you already have.
 /// </summary>
 public sealed class LocalAiModelService(IWebHostEnvironment env, IHttpClientFactory httpClientFactory, ILogger<LocalAiModelService> logger)
 {
     private const string Owner = "urakkaamyx";
     private const string Repo = "RiftBoundTracker";
-    private const string ModelReleaseTag = "ask-rules-model-v1";
 
-    private string ModelDir => Path.Combine(env.ContentRootPath, "App_Data", "Models");
+    private string ModelsRootDir => Path.Combine(env.ContentRootPath, "App_Data", "Models");
+    private string ModelDir(string modelId) => Path.Combine(ModelsRootDir, modelId);
 
     private readonly object _progressLock = new();
+    private string? _downloadingModelId;
     private LocalAiModelStatus _progress = new(false, null, null, "idle", 0, 0, null);
 
-    public string? FindModelPath()
+    public string? FindModelPath(string modelId)
     {
         MigrateLegacyModelIfPresent();
-        return Directory.Exists(ModelDir) ? Directory.EnumerateFiles(ModelDir, "*.gguf").FirstOrDefault() : null;
+        var dir = ModelDir(modelId);
+        return Directory.Exists(dir) ? Directory.EnumerateFiles(dir, "*.gguf").FirstOrDefault() : null;
     }
 
-    public LocalAiModelStatus GetStatus()
+    public LocalAiModelStatus GetStatus(string modelId)
     {
-        var path = FindModelPath();
+        var path = FindModelPath(modelId);
         lock (_progressLock)
         {
-            return _progress with
+            var progress = _downloadingModelId == modelId ? _progress : new LocalAiModelStatus(false, null, null, "idle", 0, 0, null);
+            return progress with
             {
                 Present = path is not null,
                 FileName = path is null ? null : Path.GetFileName(path),
@@ -64,45 +71,56 @@ public sealed class LocalAiModelService(IWebHostEnvironment env, IHttpClientFact
         lock (_progressLock) _progress = update(_progress);
     }
 
-    // Versions before this split shipped the model at Models/*.gguf under the install directory —
-    // if that's still there (a self-update from an older version) and App_Data has nothing yet,
-    // reuse it instead of making an existing user re-download ~940MB they already have.
+    // Versions before the multi-model split shipped a single model at either Models/*.gguf (the
+    // install dir, pre-App_Data-split) or App_Data/Models/*.gguf directly (the original App_Data
+    // split, before per-model subfolders) — either one, if still there, is the default model and
+    // gets moved into its own subfolder instead of making an existing user re-download it.
     private void MigrateLegacyModelIfPresent()
     {
         try
         {
-            if (Directory.Exists(ModelDir) && Directory.EnumerateFiles(ModelDir, "*.gguf").Any()) return;
-            var legacyDir = Path.Combine(env.ContentRootPath, "Models");
-            if (!Directory.Exists(legacyDir)) return;
-            var legacyFile = Directory.EnumerateFiles(legacyDir, "*.gguf").FirstOrDefault();
-            if (legacyFile is null) return;
+            var defaultDir = ModelDir(LocalAiModelCatalog.DefaultModelId);
+            if (Directory.Exists(defaultDir) && Directory.EnumerateFiles(defaultDir, "*.gguf").Any()) return;
 
-            Directory.CreateDirectory(ModelDir);
-            var dest = Path.Combine(ModelDir, Path.GetFileName(legacyFile));
-            logger.LogInformation("Migrating existing local AI model from install directory into App_Data.");
-            File.Move(legacyFile, dest);
+            var flatAppDataFile = Directory.Exists(ModelsRootDir)
+                ? Directory.EnumerateFiles(ModelsRootDir, "*.gguf", SearchOption.TopDirectoryOnly).FirstOrDefault()
+                : null;
+            var legacyInstallDir = Path.Combine(env.ContentRootPath, "Models");
+            var legacyInstallFile = Directory.Exists(legacyInstallDir)
+                ? Directory.EnumerateFiles(legacyInstallDir, "*.gguf").FirstOrDefault()
+                : null;
+            var source = flatAppDataFile ?? legacyInstallFile;
+            if (source is null) return;
+
+            Directory.CreateDirectory(defaultDir);
+            var dest = Path.Combine(defaultDir, Path.GetFileName(source));
+            logger.LogInformation("Migrating existing local AI model into its own subfolder ({ModelId}).", LocalAiModelCatalog.DefaultModelId);
+            File.Move(source, dest);
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Local AI model migration from the install directory failed — will download fresh instead.");
+            logger.LogWarning(ex, "Local AI model migration failed — will download fresh instead.");
         }
     }
 
-    public async Task DownloadAsync(CancellationToken ct = default)
+    public async Task DownloadAsync(string modelId, CancellationToken ct = default)
     {
+        var option = LocalAiModelCatalog.Resolve(modelId);
+        lock (_progressLock) _downloadingModelId = option.Id;
         try
         {
             SetProgress(p => p with { Phase = "checking", Error = null });
             var http = httpClientFactory.CreateClient("github");
             var release = await http.GetFromJsonAsync<GitHubRelease>(
-                $"https://api.github.com/repos/{Owner}/{Repo}/releases/tags/{ModelReleaseTag}", ct)
+                $"https://api.github.com/repos/{Owner}/{Repo}/releases/tags/{option.ReleaseTag}", ct)
                 ?? throw new InvalidOperationException("Couldn't reach GitHub to fetch the model release.");
 
             var asset = release.Assets.FirstOrDefault(a => a.Name.EndsWith(".gguf", StringComparison.OrdinalIgnoreCase))
                 ?? throw new InvalidOperationException("The model release has no .gguf asset attached.");
 
-            Directory.CreateDirectory(ModelDir);
-            var destPath = Path.Combine(ModelDir, asset.Name);
+            var dir = ModelDir(option.Id);
+            Directory.CreateDirectory(dir);
+            var destPath = Path.Combine(dir, asset.Name);
             var tempPath = destPath + ".partial";
 
             SetProgress(p => p with { Phase = "downloading", DownloadedBytes = 0, TotalBytes = asset.Size });
@@ -123,9 +141,10 @@ public sealed class LocalAiModelService(IWebHostEnvironment env, IHttpClientFact
                 }
             }
 
-            // Clear out any other .gguf already in App_Data/Models before promoting the new one —
-            // there should only ever be one model on disk at a time.
-            foreach (var existing in Directory.EnumerateFiles(ModelDir, "*.gguf"))
+            // Clear out any other .gguf already in this model's own subfolder before promoting the
+            // new one — there should only ever be one file per model on disk at a time. Other
+            // models' subfolders are untouched.
+            foreach (var existing in Directory.EnumerateFiles(dir, "*.gguf"))
                 File.Delete(existing);
             File.Move(tempPath, destPath, overwrite: true);
 
@@ -133,7 +152,7 @@ public sealed class LocalAiModelService(IWebHostEnvironment env, IHttpClientFact
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Local AI model download failed");
+            logger.LogWarning(ex, "Local AI model download failed for {ModelId}", option.Id);
             SetProgress(p => p with { Phase = "error", Error = ex.Message });
             throw;
         }

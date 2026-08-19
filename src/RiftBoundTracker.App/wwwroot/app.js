@@ -2523,24 +2523,107 @@ async function loadRules() {
 }
 
 async function loadLocalAiStatus() {
-  const localAi = await api("/api/rules/local-ai/status");
-  state.localAiEnabled = localAi.enabled;
+  const data = await api("/api/rules/local-ai/models");
+  state.localAiEnabled = data.enabled;
+  state.localAiModels = data.models;
+  const selected = data.models.find(m => m.selected);
+
   const toggleBtn = document.getElementById("toggleLocalAi");
-  const redownloadBtn = document.getElementById("redownloadLocalAiModel");
-  if (localAi.modelAvailable) {
-    toggleBtn.textContent = localAi.enabled ? "Disable" : "Enable";
-    toggleBtn.disabled = false;
-    redownloadBtn.hidden = false;
-    redownloadBtn.disabled = false;
-    document.getElementById("askRulesProviderStatus").textContent = localAi.enabled
-      ? `On — running ${localAi.modelFile} locally (${(localAi.modelBytes / 1e9).toFixed(1)} GB).`
-      : "Off — Ask Rules will still answer from real rules evidence, just without a written-out summary.";
+  toggleBtn.textContent = data.enabled ? "Disable" : "Enable";
+  toggleBtn.disabled = !data.enabled && !(selected && selected.present);
+
+  document.getElementById("askRulesProviderStatus").textContent =
+    data.enabled && selected
+      ? `On — running ${selected.displayName} locally (${(selected.bytes / 1e9).toFixed(1)} GB).`
+      : selected && selected.present
+        ? "Off — Ask Rules will still answer from real rules evidence, just without a written-out summary."
+        : "No model downloaded yet — pick one below. Ask Rules will still answer from real rules evidence either way.";
+
+  renderLocalAiModelList();
+}
+
+function renderLocalAiModelList() {
+  const root = document.getElementById("localAiModelList");
+  root.innerHTML = state.localAiModels.map(m => {
+    const sizeGb = (m.approxBytes / 1e9).toFixed(1);
+    let action;
+    if (state.downloadingModelId === m.id) {
+      const p = state.localAiDownloadProgress || {};
+      const pct = p.totalBytes ? Math.round((p.downloadedBytes / p.totalBytes) * 100) : 0;
+      action = p.phase === "checking"
+        ? `<span class="local-ai-model-status">Checking for the release…</span>`
+        : `<div class="local-ai-model-progress">Downloading… ${pct}%<div class="progress-track"><span style="width:${pct}%"></span></div></div>`;
+    } else if (m.present && m.selected) {
+      action = `<span class="local-ai-model-badge">In use</span>`;
+    } else if (m.present) {
+      action = `<button type="button" class="command-btn quiet" data-select-model="${m.id}">Use this</button>`;
+    } else {
+      action = `<button type="button" class="command-btn quiet" data-download-model="${m.id}">Download (${sizeGb} GB)</button>`;
+    }
+    return `
+      <div class="local-ai-model-row${m.selected ? " selected" : ""}">
+        <div class="local-ai-model-copy">
+          <b>${escapeHtml(m.displayName)}</b>
+          <span>${escapeHtml(m.description)}</span>
+        </div>
+        <div class="local-ai-model-action">${action}</div>
+      </div>`;
+  }).join("");
+  root.querySelectorAll("[data-download-model]").forEach(btn =>
+    btn.addEventListener("click", () => downloadLocalAiModel(btn.dataset.downloadModel)));
+  root.querySelectorAll("[data-select-model]").forEach(btn =>
+    btn.addEventListener("click", () => selectLocalAiModel(btn.dataset.selectModel)));
+}
+
+async function selectLocalAiModel(modelId, { silent } = {}) {
+  try {
+    await api("/api/rules/local-ai/select-model", jsonOptions("POST", { modelId }));
+    if (!silent) toast("Switched Ask Rules' local model.");
+    await loadLocalAiStatus();
+  } catch (err) {
+    toast(err.message, true);
+  }
+}
+
+async function downloadLocalAiModel(modelId) {
+  state.downloadingModelId = modelId;
+  state.localAiDownloadProgress = null;
+  renderLocalAiModelList();
+  try {
+    await api("/api/rules/local-ai/download-model", jsonOptions("POST", { modelId }));
+  } catch (err) {
+    state.downloadingModelId = null;
+    toast(err.message, true);
+    renderLocalAiModelList();
+    return;
+  }
+  pollLocalAiModelProgress(modelId);
+}
+
+async function pollLocalAiModelProgress(modelId) {
+  let progress;
+  try {
+    progress = await api(`/api/rules/local-ai/model-progress?modelId=${encodeURIComponent(modelId)}`);
+  } catch (err) {
+    state.downloadingModelId = null;
+    toast(err.message, true);
+    renderLocalAiModelList();
+    return;
+  }
+
+  if (progress.phase === "downloading" || progress.phase === "checking") {
+    state.localAiDownloadProgress = progress;
+    renderLocalAiModelList();
+    setTimeout(() => pollLocalAiModelProgress(modelId), 500);
+  } else if (progress.phase === "error") {
+    state.downloadingModelId = null;
+    toast(progress.error || "Model download failed.", true);
+    renderLocalAiModelList();
   } else {
-    toggleBtn.textContent = "Download Model";
-    toggleBtn.disabled = false;
-    redownloadBtn.hidden = true;
-    document.getElementById("askRulesProviderStatus").textContent =
-      "Not downloaded yet (~940 MB, one-time) — Ask Rules will still answer from real rules evidence either way.";
+    // "done" (or any other terminal state) — a freshly downloaded model is the one you just asked
+    // for, so make it the active selection instead of leaving it downloaded-but-unused.
+    state.downloadingModelId = null;
+    await selectLocalAiModel(modelId, { silent: true });
   }
 }
 
@@ -2866,10 +2949,6 @@ async function showRulePopup(ruleId) {
 
 async function toggleLocalAi() {
   const button = document.getElementById("toggleLocalAi");
-  if (button.textContent === "Download Model") {
-    await downloadLocalAiModel();
-    return;
-  }
   button.disabled = true;
   try {
     const result = await api("/api/rules/local-ai/configure", jsonOptions("POST", { enabled: !state.localAiEnabled }));
@@ -2878,54 +2957,6 @@ async function toggleLocalAi() {
   } catch (err) {
     toast(err.message, true);
     button.disabled = false;
-  }
-}
-
-async function downloadLocalAiModel() {
-  const button = document.getElementById("toggleLocalAi");
-  const redownloadBtn = document.getElementById("redownloadLocalAiModel");
-  const status = document.getElementById("askRulesProviderStatus");
-  button.disabled = true;
-  redownloadBtn.disabled = true;
-  try {
-    await api("/api/rules/local-ai/download-model", { method: "POST" });
-  } catch (err) {
-    status.textContent = err.message;
-    button.disabled = false;
-    redownloadBtn.disabled = false;
-    return;
-  }
-  pollLocalAiModelProgress();
-}
-
-async function pollLocalAiModelProgress() {
-  const status = document.getElementById("askRulesProviderStatus");
-  let progress;
-  try {
-    progress = await api("/api/rules/local-ai/model-progress");
-  } catch (err) {
-    status.textContent = err.message;
-    document.getElementById("toggleLocalAi").disabled = false;
-    document.getElementById("redownloadLocalAiModel").disabled = false;
-    return;
-  }
-
-  if (progress.phase === "downloading") {
-    const pct = progress.totalBytes ? Math.round((progress.downloadedBytes / progress.totalBytes) * 100) : 0;
-    status.innerHTML = `Downloading model... ${pct}% (${formatBytes(progress.downloadedBytes)} / ${formatBytes(progress.totalBytes)})
-      <div class="progress-track"><span style="width:${pct}%"></span></div>`;
-    setTimeout(pollLocalAiModelProgress, 500);
-  } else if (progress.phase === "checking") {
-    status.textContent = "Checking for the model release...";
-    setTimeout(pollLocalAiModelProgress, 500);
-  } else if (progress.phase === "error") {
-    status.textContent = progress.error || "Model download failed.";
-    document.getElementById("toggleLocalAi").disabled = false;
-    document.getElementById("redownloadLocalAiModel").disabled = false;
-  } else {
-    // "done" (or any other terminal state) — refresh from the real status endpoint so the button
-    // and status text reflect the model actually being on disk now, not just the download phase.
-    await loadLocalAiStatus();
   }
 }
 
@@ -3115,7 +3146,6 @@ function wireEvents() {
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") askRulesQuestion();
   });
   document.getElementById("toggleLocalAi").addEventListener("click", toggleLocalAi);
-  document.getElementById("redownloadLocalAiModel").addEventListener("click", () => downloadLocalAiModel().catch(err => toast(err.message, true)));
   document.getElementById("rulesSearchInput").addEventListener("input", event => {
     clearTimeout(state.rules.searchTimer);
     const value = event.target.value;

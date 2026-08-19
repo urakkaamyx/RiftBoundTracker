@@ -37,9 +37,13 @@ public sealed class LocalLlmExplanationProvider(
     private readonly SemaphoreSlim _gate = new(1, 1);
     private ModelParams? _modelParams;
     private LLamaWeights? _weights;
-    private bool _loadFailed;
+    private string? _loadedModelPath;
+    // Keyed to the path that failed, not a bare bool — switching to a DIFFERENT catalog model
+    // after one failed to load must not keep reporting unconfigured for a model that was never
+    // actually tried.
+    private string? _failedModelPath;
 
-    public bool IsConfigured => settings.IsEnabled() && !_loadFailed && FindModelPath() is not null;
+    public bool IsConfigured => settings.IsEnabled() && FindModelPath() is { } path && path != _failedModelPath;
 
     public async Task<RulesGeneratedAnswer> ExplainAsync(RulesExplanationContext context, CancellationToken ct = default)
     {
@@ -48,7 +52,7 @@ public sealed class LocalLlmExplanationProvider(
 
         var modelPath = FindModelPath();
         if (modelPath is null)
-            return new RulesGeneratedAnswer(null, false, "No local model file found under Models/.");
+            return new RulesGeneratedAnswer(null, false, "The selected local model hasn't been downloaded yet.");
 
         await _gate.WaitAsync(ct);
         try
@@ -104,7 +108,15 @@ public sealed class LocalLlmExplanationProvider(
 
     private bool EnsureWeightsLoaded(string modelPath)
     {
-        if (_weights is not null) return true;
+        if (_weights is not null && _loadedModelPath == modelPath) return true;
+        // Either nothing loaded yet, or the user switched which catalog model is selected
+        // (RulesLocalAiSettingsService.SelectedModelId) — swap the resident weights instead of
+        // requiring an app restart to pick up the change.
+        if (_weights is not null)
+        {
+            _weights.Dispose();
+            _weights = null;
+        }
         try
         {
             // 4096, not 2048 — doubled for headroom now that evidence carries full rule text
@@ -112,12 +124,14 @@ public sealed class LocalLlmExplanationProvider(
             // the real backstop; this just gives it more room to work with).
             _modelParams = new ModelParams(modelPath) { ContextSize = 4096, GpuLayerCount = 0 };
             _weights = LLamaWeights.LoadFromFile(_modelParams);
+            _loadedModelPath = modelPath;
+            _failedModelPath = null;
             return true;
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to load local AI model from {Path}", modelPath);
-            _loadFailed = true;
+            _failedModelPath = modelPath;
             return false;
         }
     }
@@ -188,7 +202,7 @@ public sealed class LocalLlmExplanationProvider(
         return $"Question: {context.Question}{cardText}\n\nRules evidence:\n{evidenceText}";
     }
 
-    public string? FindModelPath() => modelService.FindModelPath();
+    public string? FindModelPath() => modelService.FindModelPath(settings.GetSelectedModelId());
 
     public void Dispose()
     {

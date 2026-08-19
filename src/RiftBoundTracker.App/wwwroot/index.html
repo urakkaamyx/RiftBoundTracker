@@ -195,10 +195,10 @@
           <div id="rulesAskMode" hidden>
             <div class="ask-ai-bar">
               <div class="ask-ai-bar-status"><b>Local AI</b><span id="askRulesProviderStatus">Loading...</span></div>
-              <button type="button" class="icon-btn" id="redownloadLocalAiModel" title="Re-download the model (e.g. if a newer one has been published)" hidden><i data-icon="refresh"></i></button>
               <button type="button" class="command-btn quiet" id="toggleLocalAi">Enable</button>
             </div>
             <p class="settings-hint ask-ai-hint">A small AI model ships with the app and runs entirely on this machine — nothing is ever sent anywhere, no account or key needed. Ask Rules always answers from real local rules evidence first; turning this on adds a plain-language summary on top, generated locally. Off by default since it loads a ~1GB model into memory and takes a few seconds per question.</p>
+            <div id="localAiModelList" class="local-ai-model-list"></div>
             <div class="ask-rules-form">
               <textarea id="askRulesInput" rows="2" placeholder="Ask a Riftbound rules question in plain English…"></textarea>
               <button type="button" class="command-btn gold" id="askRulesBtn"><i data-icon="search"></i>Ask</button>

@@ -45,3 +45,10 @@ App_Data/
 # Generated training artifacts (datasets, LoRA adapters, merged/converted models) — reproducible
 # from scripts/training/generate_dataset.py + train.py + merge.py, never committed.
 /scripts/training/output/
+
+# Local Python env + llama.cpp toolchain for the training scripts — reproducible from
+# requirements.txt and a fresh clone/download, never committed (large, machine-specific).
+/scripts/training/.venv/
+/scripts/training/llama.cpp-src/
+/scripts/training/llama.cpp-bin/
+/scripts/training/*.zip

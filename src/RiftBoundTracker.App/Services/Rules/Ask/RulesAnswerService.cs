@@ -17,7 +17,7 @@ public sealed class RulesAnswerService(
     public async Task<RulesAskResponse> AskAsync(string question, string? cardId, CancellationToken ct = default)
     {
         var analysis = await questions.AnalyzeAsync(question, cardId, ct);
-        var result = await evidenceService.GatherAsync(analysis, currentOnly: true, limit: 12, ct);
+        var result = await evidenceService.GatherAsync(analysis, currentOnly: true, limit: 16, ct);
         var confidence = DetermineConfidence(result, analysis);
 
         string? answer = null;

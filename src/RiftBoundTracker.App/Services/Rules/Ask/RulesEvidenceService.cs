@@ -39,7 +39,7 @@ public sealed class RulesEvidenceService(RulesSearchService search, AppDbContext
     private const double CrossReferenceWeight = 60;
 
     public async Task<RulesEvidenceResult> GatherAsync(
-        RulesQuestionAnalysis analysis, bool currentOnly = true, int limit = 12, CancellationToken ct = default)
+        RulesQuestionAnalysis analysis, bool currentOnly = true, int limit = 16, CancellationToken ct = default)
     {
         var byId = new Dictionary<int, (RuleSearchHit Hit, List<string> Via, double Score)>();
 
@@ -89,26 +89,45 @@ public sealed class RulesEvidenceService(RulesSearchService search, AppDbContext
         foreach (var hit in textResponse.Results.Where(h => h.MatchType is "FullText" or "Title"))
             Add(hit, "matching text", hit.Score * TextFallbackDamping);
 
-        // One hop only, and only from rules already in the evidence set — a rule that explicitly
-        // says "See rule 197. Locations for more information." is evidence the question needs that
-        // rule too, even if none of its own keywords/text matched. Deliberately not recursive
-        // (doc's RuleCrossReferences graph existed but was never actually consumed anywhere before
-        // this) — walking further hops risks pulling in loosely-related rules with no real bearing
-        // on the question.
+        // Multi-hop trace across the RuleCrossReferences graph, not one hop only — a rule that says
+        // "See rule 197" can itself point somewhere the question actually needs, and a real
+        // multi-part interaction can be more than one reference away from anything the question's
+        // own keywords/text matched directly. Each hop's weight decays (60, 30, 20...) so distance
+        // from the seed evidence still matters — a rule several hops out shouldn't outrank one
+        // found directly — and the walk is bounded to maxHops so a densely cross-referenced corpus
+        // can't turn into an unbounded graph traversal.
+        //
+        // A trace landing back on a rule already in the evidence set is never re-added or
+        // re-expanded — Add() folds it into that rule's existing score instead, since a rule
+        // multiple paths converge on genuinely is more load-bearing than one only reached once.
+        // Each rule is only expanded (its own outgoing references followed) the first time it's
+        // reached, regardless of how many times it's re-scored after that.
         if (byId.Count > 0)
         {
-            var seedIds = byId.Keys.ToList();
-            var crossRefs = await db.RuleCrossReferences
-                .Where(x => seedIds.Contains(x.FromRuleId))
-                .Include(x => x.ToRule).ThenInclude(r => r.Document)
-                .ToListAsync(ct);
-            foreach (var xref in crossRefs)
+            const int maxHops = 3;
+            var frontier = byId.Keys.ToList();
+            var expanded = new HashSet<int>();
+            for (var hop = 0; hop < maxHops && frontier.Count > 0; hop++)
             {
-                if (byId.ContainsKey(xref.ToRuleId)) continue;
-                if (currentOnly && !xref.ToRule.IsCurrent) continue;
-                var fromLabel = byId[xref.FromRuleId].Hit.RuleNumber ?? byId[xref.FromRuleId].Hit.Title;
-                var hit = await search.ToHitAsync(xref.ToRule, "CrossReference", CrossReferenceWeight, ct);
-                Add(hit, $"cross-reference from Rule {fromLabel}", CrossReferenceWeight);
+                var toExpand = frontier.Where(expanded.Add).ToList();
+                if (toExpand.Count == 0) break;
+                var hopWeight = CrossReferenceWeight / (hop + 1);
+                var crossRefs = await db.RuleCrossReferences
+                    .Where(x => toExpand.Contains(x.FromRuleId))
+                    .Include(x => x.ToRule).ThenInclude(r => r.Document)
+                    .ToListAsync(ct);
+                var nextFrontier = new List<int>();
+                foreach (var xref in crossRefs)
+                {
+                    if (currentOnly && !xref.ToRule.IsCurrent) continue;
+                    var fromLabel = byId.TryGetValue(xref.FromRuleId, out var fromEntry)
+                        ? fromEntry.Hit.RuleNumber ?? fromEntry.Hit.Title
+                        : xref.FromRuleId.ToString();
+                    var hit = await search.ToHitAsync(xref.ToRule, "CrossReference", hopWeight, ct);
+                    Add(hit, $"cross-reference from Rule {fromLabel}", hopWeight);
+                    nextFrontier.Add(xref.ToRuleId);
+                }
+                frontier = nextFrontier;
             }
         }
 

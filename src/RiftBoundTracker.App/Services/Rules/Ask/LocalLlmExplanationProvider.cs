@@ -122,10 +122,13 @@ public sealed class LocalLlmExplanationProvider(
         }
         try
         {
-            // 4096, not 2048 — doubled for headroom now that evidence carries full rule text
-            // instead of 220-char snippets (see BuildUserMessage's own character budget, which is
-            // the real backstop; this just gives it more room to work with).
-            _modelParams = new ModelParams(modelPath) { ContextSize = 4096, GpuLayerCount = 0 };
+            // 6144, not 4096 — raised again alongside BuildUserMessage's evidence budget (900/5500
+            // -> 1400/9000 chars): a real question (Tank's interaction with spell targeting) needed
+            // 11 rules to answer properly, and 5500 chars wasn't enough room to fit them all even
+            // though retrieval had already found the right ones — evidence was silently dropped by
+            // the budget loop, not by retrieval. The bigger context window is what makes the bigger
+            // budget actually usable instead of just hitting a llama_decode overflow instead.
+            _modelParams = new ModelParams(modelPath) { ContextSize = 6144, GpuLayerCount = 0 };
             _weights = LLamaWeights.LoadFromFile(_modelParams);
             _loadedModelPath = modelPath;
             _loadedModelWriteTimeUtc = writeTimeUtc;
@@ -197,8 +200,8 @@ public sealed class LocalLlmExplanationProvider(
         // keeps any single item from doing that; TotalBudget keeps several merely-long items from
         // adding up to the same problem. Both are generous relative to the old 220-char snippet —
         // this only ever bites entries that were already far outside the normal range for one rule.
-        const int perItemCap = 900;
-        const int totalBudget = 5500;
+        const int perItemCap = 1400;
+        const int totalBudget = 9000;
         var used = 0;
         var evidenceParts = new List<string>();
         // CardNotes FIRST, not last — a question about a specific card (its own text, legality, or

@@ -48,6 +48,13 @@ match). Categories:
       from "given this rule and these numbers, what happens." Swept across a range of Might/damage
       combinations against the same three rules so the model sees the pattern generalized, not
       memorized for one specific pair of numbers.
+  11. Community FAQ interaction/timing questions (riftboundfaq.com, CC BY-SA 4.0 — see
+      FAQ_ATTRIBUTION) — real Q&A entries generalizing category 10's fix beyond one mechanic. Each
+      entry's cited rule numbers are looked up against OUR OWN synced corpus (never the FAQ's own
+      text) to build evidence, so the evidence shape matches what real retrieval actually produces;
+      entries whose citations don't resolve, or whose answer is too long, are skipped. Starts with
+      general-rules + mechanics (13 pages) only — not yet the 47 card-specific pages — to keep this
+      a modest, testable dataset-size increase given round 3/4's instability from size growth alone.
 
 IMPORTANT — keep this file's evidence formatting a faithful mirror of the C# it's training the
 model to match, not merely "close enough": LocalLlmExplanationProvider.cs's BuildUserMessage is the
@@ -103,6 +110,19 @@ TOTAL_BUDGET = 5500
 
 BRACKET_KEYWORD_RE = re.compile(r"\[([A-Za-z][A-Za-z\s\-]*)\]")
 
+# Community FAQ (riftboundfaq.com) — real Q&A entries with precise rule citations, reviewed
+# against a specific Core Rules version, covering interaction/timing questions no other category
+# here can generate (they require actually knowing the correct ruling, not just quoting a card or
+# a single rule). Content is CC BY-SA 4.0 — https://github.com/ChristianIvicevic/riftboundfaq,
+# authored by Christian I. (Near) and contributors. Used here as fine-tuning data with attribution;
+# never redistributed verbatim as app content. See FAQ_PATHS below for exactly which pages.
+FAQ_REPO_RAW_BASE = "https://raw.githubusercontent.com/ChristianIvicevic/riftboundfaq/main/content/(rulings)"
+FAQ_ATTRIBUTION = (
+    "riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, "
+    "https://github.com/ChristianIvicevic/riftboundfaq"
+)
+FAQ_MAX_ANSWER_CHARS = 900
+
 _symbol_map = None
 
 
@@ -139,6 +159,54 @@ def humanize(text):
 
 def cap(text, max_chars):
     return text if len(text) <= max_chars else text[:max_chars] + "…"
+
+
+def fetch_faq_mdx(relative_path):
+    url = f"{FAQ_REPO_RAW_BASE}/{relative_path}"
+    with urllib.request.urlopen(url, timeout=30) as resp:
+        return resp.read().decode("utf-8")
+
+
+def clean_faq_text(text):
+    """Converts the FAQ's MDX/JSX markup to plain readable text — <Card name="X" /> -> X,
+    <Rule number="N" /> -> "Rule N" (with a leading space; the source often has no space before the
+    tag, e.g. "...the trash.<Rule number="X" />", which without this reads as "trash.Rule X"), bare
+    self-closing keyword components like <Empower /> -> their tag name, Callout wrappers dropped
+    (their contents kept), markdown links -> link text, bold markers stripped, and any H2-H4
+    subheading still left over (from an H3 inside the H2 section this became one answer for) turned
+    into an inline lead-in instead of raw "### Heading [#anchor]" markdown."""
+    text = re.sub(r'<Card\s+name="([^"]+)"\s*/>', r'\1', text)
+    text = re.sub(r'<Rule\s+number="([^"]+)"\s*/>', r' Rule \1', text)
+    text = re.sub(r'<Callout[^>]*>', '', text)
+    text = text.replace('</Callout>', '')
+    text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
+    text = re.sub(r'<(\w+)\s*/>', r'\1', text)  # remaining bare keyword components, e.g. <Empower />
+    text = re.sub(r'^#{2,4}\s+(.*?)\s*\[#[\w-]+\]\s*$', r'\1:', text, flags=re.MULTILINE)
+    text = text.replace('**', '')
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    text = re.sub(r'[ \t]+', ' ', text)
+    return text.strip()
+
+
+def parse_faq_mdx(raw_content):
+    """Splits one FAQ page into (question, cleaned_answer, cited_rule_numbers) tuples, one per H2
+    section ("## Question text [#anchor]"). H3 subsections within one H2 are kept as part of that
+    H2's answer, not split out separately — they're sub-parts of one question, not new questions."""
+    fm_match = re.match(r'^---\n.*?\n---\n(.*)$', raw_content, re.DOTALL)
+    if not fm_match:
+        return []
+    body = fm_match.group(1)
+    entries = []
+    for section in re.split(r'\n## ', body)[1:]:
+        header_line, _, rest = section.partition('\n')
+        heading_match = re.match(r'^(.*?)\s*\[#[\w-]+\]\s*$', header_line.strip())
+        if not heading_match:
+            continue
+        question = heading_match.group(1).strip()
+        rule_numbers = list(dict.fromkeys(re.findall(r'<Rule\s+number="([^"]+)"\s*/>', rest)))
+        answer = clean_faq_text(rest)
+        entries.append((question, answer, rule_numbers))
+    return entries
 
 
 def build_evidence_text(sources):
@@ -565,6 +633,52 @@ def main():
             examples.append(make_example(question, might_damage_source, answer))
             count10 += 1
     print(f"  {count10} examples")
+
+    print("Category 11: community FAQ interaction/timing questions (riftboundfaq.com)...")
+    # Real Q&A entries covering exactly the gap category 10 was hand-built to patch for one
+    # mechanic (Might vs damage) — interaction/timing questions that require actually knowing the
+    # correct ruling, which no other category here can generate at scale (they all either quote a
+    # card, quote one rule, or self-distill from a model that's already shown it gets this kind of
+    # reasoning wrong). Starting with general-rules + mechanics only (13 pages), not the 47
+    # card-specific pages — round 3/4 showed dataset SIZE growth alone can destabilize training, so
+    # this stays a modest, testable addition; the card pages are a natural next step once this is
+    # confirmed stable. See FAQ_ATTRIBUTION above — CC BY-SA 4.0, used here as fine-tuning
+    # material with attribution, never redistributed as app content.
+    faq_paths = [
+        "general-rules/abilities.mdx", "general-rules/chain-and-priority.mdx",
+        "general-rules/costs-and-payments.mdx", "general-rules/movement.mdx",
+        "general-rules/playing-cards.mdx", "general-rules/showdowns.mdx", "general-rules/targeting.mdx",
+        "mechanics/ambush.mdx", "mechanics/deathknell.mdx", "mechanics/empower.mdx",
+        "mechanics/equipment.mdx", "mechanics/flow.mdx", "mechanics/repeat.mdx",
+    ]
+    count11 = 0
+    skipped_no_evidence = 0
+    skipped_too_long = 0
+    for path in faq_paths:
+        try:
+            raw = fetch_faq_mdx(path)
+        except Exception as ex:
+            print(f"  skip (fetch failed): {path} — {ex}")
+            continue
+        for question, answer, rule_numbers in parse_faq_mdx(raw):
+            if len(answer) > FAQ_MAX_ANSWER_CHARS:
+                skipped_too_long += 1
+                continue
+            sources = []
+            for number in rule_numbers:
+                cur.execute("SELECT Title, Text FROM RuleEntries WHERE RuleNumber = ? AND IsCurrent = 1", (number,))
+                row = cur.fetchone()
+                if row is None:
+                    continue
+                sources.append({"ruleNumber": number, "title": row["Title"] or f"Rule {number}",
+                                 "authority": "CoreRules", "current": True, "text": row["Text"]})
+            if not sources:
+                skipped_no_evidence += 1
+                continue
+            examples.append(make_example(question, sources, answer))
+            count11 += 1
+    print(f"  {count11} examples ({skipped_no_evidence} skipped: no citation resolved against the "
+          f"synced corpus, {skipped_too_long} skipped: answer over {FAQ_MAX_ANSWER_CHARS} chars)")
 
     random.shuffle(examples)
     with open(OUT_PATH, "w", encoding="utf-8") as f:

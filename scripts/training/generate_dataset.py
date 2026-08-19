@@ -372,18 +372,18 @@ def main():
     all_cards = cur.fetchall()
     bracket_cards = [c for c in all_cards if BRACKET_KEYWORD_RE.search(c["TextPlain"])]
     plain_cards = [c for c in all_cards if not BRACKET_KEYWORD_RE.search(c["TextPlain"])]
-    # Round 2 trained on the full bracket-card catalog (738) against only 200 plain cards — a
-    # roughly 3.7:1 skew, which showed up directly as Arena Kingpin's answer picking up an
-    # inapplicable bracket-keyword sentence despite having no brackets at all. Round 3 capped
-    # bracket cards to 400 (matching the 400 plain sample) to fix that — but capping bracket
-    # coverage ALSO shrank category 7 as a whole (938 -> 800 examples) at the same time category 8
-    # nearly doubled, and that combination produced two separately-observed unstable training runs
-    # (repetition loops, a factually-reversed legality answer) neither of which happened in round
-    # 2. Keeping full bracket coverage here (matching round 2) while still raising plain cards to
-    # 400 (matching round 3's actual fix for Arena Kingpin) targets the one real problem without
-    # shrinking this category's total weight in the dataset the way round 3 did.
+    # This is round 2's exact sampling (full bracket catalog + 200 plain) — the only configuration
+    # of several tried that produced a stable Qwen3 model, and what's actually hosted as
+    # ask-rules-model-qwen3-1.7b-v1 today. Two follow-up attempts changed this ratio to fix a real,
+    # separately-confirmed bug (Arena Kingpin's answer picking up an inapplicable bracket-keyword
+    # sentence despite having no brackets), and BOTH attempts — one with bracket cards capped to
+    # 400, one with the cap removed again but category 8 pulled back down — produced models with
+    # repetition-loop degeneration and, once, a factually-reversed legality answer, none of which
+    # round 2 ever showed. Isolated retraining with only epochs/learning-rate changed (not yet
+    # tried) is the next real lever; simply reverting to the known-stable ratio here so this file
+    # matches what's actually shipped rather than an unproven experiment.
     bracket_sample = list(bracket_cards)
-    plain_sample_7 = random.sample(plain_cards, min(400, len(plain_cards)))
+    plain_sample_7 = random.sample(plain_cards, min(200, len(plain_cards)))
     sample_cards = bracket_sample + plain_sample_7
     random.shuffle(sample_cards)
     question_templates = [
@@ -421,19 +421,20 @@ def main():
         ("Does {name}'s ability still work while it's Stunned?", "whether being Stunned affects this specific ability"),
         ("Does {name}'s effect apply retroactively to units already on the board?", "whether this effect applies retroactively to things already in play when it starts applying"),
     ]
-    # Round 2, trained on 160 of these, showed real but incomplete progress: tested against a real
-    # question, the model correctly SAID the evidence didn't establish the answer — then, in the
-    # same breath, guessed one anyway ("...it doesn't say anything about whether this triggers
-    # during your opponent's turn... The answer to your question is no"). Stating the gap wasn't
-    # enough to stop it from also filling that gap with a guess, so the answer template below was
-    # reworded to explicitly refuse to pick a side. Round 3 ALSO nearly doubled the sample count
-    # (160 -> 320) at the same time category 7 shrank — that specific combination (this category's
-    # share of the dataset roughly tripling, from ~17% to ~40%) produced two separately-observed
-    # unstable training runs (repetition loops, a factually-reversed legality answer on an unrelated
-    # question) that round 2 never showed. Keeping the reworded template but pulling the count back
-    # to a middle ground (220) tests whether the wording change alone (without also more than
-    # doubling this category's weight) gets the fix without the instability.
-    partial_sample = random.sample(all_cards, min(220, len(all_cards)))
+    # This is round 2's exact sampling and answer wording — the only configuration that produced a
+    # stable Qwen3 model. Round 2 (160 examples, this wording) showed real but incomplete progress
+    # on the Darius test case: the model correctly SAID the evidence didn't establish the answer,
+    # then guessed one anyway in the same breath. Two follow-up attempts tried to fix that —
+    # raising the count to 320 with a more explicit "I'm not going to guess" wording, then pulling
+    # it back to 220 with the same reworded wording — and BOTH produced repetition-loop
+    # degeneration on unrelated questions (Exhaust, unit death) that round 2 never showed, even at
+    # 220, which is close to round 2's own 160. That rules out "just the count" as the sole cause;
+    # the reworded template itself, or the interaction with category 7's total size, may be
+    # contributing. Reverting fully to round 2's proven state (count AND wording) rather than
+    # shipping an unproven partial fix — see scripts/training/README.md for how to resume this
+    # investigation (isolating epochs/learning-rate is the next untried lever, not another dataset
+    # ratio change).
+    partial_sample = random.sample(all_cards, min(160, len(all_cards)))
     count8 = 0
     for card in partial_sample:
         name = card["Name"]
@@ -443,8 +444,8 @@ def main():
         source = {"ruleNumber": None, "title": name, "authority": "CardText", "current": True, "text": humanized}
         answer = (
             f"{name}'s printed text says: \"{humanized}\" That tells you what the card does, but it "
-            f"doesn't say anything about {topic}. I don't have rules evidence that resolves that, "
-            f"so I'm not going to guess yes or no — that would be me making up a ruling, not "
+            f"doesn't say anything about {topic} — I don't have rules evidence that clearly "
+            f"establishes that, so I can't say for sure either way."
             f"reporting one."
         )
         examples.append(make_example(question, [source], answer))

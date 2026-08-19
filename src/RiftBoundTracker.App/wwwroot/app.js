@@ -757,12 +757,68 @@ function cardDetailMarkup(card, mobile) {
       </div>
       <div class="price-change-grid">${priceTrendMarkup("24 hrs", price?.change24Hours)}${priceTrendMarkup("7 days", price?.change7Days)}</div>
       <small>${price ? `${escapeHtml(price.printing || "Market")} price / Updated ${formatRelativeTime(price.capturedAt)}` : "No Riftbound.gg price is available for this printing"}</small>
+      <div class="price-history" data-price-history="${escapeHtml(card.id)}"><span class="loading-line">Loading price history…</span></div>
     </div>
   `;
 }
 
+function priceHistoryChartMarkup(history) {
+  const width = 320, height = 96, padX = 6, padY = 10;
+  if (history.length < 2) {
+    return `<div class="price-history-empty">Not enough price history yet — check back after a few more syncs.</div>`;
+  }
+  const values = history.map(p => p.marketPrice);
+  const min = Math.min(...values), max = Math.max(...values);
+  const span = max - min || 1;
+  const stepX = (width - padX * 2) / (history.length - 1);
+  const points = history.map((p, i) => {
+    const x = padX + i * stepX;
+    const y = padY + (height - padY * 2) * (1 - (p.marketPrice - min) / span);
+    return [x, y];
+  });
+  const linePath = points.map((pt, i) => `${i === 0 ? "M" : "L"}${pt[0].toFixed(1)},${pt[1].toFixed(1)}`).join(" ");
+  const areaPath = `${linePath} L${points[points.length - 1][0].toFixed(1)},${height - padY} L${points[0][0].toFixed(1)},${height - padY} Z`;
+  return `
+    <svg class="price-history-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" role="img" aria-label="Price history chart">
+      <path d="${areaPath}" class="price-history-area"></path>
+      <path d="${linePath}" class="price-history-line"></path>
+    </svg>`;
+}
+
+function priceHistoryStatsMarkup(history) {
+  const values = history.map(p => p.marketPrice);
+  const min = Math.min(...values), max = Math.max(...values);
+  const avg = values.reduce((sum, v) => sum + v, 0) / values.length;
+  const first = values[0], last = values[values.length - 1];
+  const changePct = first ? ((last - first) / first) * 100 : 0;
+  return `
+    <div class="price-history-stats">
+      <div><span>Low</span><b>${formatMoney(min)}</b></div>
+      <div><span>Average</span><b>${formatMoney(avg)}</b></div>
+      <div><span>High</span><b>${formatMoney(max)}</b></div>
+      <div><span>Period Change</span><b class="${priceChangeClass(last - first)}">${changePct >= 0 ? "+" : ""}${changePct.toFixed(1)}%</b></div>
+    </div>`;
+}
+
+async function loadPriceHistory(root, card) {
+  const container = root.querySelector(`[data-price-history="${CSS.escape(card.id)}"]`);
+  if (!container) return;
+  try {
+    const history = await api(`/api/pricing/history/${encodeURIComponent(card.id)}?days=90`);
+    if (!root.isConnected || !root.querySelector(`[data-price-history="${CSS.escape(card.id)}"]`)) return;
+    if (!history.length) {
+      container.innerHTML = `<div class="price-history-empty">No price history recorded yet for this card.</div>`;
+      return;
+    }
+    container.innerHTML = `<div class="price-history-head">Price History <span>Last ${Math.min(90, Math.ceil((Date.now() - new Date(history[0].capturedAt).getTime()) / 86400000))} days</span></div>${priceHistoryChartMarkup(history)}${priceHistoryStatsMarkup(history)}`;
+  } catch {
+    container.innerHTML = `<div class="price-history-empty">Couldn't load price history.</div>`;
+  }
+}
+
 function wireInspector(root, card) {
   const currentCard = () => cardsById.get(card.id) || card;
+  loadPriceHistory(root, card);
   root.querySelectorAll("[data-inspector-owned-delta]").forEach(button => button.addEventListener("click", () =>
     changeOwned(currentCard(), Number(button.dataset.inspectorOwnedDelta)).catch(err => toast(err.message, true))));
   const ownedInput = root.querySelector("[data-inspector-owned-input]");
@@ -2338,8 +2394,20 @@ async function undoPackImport() {
 const scan = {
   stream: null, timer: null, inFlight: false, hitPending: false,
   voteKey: null, voteCount: 0, canvas: document.createElement("canvas"),
-  facingMode: "environment", deviceId: null, cameras: [], starting: false, switching: false, generation: 0
+  facingMode: "environment", deviceId: null, cameras: [], starting: false, switching: false, generation: 0,
+  mode: "add" // "add" (default — Scan Card from Vault) or "price" (Check Price — never touches collection)
 };
+
+function setScanMode(mode) {
+  scan.mode = mode;
+  document.getElementById("scanModalEyebrow").textContent = mode === "price" ? "Price Checker" : "Scanner";
+  document.getElementById("scanModalTitle").textContent = mode === "price" ? "Check a Card's Price" : "Scan a Card";
+}
+
+function openScanPriceDetail(card) {
+  closeModal("scanModal");
+  openCardContextSection(card, ".inspector-price");
+}
 
 function resetScanner() {
   stopLiveScan();
@@ -2381,13 +2449,21 @@ function renderScanResult(result) {
     return;
   }
   status.textContent = result.matches.length === 1 ? "Card matched" : "Choose the correct card";
-  root.innerHTML = result.matches.map(match => `<div class="result-row"><div class="result-card-art"><img src="${escapeHtml(cardImage(match.card))}" alt="" />${cardImagePopout(match.card)}</div><div><strong>${escapeHtml(match.card.name)}</strong><span>${escapeHtml(match.card.setId)}-${escapeHtml(cardCode(match.card))} / ${match.confidence}%</span></div><button class="command-btn gold" data-scan-add="${escapeHtml(match.card.id)}">Add</button></div>`).join("");
+  const isPriceMode = scan.mode === "price";
+  const actionLabel = isPriceMode ? "Check Price" : "Add";
+  const actionAttr = isPriceMode ? "data-scan-price" : "data-scan-add";
+  root.innerHTML = result.matches.map(match => `<div class="result-row"><div class="result-card-art"><img src="${escapeHtml(cardImage(match.card))}" alt="" />${cardImagePopout(match.card)}</div><div><strong>${escapeHtml(match.card.name)}</strong><span>${escapeHtml(match.card.setId)}-${escapeHtml(cardCode(match.card))} / ${match.confidence}%</span></div><button class="command-btn gold" ${actionAttr}="${escapeHtml(match.card.id)}">${actionLabel}</button></div>`).join("");
   renderIcons(root);
-  root.querySelectorAll("[data-scan-add]").forEach(button => button.addEventListener("click", async () => {
-    await changeOwned(cardsById.get(button.dataset.scanAdd), 1);
-    root.innerHTML = "";
-    status.textContent = "Card added";
-  }));
+  if (isPriceMode) {
+    root.querySelectorAll("[data-scan-price]").forEach(button => button.addEventListener("click", () =>
+      openScanPriceDetail(cardsById.get(button.dataset.scanPrice))));
+  } else {
+    root.querySelectorAll("[data-scan-add]").forEach(button => button.addEventListener("click", async () => {
+      await changeOwned(cardsById.get(button.dataset.scanAdd), 1);
+      root.innerHTML = "";
+      status.textContent = "Card added";
+    }));
+  }
 }
 
 async function manualLookup() {
@@ -2597,10 +2673,12 @@ function showLiveHit(match) {
   scan.hitPending = true;
   registerCards([match.card]);
   const root = document.getElementById("liveHit");
-  root.innerHTML = `<div class="result-row"><div class="result-card-art"><img src="${escapeHtml(cardImage(match.card))}" alt="" />${cardImagePopout(match.card)}</div><div><strong>${escapeHtml(match.card.name)}</strong><span>${escapeHtml(match.card.setId)}-${escapeHtml(cardCode(match.card))}</span></div><button class="command-btn gold" id="liveAdd">Add</button></div>`;
+  const isPriceMode = scan.mode === "price";
+  const actionLabel = isPriceMode ? "Check Price" : "Add";
+  root.innerHTML = `<div class="result-row"><div class="result-card-art"><img src="${escapeHtml(cardImage(match.card))}" alt="" />${cardImagePopout(match.card)}</div><div><strong>${escapeHtml(match.card.name)}</strong><span>${escapeHtml(match.card.setId)}-${escapeHtml(cardCode(match.card))}</span></div><button class="command-btn gold" id="liveAdd">${actionLabel}</button></div>`;
   renderIcons(root);
   document.getElementById("liveStatus").textContent = "Card matched";
-  document.getElementById("liveAdd").onclick = async () => {
+  document.getElementById("liveAdd").onclick = isPriceMode ? () => openScanPriceDetail(match.card) : async () => {
     await changeOwned(match.card, 1);
     root.innerHTML = "";
     scan.hitPending = false; scan.voteKey = null; scan.voteCount = 0;
@@ -3303,7 +3381,8 @@ function wireEvents() {
   document.getElementById("priceQueueSettings").addEventListener("click", () => navigate("settings"));
   document.getElementById("checkUpdateBtn").addEventListener("click", checkForUpdates);
   document.querySelectorAll("#themeControl button").forEach(button => button.addEventListener("click", () => setTheme(button.dataset.themeValue)));
-  document.getElementById("openScan").addEventListener("click", () => { resetScanner(); showModal("scanModal"); });
+  document.getElementById("openScan").addEventListener("click", () => { setScanMode("add"); resetScanner(); showModal("scanModal"); });
+  document.getElementById("openCheckPrice").addEventListener("click", () => { setScanMode("price"); resetScanner(); showModal("scanModal"); });
   document.getElementById("closeScan").addEventListener("click", () => closeModal("scanModal"));
   document.querySelectorAll("[data-scan-tab]").forEach(button => button.addEventListener("click", () => {
     stopLiveScan();

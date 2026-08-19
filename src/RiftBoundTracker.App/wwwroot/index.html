@@ -59,6 +59,7 @@
             <button data-theme-value="dark" class="active">Dark</button>
             <button data-theme-value="light">Light</button>
           </div>
+          <button class="command-btn quiet" id="openCheckPrice" title="Scan a card to look up its price — never adds it to your collection"><i data-icon="dollar"></i><span>Check Price</span></button>
           <button class="command-btn quiet" id="openConnection" title="Connect a phone"><i data-icon="qr"></i><span>Connect</span></button>
         </div>
       </header>
@@ -236,7 +237,7 @@
   </div>
 
   <div class="modal-layer" id="scanModal" hidden>
-    <div class="modal scan-modal"><div class="modal-head"><div><span>Scanner</span><h2>Scan a Card</h2></div><button class="icon-btn" id="closeScan"><i data-icon="x"></i></button></div>
+    <div class="modal scan-modal"><div class="modal-head"><div><span id="scanModalEyebrow">Scanner</span><h2 id="scanModalTitle">Scan a Card</h2></div><button class="icon-btn" id="closeScan"><i data-icon="x"></i></button></div>
       <div class="segmented scan-tabs"><button data-scan-tab="live" class="active">Live Camera</button><button data-scan-tab="photo">Take Photo</button><button data-scan-tab="upload">Upload</button></div>
       <div class="scan-panel active" data-scan-panel="live"><button class="scan-launch" id="liveScanBtn"><i data-icon="camera"></i><span>Start Camera</span></button><div class="live-scan" id="liveScanView" hidden><div class="video-frame"><video id="liveVideo" autoplay playsinline muted></video><button type="button" class="camera-flip" id="flipCamera" title="Flip camera" aria-label="Flip camera"><i data-icon="refresh"></i></button><span class="card-id-guide" id="liveScanGuide" aria-hidden="true"></span></div><p id="liveStatus">Align the printed Card ID inside the box</p><code id="liveReadoutText">...</code><div id="liveHit"></div></div></div>
       <div class="scan-panel" data-scan-panel="photo"><label class="scan-launch"><i data-icon="camera"></i><span>Take Photo</span><input type="file" accept="image/*" capture="environment" id="scanFile" hidden /></label></div>

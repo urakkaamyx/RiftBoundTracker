@@ -65,7 +65,7 @@ public sealed partial class RulesQuestionService(AppDbContext db)
         if (!string.IsNullOrWhiteSpace(cardId))
         {
             var card = await db.Cards.Where(c => c.Id == cardId)
-                .Select(c => new CardSummaryDto(c.Id, c.Name, c.LocalImagePath ?? c.ImageUrl))
+                .Select(c => new CardSummaryDto(c.Id, c.Name, c.LocalImagePath ?? c.ImageUrl, c.TextPlain))
                 .FirstOrDefaultAsync(ct);
             if (card is not null) cardContext.Add(card);
         }

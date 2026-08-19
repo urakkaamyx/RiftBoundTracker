@@ -131,14 +131,24 @@ public sealed class LocalLlmExplanationProvider(
         // generate_dataset.py's errata/legality categories) — a differently-shaped evidence block
         // the model never saw during fine-tuning caused it to contradict its own supplied evidence
         // in testing, even though the underlying fact was correct.
+        //
+        // FullText, not Snippet — Snippet is a 220-char UI preview (RulesSearchService.ToHitAsync),
+        // truncated for ~11.5% of rules in the corpus. A rule cut off mid-sentence there was
+        // starving the model of evidence it needed to answer correctly even though the retrieval
+        // step had found the right rule.
         var evidenceParts = context.Evidence.Select(e =>
             $"[{(e.Hit.RuleNumber is not null ? $"Rule {e.Hit.RuleNumber}" : e.Hit.Title)}] " +
-            $"({e.Hit.Document.Authority}{(e.Hit.Document.Current ? "" : ", historical")}) {e.Hit.Title}\n{e.Hit.Snippet}")
+            $"({e.Hit.Document.Authority}{(e.Hit.Document.Current ? "" : ", historical")}) {e.Hit.Title}\n{e.Hit.FullText}")
             .Concat(context.CardNotes.Select(c => $"[{c.CardName}] ({c.Authority}) {c.CardName}\n{c.Note}"));
         var evidenceText = string.Join("\n\n", evidenceParts);
 
+        // Previously only the card's name reached the model, never its printed text — it could
+        // name the card but had nothing to reason from when the question was actually about what
+        // the card itself does (e.g. "does this trigger Fury?" needs the card's own text, not just
+        // which rules mention Fury generically).
         var cardText = context.CardContext.Count > 0
-            ? "\n\nThe question is specifically about this card: " + string.Join(", ", context.CardContext.Select(c => c.Name))
+            ? "\n\nThe question is specifically about this card:\n" + string.Join("\n\n", context.CardContext.Select(c =>
+                $"[{c.Name}]" + (string.IsNullOrWhiteSpace(c.Text) ? "" : $"\n{c.Text}")))
             : "";
 
         return $"Question: {context.Question}{cardText}\n\nRules evidence:\n{evidenceText}";

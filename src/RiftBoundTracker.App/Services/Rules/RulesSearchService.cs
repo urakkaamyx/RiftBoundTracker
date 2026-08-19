@@ -7,7 +7,7 @@ namespace RiftBoundTracker.App.Services.Rules;
 public sealed record RuleDocumentSummaryDto(int Id, string Title, string Authority, bool Current);
 public sealed record RuleSearchHit(
     int RuleId, string? RuleNumber, string Title, string? Section, string Snippet,
-    RuleDocumentSummaryDto Document, string MatchType, double Score);
+    RuleDocumentSummaryDto Document, string MatchType, double Score, string FullText);
 public sealed record RuleSearchResponse(string Query, string NormalizedQuery, int Total, List<RuleSearchHit> Results);
 
 /// <summary>
@@ -185,7 +185,10 @@ public sealed class RulesSearchService(AppDbContext db)
         return string.Join(" ", tokens);
     }
 
-    private async Task<RuleSearchHit> ToHitAsync(RuleEntryEntity entry, string matchType, double score, CancellationToken ct)
+    // Public so RulesEvidenceService's cross-reference expansion can turn an arbitrary already-
+    // loaded RuleEntryEntity into the same RuleSearchHit shape everything else in the evidence
+    // pipeline uses, without duplicating the snippet/section/display-title logic here.
+    public async Task<RuleSearchHit> ToHitAsync(RuleEntryEntity entry, string matchType, double score, CancellationToken ct)
     {
         var section = await ComputeSectionAsync(entry.ParentRuleId, ct);
         var snippet = entry.Text.Length > 220 ? entry.Text[..220] + "…" : entry.Text;
@@ -194,7 +197,7 @@ public sealed class RulesSearchService(AppDbContext db)
         return new RuleSearchHit(
             entry.Id, entry.RuleNumber, displayTitle, section, snippet,
             new RuleDocumentSummaryDto(entry.Document.Id, entry.Document.Title, entry.Document.Authority.ToString(), entry.Document.IsCurrent),
-            matchType, score);
+            matchType, score, entry.Text);
     }
 
     private async Task<string?> ComputeSectionAsync(int? parentId, CancellationToken ct)

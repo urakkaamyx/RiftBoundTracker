@@ -13,7 +13,11 @@ public sealed record RuleDetailDto(
     RuleEntryDto? Previous, RuleEntryDto? Next, List<RuleKeywordSummaryDto> Keywords,
     List<RuleEntryDto> References, List<RuleEntryDto> ReferencedBy);
 
-public sealed record CardSummaryDto(string Id, string Name, string ImageUrl);
+// Text is populated only for the Ask Rules "about this card" flow (RulesQuestionService.AnalyzeAsync)
+// so the LLM prompt has the card's actual printed text to reason from, not just its name — every
+// other caller of this DTO leaves it at the default and it's simply not serialized into those
+// responses in any meaningful way.
+public sealed record CardSummaryDto(string Id, string Name, string ImageUrl, string? Text = null);
 
 public sealed record RuleKeywordDetailDto(
     int Id, string Name, string? Definition, string? Category, List<string> Aliases,

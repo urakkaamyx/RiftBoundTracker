@@ -32,6 +32,10 @@ public sealed class RulesEvidenceService(RulesSearchService search, AppDbContext
 {
     private const double RuleNumberWeight = 1000;
     private const double TextFallbackDamping = 0.4;
+    // Between mentioned-keyword (80) and text-fallback tiers — a rule the evidence set explicitly
+    // points to ("See rule 197...") is a stronger signal than an incidental text match, but
+    // shouldn't outrank anything the question's own keywords/concepts pulled in directly.
+    private const double CrossReferenceWeight = 60;
 
     public async Task<RulesEvidenceResult> GatherAsync(
         RulesQuestionAnalysis analysis, bool currentOnly = true, int limit = 12, CancellationToken ct = default)
@@ -83,6 +87,29 @@ public sealed class RulesEvidenceService(RulesSearchService search, AppDbContext
         var textResponse = await search.SearchAsync(analysis.OriginalQuestion, currentOnly, limit, ct);
         foreach (var hit in textResponse.Results.Where(h => h.MatchType is "FullText" or "Title"))
             Add(hit, "matching text", hit.Score * TextFallbackDamping);
+
+        // One hop only, and only from rules already in the evidence set — a rule that explicitly
+        // says "See rule 197. Locations for more information." is evidence the question needs that
+        // rule too, even if none of its own keywords/text matched. Deliberately not recursive
+        // (doc's RuleCrossReferences graph existed but was never actually consumed anywhere before
+        // this) — walking further hops risks pulling in loosely-related rules with no real bearing
+        // on the question.
+        if (byId.Count > 0)
+        {
+            var seedIds = byId.Keys.ToList();
+            var crossRefs = await db.RuleCrossReferences
+                .Where(x => seedIds.Contains(x.FromRuleId))
+                .Include(x => x.ToRule).ThenInclude(r => r.Document)
+                .ToListAsync(ct);
+            foreach (var xref in crossRefs)
+            {
+                if (byId.ContainsKey(xref.ToRuleId)) continue;
+                if (currentOnly && !xref.ToRule.IsCurrent) continue;
+                var fromLabel = byId[xref.FromRuleId].Hit.RuleNumber ?? byId[xref.FromRuleId].Hit.Title;
+                var hit = await search.ToHitAsync(xref.ToRule, "CrossReference", CrossReferenceWeight, ct);
+                Add(hit, $"cross-reference from Rule {fromLabel}", CrossReferenceWeight);
+            }
+        }
 
         var ruleEvidence = byId.Values
             .OrderByDescending(x => x.Score)

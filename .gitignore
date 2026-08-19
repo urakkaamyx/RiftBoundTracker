@@ -42,11 +42,6 @@ App_Data/
 /logo.png
 *.psd
 
-# Local LLM model for Ask Rules' explanation layer — a ~1GB binary that would bloat the repo's
-# history forever. scripts/release.ps1 downloads it fresh into this folder before publishing, so
-# it still ships inside the release zip without ever being committed. See LocalLlmExplanationProvider.
-/src/RiftBoundTracker.App/Models/*.gguf
-
 # Generated training artifacts (datasets, LoRA adapters, merged/converted models) — reproducible
 # from scripts/training/generate_dataset.py + train.py + merge.py, never committed.
 /scripts/training/output/

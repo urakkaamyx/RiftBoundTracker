@@ -2530,13 +2530,22 @@ async function loadLocalAiStatus() {
   const localAi = await api("/api/rules/local-ai/status");
   state.localAiEnabled = localAi.enabled;
   const toggleBtn = document.getElementById("toggleLocalAi");
-  toggleBtn.textContent = localAi.enabled ? "Disable" : "Enable";
-  toggleBtn.disabled = !localAi.modelAvailable;
-  document.getElementById("askRulesProviderStatus").textContent = !localAi.modelAvailable
-    ? "Model file not found — reinstall the app to restore it."
-    : localAi.enabled
+  const redownloadBtn = document.getElementById("redownloadLocalAiModel");
+  if (localAi.modelAvailable) {
+    toggleBtn.textContent = localAi.enabled ? "Disable" : "Enable";
+    toggleBtn.disabled = false;
+    redownloadBtn.hidden = false;
+    redownloadBtn.disabled = false;
+    document.getElementById("askRulesProviderStatus").textContent = localAi.enabled
       ? `On — running ${localAi.modelFile} locally (${(localAi.modelBytes / 1e9).toFixed(1)} GB).`
       : "Off — Ask Rules will still answer from real rules evidence, just without a written-out summary.";
+  } else {
+    toggleBtn.textContent = "Download Model";
+    toggleBtn.disabled = false;
+    redownloadBtn.hidden = true;
+    document.getElementById("askRulesProviderStatus").textContent =
+      "Not downloaded yet (~940 MB, one-time) — Ask Rules will still answer from real rules evidence either way.";
+  }
 }
 
 function renderRulesQuickTopics() {
@@ -2860,6 +2869,10 @@ async function showRulePopup(ruleId) {
 
 async function toggleLocalAi() {
   const button = document.getElementById("toggleLocalAi");
+  if (button.textContent === "Download Model") {
+    await downloadLocalAiModel();
+    return;
+  }
   button.disabled = true;
   try {
     const result = await api("/api/rules/local-ai/configure", jsonOptions("POST", { enabled: !state.localAiEnabled }));
@@ -2868,6 +2881,54 @@ async function toggleLocalAi() {
   } catch (err) {
     toast(err.message, true);
     button.disabled = false;
+  }
+}
+
+async function downloadLocalAiModel() {
+  const button = document.getElementById("toggleLocalAi");
+  const redownloadBtn = document.getElementById("redownloadLocalAiModel");
+  const status = document.getElementById("askRulesProviderStatus");
+  button.disabled = true;
+  redownloadBtn.disabled = true;
+  try {
+    await api("/api/rules/local-ai/download-model", { method: "POST" });
+  } catch (err) {
+    status.textContent = err.message;
+    button.disabled = false;
+    redownloadBtn.disabled = false;
+    return;
+  }
+  pollLocalAiModelProgress();
+}
+
+async function pollLocalAiModelProgress() {
+  const status = document.getElementById("askRulesProviderStatus");
+  let progress;
+  try {
+    progress = await api("/api/rules/local-ai/model-progress");
+  } catch (err) {
+    status.textContent = err.message;
+    document.getElementById("toggleLocalAi").disabled = false;
+    document.getElementById("redownloadLocalAiModel").disabled = false;
+    return;
+  }
+
+  if (progress.phase === "downloading") {
+    const pct = progress.totalBytes ? Math.round((progress.downloadedBytes / progress.totalBytes) * 100) : 0;
+    status.innerHTML = `Downloading model... ${pct}% (${formatBytes(progress.downloadedBytes)} / ${formatBytes(progress.totalBytes)})
+      <div class="progress-track"><span style="width:${pct}%"></span></div>`;
+    setTimeout(pollLocalAiModelProgress, 500);
+  } else if (progress.phase === "checking") {
+    status.textContent = "Checking for the model release...";
+    setTimeout(pollLocalAiModelProgress, 500);
+  } else if (progress.phase === "error") {
+    status.textContent = progress.error || "Model download failed.";
+    document.getElementById("toggleLocalAi").disabled = false;
+    document.getElementById("redownloadLocalAiModel").disabled = false;
+  } else {
+    // "done" (or any other terminal state) — refresh from the real status endpoint so the button
+    // and status text reflect the model actually being on disk now, not just the download phase.
+    await loadLocalAiStatus();
   }
 }
 
@@ -3059,6 +3120,7 @@ function wireEvents() {
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") askRulesQuestion();
   });
   document.getElementById("toggleLocalAi").addEventListener("click", toggleLocalAi);
+  document.getElementById("redownloadLocalAiModel").addEventListener("click", () => downloadLocalAiModel().catch(err => toast(err.message, true)));
   document.getElementById("rulesSearchInput").addEventListener("input", event => {
     clearTimeout(state.rules.searchTimer);
     const value = event.target.value;

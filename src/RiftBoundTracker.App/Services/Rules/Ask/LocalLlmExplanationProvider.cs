@@ -20,7 +20,7 @@ namespace RiftBoundTracker.App.Services.Rules;
 /// "answer only from the supplied evidence" instead of free-associating from the prompt text.
 /// </summary>
 public sealed class LocalLlmExplanationProvider(
-    IWebHostEnvironment env, RulesLocalAiSettingsService settings, ILogger<LocalLlmExplanationProvider> logger)
+    RulesLocalAiSettingsService settings, LocalAiModelService modelService, ILogger<LocalLlmExplanationProvider> logger)
     : IRulesExplanationProvider, IDisposable
 {
     private const string SystemPrompt = """
@@ -144,11 +144,7 @@ public sealed class LocalLlmExplanationProvider(
         return $"Question: {context.Question}{cardText}\n\nRules evidence:\n{evidenceText}";
     }
 
-    public string? FindModelPath()
-    {
-        var dir = Path.Combine(env.ContentRootPath, "Models");
-        return Directory.Exists(dir) ? Directory.EnumerateFiles(dir, "*.gguf").FirstOrDefault() : null;
-    }
+    public string? FindModelPath() => modelService.FindModelPath();
 
     public void Dispose()
     {

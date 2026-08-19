@@ -46,11 +46,6 @@
 
   <ItemGroup>
     <None Include="Run with debug console.bat" CopyToOutputDirectory="PreserveNewest" />
-    <!-- The GGUF model itself is deliberately NOT checked into git (a ~1GB binary would bloat the
-         repo's history forever) — scripts/release.ps1 downloads it into this folder before
-         `dotnet publish` runs, so it still ends up bundled in the shipped release zip. See
-         LocalLlmExplanationProvider for the expected filename/path. -->
-    <None Include="Models/*.gguf" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Sdk.Web copies any loose project-directory file into the publish output by default (Content

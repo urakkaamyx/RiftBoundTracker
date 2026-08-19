@@ -19,38 +19,13 @@ Write-Host "== Bumping version to $Version ==" -ForegroundColor Cyan
 (Get-Content $proj -Raw) -replace '<Version>[\d\.]+</Version>', "<Version>$Version</Version>" |
     Set-Content $proj -NoNewline
 
-Write-Host "== Ensuring local AI model is present ==" -ForegroundColor Cyan
-# The GGUF model (Ask Rules' local explanation layer) is deliberately not committed to git — a
-# ~1GB binary would bloat the repo's history forever — so it's fetched here instead, straight into
-# the csproj's Models/*.gguf publish-output item, so `dotnet publish` below bundles it into the
-# release zip same as any other output file. Idempotent: does nothing if a dev already has it
-# cached locally from a previous release (or from local Ask Rules testing).
-#
-# This is RiftKeep's own fine-tuned model, not the stock base model: Qwen2.5-1.5B-Instruct,
-# LoRA fine-tuned on the real synced Riftbound rules corpus (rule text, keywords, concepts,
-# errata, legality — see scripts/training/ for the dataset generation and training scripts this
-# came from) and requantized to Q4_K_M. Hosted as a GitHub release asset in this same repo
-# (tag "ask-rules-model-v1", not an app version) rather than the original stock-model URL, since
-# the whole point of fine-tuning it was to ship the improved version, not the generic one.
-$modelDir = Join-Path $root "src\RiftBoundTracker.App\Models"
-$modelFile = "riftkeep-ask-rules-Q4_K_M.gguf"
-$modelPath = Join-Path $modelDir $modelFile
-$modelUrl = "https://github.com/urakkaamyx/RiftBoundTracker/releases/download/ask-rules-model-v1/$modelFile"
-$expectedBytes = 986047936
-if (-not (Test-Path $modelDir)) { New-Item -ItemType Directory -Path $modelDir | Out-Null }
-if ((Test-Path $modelPath) -and (Get-Item $modelPath).Length -eq $expectedBytes) {
-    Write-Host "  (already present and verified)"
-} else {
-    if (Test-Path $modelPath) { Remove-Item $modelPath -Force }
-    Write-Host "  Downloading $modelFile (~940 MB, one-time)..."
-    Invoke-WebRequest -Uri $modelUrl -OutFile $modelPath
-    $actualBytes = (Get-Item $modelPath).Length
-    if ($actualBytes -ne $expectedBytes) {
-        throw "Downloaded model size mismatch: expected $expectedBytes bytes, got $actualBytes. Aborting release rather than shipping a possibly-corrupt model."
-    }
-}
-
 Write-Host "== Publishing self-contained win-x64 build ==" -ForegroundColor Cyan
+# The Ask Rules GGUF model is NOT part of this build — it's a separate, much-more-stable asset
+# (RiftKeep's own fine-tuned Qwen2.5-1.5B, hosted under the "ask-rules-model-v1" tag; see
+# scripts/training/README.md to publish a new one) that the app fetches into App_Data at runtime
+# via LocalAiModelService, the first time Ask Rules' local AI is enabled. Keeping it out of every
+# app release is the whole point: a one-line CSS fix used to mean re-zipping and re-uploading the
+# same ~940MB blob every single time.
 # Deliberately NOT using -p:PublishSingleFile=true: it bundles every managed assembly (including
 # Tesseract's own wrapper DLL) into the exe, which breaks its native-library loader (InteropDotNet
 # resolves tesseract50.dll/leptonica via Assembly.Location, which is empty for a bundled assembly

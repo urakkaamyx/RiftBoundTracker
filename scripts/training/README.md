@@ -69,7 +69,13 @@ release):
 gh release upload ask-rules-model-v1 scripts/training/output/riftkeep-ask-rules-Q4_K_M.gguf --clobber
 ```
 
-Then update `scripts/release.ps1`'s `$expectedBytes` to the new file's exact size (the script
-verifies the download against this before shipping it, so a corrupt/truncated download aborts the
-release rather than shipping a broken model) — `$modelUrl` and `$modelFile` don't need to change
-unless you're renaming the file.
+That's the whole release step — nothing in the app build needs to change. `LocalAiModelService`
+always fetches whatever `.gguf` asset is currently attached to the `ask-rules-model-v1` tag,
+straight into `App_Data` (never the install directory, so it survives app self-updates), so a new
+model version ships independently of app releases entirely — no `release.ps1` changes, no app
+version bump required. Someone who already has an older model downloaded needs to click the local
+AI toggle's download action again to pick up a new one (there's no background polling for a newer
+model — the status check is local-only, on purpose, so it doesn't need a network call just to
+render the Rules page). Keep the filename ending in `.gguf`; it doesn't need to stay exactly
+`riftkeep-ask-rules-Q4_K_M.gguf` unless you want continuity, since the service just picks up
+whatever `.gguf` file is attached.

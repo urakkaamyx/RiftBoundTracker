@@ -201,6 +201,10 @@ internal static class Program
         builder.Services.AddScoped<RulesSearchService>();
         builder.Services.AddScoped<RulesService>();
         builder.Services.AddSingleton<RulesLocalAiSettingsService>();
+        // Singleton: tracks download progress across requests the same way UpdateService does for
+        // app updates, and the model file itself needs to be found consistently by both the
+        // question-answering path and the status/progress endpoints.
+        builder.Services.AddSingleton<LocalAiModelService>();
         // Singleton (not Scoped): holds the loaded model + context so it's loaded once and kept
         // resident across requests instead of reloading a ~1GB model on every question.
         builder.Services.AddSingleton<LocalLlmExplanationProvider>();
@@ -551,12 +555,26 @@ internal static class Program
             return Results.Ok(await questions.AnalyzeAsync(body.Question, body.CardId, ct));
         });
 
-        app.MapGet("/api/rules/local-ai/status", (RulesLocalAiSettingsService settings, LocalLlmExplanationProvider provider) =>
+        app.MapGet("/api/rules/local-ai/status", (RulesLocalAiSettingsService settings, LocalAiModelService modelService) =>
         {
-            var modelPath = provider.FindModelPath();
-            return Results.Ok(new RulesLocalAiStatusDto(
-                settings.IsEnabled(), modelPath is not null, modelPath is null ? null : Path.GetFileName(modelPath),
-                modelPath is null ? null : new FileInfo(modelPath).Length));
+            var status = modelService.GetStatus();
+            return Results.Ok(new RulesLocalAiStatusDto(settings.IsEnabled(), status.Present, status.FileName, status.Bytes));
+        });
+
+        app.MapGet("/api/rules/local-ai/model-progress", (LocalAiModelService modelService) =>
+            Results.Ok(modelService.GetStatus()));
+
+        app.MapPost("/api/rules/local-ai/download-model", (LocalAiModelService modelService, ILogger<LocalAiModelService> logger) =>
+        {
+            // Detached, same reasoning as the app self-update: the download can take a while, so
+            // this request returns immediately and the client polls model-progress instead of
+            // holding one connection open for the whole ~940MB transfer.
+            _ = Task.Run(async () =>
+            {
+                try { await modelService.DownloadAsync(CancellationToken.None); }
+                catch (Exception ex) { logger.LogError(ex, "Local AI model download failed"); }
+            });
+            return Results.Ok(new { started = true });
         });
 
         app.MapPost("/api/rules/local-ai/configure", (RulesLocalAiToggleRequest body, RulesLocalAiSettingsService settings) =>

@@ -32,6 +32,10 @@ public sealed class LocalLlmExplanationProvider(
         interpretation you're making. Keep the answer concise — a few sentences, not an essay.
         A card's own printed text is valid evidence of what that card does — if it's supplied below,
         describe the card's effect directly instead of calling the evidence insufficient.
+        Rules text is often a conditional built on negations ("applies if X is not Y and Z does not
+        W") — before answering, work out literally which side of each "not" the actual situation in
+        the question falls on. Getting a negation backwards produces the opposite of the correct
+        ruling, which is worse than not answering at all.
         """;
 
     private readonly SemaphoreSlim _gate = new(1, 1);

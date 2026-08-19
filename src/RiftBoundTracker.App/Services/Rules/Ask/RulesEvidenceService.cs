@@ -102,11 +102,21 @@ public sealed class RulesEvidenceService(RulesSearchService search, AppDbContext
         // multiple paths converge on genuinely is more load-bearing than one only reached once.
         // Each rule is only expanded (its own outgoing references followed) the first time it's
         // reached, regardless of how many times it's re-scored after that.
+        //
+        // But that accumulation needs a ceiling: a real question ("can Ambush units bypass Base?")
+        // surfaced this directly — a handful of heavily-cross-referenced hub rules (Control,
+        // Conquer, Locations, Scoring, each cited FROM many other rules) out-scored the actual
+        // Contested-status rule the question needed, purely by accumulating weight from several
+        // converging paths. crossRefRawWeight caps the total raw hop-weight any single rule can
+        // accrue from cross-references at one hop-0's worth — converging paths still nudge score up
+        // (every "via" reason is still recorded) until that ceiling, but can never let a rule that's
+        // merely a citation hub outrank one the question's own keywords or text matched directly.
         if (byId.Count > 0)
         {
             const int maxHops = 3;
             var frontier = byId.Keys.ToList();
             var expanded = new HashSet<int>();
+            var crossRefRawWeight = new Dictionary<int, double>();
             for (var hop = 0; hop < maxHops && frontier.Count > 0; hop++)
             {
                 var toExpand = frontier.Where(expanded.Add).ToList();
@@ -123,8 +133,18 @@ public sealed class RulesEvidenceService(RulesSearchService search, AppDbContext
                     var fromLabel = byId.TryGetValue(xref.FromRuleId, out var fromEntry)
                         ? fromEntry.Hit.RuleNumber ?? fromEntry.Hit.Title
                         : xref.FromRuleId.ToString();
+                    var via = $"cross-reference from Rule {fromLabel}";
                     var hit = await search.ToHitAsync(xref.ToRule, "CrossReference", hopWeight, ct);
-                    Add(hit, $"cross-reference from Rule {fromLabel}", hopWeight);
+
+                    var priorRaw = crossRefRawWeight.GetValueOrDefault(xref.ToRuleId);
+                    var newRaw = priorRaw + hopWeight;
+                    crossRefRawWeight[xref.ToRuleId] = newRaw;
+                    var appliedWeight = Math.Min(newRaw, CrossReferenceWeight) - Math.Min(priorRaw, CrossReferenceWeight);
+                    if (appliedWeight > 0)
+                        Add(hit, via, appliedWeight);
+                    else if (byId.TryGetValue(xref.ToRuleId, out var existing) && !existing.Via.Contains(via))
+                        byId[xref.ToRuleId] = (existing.Hit, [.. existing.Via, via], existing.Score);
+
                     nextFrontier.Add(xref.ToRuleId);
                 }
                 frontier = nextFrontier;

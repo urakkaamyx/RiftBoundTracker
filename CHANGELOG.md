@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.26.1 — Fix Check Price missing on mobile
+
+- Check Price lived in the top bar next to Connect, which is fully hidden (not just its label) below 720px since Connect is a desktop-only "scan this QR from your phone" feature — Check Price got hidden along with it. Moved it into the Vault tab's action row next to Scan Card, where it stays reachable at every screen width, same as Scan Card and Import Pack already are.
+
 ## v1.26.0 — Check Price, trade workflow, and Test Draw fix
 
 - New "Check Price" button next to Connect: scan a card (live camera, photo, or manual lookup) to look up its market price without adding it to your collection. Opens the card's detail panel with a price history graph (low/average/high and period change over the last 90 days) alongside the existing current-price and 24hr/7-day change figures.

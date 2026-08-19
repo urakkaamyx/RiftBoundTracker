@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.25.0 — Remote access over the internet (ngrok)
+
+- The Connect popup now has a LAN | WAN toggle. LAN is the existing same-Wi-Fi QR/URL, unchanged. WAN creates a temporary public link to the app using ngrok, reachable from anywhere — not just your home network — with the same QR/URL to scan or copy.
+- This is opt-in and never starts on its own: press Start each time you want it, and a clear warning stays on screen the whole time a tunnel is active, since anyone with the link can open your vault (there's no login on this app yet).
+- If ngrok isn't installed, the popup walks through the setup instead of just failing — download, sign up, one command to add your auth token, then come back and press Start.
+
 ## v1.24.2 — Pulled the Qwen3 model option
 
 - Removed Qwen3 1.7B from Ask Rules' model list. A real question ("does damage reduce my unit's Might, or get tracked separately?") reproducibly got an incoherent, self-contradictory answer from it even when the right rules were already found — the earlier testing that called it stable didn't cover this. Anyone who had it selected reverts to the default Qwen2.5 model automatically. Qwen2.5 remains the only option for now.

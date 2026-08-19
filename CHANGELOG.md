@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.26.4 — Ask Rules: trace further, stop dropping found evidence
+
+- The Tank question from the last update now retrieved the right rules but still gave a garbled, self-contradictory answer — because real evidence was being found and then silently thrown away before it ever reached the model. Two fixes: the cross-reference trace only followed one hop and discarded any reference back to a rule it already had instead of scoring it, and the evidence budget fed to the model (900 characters per rule, 5500 total) was too small for questions needing many rules. Cross-references now trace up to 3 hops with revisits boosting a rule's score instead of being ignored, the budget is roughly 60% bigger, and the model's context window was widened to match. The Tank question now answers cleanly with all 11 relevant rules cited.
+
 ## v1.26.3 — Restore the ability to re-download the Ask Rules model
 
 - The button to re-download the Ask Rules model (e.g. to pick up an improved version) was lost when Ask Rules became multi-model-capable — once a model showed "In use" there was no action left on its row at all. Added the refresh icon back to any downloaded model, not just the selected one. Also fixed a bug this exposed: re-downloading a model while Local AI was already enabled silently kept using the old weights until an app restart, since the reload check only looked at the file path — it now also checks the file's write time, so a fresh download actually takes effect on your next question.

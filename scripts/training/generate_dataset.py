@@ -25,6 +25,20 @@ match). Categories:
      (Draven - Vanquisher) worse — regressed to skipping its real ability and fabricating a rule
      citation that doesn't exist. A prompt tweak alone couldn't fix this reliably; the model needs
      to have actually seen this evidence shape during fine-tuning.
+  8. Partial-evidence honesty (templated) — a card's own text as the only evidence, paired with a
+     question about a specific interaction/timing detail that text doesn't resolve (found by
+     testing: a real deployed model answered a timing question "Yes" with no supporting evidence at
+     all, and fabricated a nonexistent "parenthetical" by reflexively echoing category 7's answer
+     template onto a card with no brackets). Teaches that having some evidence about a card doesn't
+     mean every specific question about it is answerable from that evidence.
+  9. Combined card evidence (templated) — the small set of cards (~17) that have CardText AND a
+     legality row AND/OR errata, all supplied together exactly as FindCardEvidenceAsync actually
+     assembles them for a generic free-text question. Categories 4/5/7 only ever trained on ONE
+     evidence type in isolation; a real generic question about a card with more than one type
+     surfaced a worse version of the same regurgitation problem category 8 targets — verified
+     directly: asked generically about Draven - Vanquisher (which has all three), the model dumped
+     the raw evidence blocks almost verbatim and invented a fake "OfficialRuleHint:" label that
+     appears nowhere in the real evidence or system prompt.
 
 IMPORTANT — keep this file's evidence formatting a faithful mirror of the C# it's training the
 model to match, not merely "close enough": LocalLlmExplanationProvider.cs's BuildUserMessage is the
@@ -416,6 +430,58 @@ def main():
         examples.append(make_example(question, [source], answer))
         count8 += 1
     print(f"  {count8} examples")
+
+    print("Category 9: combined card evidence (text + legality/errata together)...")
+    # A generic free-text question about a card (e.g. "What does Draven - Vanquisher do?") surfaces
+    # EVERY applicable CardEvidence item at once — FindCardEvidenceAsync always adds CardText first,
+    # then every legality row, then every errata row, in that order (see RulesEvidenceService.cs).
+    # Category 7 only ever trained on a single CardText item alone; category 4/5 only ever trained
+    # on a single legality/errata item alone. Neither covers what actually happens for one of the
+    # ~17 cards that have BOTH — verified directly: asked about Draven - Vanquisher (which has all
+    # three: CardText, a CoreRules legality row, and an OfficialErrata row) and the model regurgitated
+    # the raw evidence blocks almost verbatim, including inventing a fake "OfficialRuleHint:" label
+    # that appears nowhere in the real evidence or system prompt — it had never seen this combined
+    # shape and fell back on base-model habits instead of synthesizing an answer.
+    legality_status_names_local = ["Legal", "Banned", "Restricted", "NotLegal"]
+    cur.execute("SELECT Id, Name, TextPlain FROM Cards WHERE TextPlain IS NOT NULL AND TextPlain != ''")
+    combo_candidates = cur.fetchall()
+    count9 = 0
+    for card in combo_candidates:
+        cur.execute("SELECT Format, Status FROM CardLegalities WHERE CardId = ? AND IsCurrent = 1", (card["Id"],))
+        legalities = cur.fetchall()
+        cur.execute("""
+            SELECT ce.OriginalText, ce.CorrectedText, rd.Title as DocTitle FROM CardErrata ce
+            JOIN RuleDocuments rd ON ce.DocumentId = rd.Id
+            WHERE ce.CardNameRaw = ? AND ce.IsCurrent = 1
+        """, (card["Name"],))
+        errata = cur.fetchall()
+        if not legalities and not errata:
+            continue
+
+        name = card["Name"]
+        humanized = humanize(card["TextPlain"])
+        sources = [{"ruleNumber": None, "title": name, "authority": "CardText", "current": True, "text": humanized}]
+        answer_parts = [describe_card_text(name, humanized)]
+
+        for l in legalities:
+            status = legality_status_names_local[l["Status"]]
+            sources.append({"ruleNumber": None, "title": name, "authority": "CoreRules", "current": True,
+                             "text": f"{name} is {status} in {l['Format']}."})
+            verb = "is not legal (banned)" if status.lower() == "banned" else f"is {status.lower()}"
+            answer_parts.append(f"{name} {verb} in {l['Format']}.")
+
+        for e in errata:
+            sources.append({"ruleNumber": None, "title": name, "authority": "OfficialErrata", "current": True,
+                             "text": f"Original: {e['OriginalText']}\nUpdated: {e['CorrectedText']}"})
+            answer_parts.append(
+                f"It also received official errata ({e['DocTitle']}): the original text was "
+                f"\"{e['OriginalText']}\", updated to \"{e['CorrectedText']}\"."
+            )
+
+        question = random.choice(question_templates).format(name=name)
+        examples.append(make_example(question, sources, " ".join(answer_parts)))
+        count9 += 1
+    print(f"  {count9} examples")
 
     random.shuffle(examples)
     with open(OUT_PATH, "w", encoding="utf-8") as f:

@@ -90,7 +90,7 @@ public sealed class LocalLlmExplanationProvider(
                 .WithCancellation(ct))
                 output.Append(token);
 
-            var answer = StripTrailingAntiPrompt(output.ToString(), inferenceParams.AntiPrompts);
+            var answer = StripTrailingAntiPrompt(StripLeadingThinkBlock(output.ToString()), inferenceParams.AntiPrompts);
             return answer.Length == 0
                 ? new RulesGeneratedAnswer(null, false, "The local model returned an empty response.")
                 : new RulesGeneratedAnswer(answer, true, null);
@@ -134,6 +134,20 @@ public sealed class LocalLlmExplanationProvider(
             _failedModelPath = modelPath;
             return false;
         }
+    }
+
+    // Qwen3's chat template pre-fills the assistant turn with a "<think>\n\n</think>\n\n" block
+    // whenever thinking mode isn't explicitly enabled (confirmed directly in the GGUF's own
+    // embedded template) — the model then continues generating its real answer after that, but
+    // the literal tag text lands in the output stream same as any other token, so it leaked
+    // straight into every answer during testing until this was added. Qwen2.5 has no such
+    // template branch, so this is a no-op for it.
+    private static string StripLeadingThinkBlock(string text)
+    {
+        var trimmed = text.TrimStart();
+        if (!trimmed.StartsWith("<think>", StringComparison.Ordinal)) return text;
+        var closeIndex = trimmed.IndexOf("</think>", StringComparison.Ordinal);
+        return closeIndex < 0 ? text : trimmed[(closeIndex + "</think>".Length)..].TrimStart();
     }
 
     // Anti-prompts stop generation once matched, but the matched text itself can still land in

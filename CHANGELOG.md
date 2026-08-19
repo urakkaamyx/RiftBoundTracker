@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.21.1 — Settings layout follow-up
+
+- Settings now groups cards into three deliberate rows (system/device status, sync/version, then a dedicated full-width band for Pricing and Community Data) instead of an open masonry pack — same compact idea, more predictable grouping.
+
 ## v1.21.0 — Import Pack confirmation step, Settings masonry, real update progress
 
 - Import Pack is now a proper preview-then-confirm flow: clicking a pack no longer adds it immediately — it opens a preview panel with a fixed header showing the pack name, a per-type card count (Legend/Champion/Unit/Spell/Gear/Battlefield/Rune) using Riftbound's own symbols, and an **Import** button that's the actual confirmation step.

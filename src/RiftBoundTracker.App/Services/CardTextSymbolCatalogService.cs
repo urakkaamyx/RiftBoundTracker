@@ -66,6 +66,20 @@ public class CardTextSymbolCatalogService(AppDbContext db)
             .ThenBy(s => s.Token)
             .ToListAsync(ct);
 
+    // Card text stores tokens like ":rb_exhaust:" for the frontend to render as icons — fed
+    // straight to Ask Rules' local LLM, they read as noise the small model wasn't trained on
+    // (observed directly: it called a card with these tokens still in its text "a placeholder or
+    // incomplete card"). Swap each token for its plain-English label before it ever reaches a
+    // prompt.
+    public async Task<string?> HumanizeAsync(string? text, CancellationToken ct = default)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+        var symbols = await GetAllAsync(ct);
+        foreach (var symbol in symbols)
+            text = text.Replace(symbol.Token, symbol.Label);
+        return text;
+    }
+
     private static IEnumerable<CardTextSymbolEntity> BuildDefinitions()
     {
         for (var value = 0; value <= 12; value++)

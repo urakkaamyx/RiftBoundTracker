@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using RiftBoundTracker.App.Data;
+using RiftBoundTracker.App.Services;
 
 namespace RiftBoundTracker.App.Services.Rules;
 
@@ -13,7 +14,7 @@ namespace RiftBoundTracker.App.Services.Rules;
 /// without constant false positives, so card context only comes from an explicit cardId the caller
 /// supplies (the "Ask About This Card" flow the doc describes in section 23), never guessed.
 /// </summary>
-public sealed partial class RulesQuestionService(AppDbContext db)
+public sealed partial class RulesQuestionService(AppDbContext db, CardTextSymbolCatalogService symbols)
 {
     public async Task<RulesQuestionAnalysis> AnalyzeAsync(string question, string? cardId = null, CancellationToken ct = default)
     {
@@ -67,7 +68,7 @@ public sealed partial class RulesQuestionService(AppDbContext db)
             var card = await db.Cards.Where(c => c.Id == cardId)
                 .Select(c => new CardSummaryDto(c.Id, c.Name, c.LocalImagePath ?? c.ImageUrl, c.TextPlain))
                 .FirstOrDefaultAsync(ct);
-            if (card is not null) cardContext.Add(card);
+            if (card is not null) cardContext.Add(card with { Text = await symbols.HumanizeAsync(card.Text, ct) });
         }
 
         return new RulesQuestionAnalysis(question, normalized, ruleNumbers, detectedKeywords, detectedConcepts, cardContext, expandedTerms);

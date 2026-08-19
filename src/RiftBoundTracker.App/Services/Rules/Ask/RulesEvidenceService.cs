@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RiftBoundTracker.App.Data;
+using RiftBoundTracker.App.Services;
 
 namespace RiftBoundTracker.App.Services.Rules;
 
@@ -28,7 +29,7 @@ public sealed record RulesEvidenceResult(List<RuleEvidence> Rules, List<CardEvid
 /// nothing — legality/errata rows live outside the FTS-indexed RuleEntries table entirely, so the
 /// text-fallback search above can never see them on its own.
 /// </summary>
-public sealed class RulesEvidenceService(RulesSearchService search, AppDbContext db)
+public sealed class RulesEvidenceService(RulesSearchService search, AppDbContext db, CardTextSymbolCatalogService symbols)
 {
     private const double RuleNumberWeight = 1000;
     private const double TextFallbackDamping = 0.4;
@@ -124,7 +125,7 @@ public sealed class RulesEvidenceService(RulesSearchService search, AppDbContext
 
     private async Task<List<CardEvidence>> FindCardEvidenceAsync(string question, CancellationToken ct)
     {
-        var cards = await db.Cards.Select(c => new { c.Id, c.Name }).ToListAsync(ct);
+        var cards = await db.Cards.Select(c => new { c.Id, c.Name, c.TextPlain }).ToListAsync(ct);
         // Checks both separator styles a "Champion, Title" card's name might use — the catalog
         // isn't internally consistent about comma vs dash (confirmed directly: "Draven -
         // Vanquisher" but errata/legality text and natural questions both say "Draven,
@@ -137,6 +138,13 @@ public sealed class RulesEvidenceService(RulesSearchService search, AppDbContext
         var result = new List<CardEvidence>();
         foreach (var card in matched)
         {
+            // A card's own printed text is evidence in its own right — "what does Arena Kingpin
+            // do?" has a real answer even though the card has no ban/errata history, but before
+            // this only legality/errata rows ever became CardEvidence, so a clean card with a
+            // literal name match still fell through to "insufficient evidence".
+            if (!string.IsNullOrWhiteSpace(card.TextPlain))
+                result.Add(new CardEvidence(card.Id, card.Name, "CardText", (await symbols.HumanizeAsync(card.TextPlain, ct))!));
+
             var legalities = await db.CardLegalities.Where(l => l.CardId == card.Id && l.IsCurrent).ToListAsync(ct);
             foreach (var l in legalities)
                 result.Add(new CardEvidence(card.Id, card.Name, "CoreRules", $"{card.Name} is {l.Status} in {l.Format}."));

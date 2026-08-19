@@ -2813,11 +2813,12 @@ function renderAskRulesResult(result) {
       <span>${escapeHtml(s.document)} — matched via ${s.matchedVia.map(escapeHtml).join(", ")}</span>
     </div>`).join("");
 
+  const cardNoteLabels = { CardText: "Card Text", OfficialErrata: "Errata", CoreRules: "Card Status" };
   const cardEvidenceRows = cardNotes.map(c => `
     <div class="ask-evidence-row">
       <div class="ask-evidence-row-head">
         <b>${escapeHtml(c.cardName)}</b>
-        <span class="authority-badge current">Card Status</span>
+        <span class="authority-badge current">${escapeHtml(cardNoteLabels[c.authority] || "Card Status")}</span>
       </div>
       <p>${escapeHtml(c.note)}</p>
     </div>`).join("");

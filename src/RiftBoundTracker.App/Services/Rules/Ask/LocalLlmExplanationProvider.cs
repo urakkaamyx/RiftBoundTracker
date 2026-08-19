@@ -30,6 +30,8 @@ public sealed class LocalLlmExplanationProvider(
         the evidence. Prefer current Core Rules over Tournament Rules, errata, or historical
         material when they overlap. Clearly distinguish what a rule directly says from any
         interpretation you're making. Keep the answer concise — a few sentences, not an essay.
+        A card's own printed text is valid evidence of what that card does — if it's supplied below,
+        describe the card's effect directly instead of calling the evidence insufficient.
         """;
 
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -70,6 +72,13 @@ public sealed class LocalLlmExplanationProvider(
                 MaxTokens = 350,
                 AntiPrompts = ["User:", "Question:", "<|im_end|>"],
                 SamplingPipeline = new DefaultSamplingPipeline { Temperature = 0.2f },
+                // A defensive backstop, not the primary defense — BuildUserMessage's own evidence
+                // budget is what's supposed to keep prompts under the context size. This just
+                // means a case that budget didn't anticipate degrades to a truncated answer
+                // instead of a hard ContextOverflowException and no answer at all (a real failure
+                // mode hit directly during testing: a single Patch Notes article indexed as one
+                // whole-section blob ran to 27,000+ characters as one piece of "evidence").
+                OverflowStrategy = LLama.Common.ContextOverflowStrategy.TruncateAndReprefill,
             };
 
             var output = new StringBuilder();
@@ -98,7 +107,10 @@ public sealed class LocalLlmExplanationProvider(
         if (_weights is not null) return true;
         try
         {
-            _modelParams = new ModelParams(modelPath) { ContextSize = 2048, GpuLayerCount = 0 };
+            // 4096, not 2048 — doubled for headroom now that evidence carries full rule text
+            // instead of 220-char snippets (see BuildUserMessage's own character budget, which is
+            // the real backstop; this just gives it more room to work with).
+            _modelParams = new ModelParams(modelPath) { ContextSize = 4096, GpuLayerCount = 0 };
             _weights = LLamaWeights.LoadFromFile(_modelParams);
             return true;
         }
@@ -124,6 +136,9 @@ public sealed class LocalLlmExplanationProvider(
         return trimmed.Trim();
     }
 
+    private static string Cap(string text, int maxChars) =>
+        text.Length > maxChars ? text[..maxChars] + "…" : text;
+
     private static string BuildUserMessage(RulesExplanationContext context)
     {
         // Card evidence is deliberately formatted with the exact same "[Title] (Authority) Title\nText"
@@ -136,10 +151,29 @@ public sealed class LocalLlmExplanationProvider(
         // truncated for ~11.5% of rules in the corpus. A rule cut off mid-sentence there was
         // starving the model of evidence it needed to answer correctly even though the retrieval
         // step had found the right rule.
-        var evidenceParts = context.Evidence.Select(e =>
-            $"[{(e.Hit.RuleNumber is not null ? $"Rule {e.Hit.RuleNumber}" : e.Hit.Title)}] " +
-            $"({e.Hit.Document.Authority}{(e.Hit.Document.Current ? "" : ", historical")}) {e.Hit.Title}\n{e.Hit.FullText}")
-            .Concat(context.CardNotes.Select(c => $"[{c.CardName}] ({c.Authority}) {c.CardName}\n{c.Note}"));
+        //
+        // That said, FullText is unbounded, and at least one real entry blows past it dramatically:
+        // a Patch Notes article is indexed as one whole-section blob (ArticleSectionParser) and can
+        // run to tens of thousands of characters — one such entry alone overflowed the model's
+        // context window outright during testing, silently losing the answer entirely. PerItemCap
+        // keeps any single item from doing that; TotalBudget keeps several merely-long items from
+        // adding up to the same problem. Both are generous relative to the old 220-char snippet —
+        // this only ever bites entries that were already far outside the normal range for one rule.
+        const int perItemCap = 900;
+        const int totalBudget = 5500;
+        var used = 0;
+        var evidenceParts = new List<string>();
+        foreach (var part in context.Evidence.Select(e =>
+                $"[{(e.Hit.RuleNumber is not null ? $"Rule {e.Hit.RuleNumber}" : e.Hit.Title)}] " +
+                $"({e.Hit.Document.Authority}{(e.Hit.Document.Current ? "" : ", historical")}) {e.Hit.Title}\n{Cap(e.Hit.FullText, perItemCap)}")
+            .Concat(context.CardNotes.Select(c => $"[{c.CardName}] ({c.Authority}) {c.CardName}\n{Cap(c.Note, perItemCap)}")))
+        {
+            if (used >= totalBudget) break;
+            var remaining = totalBudget - used;
+            var trimmed = part.Length > remaining ? Cap(part, remaining) : part;
+            evidenceParts.Add(trimmed);
+            used += trimmed.Length;
+        }
         var evidenceText = string.Join("\n\n", evidenceParts);
 
         // Previously only the card's name reached the model, never its printed text — it could

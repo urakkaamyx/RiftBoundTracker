@@ -637,15 +637,20 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
 .readiness-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
 .readiness-row b { font: 600 9px var(--mono); }
 
-.settings-grid { max-width: 980px; margin: 0 auto; }
-.settings-section { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 15px; padding: 21px 2px; border-bottom: 1px solid var(--border-soft); }
+/* Masonry via CSS multi-column: short cards (Catalog, Data Safety, Appearance, ...) pack several
+   per row while a tall card (Pricing, Community Data) just takes its own column-height — the
+   browser's own column-balancing algorithm does the packing, no JS layout needed. Each card is a
+   self-contained bordered box (not a divided row) since position in the flow no longer implies a
+   simple top-to-bottom reading order. */
+.settings-grid { max-width: 1400px; margin: 0 auto; column-width: 300px; column-gap: 16px; }
+.settings-section { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 15px; padding: 18px; margin-bottom: 16px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--panel-2); break-inside: avoid; }
 .settings-icon { width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 7px; background: var(--panel); color: var(--accent-bright); }
 .settings-section h2 { margin: 0; font-size: 14px; }
 .settings-section p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .settings-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
 .inline-form { display: grid; grid-template-columns: minmax(160px, 360px) auto auto; gap: 7px; margin-top: 12px; }
 .settings-hint { margin: 10px 0 0; color: var(--faint); font-size: 11px; line-height: 1.5; }
-.settings-group-label { margin: 18px 2px 0; color: var(--faint); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.settings-group-label { margin: 0 0 8px 2px; color: var(--faint); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; break-inside: avoid; break-after: avoid; }
 .settings-group-label + .settings-section { padding-top: 12px; }
 
 .ask-ai-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; margin-bottom: 4px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--panel-2); }

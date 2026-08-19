@@ -10,6 +10,9 @@ public record UpdateCheckResult(
     string CurrentVersion, string? LatestVersion, bool UpdateAvailable,
     string? ReleaseNotes, bool SelfUpdateSupported, string? UnsupportedReason);
 
+// Phase: "idle" | "downloading" | "extracting" | "restarting" | "error".
+public record UpdateProgressState(string Phase, long BytesDownloaded, long TotalBytes, string? Error);
+
 public class GitHubRelease
 {
     [JsonPropertyName("tag_name")] public string TagName { get; set; } = "";
@@ -35,6 +38,19 @@ public class UpdateService(IHttpClientFactory httpClientFactory, ILogger<UpdateS
     private const string Owner = "urakkaamyx";
     private const string Repo = "RiftBoundTracker";
     private const string AssetNameContains = "win-x64";
+
+    private readonly object _progressLock = new();
+    private UpdateProgressState _progress = new("idle", 0, 0, null);
+
+    public UpdateProgressState GetProgress()
+    {
+        lock (_progressLock) return _progress;
+    }
+
+    private void SetProgress(UpdateProgressState progress)
+    {
+        lock (_progressLock) _progress = progress;
+    }
 
     public static Version CurrentVersion =>
         Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
@@ -79,59 +95,86 @@ public class UpdateService(IHttpClientFactory httpClientFactory, ILogger<UpdateS
 
     public async Task ApplyAsync(CancellationToken ct = default)
     {
-        var (supported, reason) = SelfUpdateSupport();
-        if (!supported)
-            throw new InvalidOperationException(reason ?? "Self-update isn't supported in this environment.");
-
-        var release = await GetLatestReleaseAsync(ct)
-            ?? throw new InvalidOperationException("Couldn't reach GitHub to fetch the latest release.");
-
-        var asset = release.Assets.FirstOrDefault(a => a.Name.Contains(AssetNameContains, StringComparison.OrdinalIgnoreCase))
-            ?? release.Assets.FirstOrDefault(a => a.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-            ?? throw new InvalidOperationException($"Latest release '{release.TagName}' has no downloadable build attached.");
-
-        // Trim any trailing separator: a Windows command-line argument ending in `\"` (backslash
-        // immediately before the closing quote) is parsed as an escaped literal quote, not
-        // "backslash then end-of-argument" — it silently runs the argument into the next token.
-        // AppContext.BaseDirectory always ends with a trailing backslash, so this isn't optional.
-        var installDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
-        var exeName = Path.GetFileName(Environment.ProcessPath!);
-
-        CleanUpOldStagingDirs();
-        var stagingRoot = Path.Combine(Path.GetTempPath(), $"RiftBoundVault-update-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(stagingRoot);
-
-        logger.LogInformation("Downloading update {Tag} from {Url}", release.TagName, asset.BrowserDownloadUrl);
-        var http = httpClientFactory.CreateClient("github");
-        var zipPath = Path.Combine(stagingRoot, "update.zip");
-        await using (var fileStream = File.Create(zipPath))
-        await using (var httpStream = await http.GetStreamAsync(asset.BrowserDownloadUrl, ct))
-            await httpStream.CopyToAsync(fileStream, ct);
-
-        var extractDir = Path.Combine(stagingRoot, "extracted");
-        ZipFile.ExtractToDirectory(zipPath, extractDir);
-        File.Delete(zipPath);
-
-        // A zip made from a folder sometimes wraps everything in one top-level folder — if so,
-        // treat that as the real root instead of the zip's literal top level.
-        var entries = Directory.GetFileSystemEntries(extractDir);
-        var payloadDir = entries.Length == 1 && Directory.Exists(entries[0]) ? entries[0] : extractDir;
-
-        var scriptPath = Path.Combine(stagingRoot, "relaunch.ps1");
-        await File.WriteAllTextAsync(scriptPath, BuildRelauncherScript(), ct);
-
-        logger.LogInformation("Handing off to relauncher; this process will now exit to release its file locks.");
-
-        var psi = new System.Diagnostics.ProcessStartInfo
+        try
         {
-            FileName = "powershell.exe",
-            Arguments = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{scriptPath}\" " +
-                        $"-ProcessId {Environment.ProcessId} -StagingDir \"{payloadDir}\" " +
-                        $"-InstallDir \"{installDir}\" -ExeName \"{exeName}\"",
-            UseShellExecute = true,
-            WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
-        };
-        System.Diagnostics.Process.Start(psi);
+            var (supported, reason) = SelfUpdateSupport();
+            if (!supported)
+                throw new InvalidOperationException(reason ?? "Self-update isn't supported in this environment.");
+
+            var release = await GetLatestReleaseAsync(ct)
+                ?? throw new InvalidOperationException("Couldn't reach GitHub to fetch the latest release.");
+
+            var asset = release.Assets.FirstOrDefault(a => a.Name.Contains(AssetNameContains, StringComparison.OrdinalIgnoreCase))
+                ?? release.Assets.FirstOrDefault(a => a.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                ?? throw new InvalidOperationException($"Latest release '{release.TagName}' has no downloadable build attached.");
+
+            // Trim any trailing separator: a Windows command-line argument ending in `\"` (backslash
+            // immediately before the closing quote) is parsed as an escaped literal quote, not
+            // "backslash then end-of-argument" — it silently runs the argument into the next token.
+            // AppContext.BaseDirectory always ends with a trailing backslash, so this isn't optional.
+            var installDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
+            var exeName = Path.GetFileName(Environment.ProcessPath!);
+
+            CleanUpOldStagingDirs();
+            var stagingRoot = Path.Combine(Path.GetTempPath(), $"RiftBoundVault-update-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(stagingRoot);
+
+            logger.LogInformation("Downloading update {Tag} from {Url}", release.TagName, asset.BrowserDownloadUrl);
+            var http = httpClientFactory.CreateClient("github");
+            var zipPath = Path.Combine(stagingRoot, "update.zip");
+            SetProgress(new UpdateProgressState("downloading", 0, 0, null));
+            using (var response = await http.GetAsync(asset.BrowserDownloadUrl, HttpCompletionOption.ResponseHeadersRead, ct))
+            {
+                response.EnsureSuccessStatusCode();
+                var totalBytes = response.Content.Headers.ContentLength ?? 0;
+                await using var httpStream = await response.Content.ReadAsStreamAsync(ct);
+                await using var fileStream = File.Create(zipPath);
+                var buffer = new byte[81920];
+                long downloaded = 0;
+                int read;
+                // A plain CopyToAsync gives no visibility into how far along a ~1GB download is —
+                // read in chunks and report progress after each one instead, so the UI can show a
+                // real percentage rather than an indefinite spinner for however long that takes.
+                while ((read = await httpStream.ReadAsync(buffer, ct)) > 0)
+                {
+                    await fileStream.WriteAsync(buffer.AsMemory(0, read), ct);
+                    downloaded += read;
+                    SetProgress(new UpdateProgressState("downloading", downloaded, totalBytes, null));
+                }
+            }
+
+            SetProgress(new UpdateProgressState("extracting", 0, 0, null));
+            var extractDir = Path.Combine(stagingRoot, "extracted");
+            ZipFile.ExtractToDirectory(zipPath, extractDir);
+            File.Delete(zipPath);
+
+            // A zip made from a folder sometimes wraps everything in one top-level folder — if so,
+            // treat that as the real root instead of the zip's literal top level.
+            var entries = Directory.GetFileSystemEntries(extractDir);
+            var payloadDir = entries.Length == 1 && Directory.Exists(entries[0]) ? entries[0] : extractDir;
+
+            var scriptPath = Path.Combine(stagingRoot, "relaunch.ps1");
+            await File.WriteAllTextAsync(scriptPath, BuildRelauncherScript(), ct);
+
+            logger.LogInformation("Handing off to relauncher; this process will now exit to release its file locks.");
+            SetProgress(new UpdateProgressState("restarting", 0, 0, null));
+
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{scriptPath}\" " +
+                            $"-ProcessId {Environment.ProcessId} -StagingDir \"{payloadDir}\" " +
+                            $"-InstallDir \"{installDir}\" -ExeName \"{exeName}\"",
+                UseShellExecute = true,
+                WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
+            };
+            System.Diagnostics.Process.Start(psi);
+        }
+        catch (Exception ex)
+        {
+            SetProgress(new UpdateProgressState("error", 0, 0, ex.Message));
+            throw;
+        }
     }
 
     // The relauncher script deliberately doesn't delete its own staging directory — a script

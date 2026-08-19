@@ -1828,14 +1828,60 @@ async function checkForUpdates() {
     else if (!result.updateAvailable) status.textContent = `Version ${result.currentVersion} is current.`;
     else {
       status.innerHTML = `Version ${escapeHtml(result.latestVersion)} is available. <button class="command-btn gold" id="applyUpdate">Update and Restart</button> <button class="command-btn quiet" id="viewChangelog">View Changelog</button>`;
-      document.getElementById("applyUpdate").onclick = async () => {
-        await api("/api/update/apply", { method: "POST" });
-        status.textContent = "Installing update...";
-      };
+      document.getElementById("applyUpdate").onclick = () => applyUpdate();
       document.getElementById("viewChangelog").onclick = () => openChangelog(result.releaseNotes);
     }
   } catch (err) { status.textContent = err.message; }
   finally { button.disabled = false; }
+}
+
+function formatBytes(bytes) {
+  if (!bytes) return "0 MB";
+  return `${(bytes / 1e6).toFixed(0)} MB`;
+}
+
+async function applyUpdate() {
+  const status = document.getElementById("updateStatus");
+  status.innerHTML = `Starting update...`;
+  try {
+    const started = await api("/api/update/apply", { method: "POST" });
+    if (started.error) { status.textContent = started.error; return; }
+  } catch (err) {
+    status.textContent = err.message;
+    return;
+  }
+  pollUpdateProgress();
+}
+
+async function pollUpdateProgress() {
+  const status = document.getElementById("updateStatus");
+  let progress;
+  try {
+    progress = await api("/api/update/progress");
+  } catch {
+    // The connection dropping here is expected once the app has restarted itself — nothing to
+    // report, the new instance will already be starting up.
+    status.innerHTML = `Restarting — the app will reopen automatically.`;
+    return;
+  }
+
+  if (progress.phase === "downloading") {
+    const pct = progress.totalBytes ? Math.round((progress.bytesDownloaded / progress.totalBytes) * 100) : 0;
+    status.innerHTML = `Downloading update... ${pct}% (${formatBytes(progress.bytesDownloaded)} / ${formatBytes(progress.totalBytes)})
+      <div class="progress-track"><span style="width:${pct}%"></span></div>`;
+    setTimeout(pollUpdateProgress, 500);
+  } else if (progress.phase === "extracting") {
+    status.innerHTML = `Extracting update...<div class="progress-track"><span style="width:100%"></span></div>`;
+    setTimeout(pollUpdateProgress, 500);
+  } else if (progress.phase === "restarting") {
+    status.innerHTML = `Restarting — the app will reopen automatically.<div class="progress-track"><span style="width:100%"></span></div>`;
+    // No further poll: the process exits shortly after entering this phase, so the next request
+    // would just fail — the "restarting" message is already the right thing to leave on screen.
+  } else if (progress.phase === "error") {
+    status.textContent = progress.error || "Update failed.";
+  } else {
+    setTimeout(pollUpdateProgress, 500);
+  }
 }
 
 async function loadLegendPicker() {

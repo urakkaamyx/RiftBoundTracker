@@ -311,25 +311,36 @@ internal static class Program
         app.MapGet("/api/update/check", async (UpdateService updater, CancellationToken ct) =>
             Results.Ok(await updater.CheckAsync(ct)));
 
-        app.MapPost("/api/update/apply", async (UpdateService updater, IHostApplicationLifetime lifetime, CancellationToken ct) =>
+        app.MapPost("/api/update/apply", (UpdateService updater, IHostApplicationLifetime lifetime, ILogger<UpdateService> logger) =>
         {
-            try
-            {
-                await updater.ApplyAsync(ct);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Results.BadRequest(new { error = ex.Message });
-            }
+            // Fail fast, synchronously, for the case that's already known before any download
+            // starts — nothing to poll progress for if self-update isn't even supported here.
+            var (supported, reason) = UpdateService.SelfUpdateSupport();
+            if (!supported)
+                return Results.BadRequest(new { error = reason ?? "Self-update isn't supported in this environment." });
 
-            // Respond before the process exits so the client actually gets this confirmation.
+            // The download+extract can take a while for a ~1GB build — run it detached so this
+            // request returns immediately and the client polls /api/update/progress instead of
+            // holding one connection open (and showing nothing) for the entire duration.
             _ = Task.Run(async () =>
             {
-                await Task.Delay(500);
-                lifetime.StopApplication();
+                try
+                {
+                    await updater.ApplyAsync(CancellationToken.None);
+                    // Give the client's next progress poll a chance to see the "restarting" phase
+                    // before the connection actually drops.
+                    await Task.Delay(800);
+                    lifetime.StopApplication();
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Self-update failed");
+                }
             });
             return Results.Ok(new { started = true });
         });
+
+        app.MapGet("/api/update/progress", (UpdateService updater) => Results.Ok(updater.GetProgress()));
 
         app.MapGet("/api/sets", async (CardCacheService cache, CancellationToken ct)
             => Results.Ok(await cache.GetSetsAsync(ct)));

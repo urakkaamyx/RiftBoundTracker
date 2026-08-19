@@ -1,11 +1,16 @@
-"""Merges the trained LoRA adapter into the base model weights, ready for GGUF conversion."""
+"""Merges the trained LoRA adapter into the base model weights, ready for GGUF conversion.
+
+RIFTKEEP_BASE_MODEL must match whatever train.py was run with — the adapter's weights are only
+meaningful relative to the exact base model they were trained against.
+"""
+import os
 from pathlib import Path
 
 import torch
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-BASE_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
+BASE_MODEL = os.environ.get("RIFTKEEP_BASE_MODEL", "Qwen/Qwen2.5-1.5B-Instruct")
 HERE = Path(__file__).resolve().parent
 ADAPTER_DIR = HERE / "output" / "lora-adapter"
 MERGED_DIR = HERE / "output" / "merged"

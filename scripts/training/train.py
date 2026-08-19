@@ -7,7 +7,11 @@ inference time either way).
 
 Requires a CUDA GPU with ~8GB VRAM. Install deps: pip install torch transformers peft trl
 datasets bitsandbytes accelerate
+
+Override RIFTKEEP_BASE_MODEL to fine-tune a different base model (e.g. when adding a new option to
+LocalAiModelCatalog.cs) — defaults to the model this dataset/prompt format was designed around.
 """
+import os
 from pathlib import Path
 
 import torch
@@ -16,7 +20,7 @@ from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import SFTConfig, SFTTrainer
 
-BASE_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
+BASE_MODEL = os.environ.get("RIFTKEEP_BASE_MODEL", "Qwen/Qwen2.5-1.5B-Instruct")
 HERE = Path(__file__).resolve().parent
 DATASET_PATH = HERE / "output" / "dataset.jsonl"
 OUTPUT_DIR = HERE / "output" / "lora-adapter"

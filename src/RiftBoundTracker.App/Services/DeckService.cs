@@ -143,6 +143,85 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
         var added = 0;
         string? legendCardId = null;
 
+        // Applies one already-resolved card match to the deck (upsert quantity, track the Legend
+        // for cover art) — shared by both the per-line text parser below and the deck-code branch,
+        // so a match found either way is applied identically.
+        async Task ApplyCardAsync(List<CardEntity> cards, int quantity, string section, string unmatchedLabel)
+        {
+            if (cards.Count == 0)
+            {
+                unmatched.Add(unmatchedLabel);
+                return;
+            }
+
+            if (cards[0].Type == "Legend") legendCardId ??= cards[0].Id;
+
+            var existing = await db.DeckCards.FindAsync([created.Summary.Id, cards[0].Id, section], ct);
+            if (existing is null)
+            {
+                db.DeckCards.Add(new DeckCardEntity
+                {
+                    DeckId = created.Summary.Id,
+                    CardId = cards[0].Id,
+                    Section = section,
+                    Quantity = Math.Clamp(quantity, 1, 99),
+                });
+            }
+            else
+            {
+                existing.Quantity = Math.Clamp(existing.Quantity + quantity, 1, 99);
+            }
+            added++;
+        }
+
+        // A RiftAtlas "deck code" (a compact base32 string produced by RiftAtlas/Piltover Archive
+        // tooling) packs the whole decklist into one token instead of readable lines — detected and
+        // decoded up front rather than threaded through the line-by-line parser below, since it
+        // isn't line-oriented at all. See RiftAtlasDeckCodeService for the wire format.
+        if (RiftAtlasDeckCodeService.LooksLikeDeckCode(request.Contents))
+        {
+            RiftAtlasDecodedDeck decoded;
+            try
+            {
+                decoded = RiftAtlasDeckCodeService.Decode(request.Contents);
+            }
+            catch (FormatException)
+            {
+                decoded = null!;
+            }
+
+            if (decoded is not null)
+            {
+                foreach (var entry in decoded.MainDeck)
+                {
+                    var cards = await cache.FindByCodeAsync(entry.SetId, entry.Code, ct);
+                    await ApplyCardAsync(cards.Count == 1 ? cards : [], entry.Quantity, "main", $"{entry.SetId}-{entry.Code}");
+                }
+                foreach (var entry in decoded.Sideboard)
+                {
+                    var cards = await cache.FindByCodeAsync(entry.SetId, entry.Code, ct);
+                    await ApplyCardAsync(cards.Count == 1 ? cards : [], entry.Quantity, "sideboard", $"{entry.SetId}-{entry.Code}");
+                }
+                // The deck code's own chosen-champion pointer is more reliable than inferring the
+                // Legend from card Type — a code can name any card as "chosen", and this always
+                // wins if present, same as ApplyCardAsync already prefers the first Legend it sees.
+                if (decoded.ChosenChampionSetId is not null && decoded.ChosenChampionCode is not null)
+                {
+                    var championCards = await cache.FindByCodeAsync(decoded.ChosenChampionSetId, decoded.ChosenChampionCode, ct);
+                    if (championCards.Count == 1) legendCardId = championCards[0].Id;
+                }
+
+                var codeDeck = await db.Decks.FindAsync([created.Summary.Id], ct);
+                if (codeDeck is not null)
+                {
+                    codeDeck.CoverCardId ??= legendCardId;
+                    codeDeck.UpdatedAt = DateTimeOffset.UtcNow;
+                    await db.SaveChangesAsync(ct);
+                }
+                return new DeckImportResult(created.Summary.Id, added, unmatched);
+            }
+        }
+
         // Tracks which section subsequent card lines belong to as we scan — both export formats
         // mark section boundaries with header lines rather than repeating "main"/"sideboard" per
         // card, so the current section has to carry forward until the next header changes it.
@@ -204,30 +283,7 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
                 continue;
             }
 
-            if (cards.Count == 0)
-            {
-                unmatched.Add(line);
-                continue;
-            }
-
-            if (cards[0].Type == "Legend") legendCardId ??= cards[0].Id;
-
-            var existing = await db.DeckCards.FindAsync([created.Summary.Id, cards[0].Id, currentSection], ct);
-            if (existing is null)
-            {
-                db.DeckCards.Add(new DeckCardEntity
-                {
-                    DeckId = created.Summary.Id,
-                    CardId = cards[0].Id,
-                    Section = currentSection,
-                    Quantity = Math.Clamp(quantity, 1, 99),
-                });
-            }
-            else
-            {
-                existing.Quantity = Math.Clamp(existing.Quantity + quantity, 1, 99);
-            }
-            added++;
+            await ApplyCardAsync(cards, quantity, currentSection, line);
         }
 
         var deck = await db.Decks.FindAsync([created.Summary.Id], ct);

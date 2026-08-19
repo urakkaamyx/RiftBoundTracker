@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.23.0 — Layout cleanup, Ask Rules evidence fixes
+
+- Quick Add, Mass Add, Scan Card, and Import Pack moved off the top bar and onto the Vault tab, next to All Cards/Owned/Missing/Favorites; Quick Add itself was removed (Mass Add covers the same thing). The top bar now only holds the theme toggle and Connect, and the search box only shows on the Vault page.
+- Settings: dropped the card backgrounds, removed the now-redundant Appearance and Phone Connection cards, gave Pricing and Community Data their own full-width rows, and pinned the Updates card to the bottom-left of the page so it stays in place while you scroll. Added a small dot next to the sidebar version number that lights up when an update is available (checked on load and every 5 minutes).
+- Ask Rules' local AI explanations now get the full text of every cited rule instead of a 220-character preview, get the actual printed text of a card when you ask about it specifically (previously just its name), and pull in one hop of explicitly cross-referenced rules ("See rule 197...") that keyword/text matching alone would have missed.
+- Rewrote the README to match the app as it exists today.
+
 ## v1.22.0 — Faster releases and updates
 
 - The Ask Rules local AI model no longer ships inside the app itself — releases and self-updates used to bundle the same ~940MB model file every time, even for a one-line fix. It's now fetched separately (once, from Settings → Ask Rules, or automatically carried over from your existing install) and stored where app updates never touch it, so future releases and updates are dramatically smaller and faster.

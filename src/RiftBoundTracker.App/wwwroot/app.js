@@ -1685,16 +1685,6 @@ async function loadSettings() {
   document.getElementById("rulesSyncFacts").innerHTML = rulesSync.lastSuccessfulSyncAt
     ? `<span>${rulesSync.rulesIndexed} rules</span><span>${rulesSync.keywordsIndexed} keywords</span><span>${rulesSync.errataIndexed} errata</span><span>${rulesSync.legalityEntriesIndexed} legality entries</span>`
     : "";
-  const localAi = await api("/api/rules/local-ai/status");
-  state.localAiEnabled = localAi.enabled;
-  const toggleBtn = document.getElementById("toggleLocalAi");
-  toggleBtn.textContent = localAi.enabled ? "Disable" : "Enable";
-  toggleBtn.disabled = !localAi.modelAvailable;
-  document.getElementById("askRulesProviderStatus").textContent = !localAi.modelAvailable
-    ? "Model file not found — reinstall the app to restore it."
-    : localAi.enabled
-      ? `On — running ${localAi.modelFile} locally (${(localAi.modelBytes / 1e9).toFixed(1)} GB).`
-      : "Off — Ask Rules will still answer from real rules evidence, just without a written-out summary.";
   const db = health.database;
   document.getElementById("databaseStatus").textContent = db
     ? `Database verified: ${db.integrity}. Protected collection totals are checked at startup.`
@@ -2430,11 +2420,25 @@ async function loadRules() {
     meta.textContent = "Could not load rules library status.";
   }
   renderRulesQuickTopics();
+  await loadLocalAiStatus();
 
   if (state.rules.mode === "glossary") await showRulesGlossary();
   else if (state.rules.mode === "errata") await showRulesErrata();
   else if (state.rules.mode === "legality") await showRulesLegality();
   else if (state.rules.query) await runRulesSearch(state.rules.query);
+}
+
+async function loadLocalAiStatus() {
+  const localAi = await api("/api/rules/local-ai/status");
+  state.localAiEnabled = localAi.enabled;
+  const toggleBtn = document.getElementById("toggleLocalAi");
+  toggleBtn.textContent = localAi.enabled ? "Disable" : "Enable";
+  toggleBtn.disabled = !localAi.modelAvailable;
+  document.getElementById("askRulesProviderStatus").textContent = !localAi.modelAvailable
+    ? "Model file not found — reinstall the app to restore it."
+    : localAi.enabled
+      ? `On — running ${localAi.modelFile} locally (${(localAi.modelBytes / 1e9).toFixed(1)} GB).`
+      : "Off — Ask Rules will still answer from real rules evidence, just without a written-out summary.";
 }
 
 function renderRulesQuickTopics() {
@@ -2762,7 +2766,7 @@ async function toggleLocalAi() {
   try {
     const result = await api("/api/rules/local-ai/configure", jsonOptions("POST", { enabled: !state.localAiEnabled }));
     toast(result.enabled ? "Local AI answers enabled" : "Local AI answers disabled");
-    await loadSettings();
+    await loadLocalAiStatus();
   } catch (err) {
     toast(err.message, true);
     button.disabled = false;

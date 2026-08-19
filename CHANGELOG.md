@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.24.2 — Pulled the Qwen3 model option
+
+- Removed Qwen3 1.7B from Ask Rules' model list. A real question ("does damage reduce my unit's Might, or get tracked separately?") reproducibly got an incoherent, self-contradictory answer from it even when the right rules were already found — the earlier testing that called it stable didn't cover this. Anyone who had it selected reverts to the default Qwen2.5 model automatically. Qwen2.5 remains the only option for now.
+
 ## v1.24.1 — Ask Rules: card evidence priority, better name matching, retrained Qwen3
 
 - A question naming a specific card could lose that card's own evidence entirely if enough other rule evidence also matched — the shared evidence budget was filled by general rules first, sometimes before ever reaching the card's own text. Card evidence is now assembled first, every time.

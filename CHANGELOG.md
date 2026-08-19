@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.20.0 — Import Pack undo + preview, Settings cleanup
+
+- Import Pack now shows a right-side preview panel with every card from the pack — art thumbnail, fullscreen button, name/type/set-code/quantity — and an **Undo** button next to the result to reverse the import in one click.
+- Moved the **Ask Rules (Local AI)** toggle from Settings to the Rules page itself (right above the question input), since it's only ever relevant there.
+- Settings: added an "APIs" group label above Pricing and Community Data to visually separate the two sections that need an API key from the sync/system sections around them.
+
 ## v1.19.0 — Import Pack, RiftAtlas deck codes, rule detail popups
 
 - New **Import Pack** button (next to Quick Add/Mass Add/Scan Card) adds every card from an official preconstructed Champion Deck to your tracked collection in one click, on top of whatever you already own. Ships with all 5 Champion Decks (Viktor, Jinx, Lee Sin, Vi, Fiora) and all 4 Origins: Proving Grounds starter decks (Annie, Garen, Lux, Master Yi).

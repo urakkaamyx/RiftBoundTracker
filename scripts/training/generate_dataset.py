@@ -372,12 +372,17 @@ def main():
     all_cards = cur.fetchall()
     bracket_cards = [c for c in all_cards if BRACKET_KEYWORD_RE.search(c["TextPlain"])]
     plain_cards = [c for c in all_cards if not BRACKET_KEYWORD_RE.search(c["TextPlain"])]
-    # Round 1 sampled a subset (180 bracket / 90 plain) and fixed the reported bug cleanly with no
-    # regressions on a broad spot-check — round 2 widens this to the full catalog instead of a
-    # sample, on the theory that more coverage of the same real shape only helps generalization
-    # (e.g. multi-keyword cards, keywords with a cost annotation between the bracket and its
-    # reminder text) rather than teaching anything new in kind.
-    sample_cards = list(bracket_cards) + random.sample(plain_cards, min(200, len(plain_cards)))
+    # Round 2 trained on the full bracket-card catalog (738) against only 200 plain cards — a
+    # roughly 3.7:1 skew. Tested directly against the resulting model: it started appending the
+    # bracket-keyword explanation sentence to Arena Kingpin's answer even though that card's text
+    # has no brackets at all ("I enter ready.Exhaust: Give a unit +3 Might this turn.") — a
+    # regression from round 1, where the same card was answered cleanly. Capping bracket cards and
+    # raising the plain sample brings the ratio close to even, on the theory that the skew itself
+    # (not just "not enough plain examples in absolute terms") was teaching the model to expect
+    # brackets by default.
+    bracket_sample = random.sample(bracket_cards, min(400, len(bracket_cards)))
+    plain_sample_7 = random.sample(plain_cards, min(400, len(plain_cards)))
+    sample_cards = bracket_sample + plain_sample_7
     random.shuffle(sample_cards)
     question_templates = [
         "What does {name} do?", "How does {name} work?", "Can you tell me the rules of {name}?",
@@ -392,7 +397,7 @@ def main():
         answer = describe_card_text(name, humanized)
         examples.append(make_example(question, [source], answer))
         count7 += 1
-    print(f"  {count7} examples ({len(bracket_cards)} bracket-keyword, {min(200, len(plain_cards))} plain)")
+    print(f"  {count7} examples ({len(bracket_sample)} bracket-keyword, {len(plain_sample_7)} plain)")
 
     print("Category 8: partial-evidence honesty (a card's text exists but doesn't resolve the specific question)...")
     # Found by testing a real question ("Does Darius Trifarian's +2 Might buff work on opponent's
@@ -414,7 +419,14 @@ def main():
         ("Does {name}'s ability still work while it's Stunned?", "whether being Stunned affects this specific ability"),
         ("Does {name}'s effect apply retroactively to units already on the board?", "whether this effect applies retroactively to things already in play when it starts applying"),
     ]
-    partial_sample = random.sample(all_cards, min(160, len(all_cards)))
+    # Round 2, trained on 160 of these, showed real but incomplete progress: tested against a real
+    # question, the model correctly SAID the evidence didn't establish the answer — then, in the
+    # same breath, guessed one anyway ("...it doesn't say anything about whether this triggers
+    # during your opponent's turn... The answer to your question is no"). Stating the gap wasn't
+    # enough to stop it from also filling that gap with a guess. Round 3 raises the sample count
+    # (160 -> 320) and makes the answer template itself explicitly refuse to pick a side, rather
+    # than trailing off on a hedge a model can talk itself past.
+    partial_sample = random.sample(all_cards, min(320, len(all_cards)))
     count8 = 0
     for card in partial_sample:
         name = card["Name"]
@@ -424,8 +436,9 @@ def main():
         source = {"ruleNumber": None, "title": name, "authority": "CardText", "current": True, "text": humanized}
         answer = (
             f"{name}'s printed text says: \"{humanized}\" That tells you what the card does, but it "
-            f"doesn't say anything about {topic} — I don't have rules evidence that clearly "
-            f"establishes that, so I can't say for sure either way."
+            f"doesn't say anything about {topic}. I don't have rules evidence that resolves that, "
+            f"so I'm not going to guess yes or no — that would be me making up a ruling, not "
+            f"reporting one."
         )
         examples.append(make_example(question, [source], answer))
         count8 += 1

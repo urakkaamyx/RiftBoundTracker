@@ -3,6 +3,9 @@ obj/
 *.user
 .vs/
 
+# Scratch output from ad hoc terminal commands at the repo root, not project content.
+/output.txt
+
 # Runtime data — the whole point is this isn't shipped or shared, it's generated per-install
 App_Data/
 

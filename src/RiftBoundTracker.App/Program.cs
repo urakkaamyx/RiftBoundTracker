@@ -434,6 +434,12 @@ internal static class Program
             return result is null ? Results.NotFound() : Results.Ok(result);
         });
 
+        app.MapPost("/api/premade-packs/undo", async (PremadePackUndoRequest body, PremadePackImportService importer, CancellationToken ct) =>
+        {
+            await importer.UndoAsync(body.AppliedCards, ct);
+            return Results.Ok(new { ok = true });
+        });
+
         app.MapGet("/api/decks/{id:int}/export", async (int id, string? format, DeckService decks, CancellationToken ct) =>
         {
             var contents = await decks.ExportAsync(id, format, ct);

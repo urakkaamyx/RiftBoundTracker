@@ -2035,6 +2035,8 @@ async function importDeck() {
 async function openPackImportModal() {
   showModal("packImportModal");
   document.getElementById("packImportResult").innerHTML = "";
+  document.getElementById("packPreviewPanel").innerHTML = `<div class="pack-preview-empty"><i data-icon="archive"></i><span>Add a pack to preview its cards here.</span></div>`;
+  lastPackImport = null;
   const listEl = document.getElementById("packImportList");
   listEl.innerHTML = `<div class="loading-line" style="padding:20px">Loading packs...</div>`;
   try {
@@ -2053,23 +2055,85 @@ async function openPackImportModal() {
   renderIcons(listEl);
 }
 
+let lastPackImport = null; // { packName, undoEntries } — cleared once undone or a new import runs
+
+function packPreviewCardMarkup(card, quantity) {
+  return `
+    <div class="pack-preview-card">
+      <div class="pack-preview-card-art">
+        <img src="${escapeHtml(cardImage(card))}" alt="${escapeHtml(card.name)}" loading="lazy" />
+        ${cardImagePopout(card)}
+      </div>
+      <div class="pack-preview-card-info">
+        <b title="${escapeHtml(card.name)}">${escapeHtml(card.name)}</b>
+        <span>${escapeHtml(card.supertype ? `${card.supertype} ${card.type}` : card.type)} · ${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))}</span>
+        <span class="pack-preview-qty">x${quantity}</span>
+      </div>
+    </div>`;
+}
+
+function renderPackPreview(packName, appliedCards) {
+  const panel = document.getElementById("packPreviewPanel");
+  if (!appliedCards.length) {
+    panel.innerHTML = `<div class="pack-preview-empty"><i data-icon="archive"></i><span>No cards to preview.</span></div>`;
+    renderIcons(panel);
+    return;
+  }
+  registerCards(appliedCards.map(a => a.card));
+  panel.innerHTML = `<p class="pack-preview-title">${escapeHtml(packName)} · ${appliedCards.length} cards</p>
+    ${appliedCards.map(a => packPreviewCardMarkup(a.card, a.quantity)).join("")}`;
+  renderIcons(panel);
+}
+
 async function importPremadePack(key, button) {
   button.disabled = true;
   const resultEl = document.getElementById("packImportResult");
   resultEl.innerHTML = `<div class="loading-line" style="padding:12px 0">Adding cards...</div>`;
+  lastPackImport = null;
   try {
     const result = await api(`/api/premade-packs/${encodeURIComponent(key)}/import`, jsonOptions("POST"));
+    const packName = button.closest(".pack-import-row")?.querySelector("b")?.textContent || "this pack";
+    const undoBtn = result.appliedCards.length
+      ? `<button type="button" class="command-btn quiet" id="undoPackImportBtn">Undo</button>` : "";
     if (result.unmatchedCards.length) {
       resultEl.innerHTML = `<p>${result.addedCards} cards added. ${result.unmatchedCards.length} card names did not match:</p>
-        <ul class="import-unmatched-list">${result.unmatchedCards.map(name => `<li>${escapeHtml(name)}</li>`).join("")}</ul>`;
+        <ul class="import-unmatched-list">${result.unmatchedCards.map(name => `<li>${escapeHtml(name)}</li>`).join("")}</ul>
+        <div class="pack-import-result-actions">${undoBtn}</div>`;
     } else {
-      resultEl.innerHTML = `<p>${result.addedCards} cards added to your collection.</p>`;
+      resultEl.innerHTML = `<p>${result.addedCards} cards added to your collection.</p>
+        <div class="pack-import-result-actions">${undoBtn}</div>`;
     }
+    renderPackPreview(packName, result.appliedCards);
+    if (result.appliedCards.length) {
+      lastPackImport = {
+        packName,
+        undoEntries: result.appliedCards.map(a => ({ cardId: a.card.id, quantity: a.quantity })),
+      };
+    }
+    document.getElementById("undoPackImportBtn")?.addEventListener("click", undoPackImport);
     await Promise.all([loadOverview(), refreshCurrentPage()]);
   } catch (err) {
     resultEl.innerHTML = `<p class="ask-answer-note">${escapeHtml(err.message)}</p>`;
   } finally {
     button.disabled = false;
+  }
+}
+
+async function undoPackImport() {
+  if (!lastPackImport) return;
+  const { packName, undoEntries } = lastPackImport;
+  const undoBtn = document.getElementById("undoPackImportBtn");
+  if (undoBtn) undoBtn.disabled = true;
+  try {
+    await api("/api/premade-packs/undo", jsonOptions("POST", { appliedCards: undoEntries }));
+    lastPackImport = null;
+    document.getElementById("packImportResult").innerHTML = `<p>Undone — ${packName} was removed from your collection.</p>`;
+    document.getElementById("packPreviewPanel").innerHTML = `<div class="pack-preview-empty"><i data-icon="archive"></i><span>Add a pack to preview its cards here.</span></div>`;
+    renderIcons(document.getElementById("packPreviewPanel"));
+    await Promise.all([loadOverview(), refreshCurrentPage()]);
+  } catch (err) {
+    toast(err.message, true);
+    if (undoBtn) undoBtn.disabled = false;
   }
 }
 

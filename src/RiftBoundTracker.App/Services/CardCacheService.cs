@@ -180,6 +180,16 @@ public partial class CardCacheService(
         return card;
     }
 
+    // Adds (or, with a negative delta, removes) a fixed number of copies on top of whatever's
+    // currently owned — for bulk operations like premade pack import/undo, where each card's
+    // target isn't known ahead of time (it depends on what was already owned when the batch ran).
+    public async Task<CardEntity?> AdjustOwnedAsync(string cardId, int delta, CancellationToken ct = default)
+    {
+        var card = await db.Cards.FindAsync([cardId], ct);
+        if (card is null) return null;
+        return await SetOwnedAsync(cardId, card.OwnedCount + delta, ct);
+    }
+
     public Task<List<CardEntity>> GetCardsWithHashesAsync(string? setId, CancellationToken ct = default)
     {
         var query = db.Cards.Where(c => c.ImageHash != null);

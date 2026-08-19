@@ -12,6 +12,10 @@ App_Data/
 # Local Claude Code settings
 .claude/settings.local.json
 
+# Screenshots/test scripts from Claude's own verification work — visible locally so they can be
+# browsed in Explorer, never committed.
+.claude/scratchpad/
+
 # Publish output — any local test/publish folder at the repo root, not committed.
 # Matched broadly (not just exact names like "Test/") since these get created ad hoc while
 # testing published builds and it's easy to pick a name that isn't already covered here.

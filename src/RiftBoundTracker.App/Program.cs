@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -174,6 +175,7 @@ internal static class Program
         builder.Services.AddSingleton<OcrService>();
         builder.Services.AddSingleton<UpdateService>();
         builder.Services.AddSingleton<BrowserRelayClient>();
+        builder.Services.AddSingleton(sp => new NgrokService(port, sp.GetRequiredService<IHttpClientFactory>(), sp.GetRequiredService<ILogger<NgrokService>>()));
         builder.Services.AddScoped<CardCacheService>();
         builder.Services.AddScoped<ScanService>();
         builder.Services.AddScoped<CatalogSyncService>();
@@ -308,6 +310,30 @@ internal static class Program
             var url = $"https://{lanIp}:{httpsPort}";
             using var qrGenerator = new QRCoder.QRCodeGenerator();
             using var qrData = qrGenerator.CreateQrCode(url, QRCoder.QRCodeGenerator.ECCLevel.Q);
+            var png = new QRCoder.PngByteQRCode(qrData).GetGraphic(12);
+            return Results.File(png, "image/png");
+        });
+
+        // WAN access via ngrok — opt-in, never auto-started (see NgrokService's own note on why).
+        app.MapGet("/api/remote-access/status", async (NgrokService ngrok, CancellationToken ct) =>
+            Results.Ok(await ngrok.GetStatusAsync(ct)));
+
+        app.MapPost("/api/remote-access/start", async (NgrokService ngrok, CancellationToken ct) =>
+            Results.Ok(await ngrok.StartAsync(ct)));
+
+        app.MapPost("/api/remote-access/stop", (NgrokService ngrok) =>
+        {
+            ngrok.Stop();
+            return Results.Ok(new { active = false });
+        });
+
+        app.MapGet("/api/remote-access-qr.png", async (NgrokService ngrok, CancellationToken ct) =>
+        {
+            var status = await ngrok.GetStatusAsync(ct);
+            if (!status.Active || status.Url is null) return Results.NotFound();
+
+            using var qrGenerator = new QRCoder.QRCodeGenerator();
+            using var qrData = qrGenerator.CreateQrCode(status.Url, QRCoder.QRCodeGenerator.ECCLevel.Q);
             var png = new QRCoder.PngByteQRCode(qrData).GetGraphic(12);
             return Results.File(png, "image/png");
         });

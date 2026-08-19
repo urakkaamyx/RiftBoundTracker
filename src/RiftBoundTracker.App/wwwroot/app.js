@@ -1761,15 +1761,84 @@ async function confirmMassAdd() {
 }
 
 async function openConnection() {
-  const root = document.getElementById("connectionBody");
-  root.innerHTML = `<div class="loading-line">Loading...</div>`;
   showModal("connectionModal");
+  state.connectionMode = state.connectionMode || "lan";
+  await renderConnectionTab();
+}
+
+async function renderConnectionTab() {
+  const root = document.getElementById("connectionBody");
+  const mode = state.connectionMode;
+  root.innerHTML = `
+    <div class="segmented connection-mode-toggle">
+      <button type="button" data-mode="lan" class="${mode === "lan" ? "active" : ""}">LAN</button>
+      <button type="button" data-mode="wan" class="${mode === "wan" ? "active" : ""}">WAN</button>
+    </div>
+    <div id="connectionModeBody"><div class="loading-line">Loading...</div></div>`;
+  root.querySelectorAll("[data-mode]").forEach(btn => btn.addEventListener("click", () => {
+    state.connectionMode = btn.dataset.mode;
+    renderConnectionTab();
+  }));
+  if (mode === "lan") await renderLanConnection();
+  else await renderWanConnection();
+}
+
+async function renderLanConnection() {
+  const body = document.getElementById("connectionModeBody");
   try {
     const info = await api("/api/connection-info");
-    if (!info.available) { root.textContent = "No LAN address detected."; return; }
-    root.innerHTML = `<div class="connection-qr"><img src="/api/connection-qr.png?t=${Date.now()}" alt="Phone connection QR code" /></div><div class="connection-url"><input value="${escapeHtml(info.url)}" readonly /><button class="command-btn" id="copyConnection">Copy</button></div>`;
+    if (!info.available) { body.textContent = "No LAN address detected."; return; }
+    body.innerHTML = `<div class="connection-qr"><img src="/api/connection-qr.png?t=${Date.now()}" alt="Phone connection QR code" /></div><div class="connection-url"><input value="${escapeHtml(info.url)}" readonly /><button class="command-btn" id="copyConnection">Copy</button></div><p class="settings-hint">Only reachable from devices on this same Wi-Fi network.</p>`;
     document.getElementById("copyConnection").onclick = async () => { await navigator.clipboard.writeText(info.url); toast("Connection URL copied"); };
-  } catch (err) { root.textContent = err.message; }
+  } catch (err) { body.textContent = err.message; }
+}
+
+async function renderWanConnection() {
+  const body = document.getElementById("connectionModeBody");
+  try {
+    renderWanStatus(await api("/api/remote-access/status"));
+  } catch (err) { body.textContent = err.message; }
+}
+
+function renderWanStatus(status) {
+  const body = document.getElementById("connectionModeBody");
+  if (status.active && status.url) {
+    body.innerHTML = `
+      <div class="connection-qr"><img src="/api/remote-access-qr.png?t=${Date.now()}" alt="Remote access QR code" /></div>
+      <div class="connection-url"><input value="${escapeHtml(status.url)}" readonly /><button class="command-btn" id="copyWan">Copy</button></div>
+      <p class="settings-hint">Reachable from anywhere, not just this Wi-Fi network — anyone with this link can open your vault. Stop it when you're done.</p>
+      <button type="button" class="command-btn quiet" id="stopWan">Stop Remote Access</button>`;
+    document.getElementById("copyWan").onclick = async () => { await navigator.clipboard.writeText(status.url); toast("Remote access URL copied"); };
+    document.getElementById("stopWan").onclick = async () => {
+      await api("/api/remote-access/stop", { method: "POST" });
+      await renderWanConnection();
+    };
+  } else if (!status.installed) {
+    body.innerHTML = `
+      <p class="settings-hint">Remote access uses <b>ngrok</b> to create a temporary public link to this app. It isn't installed on this machine yet.</p>
+      <ol class="connection-walkthrough">
+        <li>Download and install ngrok from <b>ngrok.com/download</b>.</li>
+        <li>Sign up for a free ngrok account, then copy your authtoken from its dashboard.</li>
+        <li>Open a terminal and run: <code>ngrok config add-authtoken &lt;your token&gt;</code></li>
+        <li>Come back here and press Start.</li>
+      </ol>
+      <button type="button" class="command-btn gold" id="startWan">I've done this — Start Remote Access</button>`;
+    document.getElementById("startWan").onclick = startWanConnection;
+  } else {
+    body.innerHTML = `
+      <p class="settings-hint">Creates a temporary public link to this app, reachable from anywhere — not just this Wi-Fi network. Anyone with the link can open your vault, so only share it with people you trust, and stop it when you're done.</p>
+      ${status.error ? `<p class="ask-answer-note">${escapeHtml(status.error)}</p>` : ""}
+      <button type="button" class="command-btn gold" id="startWan">Start Remote Access</button>`;
+    document.getElementById("startWan").onclick = startWanConnection;
+  }
+}
+
+async function startWanConnection() {
+  const body = document.getElementById("connectionModeBody");
+  body.innerHTML = `<div class="loading-line">Starting tunnel... this can take a few seconds.</div>`;
+  try {
+    renderWanStatus(await api("/api/remote-access/start", jsonOptions("POST", {})));
+  } catch (err) { body.textContent = err.message; }
 }
 
 function renderChangelog(notes) {

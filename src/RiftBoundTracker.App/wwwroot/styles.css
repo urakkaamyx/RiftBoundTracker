@@ -870,6 +870,12 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .import-unmatched-list li { padding: 5px 9px; font-family: var(--mono, monospace); color: var(--faint); border-bottom: 1px solid var(--border-soft); }
 .import-unmatched-list li:last-child { border-bottom: none; }
 
+.pack-import-intro { margin: 0 0 14px; font-size: 11px; color: var(--faint); }
+.pack-import-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.pack-import-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid var(--border-soft); border-radius: 6px; background: var(--panel-2); }
+.pack-import-row b { display: block; font-size: 12px; color: var(--text); }
+.pack-import-row span { display: block; margin-top: 2px; font-size: 10px; color: var(--faint); }
+
 @media (max-width: 1300px) {
   .card-list-header, .card-list-row { grid-template-columns: 132px minmax(120px, 1fr) minmax(78px, .44fr) 52px 52px 72px 58px 68px; column-gap: 8px; }
   .list-card-art { width: 60px; }

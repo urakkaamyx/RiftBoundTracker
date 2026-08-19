@@ -2032,6 +2032,47 @@ async function importDeck() {
   if (!result.unmatchedLines.length) closeModal("importDeckModal");
 }
 
+async function openPackImportModal() {
+  showModal("packImportModal");
+  document.getElementById("packImportResult").innerHTML = "";
+  const listEl = document.getElementById("packImportList");
+  listEl.innerHTML = `<div class="loading-line" style="padding:20px">Loading packs...</div>`;
+  try {
+    const packs = await api("/api/premade-packs");
+    listEl.innerHTML = packs.map(p => `
+      <div class="pack-import-row">
+        <div>
+          <b>${escapeHtml(p.name)}</b>
+          <span>${escapeHtml(p.wave)} · ${p.cardCount} cards</span>
+        </div>
+        <button type="button" class="command-btn gold" data-pack-key="${escapeHtml(p.key)}">Add to Collection</button>
+      </div>`).join("");
+  } catch (err) {
+    listEl.innerHTML = `<div class="page-empty"><i data-icon="alert-triangle"></i><h2>Could not load packs</h2><span>${escapeHtml(err.message)}</span></div>`;
+  }
+  renderIcons(listEl);
+}
+
+async function importPremadePack(key, button) {
+  button.disabled = true;
+  const resultEl = document.getElementById("packImportResult");
+  resultEl.innerHTML = `<div class="loading-line" style="padding:12px 0">Adding cards...</div>`;
+  try {
+    const result = await api(`/api/premade-packs/${encodeURIComponent(key)}/import`, jsonOptions("POST"));
+    if (result.unmatchedCards.length) {
+      resultEl.innerHTML = `<p>${result.addedCards} cards added. ${result.unmatchedCards.length} card names did not match:</p>
+        <ul class="import-unmatched-list">${result.unmatchedCards.map(name => `<li>${escapeHtml(name)}</li>`).join("")}</ul>`;
+    } else {
+      resultEl.innerHTML = `<p>${result.addedCards} cards added to your collection.</p>`;
+    }
+    await Promise.all([loadOverview(), refreshCurrentPage()]);
+  } catch (err) {
+    resultEl.innerHTML = `<p class="ask-answer-note">${escapeHtml(err.message)}</p>`;
+  } finally {
+    button.disabled = false;
+  }
+}
+
 /* Scanner */
 const scan = {
   stream: null, timer: null, inFlight: false, hitPending: false,
@@ -2806,6 +2847,11 @@ function wireEvents() {
   document.getElementById("quickAddBtn").addEventListener("click", quickAdd);
   document.getElementById("quickAddInput").addEventListener("keydown", event => { if (event.key === "Enter") quickAdd(); });
   document.getElementById("openMassAdd").addEventListener("click", () => showModal("massAddModal"));
+  document.getElementById("openPackImport").addEventListener("click", () => openPackImportModal().catch(err => toast(err.message, true)));
+  document.getElementById("packImportList").addEventListener("click", event => {
+    const button = event.target.closest("[data-pack-key]");
+    if (button) importPremadePack(button.dataset.packKey, button).catch(err => toast(err.message, true));
+  });
   document.getElementById("massAddPreview").addEventListener("click", previewMassAdd);
   document.getElementById("massAddConfirm").addEventListener("click", confirmMassAdd);
   ["openConnection", "settingsConnection"].forEach(id => document.getElementById(id).addEventListener("click", openConnection));

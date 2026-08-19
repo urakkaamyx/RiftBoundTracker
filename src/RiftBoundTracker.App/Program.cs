@@ -180,6 +180,7 @@ internal static class Program
         builder.Services.AddScoped<DatabaseSafetyService>();
         builder.Services.AddScoped<DeckService>();
         builder.Services.AddScoped<VaultService>();
+        builder.Services.AddScoped<PremadePackImportService>();
         builder.Services.AddScoped<PriceSyncService>();
         builder.Services.AddScoped<CardTextSymbolCatalogService>();
         builder.Services.AddScoped<IPriceProvider, JustTcgPriceProvider>();
@@ -423,6 +424,15 @@ internal static class Program
 
         app.MapPost("/api/decks/import", async (ImportDeckRequest body, DeckService decks, CancellationToken ct) =>
             Results.Ok(await decks.ImportAsync(body, ct)));
+
+        app.MapGet("/api/premade-packs", () => Results.Ok(PremadePackCatalogService.Packs
+            .Select(p => new { p.Key, p.Name, p.Wave, CardCount = p.Cards.Sum(c => c.Quantity) })));
+
+        app.MapPost("/api/premade-packs/{key}/import", async (string key, PremadePackImportService importer, CancellationToken ct) =>
+        {
+            var result = await importer.ImportAsync(key, ct);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        });
 
         app.MapGet("/api/decks/{id:int}/export", async (int id, string? format, DeckService decks, CancellationToken ct) =>
         {

@@ -666,7 +666,8 @@ function cardTile(card, context) {
         <div class="card-actions">
           <div class="mini-stepper"><button data-owned-delta="-1" data-card-id="${escapeHtml(card.id)}" aria-label="Remove copy">-</button><span>${card.ownedCount}</span><button data-owned-delta="1" data-card-id="${escapeHtml(card.id)}" aria-label="Add copy">+</button></div>
           ${context === "binderGrid"
-            ? `<button class="binder-chip" data-binder-delta="-1" data-card-id="${escapeHtml(card.id)}" title="Remove one copy from Trade Binder">Remove</button>`
+            ? `<button class="binder-chip" data-binder-delta="-1" data-card-id="${escapeHtml(card.id)}" title="No longer offering this copy for trade — stays in your collection">Remove</button>
+               <button class="binder-chip binder-chip-confirm" data-confirm-trade="${escapeHtml(card.id)}" title="Trade completed — removes this copy from your collection entirely">Confirm Trade</button>`
             : card.ownedCount > 0
               ? `<label class="card-trade-toggle" title="Mark this card as available for trade"><span>Trade</span><input type="checkbox" data-card-trade-toggle="${escapeHtml(card.id)}"${card.binderCount > 0 ? " checked" : ""} /><i aria-hidden="true"></i></label>`
               : ""}
@@ -852,6 +853,14 @@ async function changeBinder(card, delta) {
   cardsById.set(updated.id, updated);
   await Promise.all([loadOverview(), refreshCurrentPage()]);
   toast(`${card.name}: ${updated.binderCount} in binder`);
+}
+
+async function confirmTrade(card) {
+  if (!confirm(`Confirm you traded away 1 copy of "${card.name}"? It will be removed from your collection.`)) return;
+  const updated = await api(`/api/binder/${encodeURIComponent(card.id)}/confirm-trade`, jsonOptions("POST", { count: 1 }));
+  cardsById.set(updated.id, updated);
+  await Promise.all([loadOverview(), refreshCurrentPage()]);
+  toast(`${card.name} traded — removed from your collection`);
 }
 
 async function setBinderAvailability(card, available) {
@@ -1189,7 +1198,7 @@ function renderDeckWorkspace() {
           <div class="deck-stat"><b>${summary.missingCount}</b><span>Missing</span></div>
           <div class="deck-stat"><b>${ownedPct}%</b><span>Ready</span></div>
         </div>
-        <div class="deck-actions"><button class="command-btn" id="testDrawBtn">${icon("shuffle")}Test Draw</button><button class="command-btn quiet" id="exportDeckBtn">${icon("download")}Export</button><button class="command-btn quiet" id="deleteDeckBtn">${icon("trash")}Delete</button></div>
+        <div class="deck-actions"><button class="command-btn" id="testDrawBtn">${icon("shuffle")}Test Draw</button><button class="command-btn quiet" id="exportDeckBtn">${icon("download")}Export</button><button class="command-btn quiet" id="markDeckTradeBtn" title="Mark every card in this deck as available in your Trade Binder">${icon("book-open")}Mark for Trade</button><button class="command-btn quiet" id="deleteDeckBtn">${icon("trash")}Delete</button></div>
       </div>
     </section>
     <div class="deck-tabs">
@@ -1293,6 +1302,7 @@ function wireDeckWorkspace() {
   root.querySelector("#deleteDeckBtn")?.addEventListener("click", deleteActiveDeck);
   root.querySelector("#exportDeckBtn")?.addEventListener("click", openExportModal);
   root.querySelector("#testDrawBtn")?.addEventListener("click", openTestHand);
+  root.querySelector("#markDeckTradeBtn")?.addEventListener("click", () => markDeckForTrade().catch(err => toast(err.message, true)));
   root.querySelector("#changeLegendBtn")?.addEventListener("click", openChangeLegendModal);
   root.querySelector("#viewAnalysisBtn")?.addEventListener("click", () => {
     state.deckTab = "analysis";
@@ -1565,6 +1575,15 @@ async function deleteActiveDeck() {
   await Promise.all([loadDecks(), loadOverview()]);
 }
 
+async function markDeckForTrade() {
+  if (!confirm(`Mark every card in "${state.activeDeck.summary.name}" as available in your Trade Binder?`)) return;
+  const result = await api(`/api/decks/${state.activeDeckId}/mark-as-trade`, jsonOptions("POST", {}));
+  toast(result.updatedCards
+    ? `${result.updatedCards} card${result.updatedCards === 1 ? "" : "s"} marked for trade`
+    : "Every card in this deck was already marked for trade");
+  await loadOverview();
+}
+
 function openExportModal() {
   state.exportFormat = state.exportFormat || "riftkeep";
   showModal("exportModal");
@@ -1610,8 +1629,10 @@ async function exportActiveDeck(format) {
 }
 
 function openTestHand() {
+  // Runes are a separate resource pool played from their own Rune Deck, never drawn alongside
+  // Main Deck cards — excluded here even though this app stores both in the same "main" section.
   const pool = state.activeDeck.cards
-    .filter(row => row.section === "main")
+    .filter(row => row.section === "main" && row.card.type !== "Rune")
     .flatMap(row => Array.from({ length: row.quantity }, () => row.card));
   if (!pool.length) return toast("Add cards to the deck first", true);
   const draw = () => {
@@ -2204,7 +2225,10 @@ function packPreviewHeaderMarkup(name, cards) {
   return `
     <div class="pack-preview-header-top">
       <b>${escapeHtml(name)}</b>
-      <button type="button" class="command-btn gold" id="confirmImportPackBtn">Import</button>
+      <div class="pack-preview-header-actions">
+        <button type="button" class="command-btn quiet" id="confirmRemovePackBtn" title="Subtract this pack's cards from your collection">Remove</button>
+        <button type="button" class="command-btn gold" id="confirmImportPackBtn">Import</button>
+      </div>
     </div>
     <div class="pack-preview-type-counts">${chips}</div>`;
 }
@@ -2265,6 +2289,26 @@ async function confirmImportPack() {
       };
     }
     document.getElementById("undoPackImportBtn")?.addEventListener("click", undoPackImport);
+    await Promise.all([loadOverview(), refreshCurrentPage()]);
+  } catch (err) {
+    resultEl.innerHTML = `<p class="ask-answer-note">${escapeHtml(err.message)}</p>`;
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function confirmRemovePack() {
+  if (!currentPackPreview) return;
+  const { key, name } = currentPackPreview;
+  if (!confirm(`Subtract every card in "${name}" from your collection? This can't be undone.`)) return;
+  const button = document.getElementById("confirmRemovePackBtn");
+  const resultEl = document.getElementById("packImportResult");
+  button.disabled = true;
+  resultEl.innerHTML = `<div class="loading-line" style="padding:12px 0">Removing cards...</div>`;
+  lastPackImport = null;
+  try {
+    const result = await api(`/api/premade-packs/${encodeURIComponent(key)}/remove`, jsonOptions("POST"));
+    resultEl.innerHTML = `<p>${result.addedCards} cards subtracted from your collection.</p>`;
     await Promise.all([loadOverview(), refreshCurrentPage()]);
   } catch (err) {
     resultEl.innerHTML = `<p class="ask-answer-note">${escapeHtml(err.message)}</p>`;
@@ -3137,6 +3181,8 @@ function wireEvents() {
     if (favorite) { event.preventDefault(); event.stopPropagation(); const card = cardsById.get(favorite.dataset.favoriteCard); if (card) changeFavorite(card); return; }
     const binder = event.target.closest("[data-binder-delta]");
     if (binder) { event.preventDefault(); event.stopPropagation(); const card = cardsById.get(binder.dataset.cardId); if (card) changeBinder(card, Number(binder.dataset.binderDelta)); return; }
+    const confirmTradeBtn = event.target.closest("[data-confirm-trade]");
+    if (confirmTradeBtn) { event.preventDefault(); event.stopPropagation(); const card = cardsById.get(confirmTradeBtn.dataset.confirmTrade); if (card) confirmTrade(card).catch(err => toast(err.message, true)); return; }
     const priceQueueRemove = event.target.closest("[data-price-queue-remove]");
     if (priceQueueRemove) { event.preventDefault(); event.stopPropagation(); const card = cardsById.get(priceQueueRemove.dataset.priceQueueRemove); if (card) setPriceQueue(card, false).catch(err => toast(err.message, true)); return; }
     const card = event.target.closest("[data-card-open]");
@@ -3175,6 +3221,7 @@ function wireEvents() {
   });
   document.getElementById("packPreviewHeader").addEventListener("click", event => {
     if (event.target.closest("#confirmImportPackBtn")) confirmImportPack().catch(err => toast(err.message, true));
+    if (event.target.closest("#confirmRemovePackBtn")) confirmRemovePack().catch(err => toast(err.message, true));
   });
   document.getElementById("massAddPreview").addEventListener("click", previewMassAdd);
   document.getElementById("massAddConfirm").addEventListener("click", confirmMassAdd);

@@ -40,6 +40,20 @@ public sealed class VaultService(
         return card;
     }
 
+    // Distinct from SetBinderCountAsync(0), which only un-flags a card as tradeable and leaves it
+    // in the collection — this is for when a trade actually happened: the copies are gone, not
+    // just no longer offered. Removes from both OwnedCount and BinderCount together.
+    public async Task<CardEntity?> ConfirmTradeAsync(string cardId, int count, CancellationToken ct = default)
+    {
+        var card = await db.Cards.FindAsync([cardId], ct);
+        if (card is null) return null;
+        card.OwnedCount = Math.Max(0, card.OwnedCount - count);
+        card.BinderCount = Math.Min(card.BinderCount, card.OwnedCount);
+        card.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return card;
+    }
+
     public Task<List<CardEntity>> GetFavoritesAsync(CancellationToken ct = default) =>
         db.Cards.AsNoTracking()
             .Where(c => c.IsFavorite)

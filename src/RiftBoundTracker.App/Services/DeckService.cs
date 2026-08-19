@@ -89,6 +89,32 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
         return true;
     }
 
+    // "Mark whole deck for trade" — for retiring a deck: flags every card it uses (main and
+    // sideboard, summed if a card appears in both) as available in the Trade Binder, in one click
+    // instead of toggling each card individually. Raises BinderCount to at least the deck's
+    // quantity of each card rather than overwriting a higher count some other deck already set —
+    // marking this deck for trade should never silently un-mark a card another deck already has
+    // flagged for more copies. Clamped to OwnedCount same as every other binder-count write.
+    public async Task<int> MarkAsTradeAsync(int deckId, CancellationToken ct = default)
+    {
+        var rows = await db.DeckCards.Where(dc => dc.DeckId == deckId).ToListAsync(ct);
+        if (rows.Count == 0) return 0;
+
+        var quantityByCard = rows.GroupBy(r => r.CardId).ToDictionary(g => g.Key, g => g.Sum(r => r.Quantity));
+        var cards = await db.Cards.Where(c => quantityByCard.Keys.Contains(c.Id)).ToListAsync(ct);
+        var updated = 0;
+        foreach (var card in cards)
+        {
+            var target = Math.Clamp(Math.Max(card.BinderCount, quantityByCard[card.Id]), 0, card.OwnedCount);
+            if (target == card.BinderCount) continue;
+            card.BinderCount = target;
+            card.UpdatedAt = DateTimeOffset.UtcNow;
+            updated++;
+        }
+        if (updated > 0) await db.SaveChangesAsync(ct);
+        return updated;
+    }
+
     public async Task<DeckDetailDto?> SetCardAsync(int id, SetDeckCardRequest request, CancellationToken ct = default)
     {
         var deck = await db.Decks.FindAsync([id], ct);

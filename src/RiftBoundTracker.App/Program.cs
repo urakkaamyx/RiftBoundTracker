@@ -433,6 +433,12 @@ internal static class Program
         app.MapGet("/api/binder", async (VaultService vault, CancellationToken ct) =>
             Results.Ok(await vault.GetBinderAsync(ct)));
 
+        app.MapPost("/api/binder/{cardId}/confirm-trade", async (string cardId, BinderRequest body, VaultService vault, CancellationToken ct) =>
+        {
+            var updated = await vault.ConfirmTradeAsync(cardId, body.Count, ct);
+            return updated is null ? Results.NotFound() : Results.Ok(updated);
+        });
+
         app.MapGet("/api/analytics", async (VaultService vault, CancellationToken ct) =>
             Results.Ok(await vault.GetOverviewAsync(ct)));
 
@@ -456,6 +462,9 @@ internal static class Program
 
         app.MapDelete("/api/decks/{id:int}", async (int id, DeckService decks, CancellationToken ct) =>
             await decks.DeleteAsync(id, ct) ? Results.NoContent() : Results.NotFound());
+
+        app.MapPost("/api/decks/{id:int}/mark-as-trade", async (int id, DeckService decks, CancellationToken ct) =>
+            Results.Ok(new { updatedCards = await decks.MarkAsTradeAsync(id, ct) }));
 
         app.MapPost("/api/decks/{id:int}/cards", async (int id, SetDeckCardRequest body, DeckService decks, CancellationToken ct) =>
         {
@@ -485,6 +494,14 @@ internal static class Program
         {
             await importer.UndoAsync(body.AppliedCards, ct);
             return Results.Ok(new { ok = true });
+        });
+
+        // Vault-page "Remove Pack" — available any time, unlike Undo (which only works for the
+        // result of the import that just happened, in the same browser session).
+        app.MapPost("/api/premade-packs/{key}/remove", async (string key, PremadePackImportService importer, CancellationToken ct) =>
+        {
+            var result = await importer.RemoveAsync(key, ct);
+            return result is null ? Results.NotFound() : Results.Ok(result);
         });
 
         app.MapGet("/api/decks/{id:int}/export", async (int id, string? format, DeckService decks, CancellationToken ct) =>

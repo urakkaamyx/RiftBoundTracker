@@ -223,8 +223,10 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
 .card-meta-end .price-label { flex: 0 0 auto; }
 .price-label b { color: var(--green); font-size: 10px; text-align: right; }
 .binder-chip { min-width: 27px; height: 27px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 5px; color: var(--faint); font-size: 10px; }
-#binderGrid .card-actions { display: grid; grid-template-columns: 82px minmax(0, 1fr); align-items: center; }
-#binderGrid .binder-chip { width: 100%; padding: 0 8px; }
+#binderGrid .card-actions { display: grid; grid-template-columns: 82px minmax(0, 1fr) minmax(0, 1fr); gap: 6px; align-items: center; }
+#binderGrid .binder-chip { width: 100%; padding: 0 6px; }
+.binder-chip-confirm { border-color: var(--gold); color: var(--gold-bright); }
+.binder-chip-confirm:hover { background: var(--gold-soft); }
 .card-trade-toggle { grid-column: 2; justify-self: start; height: 27px; display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--panel-2); color: var(--muted); font-size: 9px; cursor: pointer; }
 .card-trade-toggle:hover { border-color: var(--accent); color: var(--text); }
 .card-trade-toggle input { position: absolute; width: 1px; height: 1px; padding: 0; opacity: 0; pointer-events: none; }
@@ -932,6 +934,7 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .pack-preview-header { flex: none; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-soft); }
 .pack-preview-header-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .pack-preview-header-top b { font-size: 13px; color: var(--text); }
+.pack-preview-header-actions { display: flex; gap: 8px; }
 .pack-preview-type-counts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
 .pack-type-count { display: flex; align-items: center; gap: 4px; font: 700 11px var(--mono); color: var(--text); }
 .pack-type-count img { width: 16px; height: 16px; }

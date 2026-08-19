@@ -71,4 +71,22 @@ public sealed class PremadePackImportService(CardCacheService cache)
         foreach (var entry in appliedCards)
             await cache.AdjustOwnedAsync(entry.CardId, -entry.Quantity, ct);
     }
+
+    // Same subtraction as UndoAsync, but for the Vault page's "Remove Pack" action — available any
+    // time, not just right after an import (Undo needs the frontend to still be holding the exact
+    // entries ImportAsync returned, which is gone once that session's result is out of scope).
+    // Re-resolves the pack fresh instead, since resolution is deterministic and doesn't depend on
+    // import history. AdjustOwnedAsync clamps to 0, so this is safe even if some copies were
+    // already traded away or never actually came from this pack.
+    public async Task<PremadePackImportResult?> RemoveAsync(string packKey, CancellationToken ct = default)
+    {
+        var pack = PremadePackCatalogService.Packs.FirstOrDefault(p => p.Key == packKey);
+        if (pack is null) return null;
+
+        var (resolved, unmatched) = await ResolveAsync(pack, ct);
+        foreach (var entry in resolved)
+            await cache.AdjustOwnedAsync(entry.Card.Id, -entry.Quantity, ct);
+
+        return new PremadePackImportResult(resolved.Count, unmatched, resolved);
+    }
 }

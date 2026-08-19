@@ -260,7 +260,20 @@ public partial class CardCacheService(
         // the other style than whatever this specific card happens to use would otherwise fail
         // to resolve. Retry once with the separator swapped before giving up.
         var swapped = SwapNameSeparator(trimmed);
-        return swapped == trimmed ? [] : await QueryExactNameAsync(swapped, ct);
+        if (swapped != trimmed)
+        {
+            var bySwap = await QueryExactNameAsync(swapped, ct);
+            if (bySwap.Count > 0) return bySwap;
+        }
+
+        // Last resort: some decklist sources write a "Name, Cardname" pair where only the part
+        // after the comma is the card's own catalog name (the prefix is contextual, not part of
+        // the name) — an exact match on the full string never resolves. Retry with just the
+        // segment after the first comma.
+        var commaIdx = trimmed.IndexOf(", ", StringComparison.Ordinal);
+        if (commaIdx <= 0) return [];
+        var suffix = trimmed[(commaIdx + 2)..].Trim();
+        return suffix.Length == 0 ? [] : await QueryExactNameAsync(suffix, ct);
     }
 
     private async Task<List<CardEntity>> QueryExactNameAsync(string name, CancellationToken ct) =>

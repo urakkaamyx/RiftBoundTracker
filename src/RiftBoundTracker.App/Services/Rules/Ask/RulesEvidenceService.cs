@@ -126,12 +126,17 @@ public sealed class RulesEvidenceService(RulesSearchService search, AppDbContext
     private async Task<List<CardEvidence>> FindCardEvidenceAsync(string question, CancellationToken ct)
     {
         var cards = await db.Cards.Select(c => new { c.Id, c.Name, c.TextPlain }).ToListAsync(ct);
-        // Checks both separator styles a "Champion, Title" card's name might use — the catalog
-        // isn't internally consistent about comma vs dash (confirmed directly: "Draven -
-        // Vanquisher" but errata/legality text and natural questions both say "Draven,
-        // Vanquisher"), the same gap RiftDecks import already had to handle.
+        // Checks the card's own separator style, the swapped style ("Champion, Title" vs
+        // "Champion - Title" — the catalog isn't internally consistent about comma vs dash,
+        // confirmed directly: "Draven - Vanquisher" but errata/legality text and natural questions
+        // both say "Draven, Vanquisher"), and no separator at all ("Darius Trifarian" for the card
+        // "Darius - Trifarian" — a real question phrased exactly that way found no card evidence at
+        // all until this was added, since a casual question is at least as likely to drop the
+        // punctuation entirely as to use the "other" punctuated style).
         var matched = cards
-            .Where(c => ContainsWholeWord(question, c.Name) || ContainsWholeWord(question, CardCacheService.SwapNameSeparator(c.Name)))
+            .Where(c => ContainsWholeWord(question, c.Name)
+                || ContainsWholeWord(question, CardCacheService.SwapNameSeparator(c.Name))
+                || ContainsWholeWord(question, CardCacheService.StripNameSeparator(c.Name)))
             .Take(3).ToList();
         if (matched.Count == 0) return [];
 

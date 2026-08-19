@@ -358,13 +358,12 @@ def main():
     all_cards = cur.fetchall()
     bracket_cards = [c for c in all_cards if BRACKET_KEYWORD_RE.search(c["TextPlain"])]
     plain_cards = [c for c in all_cards if not BRACKET_KEYWORD_RE.search(c["TextPlain"])]
-    # Weighted toward bracket-keyword cards (~44% of the catalog) since that's the exact shape that
-    # broke — but plain-text cards are included too so the model doesn't overfit to "always expect
-    # brackets."
-    sample_cards = (
-        random.sample(bracket_cards, min(180, len(bracket_cards)))
-        + random.sample(plain_cards, min(90, len(plain_cards)))
-    )
+    # Round 1 sampled a subset (180 bracket / 90 plain) and fixed the reported bug cleanly with no
+    # regressions on a broad spot-check — round 2 widens this to the full catalog instead of a
+    # sample, on the theory that more coverage of the same real shape only helps generalization
+    # (e.g. multi-keyword cards, keywords with a cost annotation between the bracket and its
+    # reminder text) rather than teaching anything new in kind.
+    sample_cards = list(bracket_cards) + random.sample(plain_cards, min(200, len(plain_cards)))
     random.shuffle(sample_cards)
     question_templates = [
         "What does {name} do?", "How does {name} work?", "Can you tell me the rules of {name}?",
@@ -379,7 +378,44 @@ def main():
         answer = describe_card_text(name, humanized)
         examples.append(make_example(question, [source], answer))
         count7 += 1
-    print(f"  {count7} examples ({min(180, len(bracket_cards))} bracket-keyword, {min(90, len(plain_cards))} plain)")
+    print(f"  {count7} examples ({len(bracket_cards)} bracket-keyword, {min(200, len(plain_cards))} plain)")
+
+    print("Category 8: partial-evidence honesty (a card's text exists but doesn't resolve the specific question)...")
+    # Found by testing a real question ("Does Darius Trifarian's +2 Might buff work on opponent's
+    # turn?"): the evidence pipeline correctly found the card's own text, but the model answered
+    # "Yes" anyway — the card's text says WHAT it does, not WHETHER it works under this specific
+    # timing/interaction condition, and nothing in that evidence resolves it either way. It also
+    # fabricated a "parenthetical" that doesn't exist in this card's text at all, echoing category
+    # 7's bracket-keyword answer template onto a card that has no brackets — reflexive template
+    # matching instead of actually reading the evidence. Without examples like these, a model
+    # fine-tuned only on category 7 (which always has enough evidence to fully answer) never learns
+    # that having SOME evidence about a card doesn't mean every specific question about it is
+    # answerable from that evidence.
+    partial_evidence_templates = [
+        ("Does {name}'s ability work on the opponent's turn?", "whether this triggers during your opponent's turn specifically, as opposed to only your own"),
+        ("Can {name}'s trigger happen more than once in the same turn?", "whether this can trigger more than once in a single turn"),
+        ("Does {name}'s effect stack if I control two copies?", "whether the effects of two copies stack with each other"),
+        ("Can I respond to {name}'s triggered ability?", "whether this specific trigger can be responded to before it resolves"),
+        ("What happens if {name} leaves the board before its ability resolves?", "what happens if this card leaves the board after the ability triggers but before it resolves"),
+        ("Does {name}'s ability still work while it's Stunned?", "whether being Stunned affects this specific ability"),
+        ("Does {name}'s effect apply retroactively to units already on the board?", "whether this effect applies retroactively to things already in play when it starts applying"),
+    ]
+    partial_sample = random.sample(all_cards, min(160, len(all_cards)))
+    count8 = 0
+    for card in partial_sample:
+        name = card["Name"]
+        humanized = humanize(card["TextPlain"])
+        question_template, topic = random.choice(partial_evidence_templates)
+        question = question_template.format(name=name)
+        source = {"ruleNumber": None, "title": name, "authority": "CardText", "current": True, "text": humanized}
+        answer = (
+            f"{name}'s printed text says: \"{humanized}\" That tells you what the card does, but it "
+            f"doesn't say anything about {topic} — I don't have rules evidence that clearly "
+            f"establishes that, so I can't say for sure either way."
+        )
+        examples.append(make_example(question, [source], answer))
+        count8 += 1
+    print(f"  {count8} examples")
 
     random.shuffle(examples)
     with open(OUT_PATH, "w", encoding="utf-8") as f:

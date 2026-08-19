@@ -303,6 +303,17 @@ public partial class CardCacheService(
         return dashIdx > 0 ? string.Concat(name.AsSpan(0, dashIdx), ", ", name.AsSpan(dashIdx + 3)) : name;
     }
 
+    // A casual question drops the separator entirely — "Darius Trifarian's buff" for the card
+    // "Darius - Trifarian" — rather than picking either punctuated style. Also used by
+    // RulesEvidenceService's free-text card-name matching, same reasoning as SwapNameSeparator.
+    internal static string StripNameSeparator(string name)
+    {
+        var commaIdx = name.IndexOf(", ", StringComparison.Ordinal);
+        if (commaIdx > 0) return string.Concat(name.AsSpan(0, commaIdx), " ", name.AsSpan(commaIdx + 2));
+        var dashIdx = name.IndexOf(" - ", StringComparison.Ordinal);
+        return dashIdx > 0 ? string.Concat(name.AsSpan(0, dashIdx), " ", name.AsSpan(dashIdx + 3)) : name;
+    }
+
     public record SetSummary(string SetId, string SetLabel, int Total, int Owned);
 
     public async Task<List<SetSummary>> GetSetsAsync(CancellationToken ct = default)

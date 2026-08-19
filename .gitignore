@@ -51,4 +51,5 @@ App_Data/
 /scripts/training/.venv/
 /scripts/training/llama.cpp-src/
 /scripts/training/llama.cpp-bin/
+/scripts/training/__pycache__/
 /scripts/training/*.zip

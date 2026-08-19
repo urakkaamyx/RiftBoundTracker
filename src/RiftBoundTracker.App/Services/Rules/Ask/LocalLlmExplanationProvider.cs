@@ -177,10 +177,17 @@ public sealed class LocalLlmExplanationProvider(
         const int totalBudget = 5500;
         var used = 0;
         var evidenceParts = new List<string>();
-        foreach (var part in context.Evidence.Select(e =>
+        // CardNotes FIRST, not last — a question about a specific card (its own text, legality, or
+        // errata) is directly on-topic for that card no matter how much general rule evidence also
+        // matched, so it must never lose the budget race to it. Before this fix, rule evidence (up
+        // to 12 items, each up to perItemCap) filled the shared totalBudget first and the loop's
+        // own "if (used >= totalBudget) break" could exhaust the budget before ever reaching a
+        // card's own evidence, silently dropping it from the prompt entirely — the model would
+        // then have no idea the card evidence even existed, however much noise it were.
+        foreach (var part in context.CardNotes.Select(c => $"[{c.CardName}] ({c.Authority}) {c.CardName}\n{Cap(c.Note, perItemCap)}")
+            .Concat(context.Evidence.Select(e =>
                 $"[{(e.Hit.RuleNumber is not null ? $"Rule {e.Hit.RuleNumber}" : e.Hit.Title)}] " +
-                $"({e.Hit.Document.Authority}{(e.Hit.Document.Current ? "" : ", historical")}) {e.Hit.Title}\n{Cap(e.Hit.FullText, perItemCap)}")
-            .Concat(context.CardNotes.Select(c => $"[{c.CardName}] ({c.Authority}) {c.CardName}\n{Cap(c.Note, perItemCap)}")))
+                $"({e.Hit.Document.Authority}{(e.Hit.Document.Current ? "" : ", historical")}) {e.Hit.Title}\n{Cap(e.Hit.FullText, perItemCap)}")))
         {
             if (used >= totalBudget) break;
             var remaining = totalBudget - used;

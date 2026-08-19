@@ -18,10 +18,10 @@ public sealed class PremadePackImportService(CardCacheService cache)
         var added = 0;
         foreach (var entry in pack.Cards)
         {
-            var cards = await cache.FindByNameAsync(entry.CardName, ct);
-            if (cards.Count == 0)
+            var cards = await cache.FindByCodeAsync(entry.SetId, entry.Code, ct);
+            if (cards.Count != 1)
             {
-                unmatched.Add(entry.CardName);
+                unmatched.Add($"{entry.SetId}-{entry.Code}");
                 continue;
             }
             var card = cards[0];

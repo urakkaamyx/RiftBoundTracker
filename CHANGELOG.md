@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.26.5 — Ask Rules: fix a ranking regression, help the model with negations
+
+- Last update's multi-hop trace had a bug: a rule's score could grow unbounded from every cross-reference path that converged on it, so a heavily-cited "hub" rule with no real bearing on a question could outrank the rule that actually answers it. Caught on a real question about playing units to a battlefield you control — the deciding rule ranked 14th of 16 sources behind six unrelated hub rules. Capped how much score convergence alone can contribute, so citation-hub status can't beat a rule the question's own keywords or text matched directly.
+- Even with the right evidence reaching the model intact, a rule built on a negated condition ("applies if the battlefield is NOT already Contested and you do NOT already control it") got read backwards, producing a confidently wrong answer. Added an explicit instruction for the model to work out which side of each "not" applies before answering — retested and the same question now answers correctly.
+
 ## v1.26.4 — Ask Rules: trace further, stop dropping found evidence
 
 - The Tank question from the last update now retrieved the right rules but still gave a garbled, self-contradictory answer — because real evidence was being found and then silently thrown away before it ever reached the model. Two fixes: the cross-reference trace only followed one hop and discarded any reference back to a rule it already had instead of scoring it, and the evidence budget fed to the model (900 characters per rule, 5500 total) was too small for questions needing many rules. Cross-references now trace up to 3 hops with revisits boosting a rule's score instead of being ignored, the budget is roughly 60% bigger, and the model's context window was widened to match. The Tank question now answers cleanly with all 11 relevant rules cited.

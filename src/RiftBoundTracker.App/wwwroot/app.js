@@ -2594,7 +2594,7 @@ function renderAskRulesResult(result) {
   const ruleEvidenceRows = result.sources.map(s => `
     <div class="ask-evidence-row">
       <div class="ask-evidence-row-head">
-        <b>${escapeHtml(s.ruleNumber ? `Rule ${s.ruleNumber}` : s.document)}</b>
+        <button type="button" class="ask-evidence-rule-link" data-rule-popup="${s.ruleId}"><b>${escapeHtml(s.ruleNumber ? `Rule ${s.ruleNumber}` : s.document)}</b></button>
         <span class="authority-badge ${s.current ? "current" : "historical"}">${s.current ? "Current" : "Historical"} · ${escapeHtml(s.authority)}</span>
       </div>
       <p>${escapeHtml(s.title.startsWith("Rule ") ? s.snippet : s.title)}</p>
@@ -2621,6 +2621,34 @@ function renderAskRulesResult(result) {
       ${hasEvidence ? `<div class="rule-detail-section" style="margin-top:0;padding-top:0;border-top:0"><h4>Why?</h4><div class="ask-evidence-list">${cardEvidenceRows}${ruleEvidenceRows}</div></div>` : ""}
     </div>`;
   renderIcons(root);
+}
+
+// Lets a cited rule in Ask Rules' "Why?" list be read in place instead of forcing a trip to the
+// Rules tab and a manual re-search for the same rule number.
+async function showRulePopup(ruleId) {
+  const heading = document.getElementById("rulePopupHeading");
+  const body = document.getElementById("rulePopupBody");
+  heading.textContent = "Loading...";
+  body.innerHTML = `<div class="loading-line" style="padding:20px">Loading...</div>`;
+  showModal("rulePopupModal");
+  try {
+    const detail = await api(`/api/rules/${ruleId}`);
+    const r = detail.rule;
+    heading.textContent = r.ruleNumber ? `Rule ${r.ruleNumber}` : (r.title || "Rule Detail");
+    body.innerHTML = `
+      <div class="rule-detail-head">
+        ${r.ruleNumber ? `<span class="rule-detail-number">${escapeHtml(r.ruleNumber)}</span>` : "<span></span>"}
+        <span class="authority-badge ${r.isCurrent ? "current" : "historical"}">${r.isCurrent ? "Current" : "Historical"} · ${escapeHtml(r.authority)}</span>
+      </div>
+      ${detail.parent ? `<p class="rule-detail-breadcrumb">${escapeHtml(detail.parent.title ? detail.parent.title : `Part of ${detail.parent.ruleNumber || ""}`)}</p>` : ""}
+      ${r.title ? `<h2>${escapeHtml(r.title)}</h2><p class="rule-detail-text">${escapeHtml(r.text)}</p>` : `<p class="rule-detail-text" style="font-size:13px">${escapeHtml(r.text)}</p>`}
+      ${detail.keywords.length ? `<div class="rule-detail-section"><h4>Keywords</h4><div class="rule-chip-row">${detail.keywords.map(k => `<span class="rule-chip">${escapeHtml(k.name)}</span>`).join("")}</div></div>` : ""}`;
+    renderIcons(body);
+  } catch (err) {
+    heading.textContent = "Rule Detail";
+    body.innerHTML = `<div class="page-empty"><i data-icon="alert-triangle"></i><h2>Could not load rule</h2><span>${escapeHtml(err.message)}</span></div>`;
+    renderIcons(body);
+  }
 }
 
 async function toggleLocalAi() {
@@ -2808,6 +2836,10 @@ function wireEvents() {
     if (button) setRulesPageMode(button.dataset.rulesMode);
   });
   document.getElementById("askRulesBtn").addEventListener("click", askRulesQuestion);
+  document.getElementById("askRulesResult").addEventListener("click", event => {
+    const button = event.target.closest("[data-rule-popup]");
+    if (button) showRulePopup(Number(button.dataset.rulePopup));
+  });
   document.getElementById("askRulesInput").addEventListener("keydown", event => {
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") askRulesQuestion();
   });

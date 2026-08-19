@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.21.0 — Import Pack confirmation step, Settings masonry, real update progress
+
+- Import Pack is now a proper preview-then-confirm flow: clicking a pack no longer adds it immediately — it opens a preview panel with a fixed header showing the pack name, a per-type card count (Legend/Champion/Unit/Spell/Gear/Battlefield/Rune) using Riftbound's own symbols, and an **Import** button that's the actual confirmation step.
+- Settings is now a compact multi-column card layout instead of one long scrolling list — short sections pack several per row automatically, collapsing back to one column on narrow windows.
+- **Update and Restart** now shows real progress — a live percentage and progress bar through downloading, extracting, and restarting — instead of going silent for however long the ~1GB download takes.
+
 ## v1.20.0 — Import Pack undo + preview, Settings cleanup
 
 - Import Pack now shows a right-side preview panel with every card from the pack — art thumbnail, fullscreen button, name/type/set-code/quantity — and an **Undo** button next to the result to reverse the import in one click.

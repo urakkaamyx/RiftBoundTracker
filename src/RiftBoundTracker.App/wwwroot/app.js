@@ -2738,6 +2738,7 @@ function renderLocalAiModelList() {
   root.innerHTML = state.localAiModels.map(m => {
     const sizeGb = (m.approxBytes / 1e9).toFixed(1);
     let action;
+    let refresh = "";
     if (state.downloadingModelId === m.id) {
       const p = state.localAiDownloadProgress || {};
       const pct = p.totalBytes ? Math.round((p.downloadedBytes / p.totalBytes) * 100) : 0;
@@ -2751,17 +2752,22 @@ function renderLocalAiModelList() {
     } else {
       action = `<button type="button" class="command-btn quiet" data-download-model="${m.id}">Download (${sizeGb} GB)</button>`;
     }
+    if (m.present && state.downloadingModelId !== m.id)
+      refresh = `<button type="button" class="icon-btn" data-redownload-model="${m.id}" title="Re-download this model (e.g. if an improved version has been published)"><i data-icon="refresh"></i></button>`;
     return `
       <div class="local-ai-model-row${m.selected ? " selected" : ""}">
         <div class="local-ai-model-copy">
           <b>${escapeHtml(m.displayName)}</b>
           <span>${escapeHtml(m.description)}</span>
         </div>
-        <div class="local-ai-model-action">${action}</div>
+        <div class="local-ai-model-action">${action}${refresh}</div>
       </div>`;
   }).join("");
+  renderIcons(root);
   root.querySelectorAll("[data-download-model]").forEach(btn =>
     btn.addEventListener("click", () => downloadLocalAiModel(btn.dataset.downloadModel)));
+  root.querySelectorAll("[data-redownload-model]").forEach(btn =>
+    btn.addEventListener("click", () => downloadLocalAiModel(btn.dataset.redownloadModel)));
   root.querySelectorAll("[data-select-model]").forEach(btn =>
     btn.addEventListener("click", () => selectLocalAiModel(btn.dataset.selectModel)));
 }

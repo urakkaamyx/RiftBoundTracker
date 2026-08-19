@@ -693,7 +693,8 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
 .local-ai-model-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .local-ai-model-copy b { font-size: 12px; }
 .local-ai-model-copy span { color: var(--faint); font-size: 11px; }
-.local-ai-model-action { flex-shrink: 0; }
+.local-ai-model-action { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+.local-ai-model-action .icon-btn { width: 30px; height: 30px; }
 .local-ai-model-badge { color: var(--accent-bright); font: 600 11px var(--mono); }
 .local-ai-model-progress, .local-ai-model-status { min-width: 160px; color: var(--faint); font-size: 11px; text-align: right; }
 .local-ai-model-progress .progress-track { margin-top: 5px; }

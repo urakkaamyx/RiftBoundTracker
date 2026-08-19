@@ -38,6 +38,7 @@ public sealed class LocalLlmExplanationProvider(
     private ModelParams? _modelParams;
     private LLamaWeights? _weights;
     private string? _loadedModelPath;
+    private DateTime _loadedModelWriteTimeUtc;
     // Keyed to the path that failed, not a bare bool — switching to a DIFFERENT catalog model
     // after one failed to load must not keep reporting unconfigured for a model that was never
     // actually tried.
@@ -108,10 +109,12 @@ public sealed class LocalLlmExplanationProvider(
 
     private bool EnsureWeightsLoaded(string modelPath)
     {
-        if (_weights is not null && _loadedModelPath == modelPath) return true;
-        // Either nothing loaded yet, or the user switched which catalog model is selected
-        // (RulesLocalAiSettingsService.SelectedModelId) — swap the resident weights instead of
-        // requiring an app restart to pick up the change.
+        var writeTimeUtc = File.GetLastWriteTimeUtc(modelPath);
+        if (_weights is not null && _loadedModelPath == modelPath && _loadedModelWriteTimeUtc == writeTimeUtc) return true;
+        // Either nothing loaded yet, the user switched which catalog model is selected
+        // (RulesLocalAiSettingsService.SelectedModelId), or re-downloaded the same model to pick up
+        // an improved version — the write-time check catches that last case even though the path on
+        // disk is unchanged. Swap the resident weights instead of requiring an app restart.
         if (_weights is not null)
         {
             _weights.Dispose();
@@ -125,6 +128,7 @@ public sealed class LocalLlmExplanationProvider(
             _modelParams = new ModelParams(modelPath) { ContextSize = 4096, GpuLayerCount = 0 };
             _weights = LLamaWeights.LoadFromFile(_modelParams);
             _loadedModelPath = modelPath;
+            _loadedModelWriteTimeUtc = writeTimeUtc;
             _failedModelPath = null;
             return true;
         }

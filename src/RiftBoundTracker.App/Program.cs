@@ -439,6 +439,12 @@ internal static class Program
         app.MapGet("/api/premade-packs", () => Results.Ok(PremadePackCatalogService.Packs
             .Select(p => new { p.Key, p.Name, p.Wave, CardCount = p.Cards.Sum(c => c.Quantity) })));
 
+        app.MapGet("/api/premade-packs/{key}/preview", async (string key, PremadePackImportService importer, CancellationToken ct) =>
+        {
+            var result = await importer.PreviewAsync(key, ct);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        });
+
         app.MapPost("/api/premade-packs/{key}/import", async (string key, PremadePackImportService importer, CancellationToken ct) =>
         {
             var result = await importer.ImportAsync(key, ct);

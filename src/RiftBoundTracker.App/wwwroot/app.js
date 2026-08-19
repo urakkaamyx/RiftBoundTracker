@@ -2071,19 +2071,18 @@ async function importDeck() {
 async function openPackImportModal() {
   showModal("packImportModal");
   document.getElementById("packImportResult").innerHTML = "";
-  document.getElementById("packPreviewPanel").innerHTML = `<div class="pack-preview-empty"><i data-icon="archive"></i><span>Add a pack to preview its cards here.</span></div>`;
-  lastPackImport = null;
+  resetPackPreview();
   const listEl = document.getElementById("packImportList");
   listEl.innerHTML = `<div class="loading-line" style="padding:20px">Loading packs...</div>`;
   try {
     const packs = await api("/api/premade-packs");
     listEl.innerHTML = packs.map(p => `
-      <div class="pack-import-row">
+      <div class="pack-import-row" data-pack-key="${escapeHtml(p.key)}" data-pack-name="${escapeHtml(p.name)}">
         <div>
           <b>${escapeHtml(p.name)}</b>
           <span>${escapeHtml(p.wave)} · ${p.cardCount} cards</span>
         </div>
-        <button type="button" class="command-btn gold" data-pack-key="${escapeHtml(p.key)}">Add to Collection</button>
+        <button type="button" class="command-btn quiet">Preview</button>
       </div>`).join("");
   } catch (err) {
     listEl.innerHTML = `<div class="page-empty"><i data-icon="alert-triangle"></i><h2>Could not load packs</h2><span>${escapeHtml(err.message)}</span></div>`;
@@ -2091,7 +2090,15 @@ async function openPackImportModal() {
   renderIcons(listEl);
 }
 
+let currentPackPreview = null; // { key, name, cards } — the pack currently shown in the preview panel, awaiting confirmation
 let lastPackImport = null; // { packName, undoEntries } — cleared once undone or a new import runs
+
+function resetPackPreview() {
+  currentPackPreview = null;
+  document.getElementById("packPreviewHeader").innerHTML = "";
+  document.getElementById("packPreviewList").innerHTML = `<div class="pack-preview-empty"><i data-icon="archive"></i><span>Click a pack to preview its cards here.</span></div>`;
+  renderIcons(document.getElementById("packPreviewList"));
+}
 
 function packPreviewCardMarkup(card, quantity) {
   return `
@@ -2108,41 +2115,87 @@ function packPreviewCardMarkup(card, quantity) {
     </div>`;
 }
 
-function renderPackPreview(packName, appliedCards) {
-  const panel = document.getElementById("packPreviewPanel");
-  if (!appliedCards.length) {
-    panel.innerHTML = `<div class="pack-preview-empty"><i data-icon="archive"></i><span>No cards to preview.</span></div>`;
-    renderIcons(panel);
-    return;
+// One physical-count bucket per TYPE_GROUP_ORDER category (Legend/Champion/Unit/Spell/Gear/
+// Battlefield/Rune) — sums quantity, not unique-card count, so "12" under the rune symbol means
+// 12 total rune cards in the box, not "2 different rune entries".
+function packTypeCounts(cards) {
+  const counts = {};
+  for (const { card, quantity } of cards) {
+    const key = groupKey(card);
+    counts[key] = (counts[key] || 0) + quantity;
   }
-  registerCards(appliedCards.map(a => a.card));
-  panel.innerHTML = `<p class="pack-preview-title">${escapeHtml(packName)} · ${appliedCards.length} cards</p>
-    ${appliedCards.map(a => packPreviewCardMarkup(a.card, a.quantity)).join("")}`;
-  renderIcons(panel);
+  return counts;
 }
 
-async function importPremadePack(key, button) {
-  button.disabled = true;
+function packPreviewHeaderMarkup(name, cards) {
+  const counts = packTypeCounts(cards);
+  const chips = TYPE_GROUP_ORDER.filter(t => counts[t]).map(t => {
+    const asset = CARD_TYPE_ASSET[t.toLowerCase()];
+    return `<span class="pack-type-count" title="${escapeHtml(t)}">
+      ${asset ? `<img src="/assets/riftbound-symbols/${asset}" alt="${escapeHtml(t)}" />` : ""}
+      ${counts[t]}
+    </span>`;
+  }).join("");
+  return `
+    <div class="pack-preview-header-top">
+      <b>${escapeHtml(name)}</b>
+      <button type="button" class="command-btn gold" id="confirmImportPackBtn">Import</button>
+    </div>
+    <div class="pack-preview-type-counts">${chips}</div>`;
+}
+
+async function previewPack(row) {
+  const key = row.dataset.packKey;
+  const name = row.dataset.packName;
+  document.getElementById("packImportResult").innerHTML = "";
+  document.getElementById("packPreviewHeader").innerHTML = "";
+  const listEl = document.getElementById("packPreviewList");
+  listEl.innerHTML = `<div class="loading-line" style="padding:20px">Loading preview...</div>`;
+  try {
+    const result = await api(`/api/premade-packs/${encodeURIComponent(key)}/preview`);
+    currentPackPreview = { key, name, cards: result.cards };
+    document.getElementById("packPreviewHeader").innerHTML = packPreviewHeaderMarkup(name, result.cards);
+    renderIcons(document.getElementById("packPreviewHeader"));
+    if (!result.cards.length) {
+      listEl.innerHTML = `<div class="pack-preview-empty"><i data-icon="alert-triangle"></i><span>None of this pack's cards matched the catalog.</span></div>`;
+    } else {
+      registerCards(result.cards.map(c => c.card));
+      listEl.innerHTML = result.cards.map(c => packPreviewCardMarkup(c.card, c.quantity)).join("");
+    }
+    if (result.unmatchedCards.length) {
+      document.getElementById("packImportResult").innerHTML =
+        `<p>${result.unmatchedCards.length} card${result.unmatchedCards.length === 1 ? "" : "s"} in this pack didn't match the catalog:</p>
+         <ul class="import-unmatched-list">${result.unmatchedCards.map(c => `<li>${escapeHtml(c)}</li>`).join("")}</ul>`;
+    }
+  } catch (err) {
+    listEl.innerHTML = `<div class="page-empty"><i data-icon="alert-triangle"></i><h2>Could not load preview</h2><span>${escapeHtml(err.message)}</span></div>`;
+  }
+  renderIcons(listEl);
+}
+
+async function confirmImportPack() {
+  if (!currentPackPreview) return;
+  const { key, name } = currentPackPreview;
+  const button = document.getElementById("confirmImportPackBtn");
   const resultEl = document.getElementById("packImportResult");
+  button.disabled = true;
   resultEl.innerHTML = `<div class="loading-line" style="padding:12px 0">Adding cards...</div>`;
   lastPackImport = null;
   try {
     const result = await api(`/api/premade-packs/${encodeURIComponent(key)}/import`, jsonOptions("POST"));
-    const packName = button.closest(".pack-import-row")?.querySelector("b")?.textContent || "this pack";
     const undoBtn = result.appliedCards.length
       ? `<button type="button" class="command-btn quiet" id="undoPackImportBtn">Undo</button>` : "";
     if (result.unmatchedCards.length) {
       resultEl.innerHTML = `<p>${result.addedCards} cards added. ${result.unmatchedCards.length} card names did not match:</p>
-        <ul class="import-unmatched-list">${result.unmatchedCards.map(name => `<li>${escapeHtml(name)}</li>`).join("")}</ul>
+        <ul class="import-unmatched-list">${result.unmatchedCards.map(c => `<li>${escapeHtml(c)}</li>`).join("")}</ul>
         <div class="pack-import-result-actions">${undoBtn}</div>`;
     } else {
       resultEl.innerHTML = `<p>${result.addedCards} cards added to your collection.</p>
         <div class="pack-import-result-actions">${undoBtn}</div>`;
     }
-    renderPackPreview(packName, result.appliedCards);
     if (result.appliedCards.length) {
       lastPackImport = {
-        packName,
+        packName: name,
         undoEntries: result.appliedCards.map(a => ({ cardId: a.card.id, quantity: a.quantity })),
       };
     }
@@ -2164,8 +2217,7 @@ async function undoPackImport() {
     await api("/api/premade-packs/undo", jsonOptions("POST", { appliedCards: undoEntries }));
     lastPackImport = null;
     document.getElementById("packImportResult").innerHTML = `<p>Undone — ${packName} was removed from your collection.</p>`;
-    document.getElementById("packPreviewPanel").innerHTML = `<div class="pack-preview-empty"><i data-icon="archive"></i><span>Add a pack to preview its cards here.</span></div>`;
-    renderIcons(document.getElementById("packPreviewPanel"));
+    resetPackPreview();
     await Promise.all([loadOverview(), refreshCurrentPage()]);
   } catch (err) {
     toast(err.message, true);
@@ -2963,8 +3015,11 @@ function wireEvents() {
   document.getElementById("openMassAdd").addEventListener("click", () => showModal("massAddModal"));
   document.getElementById("openPackImport").addEventListener("click", () => openPackImportModal().catch(err => toast(err.message, true)));
   document.getElementById("packImportList").addEventListener("click", event => {
-    const button = event.target.closest("[data-pack-key]");
-    if (button) importPremadePack(button.dataset.packKey, button).catch(err => toast(err.message, true));
+    const row = event.target.closest("[data-pack-key]");
+    if (row) previewPack(row).catch(err => toast(err.message, true));
+  });
+  document.getElementById("packPreviewHeader").addEventListener("click", event => {
+    if (event.target.closest("#confirmImportPackBtn")) confirmImportPack().catch(err => toast(err.message, true));
   });
   document.getElementById("massAddPreview").addEventListener("click", previewMassAdd);
   document.getElementById("massAddConfirm").addEventListener("click", confirmMassAdd);

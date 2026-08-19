@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.24.0 — Retrained Ask Rules model + a second model option
+
+- Fully retrained the Ask Rules local model from scratch on a corrected training set — the old training data didn't include a card's own printed text as evidence at all, which was the root cause of cards with no ban/errata history (e.g. Arena Kingpin, Blazing Scorcher) getting a non-answer instead of a real description of what they do. Verified against a wide battery of real cards and rules questions with no regressions.
+- Settings → Ask Rules now shows a list of local models instead of one fixed one — Qwen2.5 1.5B (the original, still the default) and a new Qwen3 1.7B option, a newer-generation model that benchmarks ahead of it. Each downloads independently, and switching between ones you've already downloaded is instant.
+
 ## v1.23.1 — Ask Rules: card evidence + a context-overflow bug from v1.23.0
 
 - Asking Ask Rules about a specific card by name (e.g. "the rules of Arena Kingpin") could come back with "I didn't find any official rule..." even for a real card, if that card had no ban/errata history — its own printed text was never used as evidence. It is now, run through the same symbol translator the rest of the app uses so the local model sees "Exhaust" instead of a raw `:rb_exhaust:` token.

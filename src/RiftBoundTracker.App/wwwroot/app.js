@@ -488,6 +488,7 @@ function navigate(page) {
   state.page = page;
   document.querySelectorAll(".page").forEach(el => el.classList.toggle("active", el.id === `page-${page}`));
   document.querySelectorAll(".nav-item").forEach(el => el.classList.toggle("active", el.dataset.page === page));
+  document.getElementById("globalSearchWrap").hidden = page !== "vault";
   document.getElementById("pageEyebrow").textContent = PAGE_LABELS[page][0];
   document.getElementById("pageTitle").textContent = PAGE_LABELS[page][1];
   document.getElementById("sidebar").classList.remove("open");
@@ -1656,9 +1657,9 @@ function renderDistribution(id, rows, color) {
 }
 
 async function loadSettings() {
-  const [sync, pricing, topdeck, health, connection, server] = await Promise.all([
+  const [sync, pricing, topdeck, health, server] = await Promise.all([
     api("/api/sync/status"), api("/api/pricing/status"), api("/api/topdeck/status"), api("/api/health"),
-    api("/api/connection-info"), api("/api/server-info")
+    api("/api/server-info")
   ]);
   document.getElementById("catalogStatus").textContent = sync.running
     ? `Syncing ${sync.currentSet || "catalog"}: ${sync.setsDone}/${sync.setsTotal} sets`
@@ -1690,7 +1691,6 @@ async function loadSettings() {
     ? `Database verified: ${db.integrity}. Protected collection totals are checked at startup.`
     : "Database is ready.";
   document.getElementById("databaseFacts").innerHTML = db ? `<span>${health.cards} cards now</span><span>${health.ownedCards} owned now</span><span>${health.ownedCopies} copies now</span>${db.lastBackupPath ? `<span>Last migration backup: ${escapeHtml(db.lastBackupPath.split(/[\\/]/).pop())}</span>` : ""}` : "";
-  document.getElementById("connectionSettingsStatus").textContent = connection.available ? connection.url : "No LAN address detected.";
   document.getElementById("currentVersion").textContent = server.version;
   document.getElementById("settingsVersion").textContent = server.version;
   document.querySelectorAll("#themeControl button").forEach(button => button.classList.toggle("active", button.dataset.themeValue === document.documentElement.dataset.theme));
@@ -1726,23 +1726,6 @@ function parseCardEntry(raw) {
   if (withSet) return { setId: withSet[1] === "*" ? null : withSet[1].toUpperCase(), code: withSet[2].toUpperCase() };
   const bare = /^([A-Za-z]{0,2}\d{1,3}[A-Za-z]?)$/.exec(text);
   return bare ? { setId: state.setId, code: bare[1].toUpperCase() } : null;
-}
-
-async function quickAdd() {
-  const input = document.getElementById("quickAddInput");
-  const parsed = parseCardEntry(input.value);
-  const root = document.getElementById("quickAddResult");
-  if (!parsed) { root.innerHTML = `<div class="result-row error">Enter a card code such as OGN-045 or VEN-R01.</div>`; return; }
-  const cards = await api(`/api/cards/lookup?${queryString(parsed)}`);
-  registerCards(cards);
-  if (!cards.length) { root.innerHTML = `<div class="result-row error">No matching card found.</div>`; return; }
-  root.innerHTML = cards.map(card => `<div class="result-row"><div class="result-card-art"><img src="${escapeHtml(cardImage(card))}" alt="" />${cardImagePopout(card)}</div><div><strong>${escapeHtml(card.name)}</strong><span>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))} / own ${card.ownedCount}</span></div><button class="command-btn gold" data-quick-add-card="${escapeHtml(card.id)}">Add</button></div>`).join("");
-  renderIcons(root);
-  root.querySelectorAll("[data-quick-add-card]").forEach(button => button.addEventListener("click", async () => {
-    await changeOwned(cardsById.get(button.dataset.quickAddCard), 1);
-    input.value = "";
-    closeModal("quickAddModal");
-  }));
 }
 
 async function previewMassAdd() {
@@ -1838,6 +1821,19 @@ async function checkForUpdates() {
 function formatBytes(bytes) {
   if (!bytes) return "0 MB";
   return `${(bytes / 1e6).toFixed(0)} MB`;
+}
+
+// Sidebar dot next to the version number — a lightweight signal that doesn't require opening
+// Settings just to find out. Checked on load and every 5 minutes after that; a background check
+// like this must never surface errors to the user (e.g. no internet right now is normal, not a
+// problem worth a toast), so failures are swallowed silently.
+async function checkUpdateIndicator() {
+  try {
+    const result = await api("/api/update/check");
+    document.getElementById("updateIndicator").hidden = !(result.selfUpdateSupported && result.updateAvailable);
+  } catch {
+    // Silent — see comment above.
+  }
 }
 
 async function applyUpdate() {
@@ -3070,9 +3066,6 @@ function wireEvents() {
     refreshExportPreview();
   }));
   document.getElementById("confirmExportBtn")?.addEventListener("click", () => exportActiveDeck(state.exportFormat));
-  document.getElementById("openQuickAdd").addEventListener("click", () => { document.getElementById("quickAddResult").innerHTML = ""; showModal("quickAddModal"); setTimeout(() => document.getElementById("quickAddInput").focus(), 0); });
-  document.getElementById("quickAddBtn").addEventListener("click", quickAdd);
-  document.getElementById("quickAddInput").addEventListener("keydown", event => { if (event.key === "Enter") quickAdd(); });
   document.getElementById("openMassAdd").addEventListener("click", () => showModal("massAddModal"));
   document.getElementById("openPackImport").addEventListener("click", () => openPackImportModal().catch(err => toast(err.message, true)));
   document.getElementById("packImportList").addEventListener("click", event => {
@@ -3084,7 +3077,8 @@ function wireEvents() {
   });
   document.getElementById("massAddPreview").addEventListener("click", previewMassAdd);
   document.getElementById("massAddConfirm").addEventListener("click", confirmMassAdd);
-  ["openConnection", "settingsConnection"].forEach(id => document.getElementById(id).addEventListener("click", openConnection));
+  document.getElementById("openConnection").addEventListener("click", openConnection);
+  document.getElementById("updateIndicator").addEventListener("click", () => navigate("settings"));
   ["sidebarRefresh", "refreshCatalogBtn"].forEach(id => document.getElementById(id).addEventListener("click", refreshCatalog));
   ["newDeckBtn", "emptyNewDeck"].forEach(id => document.getElementById(id).addEventListener("click", openNewDeckModal));
   document.getElementById("legendSearch").addEventListener("input", event => {
@@ -3281,6 +3275,8 @@ async function init() {
   } catch (err) {
     toast(`Vault startup failed: ${err.message}`, true);
   }
+  checkUpdateIndicator();
+  setInterval(checkUpdateIndicator, 5 * 60 * 1000);
 }
 
 init();

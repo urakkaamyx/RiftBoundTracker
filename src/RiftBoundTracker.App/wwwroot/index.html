@@ -41,6 +41,7 @@
 
       <div class="sidebar-footer">
         <span class="status-dot"></span><span>Local vault</span><b>v<span id="currentVersion">...</span></b>
+        <button type="button" class="update-indicator" id="updateIndicator" data-page="settings" title="An update is available — click to open Settings" hidden></button>
       </div>
     </aside>
 
@@ -48,16 +49,16 @@
       <header class="topbar">
         <button class="icon-btn mobile-menu" id="mobileMenu" title="Open navigation"><i data-icon="menu"></i></button>
         <div class="page-identity"><span id="pageEyebrow">Collection</span><h1 id="pageTitle">Your Vault</h1></div>
-        <label class="global-search">
+        <label class="global-search" id="globalSearchWrap">
           <i data-icon="search"></i>
           <input id="globalSearch" type="search" placeholder="Search cards..." autocomplete="off" />
           <kbd>Ctrl K</kbd>
         </label>
         <div class="top-actions">
-          <button class="command-btn" id="openQuickAdd"><i data-icon="plus-circle"></i><span>Quick Add</span></button>
-          <button class="command-btn" id="openMassAdd" title="Mass Add"><i data-icon="list-plus"></i><span>Mass Add</span></button>
-          <button class="command-btn" id="openScan"><i data-icon="scan"></i><span>Scan Card</span></button>
-          <button class="command-btn" id="openPackImport" title="Import a Premade Pack"><i data-icon="archive"></i><span>Import Pack</span></button>
+          <div class="segmented" id="themeControl">
+            <button data-theme-value="dark" class="active">Dark</button>
+            <button data-theme-value="light">Light</button>
+          </div>
           <button class="command-btn quiet" id="openConnection" title="Connect a phone"><i data-icon="qr"></i><span>Connect</span></button>
         </div>
       </header>
@@ -69,6 +70,10 @@
             <button class="vault-tab" data-owned="owned">Owned <b id="tabOwnedCount">0</b></button>
             <button class="vault-tab" data-owned="missing">Missing <b id="tabMissingCount">0</b></button>
             <button class="vault-tab" data-owned="favorites">Favorites <b id="tabFavoriteCount">0</b></button>
+            <span class="vault-tabs-spacer"></span>
+            <button class="command-btn" id="openMassAdd" title="Mass Add"><i data-icon="list-plus"></i><span>Mass Add</span></button>
+            <button class="command-btn" id="openScan"><i data-icon="scan"></i><span>Scan Card</span></button>
+            <button class="command-btn" id="openPackImport" title="Import a Premade Pack"><i data-icon="archive"></i><span>Import Pack</span></button>
           </div>
 
           <div class="filterbar">
@@ -208,20 +213,16 @@
           <div class="settings-grid">
             <div class="settings-row">
               <section class="settings-section"><div class="settings-icon"><i data-icon="shield"></i></div><div><h2>Data Safety</h2><p id="databaseStatus">Loading...</p><div class="data-facts" id="databaseFacts"></div></div></section>
-              <section class="settings-section"><div class="settings-icon"><i data-icon="palette"></i></div><div><h2>Appearance</h2><p>Theme</p><div class="segmented" id="themeControl"><button data-theme-value="dark" class="active">Dark</button><button data-theme-value="light">Light</button></div></div></section>
-              <section class="settings-section"><div class="settings-icon"><i data-icon="smartphone"></i></div><div><h2>Phone Connection</h2><p id="connectionSettingsStatus">Loading...</p><div class="settings-actions"><button class="command-btn" id="settingsConnection"><i data-icon="qr"></i>Show QR Code</button></div></div></section>
-            </div>
-            <div class="settings-row">
-              <section class="settings-section"><div class="settings-icon"><i data-icon="download"></i></div><div><h2>Updates</h2><p id="updateStatus">Current version v<span id="settingsVersion">...</span></p><div class="settings-actions"><button class="command-btn" id="checkUpdateBtn"><i data-icon="refresh"></i>Check for Updates</button></div></div></section>
               <section class="settings-section"><div class="settings-icon"><i data-icon="database"></i></div><div><h2>Catalog</h2><p id="catalogStatus">Loading...</p><div class="settings-actions"><button class="command-btn" id="refreshCatalogBtn"><i data-icon="refresh"></i>Refresh Catalog</button></div></div></section>
               <section class="settings-section"><div class="settings-icon"><i data-icon="book-open"></i></div><div><h2>Rules Library</h2><p id="rulesSyncStatus">Loading...</p><div class="data-facts" id="rulesSyncFacts"></div><div class="settings-actions"><button class="command-btn" id="syncRulesBtn"><i data-icon="refresh"></i>Sync Now</button></div></div></section>
             </div>
             <p class="settings-group-label">APIs</p>
-            <div class="settings-row settings-row-stack">
+            <div class="settings-row">
               <section class="settings-section"><div class="settings-icon"><i data-icon="dollar"></i></div><div><h2>Pricing</h2><p id="pricingStatus">Loading...</p><div class="inline-form"><input id="pricingKey" type="password" placeholder="JustTCG API key" autocomplete="off" /><button class="command-btn gold" id="savePricingKey">Save</button><button class="icon-btn" id="clearPricingKey" title="Remove stored API key"><i data-icon="trash"></i></button></div><div class="settings-actions"><button class="command-btn" id="refreshTrackedPrices"><i data-icon="refresh"></i>Refresh Tracked</button><button class="command-btn quiet" id="refreshAllPrices">Refresh All</button></div></div></section>
               <section class="settings-section"><div class="settings-icon"><i data-icon="layers"></i></div><div><h2>Community Data</h2><p id="topdeckStatus">Loading...</p><div class="inline-form"><input id="topdeckKey" type="password" placeholder="TopDeck.gg API key" autocomplete="off" /><button class="command-btn gold" id="saveTopdeckKey">Save</button><button class="icon-btn" id="clearTopdeckKey" title="Remove stored API key"><i data-icon="trash"></i></button></div><p class="settings-hint">Each user supplies their own TopDeck.gg key — get one at <span>topdeck.gg</span>. Used to pull tournament decklists for the Recommended tab.</p><p id="communitySyncStatus" class="settings-hint">Loading sync status...</p><div class="data-facts" id="communitySyncFacts"></div><div class="settings-actions"><button class="command-btn" id="syncCommunityBtn"><i data-icon="refresh"></i>Sync Now</button></div></div></section>
             </div>
           </div>
+          <section class="settings-section settings-updates-fixed"><div class="settings-icon"><i data-icon="download"></i></div><div><h2>Updates</h2><p id="updateStatus">Current version v<span id="settingsVersion">...</span></p><div class="settings-actions"><button class="command-btn" id="checkUpdateBtn"><i data-icon="refresh"></i>Check for Updates</button></div></div></section>
         </section>
       </main>
     </div>
@@ -229,9 +230,6 @@
 
   <div class="modal-layer" id="cardDetailModal" hidden><div class="modal detail-modal"><button class="modal-close" data-close="cardDetailModal"><i data-icon="x"></i></button><div id="mobileCardDetail"></div></div></div>
 
-  <div class="modal-layer" id="quickAddModal" hidden>
-    <div class="modal compact-modal"><div class="modal-head"><div><span>Collection</span><h2>Quick Add</h2></div><button class="icon-btn" data-close="quickAddModal"><i data-icon="x"></i></button></div><div class="quick-add-form"><input id="quickAddInput" placeholder="OGN-045 or VEN-R01" autocomplete="off" /><button class="command-btn gold" id="quickAddBtn">Find Card</button></div><div id="quickAddResult"></div></div>
-  </div>
 
   <div class="modal-layer" id="massAddModal" hidden>
     <div class="modal"><div class="modal-head"><div><span>Collection</span><h2>Mass Add</h2></div><button class="icon-btn" data-close="massAddModal"><i data-icon="x"></i></button></div><textarea id="massAddInput" rows="9" placeholder="OGN-045&#10;VEN-R01 x2&#10;88"></textarea><div class="modal-actions"><button class="command-btn" id="massAddPreview">Preview</button><button class="command-btn gold" id="massAddConfirm" hidden>Add Selected</button></div><div class="result-list" id="massAddResults"></div></div>

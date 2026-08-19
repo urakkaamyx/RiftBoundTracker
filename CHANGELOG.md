@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.19.0 — Import Pack, RiftAtlas deck codes, rule detail popups
+
+- New **Import Pack** button (next to Quick Add/Mass Add/Scan Card) adds every card from an official preconstructed Champion Deck to your tracked collection in one click, on top of whatever you already own. Ships with all 5 Champion Decks (Viktor, Jinx, Lee Sin, Vi, Fiora) and all 4 Origins: Proving Grounds starter decks (Annie, Garen, Lux, Master Yi).
+- Import Deck now accepts a RiftAtlas/Piltover Archive **deck code** (the compact string those tools generate for sharing a deck) — pasted in directly, auto-detected, no format picker needed.
+- Clicking a cited rule in Ask Rules' "Why?" evidence list now opens its full text and keywords in a popup instead of requiring a trip to the Rules tab and a manual re-search.
+- Fixed a gap where "my unit died" questions in Ask Rules couldn't find the rule that actually covers it (a unit dying and going to the trash).
+- Deck import name-matching is a bit more forgiving: added a fallback for decklists that write a card as "Name, Cardname" where only the part after the comma is the card's real name.
+
 ## v1.18.1 — Deck import shows exactly which lines failed
 
 - Import Deck's "X lines did not match" message now lists each unmatched line so you can see exactly what to fix, instead of just a count.

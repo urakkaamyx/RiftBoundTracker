@@ -124,7 +124,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .global-search input { min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); }
 .global-search input::placeholder { color: var(--faint); }
 kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; color: var(--faint); font: 9px var(--font); }
-.top-actions { display: flex; align-items: center; gap: 8px; }
+/* Explicit column placement (not just DOM order) — when .global-search is hidden outside the Vault
+   page, auto-placement would otherwise slide this into the now-vacant search track instead of the
+   trailing one, landing short of the right edge. */
+.top-actions { grid-column: 3; display: flex; align-items: center; gap: 8px; justify-self: end; }
 .mobile-menu { display: none !important; }
 
 .command-btn, .icon-btn, .filter-reset { border: 1px solid var(--border); background: var(--panel-2); color: var(--text); }

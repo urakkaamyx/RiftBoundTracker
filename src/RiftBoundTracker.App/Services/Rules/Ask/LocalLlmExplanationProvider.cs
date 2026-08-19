@@ -147,7 +147,13 @@ public sealed class LocalLlmExplanationProvider(
         var trimmed = text.TrimStart();
         if (!trimmed.StartsWith("<think>", StringComparison.Ordinal)) return text;
         var closeIndex = trimmed.IndexOf("</think>", StringComparison.Ordinal);
-        return closeIndex < 0 ? text : trimmed[(closeIndex + "</think>".Length)..].TrimStart();
+        if (closeIndex >= 0) return trimmed[(closeIndex + "</think>".Length)..].TrimStart();
+        // Observed directly: the template's usual "<think>\n\n</think>\n\n" pre-fill sometimes
+        // comes back with no closing tag at all before the real answer starts — generation just
+        // continues past the empty think block without ever emitting "</think>". Rather than guess
+        // where real content begins (there's nothing to reliably anchor on), just drop the literal
+        // opening tag itself and keep everything after it.
+        return trimmed["<think>".Length..].TrimStart();
     }
 
     // Anti-prompts stop generation once matched, but the matched text itself can still land in

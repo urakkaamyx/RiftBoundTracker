@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.26.3 — Restore the ability to re-download the Ask Rules model
+
+- The button to re-download the Ask Rules model (e.g. to pick up an improved version) was lost when Ask Rules became multi-model-capable — once a model showed "In use" there was no action left on its row at all. Added the refresh icon back to any downloaded model, not just the selected one. Also fixed a bug this exposed: re-downloading a model while Local AI was already enabled silently kept using the old weights until an app restart, since the reload check only looked at the file path — it now also checks the file's write time, so a fresh download actually takes effect on your next question.
+
 ## v1.26.2 — Ask Rules: seed the rest of the official Keyword Glossary
 
 - A real question about Tank ("do enemy spells have to target it first?") came back with no evidence found at all, even though the rules that answer it are indexed and searchable directly. The hand-curated list Ask Rules uses to recognize keywords in a question only had 6 of the game's 25 official Keyword Glossary keywords in it — added the other 19 (Tank, Shield, Assault, Backline, Equip, Level, Flow, and more). Takes effect the next time you run a Rules sync from Settings.

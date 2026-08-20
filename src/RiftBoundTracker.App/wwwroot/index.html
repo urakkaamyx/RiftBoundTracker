@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b0b12" />
-  <title>Riftbound Vault</title>
+  <title>RiftKeep</title>
   <link rel="icon" href="/logo.png" />
   <link rel="stylesheet" href="styles.css" />
   <script>
@@ -35,7 +35,7 @@
       </section>
 
       <section class="sidebar-sets" aria-labelledby="setsHeading">
-        <div class="sidebar-section-head"><span id="setsHeading">Sets</span><button class="icon-btn" id="sidebarRefresh" title="Refresh catalog"><i data-icon="refresh"></i></button></div>
+        <div class="sidebar-section-head"><span id="setsHeading">Sets</span></div>
         <div class="set-nav" id="setNav"></div>
       </section>
 
@@ -221,7 +221,7 @@
           <div class="settings-grid">
             <div class="settings-row">
               <section class="settings-section"><div class="settings-icon"><i data-icon="shield"></i></div><div><h2>Data Safety</h2><p id="databaseStatus">Loading...</p><div class="data-facts" id="databaseFacts"></div></div></section>
-              <section class="settings-section"><div class="settings-icon"><i data-icon="database"></i></div><div><h2>Catalog</h2><p id="catalogStatus">Loading...</p><div class="settings-actions"><button class="command-btn" id="refreshCatalogBtn"><i data-icon="refresh"></i>Refresh Catalog</button></div></div></section>
+              <section class="settings-section"><div class="settings-icon"><i data-icon="database"></i></div><div><h2>Catalog</h2><p id="catalogStatus">Loading...</p><div class="data-facts" id="catalogFacts"></div><div class="settings-actions"><button class="command-btn" id="refreshCatalogBtn"><i data-icon="refresh"></i>Refresh Catalog</button></div></div></section>
               <section class="settings-section"><div class="settings-icon"><i data-icon="book-open"></i></div><div><h2>Rules Library</h2><p id="rulesSyncStatus">Loading...</p><div class="data-facts" id="rulesSyncFacts"></div><div class="settings-actions"><button class="command-btn" id="syncRulesBtn"><i data-icon="refresh"></i>Sync Now</button></div></div></section>
               <section class="settings-section settings-section-danger"><div class="settings-icon"><i data-icon="trash"></i></div><div><h2>Reset Data</h2><p>Wipe your own data — owned counts, trade binder, favorites, notes, decks, or price history — without touching the card catalog itself. Choose exactly what to reset.</p><div class="settings-actions"><button class="command-btn danger" id="openPurgeData"><i data-icon="trash"></i>Choose What to Reset</button></div></div></section>
             </div>
@@ -231,9 +231,18 @@
               <section class="settings-section"><div class="settings-icon"><i data-icon="layers"></i></div><div><h2>Community Data</h2><p id="topdeckStatus">Loading...</p><div class="inline-form"><input id="topdeckKey" type="password" placeholder="TopDeck.gg API key" autocomplete="off" /><button class="command-btn gold" id="saveTopdeckKey">Save</button><button class="icon-btn" id="clearTopdeckKey" title="Remove stored API key"><i data-icon="trash"></i></button></div><p class="settings-hint">Each user supplies their own TopDeck.gg key — get one at <span>topdeck.gg</span>. Used to pull tournament decklists for the Recommended tab.</p><p id="communitySyncStatus" class="settings-hint">Loading sync status...</p><div class="data-facts" id="communitySyncFacts"></div><div class="settings-actions"><button class="command-btn" id="syncCommunityBtn"><i data-icon="refresh"></i>Sync Now</button></div></div></section>
             </div>
           </div>
-          <section class="settings-section settings-updates-fixed"><div class="settings-icon"><i data-icon="download"></i></div><div><h2>Updates</h2><p id="updateStatus">Current version v<span id="settingsVersion">...</span></p><div class="settings-actions"><button class="command-btn" id="checkUpdateBtn"><i data-icon="refresh"></i>Check for Updates</button></div></div></section>
         </section>
       </main>
+    </div>
+  </div>
+
+  <div class="update-footer" id="updateFooter" hidden>
+    <div class="update-footer-info"><i data-icon="download"></i><div><strong id="updateFooterTitle">Checking for updates...</strong><span id="updateFooterSubtitle"></span></div></div>
+    <div class="update-footer-actions">
+      <button class="command-btn quiet" id="updateFooterPatchNotes">View Patch Notes</button>
+      <button class="command-btn gold" id="updateFooterApply" hidden>Update and Restart</button>
+      <button class="command-btn" id="updateFooterCheck"><i data-icon="refresh"></i>Check for Updates</button>
+      <button class="icon-btn" id="updateFooterDismiss" title="Dismiss"><i data-icon="x"></i></button>
     </div>
   </div>
 
@@ -289,7 +298,7 @@
 
   <div class="modal-layer" id="testHandModal" hidden><div class="modal"><div class="modal-head"><div><span>Test Draw</span><h2>Opening Hand</h2></div><button class="icon-btn" data-close="testHandModal"><i data-icon="x"></i></button></div><div class="test-hand" id="testHand"></div><div class="modal-actions"><button class="command-btn gold" id="redrawHand"><i data-icon="refresh"></i>Draw Again</button></div></div></div>
 
-  <div class="modal-layer" id="changelogModal" hidden><div class="modal"><div class="modal-head"><div><span>RiftBound Vault</span><h2>What's New</h2></div><button class="icon-btn" data-close="changelogModal"><i data-icon="x"></i></button></div><div class="changelog-body" id="changelogBody"></div></div></div>
+  <div class="modal-layer" id="changelogModal" hidden><div class="modal"><div class="modal-head"><div><span>RiftKeep</span><h2>What's New</h2></div><button class="icon-btn" data-close="changelogModal"><i data-icon="x"></i></button></div><div class="changelog-body" id="changelogBody"></div></div></div>
 
   <div class="modal-layer" id="rulePopupModal" hidden><div class="modal"><div class="modal-head"><div><span>Rules</span><h2 id="rulePopupHeading">Rule Detail</h2></div><button class="icon-btn" data-close="rulePopupModal"><i data-icon="x"></i></button></div><div id="rulePopupBody"></div></div></div>
 

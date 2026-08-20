@@ -37,7 +37,8 @@
     star: '<polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3 12 2"/>',
     check: '<path d="m20 6-11 11-5-5"/>', minus: '<path d="M5 12h14"/>',
     shuffle: '<path d="m18 14 4 4-4 4M18 2l4 4-4 4M2 18h1.5A6.5 6.5 0 0 0 10 11.5v-1A6.5 6.5 0 0 1 16.5 4H22M2 6h1.5a6.5 6.5 0 0 1 5.7 3.4"/>',
-    save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>'
+    save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+    repeat: '<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>'
   };
 
   function render(root) {

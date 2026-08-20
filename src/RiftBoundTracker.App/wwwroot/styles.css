@@ -226,8 +226,9 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
 .card-meta-end .price-label { flex: 0 0 auto; }
 .price-label b { color: var(--green); font-size: 10px; text-align: right; }
 .binder-chip { min-width: 27px; height: 27px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 5px; color: var(--faint); font-size: 10px; }
-#binderGrid .card-actions { display: grid; grid-template-columns: 82px minmax(0, 1fr) minmax(0, 1fr); gap: 6px; align-items: center; }
-#binderGrid .binder-chip { width: 100%; padding: 0 6px; }
+#binderGrid .card-actions { display: grid; grid-template-columns: 82px auto auto; gap: 6px; align-items: center; justify-content: start; }
+#binderGrid .binder-chip { width: 32px; height: 32px; padding: 0; }
+#binderGrid .binder-chip .icon { width: 15px; height: 15px; }
 .binder-chip-confirm { border-color: var(--gold); color: var(--gold-bright); }
 .binder-chip-confirm:hover { background: var(--gold-soft); }
 .card-trade-toggle { grid-column: 2; justify-self: start; height: 27px; display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--panel-2); color: var(--muted); font-size: 9px; cursor: pointer; }
@@ -667,8 +668,8 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
    column-balancer happens to pack together): system/device status, sync/version, then a dedicated
    full-width band for the two cards that need an API key. Each row is its own flex container so
    cards only wrap within their own group, never bleeding into a neighboring row's group. */
-.settings-grid { max-width: 1400px; margin: 0 auto; padding-bottom: 130px; display: flex; flex-direction: column; gap: 16px; }
-.settings-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.settings-grid { max-width: 1400px; margin: 0 auto; padding-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
+.settings-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch; }
 .settings-row > .settings-section { flex: 1 1 260px; }
 .settings-row-stack { flex-direction: column; }
 .settings-row-stack > .settings-section { flex: 1 1 auto; }
@@ -677,7 +678,7 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
 .settings-section h2 { margin: 0; font-size: 14px; }
 .settings-section p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .settings-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
-.inline-form { display: grid; grid-template-columns: minmax(160px, 360px) auto auto; gap: 7px; margin-top: 12px; }
+.inline-form { display: grid; grid-template-columns: minmax(160px, 1fr) auto auto; gap: 7px; margin-top: 12px; }
 .settings-hint { margin: 10px 0 0; color: var(--faint); font-size: 11px; line-height: 1.5; }
 .settings-group-label { margin: 0 0 -4px 2px; color: var(--faint); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 /* Pulled out of .settings-grid and pinned to the viewport so scrolling the rest of Settings never
@@ -685,6 +686,17 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
    ancestor suppresses fixed-position descendants too. Safe to pin again now that Reset Data lives
    in the top row instead of the last row — nothing in the grid's bottom-left corner for it to cover. */
 .settings-updates-fixed { position: fixed; left: calc(var(--sidebar-width) + 20px); bottom: 20px; z-index: 20; width: 320px; max-width: calc(100vw - var(--sidebar-width) - 40px); box-shadow: var(--shadow); background: var(--bg); }
+
+/* Global — pops up on any page once an update is confirmed available, and stays permanently
+   visible (dismiss button hidden) whenever the Settings page is active, so Settings always has a
+   real, current answer to "am I up to date" without needing to press Check first. */
+.update-footer { position: fixed; left: var(--sidebar-width); right: 0; bottom: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px; border-top: 1px solid var(--border-soft); background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(14px); box-shadow: 0 -8px 24px -12px rgba(0,0,0,.5); }
+.update-footer-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.update-footer-info > .icon { flex-shrink: 0; width: 20px; height: 20px; color: var(--accent-bright); }
+.update-footer-info strong { display: block; font-size: 13px; }
+.update-footer-info span { display: block; margin-top: 2px; color: var(--faint); font-size: 11px; }
+.update-footer-actions { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+body.has-update-footer .page { padding-bottom: 82px; }
 
 .settings-section-danger { border-color: color-mix(in srgb, var(--red) 45%, var(--border-soft)); background: color-mix(in srgb, var(--red) 6%, transparent); }
 .settings-section-danger .settings-icon { border-color: var(--red); color: var(--red); }
@@ -1048,6 +1060,10 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
   .app-shell { grid-template-columns: 1fr; }
   .sidebar { position: fixed; left: 0; transform: translateX(-102%); width: min(86vw, 280px); box-shadow: var(--shadow); transition: transform .18s ease; }
   .sidebar.open { transform: translateX(0); }
+  .update-footer { left: 0; flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; }
+  .update-footer-actions { flex-wrap: wrap; }
+  .update-footer-actions .command-btn { flex: 1 1 auto; }
+  body.has-update-footer .page { padding-bottom: 140px; }
   .topbar { height: 106px; grid-template-columns: 34px 1fr auto; gap: 9px; padding: 0 12px; }
   .mobile-menu { display: inline-grid !important; }
   .global-search { margin: 0 -12px; }

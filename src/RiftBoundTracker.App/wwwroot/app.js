@@ -74,7 +74,8 @@ const state = {
   priceQueueIds: new Set(),
   rules: { mode: "search", query: "", results: [], glossary: [], errata: [], legality: [], selectedKind: null, selectedId: null, searchTimer: null },
   rulesPageMode: "search",
-  localAiEnabled: false
+  localAiEnabled: false,
+  updateStatus: null, updateFooterDismissed: false
 };
 const cardsById = new Map();
 let massEntries = [];
@@ -493,6 +494,7 @@ function navigate(page) {
   document.getElementById("pageTitle").textContent = PAGE_LABELS[page][1];
   document.getElementById("sidebar").classList.remove("open");
   saveNavState();
+  renderUpdateFooter();
   refreshCurrentPage().catch(err => toast(err.message, true));
 }
 
@@ -507,6 +509,23 @@ async function refreshCurrentPage() {
     case "rules": await loadRules(); break;
     case "settings": await loadSettings(); break;
   }
+}
+
+// The refresh every collection-mutating action needs after it completes: overview + per-set
+// counts must be fully written to `state` BEFORE refreshCurrentPage() re-renders the active page,
+// since page renderers (renderVaultHero in particular) read state.overview directly. Calling this
+// as `Promise.all([loadOverview(), refreshCurrentPage()])` (the old pattern, still worth knowing
+// about since it's an easy mistake to reintroduce) ran both concurrently — refreshCurrentPage()
+// could read `state.overview` before the concurrently-running loadOverview() had finished writing
+// it, so the set-hero banner (Owned/Missing/Completion%) rendered with pre-mutation numbers. A real
+// pack import (25 cards added) reproduced this directly: the sidebar's total-owned count updated
+// correctly (loadOverview alone has nothing to race against) but the set-hero banner stayed at
+// 0/0%. loadSets() was also missing entirely from every one of these call sites, so the sidebar's
+// per-set counts (e.g. "Origins 99/352") never updated after any collection change, not just a
+// pack import — same root cause (a refresh step nobody added), just easier to notice in bulk.
+async function refreshAfterCollectionChange() {
+  await Promise.all([loadSets(), loadOverview()]);
+  await refreshCurrentPage();
 }
 
 async function loadSets() {
@@ -666,8 +685,8 @@ function cardTile(card, context) {
         <div class="card-actions">
           <div class="mini-stepper"><button data-owned-delta="-1" data-card-id="${escapeHtml(card.id)}" aria-label="Remove copy">-</button><span>${card.ownedCount}</span><button data-owned-delta="1" data-card-id="${escapeHtml(card.id)}" aria-label="Add copy">+</button></div>
           ${context === "binderGrid"
-            ? `<button class="binder-chip" data-binder-delta="-1" data-card-id="${escapeHtml(card.id)}" title="No longer offering this copy for trade — stays in your collection">Remove</button>
-               <button class="binder-chip binder-chip-confirm" data-confirm-trade="${escapeHtml(card.id)}" title="Trade completed — removes this copy from your collection entirely">Confirm Trade</button>`
+            ? `<button class="binder-chip icon-btn" data-binder-delta="-1" data-card-id="${escapeHtml(card.id)}" title="No longer offering this copy for trade — stays in your collection" aria-label="Remove from Trade Binder"><i data-icon="trash"></i></button>
+               <button class="binder-chip binder-chip-confirm icon-btn" data-confirm-trade="${escapeHtml(card.id)}" title="Trade completed — removes this copy from your collection entirely" aria-label="Confirm Trade"><i data-icon="repeat"></i></button>`
             : card.ownedCount > 0
               ? `<label class="card-trade-toggle" title="Mark this card as available for trade"><span>Trade</span><input type="checkbox" data-card-trade-toggle="${escapeHtml(card.id)}"${card.binderCount > 0 ? " checked" : ""} /><i aria-hidden="true"></i></label>`
               : ""}
@@ -886,7 +905,7 @@ async function setOwnedCount(card, ownedCount) {
   const updated = await api(`/api/collection/${encodeURIComponent(card.id)}`, jsonOptions("POST", { owned: next }));
   cardsById.set(updated.id, updated);
   toast(`${card.name}: ${updated.ownedCount} owned`);
-  await Promise.all([loadOverview(), refreshCurrentPage()]);
+  await refreshAfterCollectionChange();
   refreshVisibleCardDetails(updated);
 }
 
@@ -897,7 +916,7 @@ async function changeOwned(card, delta) {
 async function changeFavorite(card) {
   const updated = await api(`/api/favorites/${encodeURIComponent(card.id)}`, jsonOptions("POST", { favorite: !card.isFavorite }));
   cardsById.set(updated.id, updated);
-  await Promise.all([loadOverview(), refreshCurrentPage()]);
+  await refreshAfterCollectionChange();
   refreshVisibleCardDetails(updated);
   toast(updated.isFavorite ? "Added to favorites" : "Removed from favorites");
 }
@@ -907,7 +926,7 @@ async function changeBinder(card, delta) {
   const next = Math.max(0, Math.min(card.ownedCount, (card.binderCount || 0) + delta));
   const updated = await api(`/api/binder/${encodeURIComponent(card.id)}`, jsonOptions("POST", { count: next }));
   cardsById.set(updated.id, updated);
-  await Promise.all([loadOverview(), refreshCurrentPage()]);
+  await refreshAfterCollectionChange();
   toast(`${card.name}: ${updated.binderCount} in binder`);
 }
 
@@ -915,7 +934,7 @@ async function confirmTrade(card) {
   if (!confirm(`Confirm you traded away 1 copy of "${card.name}"? It will be removed from your collection.`)) return;
   const updated = await api(`/api/binder/${encodeURIComponent(card.id)}/confirm-trade`, jsonOptions("POST", { count: 1 }));
   cardsById.set(updated.id, updated);
-  await Promise.all([loadOverview(), refreshCurrentPage()]);
+  await refreshAfterCollectionChange();
   toast(`${card.name} traded — removed from your collection`);
 }
 
@@ -924,7 +943,7 @@ async function setBinderAvailability(card, available) {
   const count = available ? 1 : 0;
   const updated = await api(`/api/binder/${encodeURIComponent(card.id)}`, jsonOptions("POST", { count }));
   cardsById.set(updated.id, updated);
-  await Promise.all([loadOverview(), refreshCurrentPage()]);
+  await refreshAfterCollectionChange();
   refreshVisibleCardDetails(updated);
   toast(available ? `${card.name} marked for trade` : `${card.name} removed from Trade Binder`);
 }
@@ -1742,6 +1761,8 @@ async function loadSettings() {
   document.getElementById("catalogStatus").textContent = sync.running
     ? `Syncing ${sync.currentSet || "catalog"}: ${sync.setsDone}/${sync.setsTotal} sets`
     : `${sync.totalCards} cards across ${sync.totalSets} sets. Last synced ${formatRelativeTime(sync.lastSyncedAt)}.`;
+  document.getElementById("catalogFacts").innerHTML = state.sets
+    .map(set => `<span>${escapeHtml(set.setId)} ${set.owned}/${set.total}</span>`).join("");
   document.getElementById("pricingStatus").textContent = pricing.configured
     ? `Riftbound.gg live pricing enabled. ${pricing.provider} snapshots configured (${pricing.source}, ${pricing.keyHint}).`
     : "Riftbound.gg live pricing enabled. JustTCG snapshots are optional.";
@@ -1770,13 +1791,12 @@ async function loadSettings() {
     : "Database is ready.";
   document.getElementById("databaseFacts").innerHTML = db ? `<span>${health.cards} cards now</span><span>${health.ownedCards} owned now</span><span>${health.ownedCopies} copies now</span>${db.lastBackupPath ? `<span>Last migration backup: ${escapeHtml(db.lastBackupPath.split(/[\\/]/).pop())}</span>` : ""}` : "";
   document.getElementById("currentVersion").textContent = server.version;
-  document.getElementById("settingsVersion").textContent = server.version;
   document.querySelectorAll("#themeControl button").forEach(button => button.classList.toggle("active", button.dataset.themeValue === document.documentElement.dataset.theme));
 }
 
 async function refreshCatalog() {
-  const buttons = [document.getElementById("refreshCatalogBtn"), document.getElementById("sidebarRefresh")];
-  buttons.forEach(button => { if (button) button.disabled = true; });
+  const button = document.getElementById("refreshCatalogBtn");
+  button.disabled = true;
   try {
     await api("/api/sync/refresh", { method: "POST" });
     toast("Catalog refresh started");
@@ -1787,13 +1807,13 @@ async function refreshCatalog() {
       if (statusEl) statusEl.textContent = status.running ? `Syncing ${status.currentSet || "catalog"}: ${status.setsDone}/${status.setsTotal} sets` : "Catalog refresh complete.";
       if (!status.running) {
         clearInterval(catalogPoll); catalogPoll = null;
-        buttons.forEach(button => { if (button) button.disabled = false; });
-        await Promise.all([loadSets(), loadOverview(), refreshCurrentPage()]);
+        button.disabled = false;
+        await refreshAfterCollectionChange();
         toast("Catalog refreshed");
       }
     }, 2000);
   } catch (err) {
-    buttons.forEach(button => { if (button) button.disabled = false; });
+    button.disabled = false;
     toast(err.message, true);
   }
 }
@@ -1835,7 +1855,7 @@ async function confirmMassAdd() {
   }
   closeModal("massAddModal");
   toast(`${selected.length} card entr${selected.length === 1 ? "y" : "ies"} added`);
-  await Promise.all([loadOverview(), refreshCurrentPage()]);
+  await refreshAfterCollectionChange();
 }
 
 async function openConnection() {
@@ -1942,27 +1962,19 @@ function renderChangelog(notes) {
   return html.join("");
 }
 
-function openChangelog(notes) {
-  document.getElementById("changelogBody").innerHTML = renderChangelog(notes);
-  showModal("changelogModal");
-}
-
 async function checkForUpdates() {
-  const button = document.getElementById("checkUpdateBtn");
-  const status = document.getElementById("updateStatus");
-  button.disabled = true;
-  status.textContent = "Checking for updates...";
+  const button = document.getElementById("updateFooterCheck");
+  if (button) button.disabled = true;
+  setUpdateFooterMessage("Checking for updates...");
   try {
-    const result = await api("/api/update/check");
-    if (!result.selfUpdateSupported) status.textContent = result.unsupportedReason;
-    else if (!result.updateAvailable) status.textContent = `Version ${result.currentVersion} is current.`;
-    else {
-      status.innerHTML = `Version ${escapeHtml(result.latestVersion)} is available. <button class="command-btn gold" id="applyUpdate">Update and Restart</button> <button class="command-btn quiet" id="viewChangelog">View Changelog</button>`;
-      document.getElementById("applyUpdate").onclick = () => applyUpdate();
-      document.getElementById("viewChangelog").onclick = () => openChangelog(result.releaseNotes);
-    }
-  } catch (err) { status.textContent = err.message; }
-  finally { button.disabled = false; }
+    state.updateStatus = await api("/api/update/check");
+  } catch (err) {
+    setUpdateFooterMessage(err.message);
+    if (button) button.disabled = false;
+    return;
+  }
+  if (button) button.disabled = false;
+  renderUpdateFooter();
 }
 
 function formatBytes(bytes) {
@@ -1970,60 +1982,126 @@ function formatBytes(bytes) {
   return `${(bytes / 1e6).toFixed(0)} MB`;
 }
 
-// Sidebar dot next to the version number — a lightweight signal that doesn't require opening
-// Settings just to find out. Checked on load and every 5 minutes after that; a background check
-// like this must never surface errors to the user (e.g. no internet right now is normal, not a
-// problem worth a toast), so failures are swallowed silently.
+// Checked on load and every 5 minutes after that; a background check like this must never surface
+// errors to the user (e.g. no internet right now is normal, not a problem worth a toast), so
+// failures are swallowed silently and just leave state.updateStatus as whatever it was before.
 async function checkUpdateIndicator() {
   try {
-    const result = await api("/api/update/check");
-    document.getElementById("updateIndicator").hidden = !(result.selfUpdateSupported && result.updateAvailable);
+    state.updateStatus = await api("/api/update/check");
+    renderUpdateFooter();
   } catch {
     // Silent — see comment above.
   }
 }
 
+// Footer shown site-wide once an update is confirmed available, and permanently on the Settings
+// page regardless (so Settings always has a real, current answer to "am I up to date" without
+// needing to press Check first). Dismissing only suppresses the site-wide pop-up for this session —
+// Settings ignores the dismissed flag entirely, since "always shows there" was the explicit point.
+function renderUpdateFooter() {
+  const footer = document.getElementById("updateFooter");
+  const onSettings = state.page === "settings";
+  const s = state.updateStatus;
+
+  if (!s) {
+    footer.hidden = !onSettings;
+    document.body.classList.toggle("has-update-footer", !footer.hidden);
+    if (!onSettings) return;
+  }
+
+  const available = s && s.selfUpdateSupported && s.updateAvailable;
+  const shouldShow = onSettings || (available && !state.updateFooterDismissed);
+  footer.hidden = !shouldShow;
+  document.body.classList.toggle("has-update-footer", shouldShow);
+  if (!shouldShow) return;
+
+  document.getElementById("updateFooterDismiss").hidden = onSettings;
+  const applyBtn = document.getElementById("updateFooterApply");
+  const titleEl = document.getElementById("updateFooterTitle");
+  const subtitleEl = document.getElementById("updateFooterSubtitle");
+
+  if (!s) {
+    titleEl.textContent = "Checking for updates...";
+    subtitleEl.textContent = "";
+    applyBtn.hidden = true;
+  } else if (!s.selfUpdateSupported) {
+    titleEl.textContent = "Self-update unavailable";
+    subtitleEl.textContent = s.unsupportedReason || "";
+    applyBtn.hidden = true;
+  } else if (available) {
+    titleEl.textContent = `Version ${s.latestVersion} is available`;
+    subtitleEl.textContent = `You're on ${s.currentVersion}`;
+    applyBtn.hidden = false;
+  } else {
+    titleEl.textContent = "You're up to date";
+    subtitleEl.textContent = `Version ${s.currentVersion}`;
+    applyBtn.hidden = true;
+  }
+}
+
+function setUpdateFooterMessage(text) {
+  document.getElementById("updateFooter").hidden = false;
+  document.body.classList.add("has-update-footer");
+  document.getElementById("updateFooterTitle").textContent = text;
+  document.getElementById("updateFooterSubtitle").textContent = "";
+  document.getElementById("updateFooterApply").hidden = true;
+}
+
+function dismissUpdateFooter() {
+  state.updateFooterDismissed = true;
+  renderUpdateFooter();
+}
+
 async function applyUpdate() {
-  const status = document.getElementById("updateStatus");
-  status.innerHTML = `Starting update...`;
+  setUpdateFooterMessage("Starting update...");
   try {
     const started = await api("/api/update/apply", { method: "POST" });
-    if (started.error) { status.textContent = started.error; return; }
+    if (started.error) { setUpdateFooterMessage(started.error); return; }
   } catch (err) {
-    status.textContent = err.message;
+    setUpdateFooterMessage(err.message);
     return;
   }
   pollUpdateProgress();
 }
 
 async function pollUpdateProgress() {
-  const status = document.getElementById("updateStatus");
   let progress;
   try {
     progress = await api("/api/update/progress");
   } catch {
     // The connection dropping here is expected once the app has restarted itself — nothing to
     // report, the new instance will already be starting up.
-    status.innerHTML = `Restarting — the app will reopen automatically.`;
+    setUpdateFooterMessage("Restarting — the app will reopen automatically.");
     return;
   }
 
   if (progress.phase === "downloading") {
     const pct = progress.totalBytes ? Math.round((progress.bytesDownloaded / progress.totalBytes) * 100) : 0;
-    status.innerHTML = `Downloading update... ${pct}% (${formatBytes(progress.bytesDownloaded)} / ${formatBytes(progress.totalBytes)})
-      <div class="progress-track"><span style="width:${pct}%"></span></div>`;
+    setUpdateFooterMessage(`Downloading update... ${pct}% (${formatBytes(progress.bytesDownloaded)} / ${formatBytes(progress.totalBytes)})`);
     setTimeout(pollUpdateProgress, 500);
   } else if (progress.phase === "extracting") {
-    status.innerHTML = `Extracting update...<div class="progress-track"><span style="width:100%"></span></div>`;
+    setUpdateFooterMessage("Extracting update...");
     setTimeout(pollUpdateProgress, 500);
   } else if (progress.phase === "restarting") {
-    status.innerHTML = `Restarting — the app will reopen automatically.<div class="progress-track"><span style="width:100%"></span></div>`;
+    setUpdateFooterMessage("Restarting — the app will reopen automatically.");
     // No further poll: the process exits shortly after entering this phase, so the next request
     // would just fail — the "restarting" message is already the right thing to leave on screen.
   } else if (progress.phase === "error") {
-    status.textContent = progress.error || "Update failed.";
+    setUpdateFooterMessage(progress.error || "Update failed.");
   } else {
     setTimeout(pollUpdateProgress, 500);
+  }
+}
+
+async function openPatchNotes() {
+  document.getElementById("changelogBody").innerHTML = `<div class="loading-line">Loading patch notes...</div>`;
+  showModal("changelogModal");
+  try {
+    const entries = await api("/api/update/patch-notes");
+    const combined = entries.map(e => `## ${e.version}\n${e.notes || ""}`).join("\n\n");
+    document.getElementById("changelogBody").innerHTML = renderChangelog(combined);
+  } catch (err) {
+    document.getElementById("changelogBody").innerHTML = `<p class="ask-answer-note">${escapeHtml(err.message)}</p>`;
   }
 }
 
@@ -2346,7 +2424,7 @@ async function confirmImportPack() {
       };
     }
     document.getElementById("undoPackImportBtn")?.addEventListener("click", undoPackImport);
-    await Promise.all([loadOverview(), refreshCurrentPage()]);
+    await refreshAfterCollectionChange();
   } catch (err) {
     resultEl.innerHTML = `<p class="ask-answer-note">${escapeHtml(err.message)}</p>`;
   } finally {
@@ -2366,7 +2444,7 @@ async function confirmRemovePack() {
   try {
     const result = await api(`/api/premade-packs/${encodeURIComponent(key)}/remove`, jsonOptions("POST"));
     resultEl.innerHTML = `<p>${result.addedCards} cards subtracted from your collection.</p>`;
-    await Promise.all([loadOverview(), refreshCurrentPage()]);
+    await refreshAfterCollectionChange();
   } catch (err) {
     resultEl.innerHTML = `<p class="ask-answer-note">${escapeHtml(err.message)}</p>`;
   } finally {
@@ -2384,7 +2462,7 @@ async function undoPackImport() {
     lastPackImport = null;
     document.getElementById("packImportResult").innerHTML = `<p>Undone — ${packName} was removed from your collection.</p>`;
     resetPackPreview();
-    await Promise.all([loadOverview(), refreshCurrentPage()]);
+    await refreshAfterCollectionChange();
   } catch (err) {
     toast(err.message, true);
     if (undoBtn) undoBtn.disabled = false;
@@ -3352,7 +3430,7 @@ function wireEvents() {
   document.getElementById("massAddConfirm").addEventListener("click", confirmMassAdd);
   document.getElementById("openConnection").addEventListener("click", openConnection);
   document.getElementById("updateIndicator").addEventListener("click", () => navigate("settings"));
-  ["sidebarRefresh", "refreshCatalogBtn"].forEach(id => document.getElementById(id).addEventListener("click", refreshCatalog));
+  document.getElementById("refreshCatalogBtn").addEventListener("click", refreshCatalog);
   ["newDeckBtn", "emptyNewDeck"].forEach(id => document.getElementById(id).addEventListener("click", openNewDeckModal));
   document.getElementById("legendSearch").addEventListener("input", event => {
     state.legendPicker.search = event.target.value;
@@ -3431,7 +3509,10 @@ function wireEvents() {
   document.getElementById("clearPriceQueue").addEventListener("click", () => clearPriceQueue().catch(err => toast(err.message, true)));
   document.getElementById("checkPriceQueue").addEventListener("click", checkPriceQueue);
   document.getElementById("priceQueueSettings").addEventListener("click", () => navigate("settings"));
-  document.getElementById("checkUpdateBtn").addEventListener("click", checkForUpdates);
+  document.getElementById("updateFooterCheck").addEventListener("click", checkForUpdates);
+  document.getElementById("updateFooterApply").addEventListener("click", applyUpdate);
+  document.getElementById("updateFooterPatchNotes").addEventListener("click", openPatchNotes);
+  document.getElementById("updateFooterDismiss").addEventListener("click", dismissUpdateFooter);
   document.querySelectorAll("#themeControl button").forEach(button => button.addEventListener("click", () => setTheme(button.dataset.themeValue)));
   document.getElementById("openScan").addEventListener("click", () => { setScanMode("add"); resetScanner(); showModal("scanModal"); });
   document.getElementById("openCheckPrice").addEventListener("click", () => { setScanMode("price"); resetScanner(); showModal("scanModal"); });
@@ -3547,7 +3628,6 @@ async function init() {
   try {
     const [server] = await Promise.all([api("/api/server-info"), loadCardTextSymbols(), loadSets(), loadPrices(), loadPriceQueue(), loadOverview(), loadDecks()]);
     document.getElementById("currentVersion").textContent = server.version;
-    document.getElementById("settingsVersion").textContent = server.version;
     document.querySelectorAll(".vault-tab").forEach(item => item.classList.toggle("active", item.dataset.owned === state.owned));
     navigate(state.page);
   } catch (err) {

@@ -1391,8 +1391,16 @@ function wireDeckWorkspace() {
     setDeckCard(state.activeDeckId, button.dataset.cardId, Number(button.dataset.deckQty), button.dataset.section)));
   root.querySelectorAll("[data-acquire-card]").forEach(button => button.addEventListener("click", event => {
     event.stopPropagation();
+    // Disable immediately, before the async call — a second real click landing before this one's
+    // response updates cardsById would otherwise read the same pre-click ownedCount and compute the
+    // same target quantity as the first click, silently doing nothing. The re-render this triggers
+    // replaces this button outright (removed once fully owned, or a fresh enabled one otherwise), so
+    // there's no separate re-enable path needed for the success case — only the catch needs one.
+    if (button.disabled) return;
+    button.disabled = true;
     const card = cardsById.get(button.dataset.acquireCard);
-    if (card) changeOwned(card, 1).catch(err => toast(err.message, true));
+    if (!card) { button.disabled = false; return; }
+    changeOwned(card, 1).catch(err => { toast(err.message, true); button.disabled = false; });
   }));
   root.querySelectorAll(".deck-row[data-hover-card]").forEach(row => row.addEventListener("click", event => {
     if (event.target.closest(".mini-stepper, .deck-row-acquire")) return;

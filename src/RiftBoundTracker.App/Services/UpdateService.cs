@@ -44,6 +44,15 @@ public class UpdateService(IHttpClientFactory httpClientFactory, ILogger<UpdateS
     private readonly object _progressLock = new();
     private UpdateProgressState _progress = new("idle", 0, 0, null);
 
+    // ETag cache for the "latest release" lookup — checked on every page load plus a periodic
+    // background poll (see app.js's checkUpdateIndicator), so a 304 Not Modified (the overwhelming
+    // common case: no new release since last check) means GitHub sends back just a status code and
+    // no body at all, instead of a full JSON payload every single time. Singleton-scoped so this
+    // genuinely persists across the process lifetime rather than resetting per request.
+    private readonly object _releaseCacheLock = new();
+    private string? _cachedReleaseETag;
+    private GitHubRelease? _cachedRelease;
+
     public UpdateProgressState GetProgress()
     {
         lock (_progressLock) return _progress;
@@ -197,16 +206,44 @@ public class UpdateService(IHttpClientFactory httpClientFactory, ILogger<UpdateS
 
     private async Task<GitHubRelease?> GetLatestReleaseAsync(CancellationToken ct)
     {
+        string? etag;
+        lock (_releaseCacheLock) etag = _cachedReleaseETag;
+
         try
         {
             var http = httpClientFactory.CreateClient("github");
-            return await http.GetFromJsonAsync<GitHubRelease>(
-                $"https://api.github.com/repos/{Owner}/{Repo}/releases/latest", ct);
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get, $"https://api.github.com/repos/{Owner}/{Repo}/releases/latest");
+            if (etag is not null)
+                request.Headers.TryAddWithoutValidation("If-None-Match", etag);
+
+            using var response = await http.SendAsync(request, ct);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotModified)
+            {
+                lock (_releaseCacheLock) return _cachedRelease;
+            }
+
+            response.EnsureSuccessStatusCode();
+            var release = await response.Content.ReadFromJsonAsync<GitHubRelease>(cancellationToken: ct);
+            lock (_releaseCacheLock)
+            {
+                _cachedRelease = release;
+                // The full raw header value, not EntityTagHeaderValue.Tag — GitHub's ETags here are
+                // weak (W/"..."), and .Tag strips that prefix. Sending it back without the prefix
+                // would likely still match under HTTP's weak-comparison rules for GET, but there's
+                // no reason to depend on that when the exact original value is right here.
+                _cachedReleaseETag = response.Headers.TryGetValues("ETag", out var values) ? values.FirstOrDefault() : null;
+            }
+            return release;
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to check GitHub for the latest release");
-            return null;
+            // A transient failure shouldn't throw away a perfectly good cached answer — fall back
+            // to whatever was last confirmed rather than reporting "no update info" for what might
+            // just be one dropped request.
+            lock (_releaseCacheLock) return _cachedRelease;
         }
     }
 

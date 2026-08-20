@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.27.5 — Cheaper update checks
+
+- Update checks (on load and the periodic background poll) now use conditional requests against GitHub — when nothing's changed since the last check, GitHub sends back an empty "not modified" response instead of the full release payload every time.
+
 ## v1.27.4 — Mark for Trade: honest messaging for unowned cards
 
 - Fixed a follow-up to last update's Mark for Trade fix: a deck with cards you don't own at all got "0 updated" back from the server, which the toast then reported as "every card was already marked for trade" — false. It now correctly says how many cards aren't owned and can't be marked, instead of implying they were already handled.

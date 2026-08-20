@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.27.2 — Test Draw fix, mobile modal close button fix
+
+- Test Draw no longer includes Battlefields (a separate pool, never drawn from the Main Deck — same reasoning Runes were already excluded for) and now draws 4 cards instead of 7.
+- Fixed modal close buttons getting hidden behind the mobile browser's URL bar and becoming unreachable — every full-height modal now sizes against the real visible viewport instead of the browser's largest-possible one.
+
 ## v1.27.1 — Fix mobile Vault layout: no more horizontal scrolling
 
 - Mass Add/Scan Card/Check Price/Import Pack and the All/Owned/Missing/Favorites tabs used to share one row you had to swipe sideways through on a phone. Split into a labelled Tools row above the tabs, and every row in the Vault toolbar now wraps instead of scrolling on narrow screens — tools, tabs, and rarity/type/domain filters all go multi-line, and the grid/list view toggle moved down to sit with Sort below the set banner. Desktop is unchanged.

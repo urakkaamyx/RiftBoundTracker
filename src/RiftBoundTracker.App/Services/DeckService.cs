@@ -95,13 +95,21 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
     // quantity of each card rather than overwriting a higher count some other deck already set —
     // marking this deck for trade should never silently un-mark a card another deck already has
     // flagged for more copies. Clamped to OwnedCount same as every other binder-count write.
+    //
+    // Runes and Battlefields are excluded — they're separate resource pools (Rune Deck / shared
+    // Battlefield pool), not part of the 40-card deck a player actually means by "this deck" — same
+    // reasoning Test Draw excludes them for. A real deck reported this directly: marking it for
+    // trade flagged 23 Order Rune and a Battlefield for trade alongside the real cards, which isn't
+    // what "retiring this deck" means for either of those.
     public async Task<int> MarkAsTradeAsync(int deckId, CancellationToken ct = default)
     {
         var rows = await db.DeckCards.Where(dc => dc.DeckId == deckId).ToListAsync(ct);
         if (rows.Count == 0) return 0;
 
         var quantityByCard = rows.GroupBy(r => r.CardId).ToDictionary(g => g.Key, g => g.Sum(r => r.Quantity));
-        var cards = await db.Cards.Where(c => quantityByCard.Keys.Contains(c.Id)).ToListAsync(ct);
+        var cards = await db.Cards
+            .Where(c => quantityByCard.Keys.Contains(c.Id) && c.Type != "Rune" && c.Type != "Battlefield")
+            .ToListAsync(ct);
         var updated = 0;
         foreach (var card in cards)
         {

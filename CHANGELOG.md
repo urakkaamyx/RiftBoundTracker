@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.27.11 — Ask Rules: instant, verified answers for known rulings
+
+- Ask Rules now checks a 154-entry table of hand-verified and community-reviewed rulings (real card interactions, keyword mechanics, and common misconceptions) before asking the local AI anything — a match answers instantly and correctly with no AI involved at all. Covers a wide range of real rules questions, including several that the AI had been getting inconsistently right or wrong. Anything not in that table still goes through the AI as before.
+
 ## v1.27.10 — Ask Rules: fixed a repetition bug in local AI answers
 
 - Found and fixed a real bug where Ask Rules' local AI could occasionally get stuck repeating the same sentence or listing rule numbers over and over until it ran out of room to answer, instead of giving a normal response — caused by a repetition-penalty setting that was never actually being applied. Local AI answers should no longer do this.

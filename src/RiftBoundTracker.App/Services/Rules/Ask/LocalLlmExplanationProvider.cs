@@ -135,6 +135,12 @@ public sealed class LocalLlmExplanationProvider(
 
         If an issue's answer is "Insufficient", say plainly that the supplied evidence doesn't
         establish an answer — never guess or fill the gap with outside knowledge.
+
+        Write flowing plain-language prose only. The ruling below is internal bookkeeping for you to
+        read, not a template to echo — never repeat its "Issue:"/"Answer:"/"Reason:"/"Supporting rule
+        text:"/"Overall verdict:" labels or structure in your response, and never reply with anything
+        resembling "thank you for providing..." or an offer of further assistance. A player asked a
+        rules question and is waiting for the answer, not a receipt.
         """;
 
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -256,7 +262,24 @@ public sealed class LocalLlmExplanationProvider(
                 // that..." straight through every id instead of the one sentence the prompt asks for,
                 // never reaching EVIDENCE/VERDICT — a guaranteed validation failure every time, not an
                 // occasional one, confirmed across 6 of 7 real test questions before this fix.
-                SamplingPipeline = new DefaultSamplingPipeline { Temperature = 0.1f, RepeatPenalty = 1.1f },
+                //
+                // Grammar: real testing showed the dominant validation failure by far wasn't a wrong
+                // ruling, it was output that never reached a parseable ISSUE/VERDICT shape at all —
+                // instructions alone weren't reliable enough for this 1.5B model on a task it has no
+                // fine-tuning exposure to. A GBNF grammar makes the invalid shape unreachable rather
+                // than merely discouraged: the sampler can only choose among tokens that keep the
+                // output grammatically valid, so it structurally cannot fail to reach VERDICT, and
+                // cannot cite an EvidenceId outside this question's real evidence set (BuildAdjudication
+                // Grammar enumerates only the ids actually present). This can't fix a wrong or
+                // off-topic RULING — RulesAdjudicationValidator's IsGroundedInQuestion check still
+                // catches that — but it removes the format-following failures that dominated testing
+                // before this, which is what made adjudication validate on only ~1 in 14 real attempts.
+                SamplingPipeline = new DefaultSamplingPipeline
+                {
+                    Temperature = 0.1f,
+                    RepeatPenalty = 1.1f,
+                    Grammar = new Grammar(BuildAdjudicationGrammar(context.Evidence), "root"),
+                },
                 OverflowStrategy = LLama.Common.ContextOverflowStrategy.TruncateAndReprefill,
             };
 
@@ -471,6 +494,27 @@ public sealed class LocalLlmExplanationProvider(
         return $"Question: {context.Question}{cardText}\n\nRules evidence:\n{evidenceText}";
     }
 
+    // Forces the adjudicator's output into the exact shape RulesAdjudicationValidator expects —
+    // structurally, not just by instruction. Only called with a non-empty context.Evidence (Rules
+    // AnswerService gates AdjudicateAsync on having at least one evidence item), so the eid
+    // alternation is never empty. EvidenceRef.Id values are always "E<n>" from EvidenceIdMapper, so
+    // embedding them as literal GBNF string alternatives (not user input) is safe.
+    private static string BuildAdjudicationGrammar(IReadOnlyList<EvidenceRef> evidence)
+    {
+        var eidAlternatives = string.Join(" | ", evidence.Select(e => $"\"{e.Id}\""));
+        return $$"""
+            root ::= issue+ verdict
+            issue ::= "ISSUE:" " " freetext "\n" "ANSWER:" " " answer "\n" "REASON:" " " freetext "\n" "EVIDENCE:" " " eidlist "\n" missing? "---" "\n"
+            answer ::= "Yes" | "No" | "Insufficient"
+            missing ::= "MISSING:" " " freetext "\n"
+            verdict ::= "VERDICT:" " " verdictvalue "\n"?
+            verdictvalue ::= "Yes" | "No" | "Mixed" | "Insufficient evidence"
+            eidlist ::= eid ("," " "? eid)*
+            eid ::= {{eidAlternatives}}
+            freetext ::= [^\n]+
+            """;
+    }
+
     // Same perItemCap/totalBudget as BuildUserMessage — adjudication needs the same full evidence
     // text to actually reason from, so it faces the same context pressure the single-pass path did.
     private static string BuildAdjudicationUserMessage(RulesAdjudicationContext context)
@@ -499,8 +543,15 @@ public sealed class LocalLlmExplanationProvider(
             ? ""
             : $"\n\nYour previous attempt was rejected: {context.CorrectionNote} Follow the exact output format and cite only the E-ids listed above.";
 
+        // The question is stated again after the (up to 9000-char) evidence block, not just before
+        // it — a real failure mode in testing was the model drifting onto a blended/hallucinated
+        // question after reading through a long evidence list, sharing little or no content with the
+        // real one. Restating it immediately before generation starts (a "lost in the middle"
+        // mitigation — models attend most reliably to the start and end of a long context) makes it
+        // the last thing the model reads before it has to decide what ISSUE to write.
         return $"Adjudicate this real question — it is not one of the system prompt's examples:\n" +
-               $"Question: {context.Question}{cardText}\n\nEvidence:\n{evidenceText}{correctionText}";
+               $"Question: {context.Question}{cardText}\n\nEvidence:\n{evidenceText}{correctionText}" +
+               $"\n\nReminder — the real question you must adjudicate is: {context.Question}";
     }
 
     // Only the EvidenceRefs the adjudicator actually cited are included here — the explanation

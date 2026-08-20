@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 namespace RiftBoundTracker.App.Services.Rules;
 
 public sealed record RulesAdjudicationValidationResult(bool Success, RulesAdjudication? Adjudication, string? Error);
@@ -36,35 +34,37 @@ public sealed record RulesAdjudicationValidationResult(bool Success, RulesAdjudi
 /// </summary>
 public static class RulesAdjudicationValidator
 {
-    // Short, closed-class words that carry no topical content — excluded so overlap is measured on
-    // the nouns/verbs/concepts that actually identify what a question is about, not connective tissue
-    // ("does", "that", "have") every question and every hallucinated tangent will share regardless.
-    private static readonly HashSet<string> StopWords = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "does", "that", "this", "with", "from", "have", "make", "makes", "when", "which", "what",
-        "there", "their", "they", "them", "then", "than", "into", "onto", "will", "would", "could",
-        "should", "about", "these", "those", "such", "some", "same", "only", "also", "still", "even",
-        "being", "been", "were", "was", "are", "the", "and", "for", "not", "but", "you", "your",
-        "can", "who", "how", "why", "did", "let",
-    };
-
-    private static readonly Regex WordPattern = new(@"[A-Za-z]{4,}", RegexOptions.Compiled);
-
-    private static HashSet<string> SignificantWords(string text) =>
-        WordPattern.Matches(text).Select(m => m.Value.ToLowerInvariant())
-            .Where(w => !StopWords.Contains(w)).ToHashSet();
-
-    // Requires at least a third of the real question's significant words to reappear across the
-    // adjudicated issues. Deliberately lenient (ISSUE is a free paraphrase, not a quote) — this is
-    // aimed at catching wholesale topic drift, not penalizing normal rewording. Trivial questions
-    // with fewer than 2 significant words skip the check entirely (nothing meaningful to compare).
+    // Checks EVERY issue individually, not the issues' combined text — a real failure caught in
+    // testing was a two-issue adjudication where the first ISSUE was a hallucinated copy of a
+    // few-shot example (zero overlap with the real question) and the second was a genuine, grounded
+    // restatement; checking the concatenation let the grounded second issue cover for the
+    // hallucinated first one and the whole thing passed. A hallucinated issue must be caught on its
+    // own, regardless of what else is in the same adjudication. Deliberately lenient per issue
+    // (ISSUE is a free paraphrase, not a quote) — this targets wholesale topic drift, not normal
+    // rewording. Trivial questions with fewer than 2 significant words skip the check (nothing
+    // meaningful to compare).
     private static bool IsGroundedInQuestion(string originalQuestion, List<RulesAdjudicatedIssue> issues)
     {
-        var questionWords = SignificantWords(originalQuestion);
+        var questionWords = RulesTextSimilarity.SignificantWords(originalQuestion);
         if (questionWords.Count < 2) return true;
-        var issueWords = SignificantWords(string.Join(" ", issues.Select(i => i.Question)));
-        var overlap = questionWords.Count(w => issueWords.Contains(w));
-        return overlap >= Math.Max(1, questionWords.Count / 3);
+        var threshold = Math.Max(1, questionWords.Count / 3);
+        return issues.All(issue =>
+        {
+            var issueWords = RulesTextSimilarity.SignificantWords(issue.Question);
+            return questionWords.Count(w => issueWords.Contains(w)) >= threshold;
+        });
+    }
+
+    // A REASON that cites most or all of the evidence packet isn't citing — it's the model dumping
+    // every id it saw to trivially satisfy the "EVIDENCE:" line's grammar rather than actually
+    // deciding which 1-3 ids matter, something a structural grammar can't catch (any subset of valid
+    // ids is grammatically legal). Caught directly in testing: a two-issue adjudication cited all 16
+    // available ids for both issues. Only meaningful once there's enough evidence for "most of it"
+    // to mean something — a genuinely short evidence packet citing all of it is unremarkable.
+    private static bool HasIndiscriminateEvidenceCitation(List<RulesAdjudicatedIssue> issues, int totalEvidenceCount)
+    {
+        if (totalEvidenceCount < 5) return false;
+        return issues.Any(issue => issue.EvidenceIds.Distinct().Count() > totalEvidenceCount * 3 / 4);
     }
 
     public static RulesAdjudicationValidationResult ParseAndValidate(
@@ -113,8 +113,13 @@ public static class RulesAdjudicationValidator
 
         if (!IsGroundedInQuestion(originalQuestion, issues))
             return new RulesAdjudicationValidationResult(false, null,
-                $"The ISSUE line(s) don't address the actual question asked (\"{originalQuestion}\"). " +
-                "Restate and answer THIS exact question — do not substitute a different one.");
+                $"At least one ISSUE line doesn't address the actual question asked (\"{originalQuestion}\"). " +
+                "Every issue must be a real part of THIS exact question — do not substitute a different one.");
+
+        if (HasIndiscriminateEvidenceCitation(issues, evidence.Count))
+            return new RulesAdjudicationValidationResult(false, null,
+                "EVIDENCE cited nearly every id in the packet instead of just the ones that actually decide " +
+                "each issue. Cite only the 1-3 ids that matter for each issue, not the whole list.");
 
         return new RulesAdjudicationValidationResult(true, new RulesAdjudication(verdict, issues, missing), null);
     }

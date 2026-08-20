@@ -1,0 +1,3146 @@
+[
+  {
+    "id": "ruling-0",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If I play a unit to a battlefield I already control, does that make it Contested?",
+      "My opponent already controls a battlefield and I move a unit there — is it Contested now?",
+      "Does moving a unit onto a battlefield its controller already controls apply Contested status?"
+    ],
+    "ruleNumbers": [
+      "190.3.a",
+      "190.3.a.1"
+    ],
+    "answer": "No",
+    "explanation": "No — moving a unit onto a battlefield its controller already controls does not make it Contested. Contested status only applies when a unit's controller does NOT already control the battlefield it's moving to: \"Units moving to or being played to a battlefield apply Contested status if that battlefield is not already Contested and that Unit's controller does not already control that battlefield.\" Here the controller already controls the battlefield, so that second condition is false and Contested is never applied.",
+    "keywords": [
+      "Battlefield",
+      "Control",
+      "Temporary"
+    ]
+  },
+  {
+    "id": "ruling-1",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If I play a unit to a battlefield I don't control, and it isn't already Contested, does that make it Contested?",
+      "A battlefield isn't Contested and I don't control it — if I move a unit there, does it become Contested?"
+    ],
+    "ruleNumbers": [
+      "190.3.a",
+      "190.3.a.1"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes — that battlefield becomes Contested. Contested status applies \"if that battlefield is not already Contested and that Unit's controller does not already control that battlefield.\" Both parts of that condition are true in this situation (it isn't already Contested, and you don't already control it), so moving your unit there applies Contested status to it.",
+    "keywords": [
+      "Battlefield",
+      "Control",
+      "Temporary"
+    ]
+  },
+  {
+    "id": "ruling-2",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If a battlefield is already Contested and another unit moves there, does that apply Contested again?",
+      "Does moving a second unit to an already-Contested battlefield contest it a second time?"
+    ],
+    "ruleNumbers": [
+      "190.3.a.1"
+    ],
+    "answer": "No",
+    "explanation": "No — a second unit moving to a battlefield that's already Contested doesn't apply Contested again. The rule that grants Contested status explicitly requires \"that battlefield is not already Contested\"; since it already is, that condition isn't met, so this move doesn't trigger anything new (the battlefield simply stays Contested from whatever originally applied it).",
+    "keywords": [
+      "Battlefield",
+      "Control"
+    ]
+  },
+  {
+    "id": "ruling-3",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If I have Tank on my unit, do spells from enemies have to target me first as well?",
+      "Does Tank on my unit force enemy spells to target it before other units?",
+      "My unit has Tank — does that make it a required target for enemy spells too?"
+    ],
+    "ruleNumbers": [
+      "815.1.b",
+      "815.1.c.2",
+      "465.2.c.6"
+    ],
+    "answer": "No",
+    "explanation": "No — Tank has nothing to do with spell targeting. Tank only governs combat damage assignment priority: it's \"functionally short for 'I must be assigned lethal damage before any other unit with the same controller as me that does not have [Tank] during the Combat Damage step.'\" That's specifically about how a player assigns COMBAT damage during the Combat Damage step — it doesn't require enemy spells to target that unit at all. Whether a spell can target it depends entirely on that spell's own targeting text, not on Tank.",
+    "keywords": [
+      "Backline",
+      "Damage",
+      "Tank"
+    ]
+  },
+  {
+    "id": "ruling-4",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If a unit has Tank twice, does that do anything extra?",
+      "Does having two instances of Tank on the same unit stack?"
+    ],
+    "ruleNumbers": [
+      "815.2"
+    ],
+    "answer": "No",
+    "explanation": "No — multiple instances of Tank on the same unit are redundant. Having Tank twice doesn't do anything a single instance of Tank doesn't already do.",
+    "keywords": [
+      "Tank"
+    ]
+  },
+  {
+    "id": "ruling-5",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If a unit is Exhausted, can a spell that can only target Ready units target it?",
+      "My unit is Exhausted — can an enemy spell that requires targeting a Ready unit target it?"
+    ],
+    "ruleNumbers": [
+      "414.2",
+      "415.2"
+    ],
+    "answer": "No",
+    "explanation": "No — a spell that can only target Ready units can't target an Exhausted one. Exhausted and Ready are the two states a Game Object can be in for these purposes; a unit that's Exhausted isn't Ready, so it doesn't meet a spell's requirement to target only Ready units.",
+    "keywords": [
+      "Ready"
+    ]
+  },
+  {
+    "id": "ruling-6",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If I exhaust a unit that's already exhausted, does anything happen?",
+      "Can I exhaust a unit that is already exhausted?"
+    ],
+    "ruleNumbers": [
+      "414.1.b",
+      "414.1.c"
+    ],
+    "answer": "No",
+    "explanation": "No — nothing extra happens. A Game Object that's already Exhausted can't be Exhausted again, and if something instructs it to be Exhausted anyway, that instruction just does nothing additional.",
+    "keywords": []
+  },
+  {
+    "id": "ruling-7",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If I stun a unit that's already stunned, does anything extra happen?",
+      "Can a Stunned unit be Stunned again?"
+    ],
+    "ruleNumbers": [
+      "423.1.a.1"
+    ],
+    "answer": "No",
+    "explanation": "No — a unit that's already Stunned can't be Stunned again. Attempting to stun it a second time doesn't do anything further, and abilities that specifically trigger \"when you stun\" a unit won't trigger from that redundant attempt either.",
+    "keywords": [
+      "Ready",
+      "Stun",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "ruling-8",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If a spell is countered, does it still deal its damage?",
+      "If Defy counters a spell, does that countered spell still deal its damage?",
+      "Does a countered card or ability still resolve its effect?"
+    ],
+    "ruleNumbers": [
+      "425.1.a"
+    ],
+    "answer": "No",
+    "explanation": "No — a countered spell does nothing at all, including not dealing its damage. A card or ability that's Countered \"does nothing and is cleared from the chain\" — it's removed before it ever resolves, so none of its effects (damage included) happen.",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "ruling-9",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If my spell gets countered, do I get its costs back?",
+      "Does countering a card refund the costs paid to play it?"
+    ],
+    "ruleNumbers": [
+      "425.1.c"
+    ],
+    "answer": "No",
+    "explanation": "No — countering never refunds costs. Whatever you paid to play the card, activate the ability, or trigger the ability stays paid even though the card or ability itself does nothing once countered.",
+    "keywords": [
+      "Trigger"
+    ]
+  },
+  {
+    "id": "ruling-10",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If a spell is countered, does it still count as being played for other abilities that trigger on spells being played?",
+      "Does a countered card still trigger 'whenever you play a spell' abilities?"
+    ],
+    "ruleNumbers": [
+      "425.1.b"
+    ],
+    "answer": "No",
+    "explanation": "No — a countered card isn't considered to have been played at all for that purpose. Other abilities that trigger specifically on cards being played won't trigger off a card that ends up Countered.",
+    "keywords": [
+      "Trigger"
+    ]
+  },
+  {
+    "id": "ruling-11",
+    "source": "hand-verified",
+    "paraphrases": [
+      "Does marked damage on a unit reduce its Might?",
+      "If a unit has damage marked on it, does that lower its Might stat?",
+      "My unit has 5 Might and 3 damage marked on it — is its Might now 2?",
+      "Does taking damage permanently weaken a unit's Might?",
+      "If my unit has damage on it already, is its printed Might still accurate?",
+      "Does damage marked on a unit get subtracted from its Might when checking abilities that care about Might?"
+    ],
+    "ruleNumbers": [
+      "142.4.a",
+      "142.4.b",
+      "143.2.a"
+    ],
+    "answer": "No",
+    "explanation": "No — marked damage doesn't reduce a unit's Might. Might and marked damage are two separate, independently-tracked values. Lethal Damage — the amount that will kill the unit — is defined as \"a non-zero amount greater than or equal to that Unit's Might,\" meaning damage is compared against the unit's Might to determine when it dies, not subtracted from the Might number itself. A unit with 5 Might and 3 damage marked on it still has 5 Might; it just needs 2 more marked damage to reach lethal.",
+    "keywords": [
+      "Damage",
+      "Might"
+    ]
+  },
+  {
+    "id": "ruling-12",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If a unit gains Shield from two different sources, do the Shield values add up?",
+      "Does Shield stack when a unit is granted it by more than one source?"
+    ],
+    "ruleNumbers": [
+      "814.2"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes — Shield values from multiple sources add together. If a unit already has Shield and gains it from an additional source, the granted Shield Values are summed rather than one replacing the other.",
+    "keywords": [
+      "Shield",
+      "Tank"
+    ]
+  },
+  {
+    "id": "ruling-13",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If my deck runs out of cards, do I lose the game immediately?",
+      "What happens if I have to draw and my Main Deck is empty?",
+      "Does running out of cards in my deck cause an instant loss?"
+    ],
+    "ruleNumbers": [
+      "431.2.a",
+      "431.2.b",
+      "431.2.c",
+      "431.2.d",
+      "431.3.a"
+    ],
+    "answer": "No",
+    "explanation": "No — running out of cards doesn't cause an instant loss. Instead, you Burn Out: you recycle your trash back into your Main Deck (randomizing it), give an opponent 1 point, and then complete whatever action caused you to run out (such as drawing the card you needed). If your trash is also empty, this repeats — you keep giving away points each time — until an opponent's points reach the win threshold, at which point they win. There's no separate \"deck-out\" loss condition; it's all handled through this point-scoring loop.",
+    "keywords": [
+      "Action",
+      "Trash"
+    ]
+  },
+  {
+    "id": "ruling-14",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If I have two sources of Vision, do they trigger separately?",
+      "Do multiple instances of Vision each trigger on their own?"
+    ],
+    "ruleNumbers": [
+      "817.2"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes — each instance of Vision triggers on its own. Having two sources of Vision means you get two separate triggers, not one combined trigger.",
+    "keywords": [
+      "Trigger",
+      "Vision"
+    ]
+  },
+  {
+    "id": "descriptive-0",
+    "source": "hand-verified",
+    "paraphrases": [
+      "How does Exhaust work?",
+      "What does Exhaust mean?",
+      "Explain the Exhaust keyword."
+    ],
+    "ruleNumbers": [
+      "414.1",
+      "414.1.a",
+      "414.2",
+      "414.5"
+    ],
+    "answer": "Yes",
+    "explanation": "Exhausting is an action that marks a non-spell Game Object on the board as \"spent\" — you show this by rotating the card 90 degrees. Once something is Exhausted, that's a state other rules and effects can check or reference. Most Exhaust actions come up as costs — a card's ability might read \"Exhaust this\" or \"Exhaust me,\" shown by the Exhaust symbol, which represents paying that cost. An already-Exhausted object can't be Exhausted again.",
+    "keywords": [
+      "Action",
+      "Exhaust"
+    ]
+  },
+  {
+    "id": "descriptive-1",
+    "source": "hand-verified",
+    "paraphrases": [
+      "How does Ready work?",
+      "What does the Ready state mean?"
+    ],
+    "ruleNumbers": [
+      "415.1",
+      "415.2"
+    ],
+    "answer": "Yes",
+    "explanation": "Readying is an action that marks a non-spell Game Object on the board as available for action — it's the opposite of Exhausted. Ready is a state other rules and card effects can check or reference, such as a spell that can only target Ready units.",
+    "keywords": [
+      "Action",
+      "Ready"
+    ]
+  },
+  {
+    "id": "descriptive-2",
+    "source": "hand-verified",
+    "paraphrases": [
+      "How does Tank work?",
+      "What does the Tank keyword do?",
+      "Explain Tank."
+    ],
+    "ruleNumbers": [
+      "815.1",
+      "815.1.b",
+      "815.2",
+      "815.3"
+    ],
+    "answer": "Yes",
+    "explanation": "Tank is a passive ability keyword. It's functionally short for \"I must be assigned lethal damage before any other unit with the same controller as me that does not have Tank, during the Combat Damage step\" — so during combat, a player has to finish assigning lethal damage to their Tank units before assigning it to non-Tank units. It only affects that combat-damage assignment order — it doesn't affect spell targeting. Multiple instances of Tank on the same unit are redundant; having it twice doesn't do anything extra.",
+    "keywords": [
+      "Damage",
+      "Tank"
+    ]
+  },
+  {
+    "id": "descriptive-3",
+    "source": "hand-verified",
+    "paraphrases": [
+      "How does Counter work?",
+      "What happens when a spell is countered?",
+      "Explain Countering."
+    ],
+    "ruleNumbers": [
+      "425.1",
+      "425.1.a",
+      "425.1.b",
+      "425.1.c"
+    ],
+    "answer": "Yes",
+    "explanation": "Countering negates the execution, activation, or playing of a card or ability. A Countered card or ability does nothing at all and is cleared from the chain before it ever resolves — that includes not dealing damage or doing anything else its text says. It also isn't considered to have been played for abilities that trigger on cards being played, and countering never refunds the costs that were paid to play it.",
+    "keywords": [
+      "Chain",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "descriptive-4",
+    "source": "hand-verified",
+    "paraphrases": [
+      "How does Vision work?",
+      "What does the Vision keyword do?",
+      "Explain Vision."
+    ],
+    "ruleNumbers": [
+      "817.1",
+      "817.2",
+      "817.3"
+    ],
+    "answer": "Yes",
+    "explanation": "Vision is a Triggered Ability keyword. If a unit has more than one instance of Vision, each one triggers separately rather than combining into a single trigger. Vision, and whether or not a permanent has it, is a characteristic other game effects can check.",
+    "keywords": [
+      "Trigger",
+      "Vision"
+    ]
+  },
+  {
+    "id": "descriptive-5",
+    "source": "hand-verified",
+    "paraphrases": [
+      "How does Burn Out work?",
+      "What happens when I run out of cards in my deck?"
+    ],
+    "ruleNumbers": [
+      "431.1",
+      "431.2.a",
+      "431.2.b",
+      "431.2.c",
+      "431.2.d"
+    ],
+    "answer": "Yes",
+    "explanation": "Burning Out is what happens when you're required to move one or more cards from your Main Deck (most commonly, drawing) but there aren't enough cards left in it. When that happens: you perform as much of the action as you can, recycle your trash into your Main Deck (randomizing it), give an opponent 1 point, and then complete the rest of the original action. It isn't an instant loss — if your trash is also empty, you'll keep burning out and giving away points each time until an opponent reaches the win threshold.",
+    "keywords": [
+      "Action",
+      "Trash"
+    ]
+  },
+  {
+    "id": "insufficient-0",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If a unit with Vision is also Blinded, does Blinded cancel out Vision's effect?",
+      "Does the Blinded status stop a unit's Vision keyword from working?"
+    ],
+    "ruleNumbers": [
+      "817.1"
+    ],
+    "answer": "Insufficient",
+    "explanation": "I don't have rules evidence that establishes this — \"Blinded\" isn't a status or mechanic that appears anywhere in Riftbound's rules. I can tell you Vision is a real keyword, but I can't say how it would interact with something that isn't defined in this game, so I'm not going to guess.",
+    "keywords": [
+      "Vision"
+    ]
+  },
+  {
+    "id": "insufficient-1",
+    "source": "hand-verified",
+    "paraphrases": [
+      "Can a Frozen unit still attack?",
+      "Does Frozen stop a unit from being exhausted?"
+    ],
+    "ruleNumbers": [
+      "414"
+    ],
+    "answer": "Insufficient",
+    "explanation": "I don't have rules evidence that establishes this — \"Frozen\" isn't a status that appears anywhere in Riftbound's rules, so I can't say how it would interact with anything else in the game. I'm not going to guess at a mechanic that isn't defined.",
+    "keywords": [
+      "Exhaust"
+    ]
+  },
+  {
+    "id": "insufficient-2",
+    "source": "hand-verified",
+    "paraphrases": [
+      "If my unit is Poisoned, does it take damage every turn?",
+      "How does the Poison status work in Riftbound?"
+    ],
+    "ruleNumbers": [
+      "142"
+    ],
+    "answer": "Insufficient",
+    "explanation": "I don't have rules evidence that establishes this — \"Poison\"/\"Poisoned\" isn't a status that appears anywhere in Riftbound's rules. I can't describe how it would work when it isn't actually a mechanic in this game.",
+    "keywords": [
+      "Damage"
+    ]
+  },
+  {
+    "id": "insufficient-3",
+    "source": "hand-verified",
+    "paraphrases": [
+      "Does Petrify stop a unit from blocking?",
+      "Can a Corrupted unit still be targeted by spells?"
+    ],
+    "ruleNumbers": [
+      "423"
+    ],
+    "answer": "Insufficient",
+    "explanation": "I don't have rules evidence that establishes this — that isn't a status or mechanic that appears anywhere in Riftbound's rules, so I'm not going to guess at how it would work.",
+    "keywords": [
+      "Stun"
+    ]
+  },
+  {
+    "id": "insufficient-4",
+    "source": "hand-verified",
+    "paraphrases": [
+      "What's the weather like today?",
+      "How do I cook pasta?",
+      "What is the capital of France?",
+      "Can you recommend a good movie?",
+      "How much does a booster pack cost?",
+      "When is the next Riftbound set releasing?",
+      "Who is the best Riftbound player in the world?",
+      "What's your favorite card?"
+    ],
+    "ruleNumbers": [
+      "414"
+    ],
+    "answer": "Insufficient",
+    "explanation": "I don't have official Riftbound rules evidence that addresses this question — it's outside what I can answer from the rules library. I can only answer questions about Riftbound's official rules, keywords, errata, and card legality.",
+    "keywords": [
+      "Exhaust"
+    ]
+  },
+  {
+    "id": "faq-general-rules/abilities.mdx-0",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can triggered abilities trigger on an opponent's turn without Reaction?"
+    ],
+    "ruleNumbers": [
+      "383.3",
+      "383.3.c",
+      "383.3.a.2",
+      "402.4",
+      "404.2"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes.\nWhenever their condition is met, triggered abilities are added to the chain as pending items, regardless of whose turn it is. Rule 383.3 Rule 383.3.c\n\nThe Reaction keyword is not required for this to work on an opponent's turn.\nUnlike spells and activated abilities which require Reaction to be played outside your turn, satisfying a trigger condition automatically creates the pending ability.\nThat ability must still finalize: it may be removed if its controller declines an initial \"you may,\" if legal choices are unavailable, or if a required trigger cost is not paid. Rule 383.3.a.2 Rule 402.4 Rule 404.2\n\n Blade Dancer triggers when you choose a friendly unit.\n This can happen on your opponent's turn, for example when you play a Reaction spell that targets one of your own units.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "faq-general-rules/abilities.mdx-1",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can I react to triggered and activated abilities?"
+    ],
+    "ruleNumbers": [
+      "377.3",
+      "383.3",
+      "337.2",
+      "429.2",
+      "429.2.a"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, with one important exception: abilities that use the Add keyword.\n\nAll triggered and activated abilities are placed on the chain. Rule 377.3 Rule 383.3\nHowever, abilities that add resources resolve immediately when finalized, which means players do not receive priority to react to them. Rule 337.2 Rule 429.2 Rule 429.2.a\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "faq-general-rules/abilities.mdx-2",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "When do I choose whether to use a triggered ability that says \"you may\"?"
+    ],
+    "ruleNumbers": [
+      "383.3.a",
+      "402.1",
+      "383.3.a.2",
+      "402.1.a",
+      "402.2",
+      "404",
+      "383.3.a.3"
+    ],
+    "answer": "Yes",
+    "explanation": "It depends on where \"you may\" appears in the ability's effect.\n\nIf \"you may\" is the first part of the effect, you decide whether to perform the ability during finalization. Rule 383.3.a Rule 402.1\nIf you decline, the pending ability is removed from the chain and considered not to have triggered. Rule 383.3.a.2 Rule 402.1.a\nIf you accept, you make all choices required for finalization and pay any costs incurred during finalization before the ability can finalize. Rule 402.2 Rule 404\n\nIf \"you may\" appears later in the effect, you decide whether to perform that instruction when the ability resolves. Rule 383.3.a.3\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Chosen Champion",
+      "Control",
+      "Location",
+      "Recycle",
+      "Unique"
+    ]
+  },
+  {
+    "id": "faq-general-rules/abilities.mdx-3",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "When do I pay a cost in a triggered ability that says \"you may\"?"
+    ],
+    "ruleNumbers": [
+      "383.3.b",
+      "383.3.b.1",
+      "740.4.a.2",
+      "403.1.b.1",
+      "404.2",
+      "740.4.a.2.a"
+    ],
+    "answer": "Yes",
+    "explanation": "It depends on where the cost appears in the triggered ability's effect.\n\nIn rules text phrased as \"[do X] to [do Y],\" the [do X] part is considered a cost within instructions.\nIf that cost appears at the beginning of a triggered effect or immediately after an initial \"you may,\" it becomes the ability's base cost and must be paid during finalization. Rule 383.3.b Rule 383.3.b.1 Rule 740.4.a.2 Rule 403.1.b.1\nIf you decline to pay, the pending ability is removed from the chain without finalizing. Rule 404.2\n\nIf the cost appears later in the triggered effect, you pay it when the ability resolves. Rule 740.4.a.2.a\n\n Vayne, Hunter's ability reads \"When I conquer, you may pay <Energy value={1} /> to return me to my owner's hand.\"\n It will trigger when you conquer.\n At finalization, you must decide whether to pay the <Energy value={1} /> cost.\n If you decline, the pending ability is removed from the chain.\n If you pay, the ability finalizes and opponents have the opportunity to react before it resolves.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Deathknell",
+      "Ready",
+      "Recycle",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-general-rules/chain-and-priority.mdx-4",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can I react to units being played?"
+    ],
+    "ruleNumbers": [
+      "337.2",
+      "359.2",
+      "383.4.a.2",
+      "383.2.c",
+      "383.3",
+      "337.4"
+    ],
+    "answer": "No",
+    "explanation": "No, as units enter the board immediately without priority being passed to other players.\n\nUnlike spells, units resolve the moment they are finalized and do not open a window of opportunity for reactions. Rule 337.2 Rule 359.2\n\nIf the unit has a play effect (\"When you play me…\"), or if another permanent's triggered ability fires as it enters the board, those triggered abilities are placed on the chain as pending items *after* the unit has already entered. Rule 383.4.a.2 Rule 383.2.c Rule 383.3\nOnce those pending items are finalized with no further items pending, priority passes and players may react Rule 337.4 — but by that point, the unit is already in play.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-general-rules/chain-and-priority.mdx-5",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "In what order are multiple pending chain items finalized and resolved?"
+    ],
+    "ruleNumbers": [
+      "337.1",
+      "337.1.b",
+      "337.2",
+      "337.3",
+      "337.4",
+      "340.1"
+    ],
+    "answer": "Yes",
+    "explanation": "Pending items are finalized in the order they were added, starting with the oldest. Rule 337.1 Rule 337.1.b\nA unit, gear, or ability that adds resources resolves immediately when it finalizes. Rule 337.2\nOther finalized items remain on the chain while the remaining pending items are processed.\n\nPlayers do not receive priority until no pending items remain. Rule 337.3 Rule 337.4\nAfter players pass priority, finalized chain items resolve in the opposite direction, starting with the newest. Rule 340.1\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "faq-general-rules/chain-and-priority.mdx-6",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can I play a reaction after one, but not all, items on the chain have resolved?"
+    ],
+    "ruleNumbers": [
+      "340.4"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, once you have gained priority.\nThe chain does not have to resolve in its entirety prior to (re)gaining priority, unlike in some other TCGs.\n\nAny time the most recent item on the chain resolves and there are no pending items, the controller of the newest item on the chain gains priority. Rule 340.4\n\n You put Singularity on the chain targeting an opponent's unit.\n Your opponent reacts by putting their Wind Wall on the chain, attempting to counter the Singularity.\n In response, you play Stupefy, in the hopes of drawing into a counterspell of your own.\n Once Stupefy resolves and you draw a card, priority is back to your opponent as the most recent item is their Wind Wall.\n After they pass priority, you can react once again and play your own counterspell, assuming you drew it off of the Stupefy.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "faq-general-rules/chain-and-priority.mdx-7",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Outside a showdown, do I lose control of a battlefield as soon as my last unit leaves it?"
+    ],
+    "ruleNumbers": [
+      "190.4.c",
+      "323.6",
+      "309.1"
+    ],
+    "answer": "No",
+    "explanation": "No, not immediately.\n\nOutside a showdown, control of an empty battlefield is checked during a cleanup, not at the moment the last unit leaves.\nYou lose control only if the battlefield is still empty and the turn is in an open state. Rule 190.4.c Rule 323.6\n\nIf the chain still contains an item when a cleanup occurs, the turn is in a closed state and you keep control through that cleanup. Rule 309.1\nYou can lose control during a later cleanup after the turn returns to an open state if the battlefield remains empty.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Control",
+      "Showdown"
+    ]
+  },
+  {
+    "id": "faq-general-rules/costs-and-payments.mdx-8",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "How is a card's total cost determined?"
+    ],
+    "ruleNumbers": [
+      "356.1",
+      "356.2",
+      "356.3",
+      "356.4",
+      "356.5",
+      "356.4.c",
+      "356.4.d",
+      "356.4.c.1",
+      "356.4.d.1",
+      "356.4.e"
+    ],
+    "answer": "Yes",
+    "explanation": "A card's total cost is determined in a fixed sequence, rather than by applying every change at once:\n\n1. Start with the card's base cost and apply any changes to it. Rule 356.1\n2. Add all mandatory additional costs and any optional additional costs you chose to pay. Rule 356.2\n3. Apply cost increases. Rule 356.3\n4. Apply discounts. Rule 356.4\n5. Apply any effects that modify the final total cost. Rule 356.5\n\nDiscounts that apply to one specific part of a cost are applied before discounts that apply to the total cost. Rule 356.4.c Rule 356.4.d\nIf multiple discounts apply within either group, you may choose their order. Rule 356.4.c.1 Rule 356.4.d.1\nAny minimum imposed by a discount applies only to that discount, so a later discount can reduce the cost further. Rule 356.4.e\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Control",
+      "Might"
+    ]
+  },
+  {
+    "id": "faq-general-rules/costs-and-payments.mdx-9",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Are paid costs refunded if a card or ability is countered?"
+    ],
+    "ruleNumbers": [
+      "425.1.c",
+      "425.1.c.1",
+      "425.1.a"
+    ],
+    "answer": "No",
+    "explanation": "No.\nCountering does not refund any costs paid to play a card, activate an ability, or trigger an ability, including additional costs. Rule 425.1.c Rule 425.1.c.1\n\nA countered card or ability does nothing and is cleared from the chain, Rule 425.1.a but anything already spent, discarded, killed, or otherwise paid as a cost remains paid.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-general-rules/costs-and-payments.mdx-10",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What are optional additional costs?"
+    ],
+    "ruleNumbers": [
+      "356.2.b.1",
+      "805.1.a",
+      "820.1.d",
+      "355.1.a",
+      "356.2",
+      "356.4"
+    ],
+    "answer": "Yes",
+    "explanation": "Optional additional costs are additional costs a player may choose to pay. Rule 356.2.b.1\n\nTheir rules text uses both \"may\" and the exact phrase \"as an additional cost.\"\nAccelerate and Repeat are keyworded optional additional costs. Rule 805.1.a Rule 820.1.d\n\nThe player chooses whether to pay an optional additional cost while making relevant choices.\nIf chosen, it is included while determining the card's total cost before applicable discounts are applied. Rule 355.1.a Rule 356.2 Rule 356.4\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Accelerate",
+      "Chain",
+      "Ready",
+      "Repeat"
+    ]
+  },
+  {
+    "id": "faq-general-rules/costs-and-payments.mdx-11",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What costs still apply when I play a card ignoring one or more of its costs?"
+    ],
+    "ruleNumbers": [
+      "356.1.b.1",
+      "356.1.b.2",
+      "356.1.b.3",
+      "356.2.a.1",
+      "356.2.b.1",
+      "356.5.a",
+      "356.3"
+    ],
+    "answer": "Yes",
+    "explanation": "Additional costs and cost increases still apply.\nPlaying a card \"ignoring its cost\" sets only its base energy and power costs to zero, while ignoring only its energy or power cost sets only that base cost to zero. Rule 356.1.b.1 Rule 356.1.b.2\nAdditional costs and cost increases are applied afterward and can raise its total cost above zero. Rule 356.1.b.3\n\nMandatory additional costs must still be paid, while optional additional costs may still be chosen and paid. Rule 356.2.a.1 Rule 356.2.b.1\nBy contrast, \"ignoring any and all costs\" sets the card's total cost to zero, including non-standard costs. Rule 356.5.a\n\nFizz, Trickster sets the chosen spell's base energy cost to <Energy value={0} />.\nIf an opponent controls Helm of Suppression, Helm's cost increase is applied afterward, so the spell costs <Energy value={1} />, or <Energy value={1} />Universal if Helm is Empowered. Rule 356.1.b.2 Rule 356.1.b.3 Rule 356.3\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Accelerate",
+      "Legion"
+    ]
+  },
+  {
+    "id": "faq-general-rules/costs-and-payments.mdx-12",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can players react while costs are being paid?"
+    ],
+    "ruleNumbers": [
+      "357",
+      "404",
+      "337.1.a",
+      "429.3",
+      "444.2.c",
+      "429.2",
+      "429.2.a"
+    ],
+    "answer": "Yes",
+    "explanation": "Not through a normal reaction window.\nCosts are paid while the card or ability is being finalized, and finalization does not pass priority. Rule 357 Rule 404 Rule 337.1.a\n\nWhen resources are required, the player paying them may activate eligible Add abilities with Reaction during that payment. Rule 429.3 Rule 444.2.c\nThis is a special permission for resource payment, not a normal reaction window: those abilities finalize and resolve immediately without passing priority. Rule 429.2 Rule 429.2.a\n\nAny normal opportunity to react comes only after finalization, when the costs have already been paid.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Reaction"
+    ]
+  },
+  {
+    "id": "faq-general-rules/movement.mdx-13",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does a unit move when it enters the board?"
+    ],
+    "ruleNumbers": [
+      "446.1",
+      "446.2"
+    ],
+    "answer": "No",
+    "explanation": "No.\n\nMoving means changing a permanent's position from one space on the board to another. Rule 446.1\nA card entering the board from another game zone is a zone change, not a move. Rule 446.2\n\nPlaying or creating a unit at a battlefield therefore does not fulfill an ability that triggers when the unit moves there.\nReplacing where a unit enters the board also does not turn that entry into a move.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": []
+  },
+  {
+    "id": "faq-general-rules/movement.mdx-14",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can I choose a unit's current location as its move destination?"
+    ],
+    "ruleNumbers": [
+      "355.4",
+      "355.4.a",
+      "055"
+    ],
+    "answer": "No",
+    "explanation": "No.\n\nWhen an effect requires a player to choose a move destination for a unit, that destination must differ from the unit's current location. Rule 355.4 Rule 355.4.a\nIf the card specifies the destination instead, the player makes no destination choice and this restriction does not affect whether the unit is a legal target.\nIf the unit is already at that specified destination when the instruction resolves, the move is impossible and is ignored. Rule 055\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Location"
+    ]
+  },
+  {
+    "id": "faq-general-rules/playing-cards.mdx-15",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "When does a card leave my trash when I play it from there?"
+    ],
+    "ruleNumbers": [
+      "354",
+      "354.2"
+    ],
+    "answer": "Yes",
+    "explanation": "As soon as you begin playing it.\nThe first step of playing a card moves it from its current zone to the chain, where it waits to be finalized. Rule 354 Rule 354.2\n\nOnce you begin playing a card from your trash, it is no longer there while you make choices, determine its total cost, or resolve it.\nIf the card counts copies of itself in your trash, only the other copies still there count.\nLikewise, if its cost is reduced for each card in your trash, it does not count itself toward that reduction.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "faq-general-rules/showdowns.mdx-16",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "When does a showdown close?"
+    ],
+    "ruleNumbers": [
+      "348",
+      "323.5",
+      "347.1"
+    ],
+    "answer": "Yes",
+    "explanation": "Under normal game procedure, a showdown does not close abruptly.\nIt ends once all players have consecutively passed focus on an empty chain. Rule 348\n\n You control a battlefield with a 2 might Stalwart Poro on it.\n Your opponent moves their Ravenbloom Student into that battlefield starting a showdown.\n When combat opens, Stalwart Poro becomes a defender and its Shield increases its might to 3.\n Once your opponent gains focus, they play Hextech Ray targeting Stalwart Poro.\n Hextech Ray resolves, marking 3 damage on it.\n During the resulting cleanup, Stalwart Poro is killed for lethal damage. Rule 323.5\n The showdown *does not* end right away and you gain focus as usual.\n You still have the opportunity to play a legally timed card or ability in an attempt to prevent your opponent from conquering. Rule 347.1\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Damage",
+      "Showdown",
+      "Trash"
+    ]
+  },
+  {
+    "id": "faq-general-rules/showdowns.mdx-17",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What happens if another player's unit moves into an existing non-combat showdown?"
+    ],
+    "ruleNumbers": [
+      "316.8.b.1.a",
+      "323.9",
+      "323.14",
+      "464.2.c.1",
+      "464.2.c.2",
+      "464.2.c.3"
+    ],
+    "answer": "Yes",
+    "explanation": "When a unit controlled by a different player becomes present during a non-combat showdown, combat is staged and the showdown becomes a combat showdown during the cleanup following that unit's arrival. Rule 316.8.b.1.a Rule 323.9 Rule 323.14\n\nAs combat opens, the player who originally applied contested status to the battlefield becomes the attacker, Rule 464.2.c.1 and the player who moves in during the showdown becomes the defender. Rule 464.2.c.2\nTheir units at that battlefield receive the corresponding designations then, Rule 464.2.c.3 enabling combat-related keywords such as Assault and Shield and causing attack or defend triggers to happen.\n\nThis interaction is commonly called the surprise defender: the player who first contested the battlefield remains the attacker, while the player joining later becomes the defender.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Showdown"
+    ]
+  },
+  {
+    "id": "faq-general-rules/targeting.mdx-18",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does \"Kill a unit if it has 3 might or less\" mean I can only choose a unit with 3 might or less?"
+    ],
+    "ruleNumbers": [
+      "355.9.b"
+    ],
+    "answer": "No",
+    "explanation": "No.\nOnly words that describe the target restrict which objects can be chosen.\n\nFor example, \"Kill a unit with 3 might or less\" can target only a unit meeting that description. Rule 355.9.b\n\nA separate condition on an effect does not restrict its targets.\n\"Kill a unit if it has 3 might or less\" can target any otherwise legal unit; the might condition is checked when that instruction resolves.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Control",
+      "Might"
+    ]
+  },
+  {
+    "id": "faq-general-rules/targeting.mdx-19",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What happens if a target becomes illegal before a spell or ability resolves?"
+    ],
+    "ruleNumbers": [
+      "359.3.e.5",
+      "359.3.e.6",
+      "359.3.e.12",
+      "359.3.e.14.a"
+    ],
+    "answer": "Yes",
+    "explanation": "The illegal target is unaffected, but the spell or ability still resolves.\nInstructions related to that target cannot be followed, while independent instructions continue normally. Rule 359.3.e.5 Rule 359.3.e.6\n\nIf an instruction needs information from the illegal target, that information is null and calculations using it are ignored. Rule 359.3.e.12\nIf a later instruction is linked to an earlier instruction that was ignored, the later instruction is also ignored. Rule 359.3.e.14.a\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Banish",
+      "Battlefield",
+      "Chain",
+      "Damage",
+      "Hidden",
+      "Location",
+      "Might",
+      "Reaction",
+      "Recycle"
+    ]
+  },
+  {
+    "id": "faq-mechanics/ambush.mdx-20",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can I use Ambush to play a unit to my base?"
+    ],
+    "ruleNumbers": [
+      "822.1.b",
+      "822.1.c",
+      "355.2.a"
+    ],
+    "answer": "No",
+    "explanation": "No.\nAmbush only permits playing a unit to a battlefield; it has no effect on your base.\n\nAmbush is shorthand for \"I may be played to a battlefield where you control units\" and \"I have Reaction as long as I'm being played to a battlefield where you control units.\" Rule 822.1.b\nThe permission Ambush grants is strictly limited to battlefields — a base is not a battlefield, so Ambush never makes it a valid destination. Rule 822.1.c\nPlaying a unit to your base is already permitted by the default rules for valid locations, Rule 355.2.a but choosing base does not grant the unit Reaction.\nIt can be played there only at its normal timing.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Control",
+      "Reaction"
+    ]
+  },
+  {
+    "id": "faq-mechanics/ambush.mdx-21",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can opponents react to a unit being played with Ambush?"
+    ],
+    "ruleNumbers": [
+      "337.2",
+      "337.1.a"
+    ],
+    "answer": "No",
+    "explanation": "No.\nAmbush grants the unit Reaction speed, which determines when it can be played — it does not create a window for opponents to respond before the unit enters.\n\nUnits resolve the moment they are finalized without entering the Execute step, Rule 337.2 and finalization does not pass priority. Rule 337.1.a\nThe unit enters the board immediately, just as any unit played during an open state would (see also Can I react to units being played?).\n\nThis is a common point of confusion with cards like Kha'Zix, Mutating Horror, which has Ambush and triggers if an enemy unit is alone when he attacks or defends.\nAn opponent cannot play a unit in response to Kha'Zix being placed on the chain in an attempt to break the \"alone\" condition before he enters.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "faq-mechanics/ambush.mdx-22",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Who gets to act after I Ambush a unit during a showdown?"
+    ],
+    "ruleNumbers": [
+      "340.2.a",
+      "346",
+      "340.4"
+    ],
+    "answer": "Yes",
+    "explanation": "It depends on whether anything else remains on the chain once the unit enters.\n\nWhen played onto an empty chain, the unit enters immediately, the chain empties, and the turn returns to an open state during the showdown — focus passes to the next player in turn order. Rule 340.2.a\nThis catches many players off guard — you move in to attack, Ambush a unit, and expect to retain focus, but your opponent gets to act first.\n\nWhen played in response to something already on the chain — such as attack or defend triggers, or a spell — the turn does not return to an open state after the unit resolves, so focus does not pass. Rule 346\nPriority instead passes to the controller of the newest remaining item on the chain. Rule 340.4\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Showdown"
+    ]
+  },
+  {
+    "id": "faq-mechanics/deathknell.mdx-23",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "When is a Deathknell ability added to the chain?"
+    ],
+    "ruleNumbers": [
+      "808.1.d.2",
+      "808.1.d.3",
+      "808.1.d.1",
+      "808.2",
+      "808.2.a"
+    ],
+    "answer": "Yes",
+    "explanation": "A Deathknell ability is added to the chain as a pending item before the dying permanent moves to the trash. Rule 808.1.d.2\nBefore the permanent leaves the board, the game records its location, attributes, and other information needed by its ability. Rule 808.1.d.3\nIf the permanent's death is replaced and it is not sent to the trash, the pending ability is removed from the chain. Rule 808.1.d.1\nEach instance of Deathknell triggers separately and creates its own pending item. Rule 808.2 Rule 808.2.a\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Deathknell",
+      "Location",
+      "Trash",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-mechanics/deathknell.mdx-24",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "When does a Deathknell ability resolve if its unit dies during a cleanup?"
+    ],
+    "ruleNumbers": [
+      "323.4",
+      "323.5",
+      "808.1.d.2",
+      "334",
+      "466.1.a.1",
+      "334.2",
+      "337.4"
+    ],
+    "answer": "Yes",
+    "explanation": "After the cleanup finishes.\nThe ability becomes a pending item before the unit moves to the trash. Rule 323.4 Rule 323.5 Rule 808.1.d.2\nThe remaining cleanup steps are then completed before that pending ability can be finalized. Rule 334\n\nDuring a combat cleanup, this means surviving units are healed before the Deathknell ability is finalized or resolved. Rule 466.1.a.1\nAfter the cleanup, the ability is finalized, any required targets are chosen, and players receive priority before it resolves. Rule 334.2 Rule 337.4\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Damage",
+      "Deathknell",
+      "Heal",
+      "Location",
+      "Trash",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-mechanics/deathknell.mdx-25",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Deathknell resolve before the card or ability that killed the unit?"
+    ],
+    "ruleNumbers": [
+      "357.2",
+      "404.1",
+      "808.1.d.2",
+      "359.3.b",
+      "406.3",
+      "340.1",
+      "337.2",
+      "354.3",
+      "334.2"
+    ],
+    "answer": "Yes",
+    "explanation": "It depends on when the unit is killed and what kind of chain item caused it.\n\nKilled as a cost:\nIf a unit is killed to pay a cost, the kill happens while the card or ability is being finalized. Rule 357.2 Rule 404.1\nThe Deathknell ability becomes pending above that chain item. Rule 808.1.d.2\n\nIf the original item is a spell or an ability that does not add resources, the pending Deathknell ability is finalized before play continues. Rule 359.3.b Rule 406.3\nBecause it is newer on the chain, the Deathknell ability resolves before that spell or ability. Rule 340.1\n\nIf the original item is a unit, gear, or ability that adds resources, it resolves immediately when finalized, before the pending Deathknell ability is processed. Rule 337.2\nThe Deathknell ability resolves afterward.\n\nKilled during resolution:\nIf a resolving card or ability kills the unit, that chain item continues resolving without interruption. Rule 354.3\nThe Deathknell ability becomes pending, but it cannot be finalized until the current chain item finishes resolving. Rule 334.2\nThe killing card or ability therefore finishes before the Deathknell ability can resolve.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Trash",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-mechanics/empower.mdx-26",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can opponents react to an Empower ability?"
+    ],
+    "ruleNumbers": [
+      "827.1",
+      "377.3",
+      "377.3.b.2",
+      "337.2",
+      "429.2"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes.\nEmpower is an activated ability keyword, Rule 827.1 and activated abilities use the chain. Rule 377.3\nAfter the ability is finalized, opponents have an opportunity to react before it resolves. Rule 377.3.b.2\n\nThis differs from activated abilities that use Add, which resolve immediately when finalized and cannot be reacted to. Rule 337.2 Rule 429.2\nSee also Can I react to triggered and activated abilities?.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Empower"
+    ]
+  },
+  {
+    "id": "faq-mechanics/empower.mdx-27",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "When can I activate an Empower ability?"
+    ],
+    "ruleNumbers": [
+      "827.1",
+      "381",
+      "308.1.a",
+      "309.1.a",
+      "827.1.c.4"
+    ],
+    "answer": "Yes",
+    "explanation": "By default, only during your own Main Phase while the turn is in a neutral open state.\n\nAn Empower ability is an activated ability, Rule 827.1 and activated abilities can normally be activated only on their controller's turn during an open state. Rule 381\nBecause Empower has neither Action nor Reaction by default, it cannot be activated during a showdown or in response to another chain item. Rule 308.1.a Rule 309.1.a\n\nAn Empower ability may have text that changes its timing. Rule 827.1.c.4\nIf it explicitly has Action or Reaction, follow the permissions of that keyword instead.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Action",
+      "Empower",
+      "Reaction",
+      "Showdown"
+    ]
+  },
+  {
+    "id": "faq-mechanics/empower.mdx-28",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does a \"When I become Empowered\" ability trigger if the unit leaves the board before its Empower ability resolves?"
+    ],
+    "ruleNumbers": [
+      "441.2",
+      "384.2",
+      "828.1.c",
+      "828.1.d"
+    ],
+    "answer": "No",
+    "explanation": "No.\nIf the unit is killed, returned to hand, or otherwise leaves the board before its Empower ability resolves, it does not become Empowered and its \"When I become Empowered\" ability does not trigger.\n\nThe Empower ability remains on the chain, but the Empowered state exists only for game objects on the board. Rule 441.2\nBecause triggered abilities of permanents can evaluate their conditions only while their source is on the board, its dependent \"When I become Empowered\" ability is not active and does not trigger. Rule 384.2 Rule 828.1.c Rule 828.1.d\n\n A player activates Mel, Defiant Soul's Empower ability by discarding a spell.\n An opponent responds with Star-Crossed and returns Mel to her owner's hand.\n When the Empower ability resolves, Mel is no longer a game object on the board and does not become Empowered.\n Her \"When I become Empowered\" ability does not trigger, so no enemy unit is banished.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Empowered",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-mechanics/empower.mdx-29",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can a unit or gear without an Empower or Empowered ability become Empowered?"
+    ],
+    "ruleNumbers": [
+      "441.1",
+      "441.2",
+      "441.3",
+      "441.3.a"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, if a game effect instructs a player to empower it.\n\nThe Empowered state can apply to game objects on the board; it is not restricted to cards with printed Empower or Empowered abilities. Rule 441.1 Rule 441.2\nPlayers cannot empower a game object at will, however; they may do so only when directed by a game effect. Rule 441.3 Rule 441.3.a\n\n Sanction can empower any unit that is a legal choice, even if that unit has no printed reference to Empower or Empowered.\n Once that unit is Empowered, effects such as Aurok General's ability can identify and affect it normally.\n\n Hextech Formula can empower another gear, even if that gear has no printed reference to Empower or Empowered.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Action",
+      "Empower",
+      "Empowered"
+    ]
+  },
+  {
+    "id": "faq-mechanics/equipment.mdx-30",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What happens to attached equipment when a unit dies?"
+    ],
+    "ruleNumbers": [
+      "719.5",
+      "435.4.b",
+      "435.4.a"
+    ],
+    "answer": "Yes",
+    "explanation": "The equipment detaches and remains at the unit's last location, recalling if at a battlefield.\n\nWhen a unit with attached equipment dies, the equipment detaches and remains at the location the unit occupied before dying. Rule 719.5 Rule 435.4.b\n\nIf that location is a battlefield, the detached equipment will be recalled to its controller's base during the next cleanup. Rule 435.4.a\nIf that location is the controller's base, the equipment simply remains there.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Location"
+    ]
+  },
+  {
+    "id": "faq-mechanics/equipment.mdx-31",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What happens to attached equipment when you take control of an enemy unit?"
+    ],
+    "ruleNumbers": [
+      "718.5.f",
+      "719.5",
+      "435.4.b",
+      "435.4.a",
+      "323.7",
+      "718.5.b",
+      "821.1.c",
+      "821.1.c.4",
+      "821.1.c.5"
+    ],
+    "answer": "Yes",
+    "explanation": "Equipment stays attached but its controller does not change — only the top-most unit's controller changes.\n\nWhen you take control of a unit, any equipment attached to it retains its current controller.\nChanges in control of the top-most card do not affect control of attached cards, and vice versa. Rule 718.5.f\n\nWhen the equipment detaches, it remains at the unit's last location. Rule 719.5 Rule 435.4.b\nIf that location is a battlefield, it is recalled to its controller's base during the next cleanup. Rule 435.4.a\nIf that location is another player's base, the equipment remains there until the next cleanup, when it is recalled to its controller's base. Rule 323.7\n\nBecause the equipment remains under the other player's control, that player can play a unit with Weaponmaster and choose the equipment, even while it is attached to the unit you control. Rule 718.5.b Rule 821.1.c\nIf its Equip cost can be paid and it can legally be detached and attached, it moves to the newly played unit. Rule 821.1.c.4 Rule 821.1.c.5\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Control",
+      "Equip",
+      "Hidden",
+      "Location",
+      "Trash",
+      "Weaponmaster"
+    ]
+  },
+  {
+    "id": "faq-mechanics/equipment.mdx-32",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Do Equip, Quick-Draw, or Weaponmaster count as choosing a unit?"
+    ],
+    "ruleNumbers": [
+      "818.1.b.1",
+      "355.7",
+      "819.1.d",
+      "434.3",
+      "355.10",
+      "821.1.c",
+      "821.1.c.6"
+    ],
+    "answer": "Yes",
+    "explanation": "Equip and QuickDraw choose units; Weaponmaster does not.\n\nSome abilities trigger or care about when you choose friendly units.\nHere's how equipment-related effects interact with such abilities:\n\n- When you activate a gear's Equip ability, you choose a unit you control to attach the equipment to. Rule 818.1.b.1\nThis choice is a target, so activating Equip counts as choosing a unit. Rule 355.7\n- When you play a gear with QuickDraw, its triggered ability instructs you to \"attach it to a Unit you control\". Rule 819.1.d\nWhile attaching cards doesn't inherently choose or specify a target, Rule 434.3 QuickDraw's ability does require you to choose which unit to attach to. Rule 355.10\nThis counts as choosing a unit.\n- When you play a unit with Weaponmaster, you choose an equipment you control, not the unit. Rule 821.1.c\nThe rules explicitly state that \"The Equip ability is not activated this way, and the unit with the Weaponmaster ability is not chosen\". Rule 821.1.c.6\nTherefore, Weaponmaster does not count as choosing a unit.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Control",
+      "Equip",
+      "Quick-Draw",
+      "Reaction",
+      "Weaponmaster"
+    ]
+  },
+  {
+    "id": "faq-mechanics/equipment.mdx-33",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can opponents react to Equip, Quick-Draw, or Weaponmaster abilities?"
+    ],
+    "ruleNumbers": [
+      "818.1",
+      "377.3",
+      "377.3.b.2",
+      "337.2",
+      "819.1.d",
+      "383.4.a.2",
+      "821.1"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes — all three equipment-related abilities create chain items that opponents can respond to before the attachment resolves.\n\nEquip is an activated ability. Rule 818.1\nActivated abilities use the chain, Rule 377.3 so when you activate Equip, opponents have an opportunity to play a Reaction spell or ability before the attachment resolves. Rule 377.3.b.2\n\nWhen you play a QuickDraw gear, the gear itself resolves immediately when finalized and cannot be reacted to. Rule 337.2\nHowever, QuickDraw's triggered ability — \"When you play this, attach it to a unit you control\" Rule 819.1.d — is placed on the chain as a separate item. Rule 383.4.a.2\nOpponents can respond to that ability before the attachment resolves.\n\nWeaponmaster is also a triggered ability keyword. Rule 821.1\nIts ability triggers when you play the unit, and is placed on the chain just like any other triggered ability. Rule 383.4.a.2\nOpponents can respond to it before the equipment is attached.\n\nSkipping straight to attaching without checking for reactions is not correct play for any of these abilities.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Control",
+      "Equip",
+      "Quick-Draw",
+      "Reaction",
+      "Weaponmaster"
+    ]
+  },
+  {
+    "id": "faq-mechanics/flow.mdx-34",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "When can I play a spell using Flow?"
+    ],
+    "ruleNumbers": [
+      "829.1.b",
+      "829.1.b.2"
+    ],
+    "answer": "Yes",
+    "explanation": "You can play it only when its existing timing restrictions allow.\n\nFlow lets you play the spell from your trash for its Flow cost, but it changes no other permissions or timing restrictions. Rule 829.1.b Rule 829.1.b.2\nFor example, Flow does not grant a spell Reaction or let you play an Action outside its normal timing.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Banish",
+      "Flow",
+      "Trash"
+    ]
+  },
+  {
+    "id": "faq-mechanics/flow.mdx-35",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Where does a spell played using Flow go if it is countered?"
+    ],
+    "ruleNumbers": [
+      "425.1.a",
+      "425.1.a.1",
+      "829.1.b.1"
+    ],
+    "answer": "Yes",
+    "explanation": "It is banished unless another replacement effect changes that result.\n\nCountering clears the spell from the chain and would normally put it in the trash. Rule 425.1.a Rule 425.1.a.1\nHowever, playing a spell using Flow creates a delayed replacement effect that banishes it if it would leave the chain after becoming finalized, unless its own execution instructed it to leave. Rule 829.1.b.1\nBeing countered meets those conditions, so the Flow replacement effect banishes the spell instead of letting it go to the trash.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Banish",
+      "Chain",
+      "Trash"
+    ]
+  },
+  {
+    "id": "faq-mechanics/flow.mdx-36",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Defy counter a spell whose Flow cost exceeds Defy's limit?"
+    ],
+    "ruleNumbers": [
+      "206",
+      "829.1.c.1"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, provided the spell's printed cost meets Defy's restrictions.\n\nDefy checks the cost of its target, and effects that determine a card's cost always use its printed or copied cost rather than the amount actually paid. Rule 206\nA Flow cost is an alternate cost that replaces the spell's base cost during finalization, Rule 829.1.c.1 but it does not change the printed cost that Defy checks.\n\n Lacerate has a printed cost of <Energy value={2} />Order and a Flow cost of <Energy value={4} />OrderOrder.\n Defy can counter it because Defy checks the printed cost, not the Flow cost paid.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Control",
+      "Might",
+      "Repeat",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-mechanics/flow.mdx-37",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Where does a Flow spell countered by Abandon go?"
+    ],
+    "ruleNumbers": [
+      "425.1.a.1",
+      "829.1.b.1",
+      "372",
+      "370.2"
+    ],
+    "answer": "Yes",
+    "explanation": "It is banished rather than returned to its owner's hand.\n\nAbandon replaces putting the countered spell in the trash with returning it to its owner's hand, while Flow replaces the spell leaving the chain with banishing it. Rule 425.1.a.1 Rule 829.1.b.1\nBecause both replacement effects apply to the affected spell's departure from the chain, that spell's controller chooses their order. Rule 372\n\nThe result is the same in either order.\nIf Flow applies first, the spell is banished instead of going to the trash, so Abandon no longer has a qualifying event to replace.\nIf Abandon applies first, it still replaces the original event with the spell leaving the chain for its owner's hand, so Flow applies to that replacement event and banishes the spell instead. Rule 370.2\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Banish",
+      "Chain",
+      "Control",
+      "Trash"
+    ]
+  },
+  {
+    "id": "faq-mechanics/repeat.mdx-38",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What does Repeat repeat?"
+    ],
+    "ruleNumbers": [
+      "820.1.d.1",
+      "820.3.a",
+      "820.2",
+      "820.2.a"
+    ],
+    "answer": "Yes",
+    "explanation": "Repeat executes a spell or ability's instructions an additional time during resolution; it does not create another copy or chain item. Rule 820.1.d.1 Rule 820.3.a\nThe spell or ability is played only once, so its costs are paid only once during its original finalization.\n\nTargets, modes, and other choices are made separately for each execution. Rule 820.2 Rule 820.2.a\nThose choices may differ between the original and additional executions.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Damage",
+      "Might",
+      "Repeat"
+    ]
+  },
+  {
+    "id": "faq-mechanics/repeat.mdx-39",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What happens if a spell with Repeat is countered?"
+    ],
+    "ruleNumbers": [
+      "820.3.a",
+      "820.1.d.1",
+      "425.1.a"
+    ],
+    "answer": "Yes",
+    "explanation": "The entire spell is countered, including all repeated instructions.\n\nRepeat does *not* create a second instance of the spell on the chain. Rule 820.3.a\nInstead, it modifies how the spell resolves by executing its instructions an additional time. Rule 820.1.d.1\n\nWhen a spell is countered, it does nothing and is cleared from the chain. Rule 425.1.a\nSince the spell never resolves, none of its instructions are executed, whether they came from Repeat or not.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Damage",
+      "Might",
+      "Repeat"
+    ]
+  },
+  {
+    "id": "faq-cards/abandoned-hall.mdx-40",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Abandoned Hall's ability trigger if the spell is countered?"
+    ],
+    "ruleNumbers": [
+      "350.1",
+      "419.4.a",
+      "419.4.a.1",
+      "425.1.b"
+    ],
+    "answer": "No",
+    "explanation": "No.\nAbandoned Hall's ability triggers \"when a player plays a spell,\" and a countered spell is not considered played.\n\nA card is only played once the entire play process has finished in its entirety. Rule 350.1\nAbilities that trigger on playing a card fire when that act has been completed by the card's resolution; Rule 419.4.a if a game effect prevents resolution — for example because the spell was countered — the card is not considered to have been played and no abilities that trigger on playing cards fire. Rule 419.4.a.1\nThis follows directly from what countering does: a countered card is cleared from the chain and is not considered to have been played. Rule 425.1.b\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/abandoned-hall.mdx-41",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can a unit moved into or away from Abandoned Hall by a spell be chosen?"
+    ],
+    "ruleNumbers": [
+      "350.1",
+      "419.4.a",
+      "383.2.c"
+    ],
+    "answer": "Yes",
+    "explanation": "Only if it is at Abandoned Hall after the spell fully resolves.\n\nA card is only considered \"played\" once the entire play process has finished, Rule 350.1 which for spells means after all instructions have been executed and the card is placed in the trash.\nAbandoned Hall's triggered ability therefore fires after the spell resolves, not when it is placed on the chain. Rule 419.4.a Rule 383.2.c\nBy then, a unit moved into Abandoned Hall is present and can be chosen, while a unit moved away no longer qualifies as \"a unit they control here.\"\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/alpha-strike.mdx-42",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "How are targets chosen when playing Alpha Strike?"
+    ],
+    "ruleNumbers": [
+      "355.14.a",
+      "355.14.b",
+      "355.14.c",
+      "356.2.a.2",
+      "809.1.d",
+      "355.15"
+    ],
+    "answer": "Yes",
+    "explanation": "When finalizing Alpha Strike on the chain, choose the friendly unit, then choose up to one enemy unit at a battlefield per point of its current might.\n\nThe friendly unit is chosen explicitly as a standard target.\nThe enemy units are targets generated by the split-target instruction. Rule 355.14.a Rule 355.14.b Rule 355.14.c\nYou may choose fewer enemy units than the friendly unit's current might, including zero. Rule 355.14.c\n\nSince each chosen enemy unit is a target of Alpha Strike, Deflect is added as a mandatory additional cost for any of those units that have it during finalization. Rule 356.2.a.2 Rule 809.1.d\n\nAll choices are locked in at finalization and cannot be changed after this step. Rule 355.15\n\n You play Alpha Strike and choose a friendly unit with 4 might.\n You may then choose up to 4 enemy units at battlefields as the split targets.\n You choose 3.\n Those 3 units — and the friendly unit — are all locked in as targets.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Damage",
+      "Deflect"
+    ]
+  },
+  {
+    "id": "faq-cards/alpha-strike.mdx-43",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "When is Alpha Strike's damage distribution decided?"
+    ],
+    "ruleNumbers": [
+      "355.14.e",
+      "359.3.f.2",
+      "355.14.f",
+      "355.14.g"
+    ],
+    "answer": "Yes",
+    "explanation": "The distribution of damage across the chosen enemy units is decided at resolution, not at finalization. Rule 355.14.e\n\nThe total damage available equals the friendly unit's effective might when Alpha Strike resolves — meaning any Reaction speed buffs or debuffs applied by either player between finalization and resolution will affect the damage pool. Rule 359.3.f.2\n\nEach chosen target must receive at least 1 damage. Rule 355.14.f Rule 355.14.g\nBeyond that minimum, you may distribute the remaining damage among those targets however you choose, but all available damage must be distributed.\n\n You chose 3 enemy units at finalization.\n When Alpha Strike resolves, your friendly unit has 6 might.\n You must assign at least 1 damage to each of the 3 targets.\n The remaining 3 damage can go wherever you choose — 4/1/1, 2/2/2, 1/1/4, and so on.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Damage",
+      "Hidden",
+      "Might",
+      "Reaction",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/alpha-strike.mdx-44",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What if the chosen friendly unit leaves the board or becomes illegal before Alpha Strike resolves?"
+    ],
+    "ruleNumbers": [
+      "359.3.e.2",
+      "359.3.f.2",
+      "359.3.e.5",
+      "359.3.e.12",
+      "359.3.f.2.a"
+    ],
+    "answer": "Yes",
+    "explanation": "It remains legal if it only moves to another board location while remaining a friendly unit; otherwise, Alpha Strike deals no damage.\n\nAlpha Strike does not require the chosen friendly unit to be at a particular location.\nIf it moves elsewhere on the board but remains a friendly unit, it is still a legal target and deals damage using its effective might when Alpha Strike resolves. Rule 359.3.e.2 Rule 359.3.f.2\n\nIf the target changes to a non-board zone, stops being a unit, or stops being friendly, it is illegal as Alpha Strike resolves. Rule 359.3.e.2\nAlpha Strike still resolves, but the illegal target is unaffected and the \"its Might\" referent returns null, so the related damage instruction is ignored. Rule 359.3.e.5 Rule 359.3.e.12 Rule 359.3.f.2.a\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Banish",
+      "Battlefield",
+      "Chain",
+      "Damage",
+      "Hidden",
+      "Location",
+      "Might",
+      "Reaction",
+      "Recycle",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/alpha-strike.mdx-45",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What if a chosen enemy unit leaves a battlefield or becomes illegal before Alpha Strike resolves?"
+    ],
+    "ruleNumbers": [
+      "359.3.e.2",
+      "359.3.e.5",
+      "359.3.e.8",
+      "359.3.e.7"
+    ],
+    "answer": "Yes",
+    "explanation": "It receives no damage from Alpha Strike.\n\nEach chosen enemy unit must still be an enemy unit at a battlefield when Alpha Strike resolves.\nIf one moves to base or otherwise stops meeting those requirements, it is an illegal target and is unaffected by the spell. Rule 359.3.e.2 Rule 359.3.e.5\n\nAlpha Strike still distributes its damage among any remaining legal enemy targets. Rule 359.3.e.8\nIf every chosen enemy unit is illegal, the damage instruction does not execute. Rule 359.3.e.7\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Damage",
+      "Hidden",
+      "Reaction"
+    ]
+  },
+  {
+    "id": "faq-cards/applied-researchers.mdx-46",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Applied Researchers reduce Repeat, Flow, and Deflect costs?"
+    ],
+    "ruleNumbers": [
+      "820.1",
+      "820.1.c.1",
+      "356.2.a.2",
+      "809.1.d",
+      "356.4.f",
+      "829.1.c.1",
+      "356.1",
+      "356.4",
+      "820.1.a"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, provided Applied Researchers is Empowered and the cost belongs to a spell.\n\nRepeat is an optional additional cost. Rule 820.1 Rule 820.1.c.1\nDeflect imposes a mandatory additional cost on a spell or ability that targets the permanent with Deflect. Rule 356.2.a.2 Rule 809.1.d\nDiscounts can reduce both kinds of additional costs, including to zero. Rule 356.4.f\n\nA Flow cost is an alternate cost that replaces a spell's base cost during finalization. Rule 829.1.c.1\nApplied Researchers' discount is applied afterward when determining the spell's total cost. Rule 356.1 Rule 356.4\n\nApplied Researchers can therefore reduce a Repeat or Deflect cost paid while playing a spell.\nIt cannot reduce either cost when playing an ability, because its discount applies only to spells. Rule 820.1.a Rule 809.1.d\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Deflect",
+      "Repeat"
+    ]
+  },
+  {
+    "id": "faq-cards/applied-researchers.mdx-47",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Applied Researchers reduce Shock Blast's cost to zero?"
+    ],
+    "ruleNumbers": [
+      "356.4",
+      "356.4.d",
+      "356.4.d.1",
+      "356.4.e"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, if Applied Researchers is Empowered, you can play Shock Blast for <Energy value={0} />.\nApplied Researchers itself satisfies Shock Blast's requirement that you control something that is Empowered, so both cards' discounts apply.\n\nBoth abilities discount Shock Blast's total cost during the Determine Total Cost step of playing it. Rule 356.4\nDiscounts that apply to the total cost may be applied in any order, Rule 356.4.d Rule 356.4.d.1 and a minimum imposed by one discount applies only to that discount. Rule 356.4.e\n\nCost Determination Sequence:\n1. Shock Blast starts with its base cost of <Energy value={3} />Mind.\n2. Apply Researchers' discount first, reducing that cost by <Energy value={1} />Universal to <Energy value={2} />.\nThis satisfies Researchers' minimum of <Energy value={1} />.\n3. Apply Shock Blast's own discount next, reducing its remaining energy cost by <Energy value={2} /> to <Energy value={0} />.\n\nApplying the discounts in the opposite order would leave the spell costing <Energy value={1} />, but you may choose the order that results in the lower cost.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Control",
+      "Might"
+    ]
+  },
+  {
+    "id": "faq-cards/astral-heron.mdx-48",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "When exactly does Astral Heron trigger, and which card gets its discount?"
+    ],
+    "ruleNumbers": [
+      "350.1",
+      "419.4.a",
+      "419.4.a.1",
+      "383.3",
+      "390.4",
+      "419.1",
+      "356.4",
+      "357"
+    ],
+    "answer": "Yes",
+    "explanation": "Astral Heron triggers after your first card of the turn finishes resolving, not when that card is placed on the chain or finalized.\nIn a trigger condition, \"When you play\" is checked only when the act of playing that card is completed by its resolution. Rule 350.1 Rule 419.4.a\nIf a spell is countered instead of resolving, it does not trigger Astral Heron, and the first card you later resolve that turn can trigger it instead. Rule 419.4.a.1\n\nThe triggered ability is then placed on the chain and must resolve before the discount exists. Rule 383.3 Rule 390.4\nOnce it resolves, \"your next card\" means the next card you place on the chain and queue for finalization. Rule 419.1\nAstral Heron's discount is applied while determining that card's total cost, before you pay the cost and finish finalizing it. Rule 356.4 Rule 357\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/astral-heron.mdx-49",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Astral Heron's ability trigger if it's your first card played to a battlefield this turn?"
+    ],
+    "ruleNumbers": [
+      "350.1",
+      "419.4.a",
+      "337.2",
+      "359.2",
+      "359.2.a",
+      "359.2.c",
+      "383.2.c",
+      "383.2.c.1",
+      "383.2.a",
+      "383.2.a.1"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes — assuming it's played to a battlefield.\n\nPlay, in a trigger condition, refers to a card resolving, not merely being placed on the chain. Rule 350.1 Rule 419.4.a\nUnits resolve immediately after they finalize. Rule 337.2\nDuring that resolution, the unit becomes a game object, its passive abilities become active, and it enters the board at its chosen location. Rule 359.2 Rule 359.2.a Rule 359.2.c\n\nA trigger's condition is evaluated after a potentially inciting event has been processed, and nothing requires that event to have been caused by a *different* card. Rule 383.2.c Rule 383.2.c.1\n\"When you play your first card each turn\" begins the trigger condition, Rule 383.2.a and \"if I'm at a battlefield\" immediately follows it, so that additional requirement is also part of the trigger condition and is checked when the condition is fulfilled. Rule 383.2.a.1\nAfter Astral Heron finishes resolving, play-trigger conditions are evaluated. Rule 419.4.a\nIf it's the first card played this turn, Astral Heron is already at the battlefield when its condition is checked, so its ability is placed on the chain.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Location",
+      "Reaction",
+      "Ready",
+      "Trash",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/astral-heron.mdx-50",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Astral Heron trigger if your first card moves it to base?"
+    ],
+    "ruleNumbers": [
+      "350.1",
+      "419.4.a",
+      "383.2.c",
+      "383.2.a.1"
+    ],
+    "answer": "No",
+    "explanation": "No.\nIf a spell such as Flash or Emperor's Divide moves Astral Heron to base while resolving, Astral Heron is no longer at a battlefield when its trigger condition is checked.\n\nA card is not considered played, and abilities that trigger from playing it are not evaluated, until that card finishes resolving. Rule 350.1 Rule 419.4.a\nAstral Heron's trigger condition is therefore checked only after the spell's movement instructions have been completed. Rule 383.2.c\nBecause \"if I'm at a battlefield\" is part of that trigger condition, the ability is not placed on the chain if Astral Heron is at base by then. Rule 383.2.a.1\n\nThis differs from moving Astral Heron after its triggered ability has already been placed on the chain.\nAt that point, the condition has already been satisfied.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Reaction",
+      "Ready",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/astral-heron.mdx-51",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Once Astral Heron's triggered ability is on the chain, can killing or moving it stop the cost reduction?"
+    ],
+    "ruleNumbers": [
+      "383.2.a.1",
+      "392"
+    ],
+    "answer": "No",
+    "explanation": "No.\nOnce the triggered ability is on the chain, killing or moving Astral Heron does not stop the discount from applying to your next card.\n\n\"If I'm at a battlefield\" is part of the trigger condition, so it's only checked when the triggering event occurs to decide whether the ability is placed on the chain — it is not re-checked when the ability later resolves. Rule 383.2.a.1\nNothing in the effect references Astral Heron's location or continued presence, so removing it does not stop the trigger from creating the discount.\nOnce created, that discount is a delayed ability and executes at its specified time regardless of whether Astral Heron remains on the board. Rule 392\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Reaction",
+      "Ready",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/azir-sovereign.mdx-52",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If Azir, Sovereign is killed or returned to his base before his attack trigger resolves, do token units still move?"
+    ],
+    "ruleNumbers": [
+      "359.3.f.1",
+      "359.3.f.2",
+      "359.3.e.6",
+      "355.10.d",
+      "355.10.d.1",
+      "464.2.e.1"
+    ],
+    "answer": "No",
+    "explanation": "No.\n\"This battlefield\" is a referent: information drawn from the source of the ability itself. Rule 359.3.f.1\nReferents are checked at the moment the instruction executes, not when the trigger was placed on the chain. Rule 359.3.f.2\n\nIf Azir has been moved to his base or killed before the trigger resolves, there is no \"this battlefield\" to move token units to.\nThe instruction cannot be followed and is ignored. Rule 359.3.e.6\n\n\"This battlefield\" is not a target.\nIt is programmatically determined from Azir's current location, since he can only ever be at one battlefield at a time — no choice is ever made. Rule 355.10.d Rule 355.10.d.1\n\nTwo common plays that produce this outcome:\n\n- Hidden Blade, when played from its facedown zone, can be used in response to Azir's attack trigger to kill him at Reaction speed.\n- Overzealous Fan's defend trigger fires simultaneously with Azir's attack trigger when combat designations are assigned.\n Because Azir's controller places their trigger first, Overzealous Fan's trigger sits above it on the chain and resolves first, potentially moving Azir to his base before his own trigger resolves. Rule 464.2.e.1\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Damage",
+      "Hidden",
+      "Might",
+      "Reaction",
+      "Ready",
+      "Recycle",
+      "Trash",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/baited-hook.mdx-53",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What happens if the targeted unit is removed before Baited Hook's ability resolves?"
+    ],
+    "ruleNumbers": [
+      "359.3.e.2",
+      "359.3.e.5",
+      "359.3.e.12"
+    ],
+    "answer": "Yes",
+    "explanation": "The unit can't be killed, and no unit can be banished from the top 5, since nothing can satisfy a might comparison against a null value.\n\nIf the friendly unit is no longer a legal target when the ability resolves — for example, if it was returned to its owner's hand in response — it is unaffected by the ability's \"kill\" instruction. Rule 359.3.e.2 Rule 359.3.e.5\nBecause the unit was never killed, any information the ability checks about it, including its might, returns null. Rule 359.3.e.12\n\"Banish a unit with might up to 1 more than the killed unit\" can never be satisfied against a null might, so no unit can be chosen from among the top 5 cards, even though you still look at them.\n\"Then recycle the rest\" is unaffected by this, since it isn't tied to the killed unit's might — you still recycle every card you looked at that wasn't banished.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Banish",
+      "Battlefield",
+      "Chain",
+      "Damage",
+      "Hidden",
+      "Location",
+      "Might",
+      "Reaction",
+      "Recycle"
+    ]
+  },
+  {
+    "id": "faq-cards/baited-hook.mdx-54",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If Baited Hook kills Glasc Mixologist and plays Karthus, Eternal, does Glasc Mixologist's Deathknell trigger twice?"
+    ],
+    "ruleNumbers": [
+      "428.1.a.1.b",
+      "808.1.d.2",
+      "354.2",
+      "365.1"
+    ],
+    "answer": "No",
+    "explanation": "No.\nGlasc Mixologist's Deathknell has already triggered once by the time Karthus, Eternal enters the board.\n\nWhen Baited Hook kills Glasc Mixologist, Glasc's Deathknell is added to the chain as a pending item before he is moved to the trash. Rule 428.1.a.1.b Rule 808.1.d.2\nBaited Hook then continues resolving and may banish Karthus from among the top 5 cards and play him, placing him on the chain above Glasc's Deathknell. Rule 354.2\n\nKarthus enters the board before Glasc's Deathknell resolves, but his passive ability is only active while he is on the board. Rule 365.1\nIt was not active when Glasc's Deathknell triggered, and by the time Karthus enters, that ability has already been finalized.\nKarthus entering the board does not cause it to trigger again.\nGlasc's Deathknell resolves once, so it can play only one unit from the trash.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Deathknell",
+      "Location",
+      "Trash",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/baron-nashor.mdx-55",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Baron Nashor move to the Baron Pit when it's created as part of playing him?"
+    ],
+    "ruleNumbers": [
+      "446.1",
+      "446.2"
+    ],
+    "answer": "No",
+    "explanation": "No.\nBaron Nashor enters the Baron Pit directly — his entry location is replaced, not his position on the board.\nA move is defined as a permanent changing position from one space on the board to another. Rule 446.1\nBaron Nashor is entering the board for the first time (a zone change), which is not a move. Rule 446.2\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": []
+  },
+  {
+    "id": "faq-cards/baron-nashor.mdx-56",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What happens after Baron Nashor enters the Baron Pit?"
+    ],
+    "ruleNumbers": [
+      "439.4.b",
+      "190.3.a.1",
+      "316.8.b",
+      "323.8",
+      "323.12",
+      "344.2",
+      "316.8.b.1.a",
+      "323.9",
+      "323.14",
+      "348.2.a",
+      "348.2.a.1"
+    ],
+    "answer": "Yes",
+    "explanation": "A non-combat showdown opens during the resulting cleanup.\n\nResolution Sequence:\n1. The Baron Pit is newly created and has no controller when Baron Nashor enters it. Rule 439.4.b\n2. Baron Nashor entering the uncontrolled battlefield applies contested status to it. Rule 190.3.a.1\n3. During the resulting cleanup, a non-combat showdown is marked as staged at the Baron Pit. Rule 316.8.b Rule 323.8\n4. Later in that cleanup, the staged showdown opens. Rule 323.12 Rule 344.2\n\nIf an opposing unit arrives at the Baron Pit during the showdown, a combat is staged and the non-combat showdown becomes a combat showdown during the following cleanup. Rule 316.8.b.1.a Rule 323.9 Rule 323.14\n\nIf the showdown closes with only Baron Nashor's controller's units present at the Baron Pit, and they have not yet scored it this turn, they conquer it and score. Rule 348.2.a Rule 348.2.a.1\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Conquer",
+      "Control",
+      "Showdown"
+    ]
+  },
+  {
+    "id": "faq-cards/baron-nashor.mdx-57",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does the Baron Pit need to be scored to win by conquering?"
+    ],
+    "ruleNumbers": [
+      "471.1.b.1",
+      "471.1.a.1"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes.\nWinning by conquering at match point requires having scored every battlefield on the board that turn — including the Baron Pit. Rule 471.1.b.1\nIf it hasn't been scored, the winning conquer draws a card instead.\n\nWinning by hold is unaffected, as it has no such requirement. Rule 471.1.a.1\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Conquer"
+    ]
+  },
+  {
+    "id": "faq-cards/baron-nashor.mdx-58",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can I play Baron Nashor while an opponent's Mageseeker Warden is at a battlefield?"
+    ],
+    "ruleNumbers": [
+      "135.2.b.3",
+      "187.9",
+      "355.2.a",
+      "369.3",
+      "370.1.b"
+    ],
+    "answer": "Yes",
+    "explanation": "It depends on whether the Baron Pit is already on the board.\n\nIf the Baron Pit is not yet on the board, Baron Nashor enters the Baron Pit, not your base.\nAs Baron Nashor is played, his \"as you play me\" instruction fires during the playing process — the Baron Pit battlefield token is added to the board. Rule 135.2.b.3 Rule 187.9\nUnder Mageseeker Warden's restriction, your base is the only valid playing location — where Baron Nashor is nominally played to — but his replacement effect overrides where he actually enters. Rule 355.2.a\nHis \"If you do, I enter there\" then functions as a replacement effect that applies as he enters the board, replacing his entry at his original play location with entry at the Baron Pit. Rule 369.3 Rule 370.1.b\n\nIf the Baron Pit is already on the board, the \"as you play me\" instruction does nothing — the Baron Pit token is only added if it's not there already — so the \"If you do\" condition is not met.\nBaron Nashor simply enters his base, the only valid playing location under Mageseeker Warden's restriction. Rule 355.2.a\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Action",
+      "Battlefield",
+      "Location",
+      "Ready",
+      "Repeat"
+    ]
+  },
+  {
+    "id": "faq-cards/bone-skewer.mdx-59",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Bone Skewer choose a unit that says it \"can't be chosen by enemy spells and abilities\"?"
+    ],
+    "ruleNumbers": [
+      "757",
+      "757.1",
+      "365.1",
+      "366.1",
+      "355.10.a",
+      "355.5"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, as the untargetability is inactive in hand and hand cards cannot be targeted in any case.\n\nRuin Runner and Baron Nashor are made untargetable by passive abilities declaring that they can't be chosen by some category of spells and abilities. Rule 757 Rule 757.1\nPassive abilities of permanents are typically active only while on the board. Rule 365.1\nAbilities that function in another zone self-describe that context, Rule 366.1 which these untargetability abilities do not.\nThey therefore have no effect while the unit is in hand.\nBeyond that, Bone Skewer never targets the chosen unit in the first place — cards in hand are never targets because the hand is not a public zone, Rule 355.10.a so there is no finalization step at which a unit there could be declared as a target. Rule 355.5\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Legion",
+      "Ready",
+      "Trash"
+    ]
+  },
+  {
+    "id": "faq-cards/bone-skewer.mdx-60",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Bone Skewer stun a unit that can't be chosen by enemy spells or abilities?"
+    ],
+    "ruleNumbers": [
+      "387.1",
+      "387.2",
+      "388.1",
+      "394.1",
+      "397",
+      "355.10.d",
+      "355.10.d.1",
+      "758",
+      "809.1.d"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, because the reflexive trigger that stuns the unit does not ask its controller to choose anything.\n\nIf the opponent plays the unit, Bone Skewer's \"then do this\" wording creates a reflexive trigger as a pending item on the chain. Rule 387.1 Rule 387.2 Rule 388.1\nThe trigger is linked to the preceding ability, and \"it\" can only refer to the unit played by that ability. Rule 394.1 Rule 397\nWhen the trigger is finalized, no choice is made about which unit will be stunned; it is always and only that unit.\nBecause the unit is programmatically determined rather than chosen, it is not a target. Rule 355.10.d Rule 355.10.d.1\n\nThis means untargetability — the \"can't be chosen by enemy spells and abilities\" passive on units like Ruin Runner and Baron Nashor — does not prevent the stun, since it only stops a unit from being chosen as a target and the stun targets nothing. Rule 758\nDeflect is similarly irrelevant, since Deflect is only added as a cost when a spell or ability chooses an opponent's permanent, Rule 809.1.d which is not the case here.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Banish",
+      "Battlefield",
+      "Chain",
+      "Ready",
+      "Recycle",
+      "Trash",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/bone-skewer.mdx-61",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If a unit chosen by Bone Skewer has Hidden, can the opponent hide it instead of playing it?"
+    ],
+    "ruleNumbers": [
+      "811.1.c.1",
+      "419.3",
+      "419.3.b",
+      "419.1"
+    ],
+    "answer": "No",
+    "explanation": "No, hiding the unit does not fulfill Bone Skewer's instruction to play it.\n\nHide is a separate action, not a subset of play. Rule 811.1.c.1\nEven though the chosen unit is in hand and may have Hidden, Bone Skewer instructs the opponent to play it as a limited action. Rule 419.3\nThat play follows the normal process unless Bone Skewer says otherwise, Rule 419.3.b so the unit is put on the chain and queued for finalization. Rule 419.1\nThe opponent cannot choose to hide it instead.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "faq-cards/brynhir-thundersong.mdx-62",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Brynhir Thundersong stop cards already on the chain?"
+    ],
+    "ruleNumbers": [
+      "419.1",
+      "329.1",
+      "354.2",
+      "329.3"
+    ],
+    "answer": "No",
+    "explanation": "No.\nOnce Brynhir Thundersong's play effect resolves, opponents cannot play further cards that turn, but cards already on the chain are unaffected.\n\nTo play a card means to place it on the chain and queue it for finalization. Rule 419.1\nA pending card has already been placed on the chain and queued for finalization, Rule 329.1 Rule 354.2 and a finalized card has progressed beyond that point. Rule 329.3\nBrynhir Thundersong therefore does not stop either from finalizing or resolving.\n\nSee also What does \"play\" mean on a card?.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "faq-cards/call-to-battle.mdx-63",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can I choose a unit's current battlefield as Call to Battle's destination?"
+    ],
+    "ruleNumbers": [
+      "355.4",
+      "355.4.a"
+    ],
+    "answer": "No",
+    "explanation": "No, because Call to Battle requires the player to choose the move destination, so the restriction on valid destinations applies directly.\n\nWhen a spell or ability has the player choose a move destination, that destination must be somewhere other than the unit's current location. Rule 355.4 Rule 355.4.a\nCall to Battle has the player choose both the unit and the battlefield, so the chosen battlefield cannot be the unit's current location.\nIf no valid destination can be chosen for the selected unit, the spell cannot be finalized.\n\nThis contrasts with Flash, which specifies its destination — base — rather than requiring the player to choose one.\nBecause no destination choice is made when playing Flash, this restriction never applies, and a unit already in base is a valid target.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Location"
+    ]
+  },
+  {
+    "id": "faq-cards/consuming-curse.mdx-64",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "When I play Consuming Curse from my trash, does it count itself for the bonus damage?"
+    ],
+    "ruleNumbers": [
+      "354",
+      "419.1"
+    ],
+    "answer": "No",
+    "explanation": "No.\nPlaying Consuming Curse from your trash moves it onto the chain first, Rule 354 Rule 419.1 so it's no longer in your trash to be counted.\nOnly the *other* copies still in your trash add bonus damage.\n\nShadow Assassin and Shadowblade Lurker work the same way.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "faq-cards/diana-lunari.mdx-65",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Diana, Lunari's ability resolve before or after attack and defend abilities from the start of combat?"
+    ],
+    "ruleNumbers": [
+      "464.2.c.3",
+      "383.4.e",
+      "383.4.f",
+      "464.2.e",
+      "464.2.e.1",
+      "464.2.b",
+      "340.1"
+    ],
+    "answer": "Yes",
+    "explanation": "Diana's ability resolves after all attack and defend triggers generated as that combat opens.\n\nWhen combat opens with a combat showdown, the attacker and defender designations are assigned to units. Rule 464.2.c.3\nAttack triggers fire when a unit gains the attacker designation, and defend triggers fire when a unit gains the defender designation. Rule 383.4.e Rule 383.4.f\nThose triggers are then added to the combat chain, with the attacking player placing theirs first, followed by others in turn order, and the defending player last. Rule 464.2.e Rule 464.2.e.1\n\nDiana's \"when a showdown begins here\" trigger is a start-of-showdown effect, which the combat-opening sequence processes as its very first step — before designations are established and their attack and defend triggers are added to the chain. Rule 464.2.b\nBecause the chain resolves newest-item-first, Diana's ability resolves last — after every attack and defend trigger from that same combat chain has already resolved. Rule 340.1\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Showdown",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/endless-riches.mdx-66",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "How long does Endless Riches make you skip your Draw Phase?"
+    ],
+    "ruleNumbers": [
+      "364.2",
+      "443.1.a",
+      "359.2.a",
+      "365.1",
+      "390"
+    ],
+    "answer": "Yes",
+    "explanation": "You skip every Draw Phase you would have for as long as Endless Riches remains on the board.\n\n\"Skip your Draw Phase\" is a passive ability and a replacement effect that replaces your Draw Phase with nothing. Rule 364.2 Rule 443.1.a\nPassive abilities of permanents become active when the permanent enters the board and are typically active only while it remains there. Rule 359.2.a Rule 365.1\nOnce Endless Riches leaves the board, this ability is no longer active, so your later Draw Phases occur normally.\n\nThis is not a delayed ability that applies only to your next Draw Phase or only during a particular turn.\nDelayed abilities specify the window during which they apply, Rule 390 but Endless Riches specifies no such window.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Action"
+    ]
+  },
+  {
+    "id": "faq-cards/endless-riches.mdx-67",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can I hide cards from my trash while Endless Riches is on the board?"
+    ],
+    "ruleNumbers": [
+      "811.1.c.1"
+    ],
+    "answer": "No",
+    "explanation": "No, Endless Riches does not allow you to hide cards from your trash.\n\nEndless Riches grants permission only to play cards from your trash, and hiding a card is not a subset of playing it. Rule 811.1.c.1\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": []
+  },
+  {
+    "id": "faq-cards/endless-riches.mdx-68",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Where does a spell played by Fizz, Trickster or Kai'Sa, Evolutionary go while Endless Riches is in play?"
+    ],
+    "ruleNumbers": [
+      "390.3.a",
+      "372",
+      "370.2"
+    ],
+    "answer": "Yes",
+    "explanation": "It is recycled.\nThe \"then recycle it\" text on Fizz, Trickster and Kai'Sa, Evolutionary creates a delayed replacement effect that replaces the spell leaving the chain with recycling it. Rule 390.3.a\nEndless Riches also creates a replacement effect that would replace the spell going to the trash with banishing it.\n\nThe result is the same regardless of the order in which the spell's controller applies these replacement effects. Rule 372\nIf the delayed replacement is applied first, the spell is recycled instead of going to the trash, so Endless Riches no longer applies.\nIf Endless Riches is applied first, the spell would be banished instead of going to the trash, but it is still leaving the chain, so the delayed replacement replaces that event with recycling it. Rule 370.2\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Action",
+      "Banish",
+      "Chain",
+      "Control",
+      "Recycle"
+    ]
+  },
+  {
+    "id": "faq-cards/ezreal-prodigy.mdx-69",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Which costs does Ezreal reduce?"
+    ],
+    "ruleNumbers": [
+      "356.2.b.1",
+      "805.1.a",
+      "820.1.d",
+      "356.4.c",
+      "356.4.d",
+      "356.2.a.1"
+    ],
+    "answer": "Yes",
+    "explanation": "Ezreal reduces only optional additional costs you choose to pay.\nThese costs use both the word \"may\" and the exact phrase \"as an additional cost.\" Rule 356.2.b.1\nAccelerate and Repeat are keyworded optional additional costs, so Ezreal reduces them too. Rule 805.1.a Rule 820.1.d\n\nEzreal's discount applies to the optional additional cost itself as soon as that cost is added, before discounts that apply to the card's total cost. Rule 356.4.c Rule 356.4.d\n\nMandatory additional costs are not optional because they omit \"may,\" Rule 356.2.a.1 and payments made while carrying out an effect are not additional costs to play that card.\nEzreal does not reduce either kind of payment.\n\n Blast Corps Cadet says \"You may pay <Energy value={1} />Fury as an additional cost to play me.\"\n Ezreal can reduce that optional additional cost to either <Energy value={1} /> or Fury.\n By contrast, Ezreal does not reduce Cruel Patron's mandatory cost to kill a friendly unit or the <Energy value={2} /> an opponent may pay during Hard Bargain's effect.\n Ezreal does reduce Hard Bargain's separate Repeat cost.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Accelerate",
+      "Chain",
+      "Ready",
+      "Repeat"
+    ]
+  },
+  {
+    "id": "faq-cards/fallen-feline.mdx-70",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Fallen Feline stop a named spell already on the chain?"
+    ],
+    "ruleNumbers": [
+      "419.1",
+      "329.1",
+      "354.2",
+      "329.3"
+    ],
+    "answer": "No",
+    "explanation": "No.\nFallen Feline prevents opponents from playing further spells with the chosen name while it is at a battlefield, but it does not affect spells already on the chain.\n\nTo play a card means to place it on the chain and queue it for finalization. Rule 419.1\nA pending spell has already been placed on the chain and queued for finalization, Rule 329.1 Rule 354.2 and a finalized spell has progressed beyond that point. Rule 329.3\nFallen Feline therefore does not stop either from finalizing or resolving.\n\nSee also What does \"play\" mean on a card?.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "faq-cards/flash.mdx-71",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Flash target a unit that is already in base?"
+    ],
+    "ruleNumbers": [
+      "355.4",
+      "355.4.a",
+      "355.5",
+      "355.9.b",
+      "055"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, because Flash specifies its destination rather than requiring the player to choose one.\n\nWhen a spell or ability has the player choose a move destination, that destination must be somewhere other than the unit's current location. Rule 355.4 Rule 355.4.a\nFlash, however, does not ask the player to choose a destination: the card specifies it as base.\nThat step of the play process never occurs, so this restriction never applies.\n\nThe only choice the player makes when playing Flash is which friendly units to target. Rule 355.5\nA unit in base is a friendly unit and meets no other targeting restriction, so it is a valid target. Rule 355.9.b\n\nWhen Flash resolves and instructs the game to move that unit to base, the instruction is impossible — a unit cannot move to its current location.\nImpossible instructions are ignored, and everything else resolves normally. Rule 055\n\nAzir, Ascendant illustrates the same principle: its ability says \"Move me to its location and it to my original location,\" where both destinations are derived from the game state rather than chosen by the player.\nChoosing a unit at Azir's current location is legal; the impossible swap is ignored at resolution.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Control",
+      "Location",
+      "Might"
+    ]
+  },
+  {
+    "id": "faq-cards/gangplank-naval.mdx-72",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If Gangplank, Naval replaces one part of a spell or ability, does the rest still resolve?"
+    ],
+    "ruleNumbers": [
+      "370.1"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes.\nA replacement effect only replaces the specific event or instruction that qualifies for it. Rule 370.1\nFor Gangplank, that means a stun, might decrease, or return to hand caused by a spell or ability that chose him.\n\n A player plays Star-Crossed, targeting their own Empowered Gangplank as the friendly unit and an opponent's Elder Dragon as the enemy unit.\n\n Returning Elder Dragon doesn't choose Gangplank, so his replacement effect has nothing to apply to there — it's returned to hand as normal.\n Returning Gangplank is the qualifying event: instead of going to hand, he gets +3 might.\n The rest of Star-Crossed resolves normally; it simply produces a different result for the one instruction that involves Gangplank.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": []
+  },
+  {
+    "id": "faq-cards/glasc-mixologist.mdx-73",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Glasc Mixologist's Deathknell target a unit that died from the same event?"
+    ],
+    "ruleNumbers": [
+      "808.1.d.2",
+      "323.4",
+      "323.5",
+      "370.1.a.2",
+      "428.1.a.1.b",
+      "334.2",
+      "355.8"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, because targets are not chosen until the ability is finalized — by which point all units that died in the same event are already in the trash.\n\nWhenever a unit with Deathknell dies, its trigger is placed on the chain as a pending item. Rule 808.1.d.2\nDuring a cleanup, this ordering is enforced system-wide: step 3a queues all Deathknell triggers from every unit with lethal damage Rule 323.4 and only then does step 3b move those units to the trash. Rule 323.5\n\nThe same result applies when one kill instruction kills multiple units.\nTheir deaths are simultaneous because they result from the same game action, Rule 370.1.a.2 and each relevant Deathknell becomes pending before its unit moves to the trash. Rule 428.1.a.1.b Rule 808.1.d.2\n\nIn either case, all units that died from that event are in the trash before the pending ability is finalized and its target is chosen. Rule 334.2 Rule 355.8\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Action",
+      "Chain",
+      "Damage",
+      "Deathknell",
+      "Location",
+      "Might",
+      "Trash",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/glasc-mixologist.mdx-74",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Glasc Mixologist's Deathknell play a unit to the battlefield where he died?"
+    ],
+    "ruleNumbers": [
+      "309.1",
+      "323.6",
+      "355.2.a",
+      "190.4.b"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, as long as you controlled that battlefield when Glasc Mixologist died.\n\nOutside a showdown, the Deathknell trigger remains on the chain as a pending item from the moment it is queued.\nBecause a chain exists, the turn remains in a closed state, Rule 309.1 and cleanup step 4 — which makes unoccupied battlefields uncontrolled — only applies during an open state. Rule 323.6\nThe battlefield stays under your control, so when the unit is finalized you can choose it as a valid destination. Rule 355.2.a\n\nDuring a showdown, control of the battlefield cannot change until instructed by the steps of the combat or showdown, Rule 190.4.b so the question does not arise.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Control",
+      "Showdown"
+    ]
+  },
+  {
+    "id": "faq-cards/glasc-mixologist.mdx-75",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What happens when Glasc Mixologist is my only defender and his Deathknell plays a unit where he died?"
+    ],
+    "ruleNumbers": [
+      "466.1.a.1",
+      "334",
+      "466.1.a.2",
+      "466.3.d",
+      "466.3.d.1"
+    ],
+    "answer": "Yes",
+    "explanation": "Several things here commonly catch players off guard: surviving enemy units heal to full before the new unit arrives, neither player wins the original combat, and a second combat immediately follows.\n\nThe combat cleanup heals all units before any pending trigger can resolve, Rule 466.1.a.1 Rule 334 so by the time Glasc's Deathknell finalizes and the new unit reaches the battlefield, the enemy is already back to full health.\nBecause Glasc was your only defender, no defenders remain during cleanup step 3d, so the surviving attackers are not recalled. Rule 466.1.a.2\n\nWith units from both players now present, combat result is determined.\nBecause both players have units there, the result is \"No Result.\" Rule 466.3.d\nA fresh combat is immediately staged at that battlefield. Rule 466.3.d.1\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Heal",
+      "Showdown"
+    ]
+  },
+  {
+    "id": "faq-cards/heedless-resurrection.mdx-76",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If Heedless Resurrection is countered, is the killed unit returned?"
+    ],
+    "ruleNumbers": [
+      "425.1.a",
+      "425.1.c",
+      "425.1.c.1"
+    ],
+    "answer": "No",
+    "explanation": "No, as the kill is an additional cost and countering a spell never refunds costs already paid.\n\nKilling a friendly unit is an additional cost required to play Heedless Resurrection.\nA countered spell does nothing and is cleared from the chain. Rule 425.1.a\nCountering does not refund any costs paid to play a card, including additional costs. Rule 425.1.c Rule 425.1.c.1\nThat cost is paid before the spell resolves, so the killed unit is not returned.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/heedless-resurrection.mdx-77",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can I kill a unit with Heedless Resurrection's cost and then resurrect that same unit?"
+    ],
+    "ruleNumbers": [
+      "355.5",
+      "355.9.a",
+      "357.2",
+      "355.15"
+    ],
+    "answer": "No",
+    "explanation": "No, as the resurrection target must already be in your trash when you choose it, before the kill cost is paid.\n\nWhen playing Heedless Resurrection, you must choose the unit to resurrect during step 2 of finalization — the \"Make relevant choices\" step. Rule 355.5\nAt that point, the unit you intend to kill is still on the board, not yet in your trash.\n\"A unit from your trash\" must be in your trash to be a valid target, Rule 355.9.a so a living unit on the board cannot be chosen.\nThe additional cost — killing a friendly unit — is paid in step 4, Rule 357.2 after all choices are already locked in. Rule 355.15\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Recycle",
+      "Trash"
+    ]
+  },
+  {
+    "id": "faq-cards/heedless-resurrection.mdx-78",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Heedless Resurrection's \"ignoring its cost\" instruction also ignore the resurrected unit's additional costs, such as Accelerate?"
+    ],
+    "ruleNumbers": [
+      "356.1.b.1",
+      "356.1.b.3",
+      "356.2.b.1",
+      "356.2.a.1"
+    ],
+    "answer": "No",
+    "explanation": "No.\n\"Ignoring its cost\" only sets the resurrected unit's base energy and power costs to zero; additional costs are not waived.\n\nWhen Heedless Resurrection instructs you to play a unit from your trash \"ignoring its cost,\" that instruction sets the resurrected unit's base energy cost and base power cost to zero. Rule 356.1.b.1\nAdditional costs — such as the optional Accelerate cost — are applied in a separate step after the base cost is zeroed out and are unaffected by the \"ignoring its cost\" instruction. Rule 356.1.b.3\nIf the resurrected unit has an optional additional cost you may choose whether to pay it; Rule 356.2.b.1 if it has a mandatory additional cost you must pay it. Rule 356.2.a.1\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Accelerate",
+      "Legion"
+    ]
+  },
+  {
+    "id": "faq-cards/heedless-resurrection.mdx-79",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If Heedless Resurrection gains Repeat, do I need to kill a friendly unit for each repetition?"
+    ],
+    "ruleNumbers": [
+      "357.2",
+      "820.1.d.1",
+      "135.2.b.3",
+      "820.3.a"
+    ],
+    "answer": "No",
+    "explanation": "No.\nThe additional cost to kill a friendly unit is paid once, as part of playing the spell.\n\nAdditional costs like this are paid during step 4 of playing the card, Rule 357.2 not during resolution.\nRepeat makes the spell's instructions execute an additional time upon resolution, Rule 820.1.d.1 but does not re-run costs that were already paid while playing — \"as you play me\" instructions execute once, before the Repeat execution ever occurs. Rule 135.2.b.3\n\nNo matter how many times Repeat is paid, the spell is only played once, Rule 820.3.a so you kill only one friendly unit.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Damage",
+      "Might",
+      "Repeat"
+    ]
+  },
+  {
+    "id": "faq-cards/hidden-blade.mdx-80",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If Hidden Blade's kill is replaced, does the target's controller draw?"
+    ],
+    "ruleNumbers": [
+      "359.3.e.14",
+      "359.3.e.14.b"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes.\nReplacing Hidden Blade's kill does not prevent its linked draw instruction from executing.\n\nThe phrase \"its controller\" links the draw to the unit affected by the preceding kill instruction. Rule 359.3.e.14\nReplacing that kill action does not stop the later linked instruction unless it directly references the action itself. Rule 359.3.e.14.b\nHidden Blade's draw references the targeted unit's controller, not whether the unit was killed, so the draw still executes.\n\n You play Hidden Blade targeting an opponent's unit.\n They respond with Zhonya's Hourglass, which replaces the unit's death.\n The unit is not killed.\n Because it was still a legal target when Hidden Blade resolved, the opponent draws 2.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Action",
+      "Battlefield",
+      "Hidden",
+      "Might"
+    ]
+  },
+  {
+    "id": "faq-cards/hidden-blade.mdx-81",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If Hidden Blade's target becomes illegal, does that target's controller draw?"
+    ],
+    "ruleNumbers": [
+      "359.3.e.5",
+      "359.3.e.14.a"
+    ],
+    "answer": "No",
+    "explanation": "No.\nAn illegal target is entirely unaffected by the spell, and the draw is no exception.\n\nAn illegal target is unaffected by the spell, so Hidden Blade's kill instruction is ignored. Rule 359.3.e.5\nWhen an earlier linked instruction is ignored, its later linked instructions are also ignored, so the controller does not draw. Rule 359.3.e.14.a\n\n You play Hidden Blade targeting an opponent's unit at a battlefield.\n They respond by moving it to their base using Flash.\n Hidden Blade resolves.\n The unit is no longer at a battlefield, so it is an illegal target.\n The unit is not killed and the opponent does not draw.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Damage",
+      "Hidden",
+      "Reaction"
+    ]
+  },
+  {
+    "id": "faq-cards/irelia-fervent.mdx-82",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If I target Irelia, Fervent with a spell or ability and it gets countered, does she still get +1 might?"
+    ],
+    "ruleNumbers": [
+      "355.5",
+      "355.7",
+      "383.4.b.2",
+      "383.4.b.3",
+      "337.3",
+      "337.4",
+      "425.1.a"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes.\n\nIrelia is chosen as a target during step 2 of playing the spell or ability — the \"Make relevant choices\" step. Rule 355.5 Rule 355.7\nThis happens before the spell or ability is finalized on the chain and before opponents have any opportunity to react.\nAfter the spell or ability finishes finalizing, her targeting effect is added to the chain as a pending item. Rule 383.4.b.2 Rule 383.4.b.3\nThat trigger is finalized before opponents receive an opportunity to react. Rule 337.3 Rule 337.4\nThe trigger is not contingent on the spell or ability that caused it successfully resolving.\nCountering the spell or ability only prevents it from resolving Rule 425.1.a — it has no bearing on Irelia's already-triggered ability.\n\n Blade Dancer works the same way.\n Her triggered ability reads \"When you choose a friendly unit, you may exhaust me and pay Universal to ready it.\"\n It ends up on the chain before the original spell can be countered.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/irelia-fervent.mdx-83",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Blade Dancer's ability trigger Irelia, Fervent's +1 might?"
+    ],
+    "ruleNumbers": [
+      "355.10.d",
+      "355.10.d.1",
+      "415.1"
+    ],
+    "answer": "Yes",
+    "explanation": "Not from choosing — but she can still trigger from being readied if she was exhausted.\n\nBlade Dancer does not choose a unit — it does not target. Rule 355.10.d Rule 355.10.d.1\n\"It\" in \"ready it\" deterministically refers back to the unit already identified as Blade Dancer's trigger condition, with no separate choice made by the player.\nIrelia's ability can only trigger from Blade Dancer if she was exhausted and is readied by it — and only through the readying half of her ability, not the choosing half. Rule 415.1\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Action",
+      "Battlefield",
+      "Ready",
+      "Recycle",
+      "Trash"
+    ]
+  },
+  {
+    "id": "faq-cards/irelia-fervent.mdx-84",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Irelia, Fervent get +1 might when she readies during the Awaken Phase?"
+    ],
+    "ruleNumbers": [
+      "315.1.b",
+      "415.1",
+      "415.1.b"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, but only if she was exhausted and actually transitions to the ready state.\n\nDuring the Awaken Phase at the start of each turn, the turn player readies all game objects they control that are able to be readied. Rule 315.1.b\nReadying is the action of marking a game object as available for action. Rule 415.1\nIf Irelia was exhausted, she transitions to ready and her trigger fires.\n\nIf she is already ready at the start of your turn, she cannot be readied again Rule 415.1.b — no readying event occurs and the trigger does not fire.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Action",
+      "Control",
+      "Ready"
+    ]
+  },
+  {
+    "id": "faq-cards/irelia-fervent.mdx-85",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does a Repeat spell targeting Irelia, Fervent for both instructions give her +1 might twice?"
+    ],
+    "ruleNumbers": [
+      "820.1.d",
+      "820.2",
+      "820.2.a",
+      "383.4.b.2",
+      "383.4.b.3"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, as choosing her for each instruction is a separate triggering event.\n\nRepeat is functionally \"execute the spell's instructions one additional time\". Rule 820.1.d\nWhen the Repeat cost is paid, choices for both executions are made during the same \"Make relevant choices\" step of playing the card. Rule 820.2 Rule 820.2.a\nChoosing Irelia for the first instruction and choosing her for the second target her twice.\nAfter the spell finalizes, her targeting effect is added to the chain as a pending item once for each targeting event. Rule 383.4.b.2 Rule 383.4.b.3\n\n You play Feral Strength and pay its Repeat cost, choosing Irelia for both instructions.\n After Feral Strength finalizes, Irelia's ability triggers twice — once per targeting event — and both triggers are added to the chain.\n When her triggers resolve, she receives +1 and +1 from her own ability.\n When the spell resolves, Irelia receives +2 and +2 from the spell's two instructions.\n That's +6 might total this turn.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Repeat",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/irresistible-faefolk.mdx-86",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If I move Irresistible Faefolk to an open battlefield and pull an enemy unit there, who is the attacker?"
+    ],
+    "ruleNumbers": [
+      "450",
+      "190.3.a",
+      "319.8",
+      "323.9",
+      "464.2.c.1",
+      "464.2.c.2"
+    ],
+    "answer": "Yes",
+    "explanation": "You — the Irresistible Faefolk player — are the attacker.\n\nWhen Irresistible Faefolk moves to an open (uncontrolled) battlefield, that move applies the contested status to the battlefield. Rule 450 Rule 190.3.a\nIrresistible Faefolk's trigger resolves after the cleanup caused by its own move, moving the enemy unit to that battlefield.\nDuring the cleanup following the enemy unit's move, combat is staged because opposing units are now present at the contested battlefield. Rule 319.8 Rule 323.9\nWhen combat opens, the attacker is defined as the player whose unit(s) applied the contested status. Rule 464.2.c.1\nThat is you — the player who moved Irresistible Faefolk.\nThe opponent whose unit was pulled in is the defender. Rule 464.2.c.2\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Control",
+      "Temporary"
+    ]
+  },
+  {
+    "id": "faq-cards/irresistible-faefolk.mdx-87",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If I play Irresistible Faefolk directly to a battlefield, does its ability trigger?"
+    ],
+    "ruleNumbers": [
+      "446.1",
+      "446.2"
+    ],
+    "answer": "No",
+    "explanation": "No — playing a unit to a battlefield is not a move, so the ability does not trigger.\n\nA move is defined as a permanent changing its position from one location on the board to another. Rule 446.1\nPlaying a card involves it entering the board from a non-board zone (such as your hand), which is a zone change, not a move. Rule 446.2\nBecause Irresistible Faefolk's ability specifically triggers when it *moves* to a battlefield, playing it directly there does not satisfy that trigger condition.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": []
+  },
+  {
+    "id": "faq-cards/irresistible-faefolk.mdx-88",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If an opponent responds to my move trigger by removing Irresistible Faefolk from the battlefield, does the enemy unit still move?"
+    ],
+    "ruleNumbers": [
+      "359.3.f.3",
+      "359.3.f.1",
+      "359.3.f.2"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes — the enemy unit still moves to that battlefield.\n\nIrresistible Faefolk's trigger condition is moving to a battlefield, and \"that battlefield\" in the effect is a referent to the battlefield named in that trigger condition.\nInformation referenced from a trigger condition is checked when the trigger condition is fulfilled, not when the ability resolves. Rule 359.3.f.3\nThat means \"that battlefield\" was already fixed the moment Irresistible Faefolk moved there and placed the ability on the chain.\n\nSuppose an opponent responds to the triggered ability by playing Gust (or similarly, Star-Crossed), targeting Irresistible Faefolk itself to return it to your hand.\nIrresistible Faefolk returns to your hand, but the triggered ability is unaffected — it's already an independent item on the chain, and the battlefield it references was fixed at trigger time.\nWhen it resolves, it moves an enemy unit to that battlefield, even though Irresistible Faefolk is no longer there.\n\nThis differs from information derived from an ability's source or targets, which is generally checked when the referencing instruction executes and may become unavailable before resolution. Rule 359.3.f.1 Rule 359.3.f.2\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Damage",
+      "Hidden",
+      "Location",
+      "Might",
+      "Reaction",
+      "Temporary",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/karthus-eternal.mdx-89",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Karthus, Eternal's ability apply if he dies from the same effect as the unit with Deathknell?"
+    ],
+    "ruleNumbers": [
+      "808.1.d.2",
+      "365.1",
+      "370.1.a.2",
+      "323.4",
+      "323.5"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, because Deathknell triggers are always queued as pending items before the dying unit leaves the board.\n\nWhenever a unit with Deathknell is killed — whether by a kill effect or by lethal damage during cleanup — its trigger is added to the chain before the card is moved to the trash. Rule 808.1.d.2\nKarthus's passive is only active while he is on the board. Rule 365.1\nWhen one kill action kills Karthus and another unit simultaneously, as with The Ruination, Karthus is still present when that unit's Deathknell triggers. Rule 370.1.a.2\nIn the cleanup case this ordering is enforced explicitly: step 3a queues all Deathknell triggers Rule 323.4 before step 3b moves any of those units to the trash. Rule 323.5\n\n You control Karthus and a friendly unit with Deathknell.\n Your opponent plays The Ruination, which kills all units.\n Both are sent to the trash, but not before Karthus's ability doubles the Deathknell trigger.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Action",
+      "Chain",
+      "Damage",
+      "Deathknell",
+      "Location",
+      "Might",
+      "Trash",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/karthus-eternal.mdx-90",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does a single Not So Fast counter both Deathknell triggers when Karthus, Eternal is on the board?"
+    ],
+    "ruleNumbers": [
+      "808.1.d.2"
+    ],
+    "answer": "No",
+    "explanation": "No.\nIf both Deathknell triggers are legal targets for Not So Fast, one copy can counter only one of them.\n\nWhen a friendly unit with Deathknell dies while Karthus is on the board, his ability causes that Deathknell to trigger an additional time.\nEach trigger is added to the chain as its own independent pending item. Rule 808.1.d.2\nNot So Fast targets a single spell or ability, so each copy can counter only one trigger.\n\nThis applies only when the Deathknell ability chooses one of your friendly units or gear.\nOtherwise, Not So Fast cannot target either trigger.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Trash",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/kennen-storm-of-shuriken.mdx-91",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Kennen grant Flow to a spell put into the trash by Minefield's ability triggered by the same conquer?"
+    ],
+    "ruleNumbers": [
+      "355.5",
+      "355.8",
+      "383.3.d",
+      "337.3",
+      "337.4",
+      "355.15"
+    ],
+    "answer": "No",
+    "explanation": "No.\nKennen's conquer ability must choose a spell already in your trash when the ability is finalized on the chain. Rule 355.5 Rule 355.8\n\nKennen's ability and Minefield's ability trigger from the same conquer and are added to the chain as pending items. Rule 383.3.d\nRegardless of their order, every pending item must be finalized before any item can begin resolving. Rule 337.3 Rule 337.4\nMinefield therefore cannot put its two cards into your trash until after Kennen has chosen a spell, and that choice cannot later be changed. Rule 355.15\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "faq-cards/lacerate.mdx-92",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Lacerate target a unit with more than 3 might?"
+    ],
+    "ruleNumbers": [
+      "355.7",
+      "355.9.a",
+      "355.9.a.1",
+      "355.9.b"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, Lacerate can target any otherwise legal unit, regardless of its might.\n\n\"Choose a unit\" targets a unit, Rule 355.7 Rule 355.9.a and adds no might-based targeting restriction — \"unit\" only identifies the category of game object being targeted. Rule 355.9.a.1\nThe instruction to kill it \"if it has 3 might or less\" is not part of the target description at all — it's a condition checked on the effect itself as Lacerate resolves.\nThis is unlike a card such as Gust, which reads \"Return a unit at a battlefield with 3 might or less to its owner's hand\" — there, \"with 3 might or less\" describes the target, so it's a genuine targeting restriction and only such units are valid choices. Rule 355.9.b\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Control",
+      "Might",
+      "Recycle",
+      "Trash"
+    ]
+  },
+  {
+    "id": "faq-cards/lilting-lullaby.mdx-93",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If my opponent targets my spell with Lilting Lullaby and I counter my own spell in response, can I still play spells?"
+    ],
+    "ruleNumbers": [
+      "425.1.a",
+      "355.9.a.2",
+      "359.3.e.2",
+      "359.3.e.9",
+      "359.3.e.7",
+      "359.3.e.14.a"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes.\nCountering your own spell removes it from the chain, so Lilting Lullaby has no valid target when it resolves — and with nothing to counter, the linked restriction on playing spells is also ignored.\n\nWhen you counter your own spell, it is cleared from the chain. Rule 425.1.a\n\"Spell\" in a targeting context refers to objects on the chain. Rule 355.9.a.2\nBy the time Lilting Lullaby resolves, its target is no longer on the chain and no longer meets the targeting requirements — this is mistargeting. Rule 359.3.e.2 Rule 359.3.e.9\n\nBecause all of Lilting Lullaby's first instruction's targets are now invalid, the \"Counter a spell\" instruction does not execute. Rule 359.3.e.7\n\n\"Counter a spell\" and \"Its controller can't play spells this turn\" are linked instructions — the second references the controller of the spell from the first.\nSince the earlier linked instruction was ignored, the later one is ignored as well. Rule 359.3.e.14.a\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Hidden",
+      "Reaction"
+    ]
+  },
+  {
+    "id": "faq-cards/lux-crownguard.mdx-94",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can I use Lux, Crownguard's ability to pay for Hard Bargain?"
+    ],
+    "ruleNumbers": [
+      "357.1",
+      "357.1.a",
+      "359.3.a",
+      "359.3.c",
+      "158.1",
+      "429.3"
+    ],
+    "answer": "No",
+    "explanation": "No.\nLux's ability can add energy to pay a spell's costs while that spell is being played, but it cannot supply the energy demanded by Hard Bargain.\n\nPaying a spell's costs is part of the process of playing it.\nDuring that step, its controller can activate Reaction abilities that add resources to pay those costs. Rule 357.1 Rule 357.1.a\nOnce the spell is finalized on the chain, its costs have already been paid and opponents receive an opportunity to play reactions. Rule 359.3.a Rule 359.3.c\n\nHard Bargain's instruction, \"Counter a spell unless its controller pays <Energy value={2} />,\" is executed later, when Hard Bargain resolves. Rule 158.1\nThat payment is not a cost of playing the targeted spell.\nAlthough abilities that add resources can normally be activated whenever a spell or ability requires resources to be paid, Lux restricts her added energy to playing spells. Rule 429.3\nIt therefore cannot be used for Hard Bargain's payment or for another payment required while a spell or ability resolves.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Reaction"
+    ]
+  },
+  {
+    "id": "faq-cards/promising-future.mdx-95",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Disarming Rake kill Dazzling Aurora if both are chosen with Promising Future?"
+    ],
+    "ruleNumbers": [
+      "383.4.a",
+      "383.4.a.2",
+      "337.1.b",
+      "337.2"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, regardless of which card is put on the chain first.\n\nDisarming Rake's \"When you play me\" ability is a play effect.\nIt is added to the chain as a separate pending item only after Disarming Rake finalizes and enters the board. Rule 383.4.a Rule 383.4.a.2\n\nIf Dazzling Aurora finalized first, it is already on the board.\nIf Disarming Rake finalized first, its play effect is put on the chain after Dazzling Aurora, so the older Dazzling Aurora finalizes and enters before the play effect does. Rule 337.1.b Rule 337.2\nIn either order, Dazzling Aurora is on the board when Disarming Rake's play effect is finalized and can be killed by it.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "faq-cards/promising-future.mdx-96",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Ravenbloom Prefect banish Dazzling Aurora if both are chosen with Promising Future?"
+    ],
+    "ruleNumbers": [
+      "383.4.a.4",
+      "383.2.c",
+      "419.4.a"
+    ],
+    "answer": "Yes",
+    "explanation": "Only if Ravenbloom Prefect finalizes before Dazzling Aurora.\n\nUnlike Disarming Rake's own play effect, Ravenbloom Prefect's ability triggers when another object is played. Rule 383.4.a.4\nRavenbloom Prefect must therefore be on the board when Dazzling Aurora finishes being played for its trigger condition to be fulfilled. Rule 383.2.c Rule 419.4.a\n\nIf Ravenbloom Prefect finalizes first, it enters the board before Dazzling Aurora finalizes, so its ability triggers and can banish Dazzling Aurora.\nIf Dazzling Aurora finalizes first, Ravenbloom Prefect is still a pending card on the chain when Aurora enters, so the ability does not trigger later when Prefect enters.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/rebuttal.mdx-97",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "When do I choose whether to pay the power for Rebuttal?"
+    ],
+    "ruleNumbers": [
+      "355.5",
+      "204.2",
+      "204.3",
+      "204.3.b"
+    ],
+    "answer": "Yes",
+    "explanation": "You choose whether to pay Universal when Rebuttal resolves because the optional payment is a cost within the spell's instructions, not an additional cost to play it.\n\nWhen Rebuttal is finalized, you choose the spell with energy cost no more than <Energy value={4} />. Rule 355.5\nThe optional power payment is not an additional cost to play Rebuttal; it is a cost within the spell's instructions. Rule 204.2 Rule 204.3\nCosts within a spell's instructions are paid during that spell's resolution. Rule 204.3.b\n\nOpponents can therefore react to Rebuttal knowing which spell it chose, but without knowing whether you will pay Universal to gain control of that spell or decline to pay and counter it.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Damage",
+      "Reaction"
+    ]
+  },
+  {
+    "id": "faq-cards/rebuttal.mdx-98",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Rebuttal redirect a spell played from Hidden to another location?"
+    ],
+    "ruleNumbers": [
+      "752.1",
+      "753.1",
+      "811.1.d.2"
+    ],
+    "answer": "No",
+    "explanation": "No — taking control of the spell and making new choices for it does not remove the targeting restriction imposed by Hidden.\n\nRebuttal allows its controller to remake a finalized spell's targets, Rule 752.1 but every new choice must still be legal. Rule 753.1\nWhen a spell is played from Hidden, its targets must be chosen from among the options at the battlefield where it was hidden unless the spell's own targeting restriction makes that impossible. Rule 811.1.d.2\nChanging the spell's controller does not change where it was played from, so this restriction continues to apply.\n\n An opponent plays Hidden Blade from Hidden and chooses a unit at that battlefield.\n If you gain control of Hidden Blade with Rebuttal, you may choose another legal unit at the same battlefield.\n You cannot choose a unit at another battlefield, and you cannot choose a unit at base because Hidden Blade itself requires a unit \"at a battlefield.\"\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Control",
+      "Hidden",
+      "Location"
+    ]
+  },
+  {
+    "id": "faq-cards/rebuttal.mdx-99",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Whose \"when you play a spell\" abilities trigger for a spell Rebuttal takes control of?"
+    ],
+    "ruleNumbers": [
+      "419.4.a",
+      "191.2"
+    ],
+    "answer": "Yes",
+    "explanation": "The abilities controlled by the spell's new controller trigger because the act of playing the spell is completed when it resolves under that player's control.\n\nAbilities such as Ravenbloom Student's do not trigger when a spell is first placed on or finalized to the chain.\nThey trigger when the act of playing that spell is completed by its resolution. Rule 419.4.a\nAt that point, the player who gained control of the spell with Rebuttal is its controller. Rule 191.2\n\n You control Ravenbloom Student and use Rebuttal to gain control of an opponent's Gust.\n Your Student triggers when Rebuttal resolves.\n When Gust resolves afterward, your Student triggers again because you now control Gust.\n Your opponent's \"when you play a spell\" abilities do not trigger for Gust.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/rebuttal.mdx-100",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Do I draw a card if I take control of Back Off?"
+    ],
+    "ruleNumbers": [
+      "419.1",
+      "419.4.b",
+      "329.3"
+    ],
+    "answer": "No",
+    "explanation": "No — you did not play Back Off from your hand merely by taking control of it.\n\nTo play a card, a player places it on the chain and queues it for finalization. Rule 419.1\nBack Off's \"if you played this from your hand\" clause is a non-triggered condition, so it checks whether the card was finalized by that player. Rule 419.4.b Rule 329.3\nGaining control of an already-finalized spell does not repeat that process or change which player performed it.\n\nWhen Back Off resolves under your control, \"you\" refers to you, but you did not play it from your hand, so you do not draw a card.\nThe opponent who originally played Back Off does not draw either because they no longer control the resolving spell.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Legion"
+    ]
+  },
+  {
+    "id": "faq-cards/ruined-rex.mdx-101",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Ruined Rex's Deathknell deal damage before or after units are healed at the end of combat?"
+    ],
+    "ruleNumbers": [
+      "323.4",
+      "808.1.d.2",
+      "323.5",
+      "466.1.a.1",
+      "334",
+      "337.4"
+    ],
+    "answer": "Yes",
+    "explanation": "After.\nThe combat heal is part of the same cleanup that queues the trigger, and the trigger does not resolve until that cleanup has run to completion.\n\nWhen Ruined Rex dies with lethal damage during a combat cleanup, the steps run in this order:\n\n1. Step 3a — Ruined Rex's Deathknell trigger is added to the chain as a pending item. Rule 323.4 Rule 808.1.d.2\n2. Step 3b — Ruined Rex is moved to the trash. Rule 323.5\n3. Step 3c — All units are healed.\nThis step is inserted by the combat special cleanup. Rule 466.1.a.1\n\nThe pending trigger does not begin finalization until the cleanup task is complete. Rule 334\nAfter the cleanup, the trigger is finalized and its target is chosen.\nOnce no pending items remain, players receive priority before the trigger resolves. Rule 337.4\nIf it is not countered, it eventually resolves and deals 4 damage to the chosen enemy unit.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Damage",
+      "Deathknell",
+      "Heal",
+      "Location",
+      "Trash",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/ruined-rex.mdx-102",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Ruined Rex's Deathknell target the Mech tokens created by Ferrous Forerunner's Deathknell, if both die at the same time?"
+    ],
+    "ruleNumbers": [
+      "323.4",
+      "337.3",
+      "337.4",
+      "355.5"
+    ],
+    "answer": "No",
+    "explanation": "No.\nRuined Rex chooses its target before Ferrous Forerunner creates its Mech tokens.\n\nWhen both units die in the same cleanup, their Deathknell abilities become pending items. Rule 323.4\nAll pending items are finalized before players receive priority and ordinary abilities begin resolving. Rule 337.3 Rule 337.4\n\nRuined Rex chooses its target during finalization, Rule 355.5 while Ferrous Forerunner creates its Mechs only when its ability resolves.\nRegardless of finalization order, those Mechs do not exist when Rex chooses its target.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Damage",
+      "Deathknell",
+      "Location",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/sacrifice.mdx-103",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If Sacrifice is countered, is the killed unit returned?"
+    ],
+    "ruleNumbers": [
+      "425.1.a",
+      "425.1.c",
+      "425.1.c.1"
+    ],
+    "answer": "No",
+    "explanation": "No, as the kill is an additional cost and countering a spell never refunds costs already paid.\n\nKilling a friendly Mighty unit is an additional cost required to play Sacrifice.\nA countered spell does nothing and is cleared from the chain. Rule 425.1.a\nCountering does not refund any costs paid to play a card, including additional costs. Rule 425.1.c Rule 425.1.c.1\nThat cost is paid before the spell resolves, so the killed unit is not returned.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/sacrifice.mdx-104",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can my opponent interact before the Mighty unit chosen for Sacrifice's additional cost is killed?"
+    ],
+    "ruleNumbers": [
+      "355.10.c",
+      "357.2",
+      "337.1.a",
+      "357.1.a",
+      "429.3",
+      "429.3.a"
+    ],
+    "answer": "No",
+    "explanation": "No normal reaction window opens between choosing the Mighty unit and killing it.\n\nThe unit killed as a cost is not a target — objects referenced as part of a cost are explicitly excluded from targeting. Rule 355.10.c\n\nCosts are paid during step 4 of finalization, and finalization does not pass priority. Rule 357.2 Rule 337.1.a\nDuring that step, Sacrifice's controller may activate an eligible Add ability with Reaction when resources are required, even without priority. Rule 357.1.a Rule 429.3 Rule 429.3.a\nThis limited exception does not create a normal reaction window or permit an opponent to play a spell like Stupefy between choosing and killing the unit.\n\nBy the time a normal priority window opens, the cost has been paid and the unit is already in the trash.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Reaction",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/shadow-assassin.mdx-105",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Shadow Assassin count itself when I play it from my trash?"
+    ],
+    "ruleNumbers": [
+      "354",
+      "419.1"
+    ],
+    "answer": "No",
+    "explanation": "No.\nPlaying Shadow Assassin from your trash moves it onto the chain first, Rule 354 Rule 419.1 so by the time it enters, it's no longer in your trash.\nIt enters ready only if a *different* copy of it is still there.\n\nConsuming Curse and Shadowblade Lurker work the same way.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "faq-cards/shadowblade-lurker.mdx-106",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "When I play Shadowblade Lurker from my trash, does it discount its own cost?"
+    ],
+    "ruleNumbers": [
+      "354",
+      "419.1"
+    ],
+    "answer": "No",
+    "explanation": "No.\nPlaying Shadowblade Lurker from your trash moves it onto the chain first, Rule 354 Rule 419.1 so it's no longer in your trash when its cost is worked out.\nOnly the *other* copies still in your trash reduce the cost.\n\nConsuming Curse and Shadow Assassin work the same way.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain"
+    ]
+  },
+  {
+    "id": "faq-cards/shady-spectacles.mdx-107",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does a Reflection token with Temporary lose Temporary after Shady Spectacles makes it a copy of a unit that doesn't have Temporary?"
+    ],
+    "ruleNumbers": [
+      "477.1.b",
+      "477.1.b.1",
+      "477.2",
+      "477.2.a",
+      "477.1.b.1.b",
+      "801.3.a.3"
+    ],
+    "answer": "No",
+    "explanation": "No.\nIt keeps the Temporary keyword granted to it separately, even if Shady Spectacles makes it a copy of a unit without Temporary.\n\nDeceiver and Mirror Image first play a Reflection token, then make it a copy, and then grant it Temporary.\nThe keyword therefore comes from a separate effect rather than from the traits copied by the token.\n\nShady Spectacles' \"becomes a copy of that unit\" applies in the trait-altering layer, Rule 477.1.b Rule 477.1.b.1 while the separate keyword grant applies afterward in the ability-altering layer. Rule 477.2 Rule 477.2.a\nThe rules' Reflection example likewise confirms that copied Reflection tokens retain Temporary. Rule 477.1.b.1.b\nBecause the grant has no stated duration, it continues for as long as the token remains on the board. Rule 801.3.a.3\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Temporary"
+    ]
+  },
+  {
+    "id": "faq-cards/smite.mdx-108",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Guardian Angel, Zhonya's Hourglass, or Tactical Retreat save a unit from Smite?"
+    ],
+    "ruleNumbers": [
+      "369.1",
+      "372",
+      "370.1.a.1",
+      "370.2",
+      "427.2.a"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes.\nThese effects can prevent the banish because the unit's controller decides which replacement effect applies first and can apply their protective effect before Smite's.\n\nSmite's \"if it would die this turn, banish it instead\" is a replacement effect. Rule 369.1\nSo are each of the three protective effects, which all replace the event of a unit dying.\nWhen multiple replacement effects apply to the same event, the controller of the affected unit decides the order they apply. Rule 372\n\nIf the unit's controller applies their protective effect first, the death event is fully replaced — the unit is healed, exhausted, and recalled, or an equipment dies in its place. Rule 370.1.a.1\nA replacement effect can only be applied once to an event, and to any events that replace it; Rule 370.2 once the death event has been consumed, Smite's replacement effect has no qualifying event left to intercept, and the unit is not banished.\n\nConversely, if Smite's effect is applied first, the unit is banished.\nThe protective effects each replace a \"die\" event — since banishment is not a subset of killing, Rule 427.2.a none of them can chain onto the resulting \"banish\" event.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Action",
+      "Banish",
+      "Control",
+      "Exhaust",
+      "Heal",
+      "Location",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/sunken-temple.mdx-109",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Sunken Temple trigger if I conquer with a unit that is only Mighty due to Assault?"
+    ],
+    "ruleNumbers": [
+      "807.1.c",
+      "807.1.d.1",
+      "466.5.d",
+      "466.7.a",
+      "708",
+      "710"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, Sunken Temple will trigger even if the unit is only Mighty because of the bonus might it gained from Assault. Rule 807.1.c Rule 807.1.d.1\n\nControl is established and the conquer occurs Rule 466.5.d before attacker and defender designations are removed. Rule 466.7.a\nThis means units still have their attacker designation — and therefore Assault active — at the time the conquer trigger is evaluated. Rule 708 Rule 710\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Assault",
+      "Battlefield",
+      "Conquer",
+      "Control",
+      "Might"
+    ]
+  },
+  {
+    "id": "faq-cards/switcheroo.mdx-110",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "How does Switcheroo work?"
+    ],
+    "ruleNumbers": [
+      "433"
+    ],
+    "answer": "Yes",
+    "explanation": "Switcheroo does not swap might values directly — it determines the difference in current might at resolution and applies +X/-X modifiers accordingly.\n\nSwitcheroo uses the Swap action, Rule 433 which calculates the difference between the two units' current might, then applies a -X modifier to the higher might unit and a +X modifier to the lower might unit.\nCurrent might means the unit's total might at resolution time, including all active modifiers: equipment bonuses, battlefield passives, conditional abilities, and any other effects.\nThe modifiers Switcheroo applies persist until end of turn.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": []
+  },
+  {
+    "id": "faq-cards/switcheroo.mdx-111",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Switcheroo result in negative might?"
+    ],
+    "ruleNumbers": [
+      "143.2.b",
+      "323.5",
+      "142.4.b"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes.\nWhen referenced by spells or abilities and when summing combat damage, negative might is treated as 0, but might increases and decreases use the actual negative value.\n\nUnits can end up with negative might when modifiers included in their current might at resolution are later removed.\nUnits with might less than 0 are treated as having 0 might when referenced by spells and abilities, and when summing might to be assigned as damage in the Combat Damage Step. Rule 143.2.b\nUnits with 0 or negative might do not automatically die — units are only killed during cleanup if they have lethal damage, meaning non-zero damage equal to or exceeding their might. Rule 323.5 Rule 142.4.b\n\nIf a unit later gains additional might modifiers, they add to the actual negative value.\n\n A unit at -2 might is targeted with Punch First, which reads \"Give a unit +5 Might this turn.\"\n The unit ends up with 3 might — the +5 modifier adds to the actual -2 value.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Damage",
+      "Might",
+      "Trash"
+    ]
+  },
+  {
+    "id": "faq-cards/temporal-breach.mdx-112",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can Temporal Breach banish a unit at a different battlefield if played from Hidden?"
+    ],
+    "ruleNumbers": [
+      "355.5",
+      "355.7",
+      "355.8",
+      "811.1.d",
+      "811.1.d.2",
+      "811.3"
+    ],
+    "answer": "No",
+    "explanation": "No, when Temporal Breach is played from Hidden, the unit it banishes must be chosen from among units at the battlefield where it was hidden.\n\n\"Banish a unit\" chooses a specific game object to affect, making it a target, declared as Temporal Breach is put on the chain. Rule 355.5 Rule 355.7 Rule 355.8\nChoices made while playing a card from Hidden are restricted to the battlefield where it was hidden. Rule 811.1.d\nSpecifically, if a Hidden spell chooses any targets, those targets must be chosen from among options at that battlefield, unless the ability explicitly restricts targeting in a way that makes this impossible. Rule 811.1.d.2\nTemporal Breach's own wording doesn't restrict its target to a location, so this Hidden restriction applies in full — a unit at another battlefield, or in base, isn't a legal target when it's played from Hidden.\n\nIf Temporal Breach is played normally, the Hidden restriction does not apply.\nIt may target an otherwise legal unit at any board location, including a base or battlefield. Rule 811.3\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Control",
+      "Hidden",
+      "Location"
+    ]
+  },
+  {
+    "id": "faq-cards/temporal-breach.mdx-113",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does a unit replayed by Temporal Breach keep temporary modifications or statuses?"
+    ],
+    "ruleNumbers": [
+      "056.1",
+      "124",
+      "124.1",
+      "124.2"
+    ],
+    "answer": "No",
+    "explanation": "No, the replayed unit does not keep temporary modifications or statuses it had before Temporal Breach banished it.\n\nBanishment is a non-board zone, Rule 056.1 and a game object that changes zones to or from a non-board zone becomes a new object for tracking purposes. Rule 124\nWhen the unit enters banishment, all temporary modifications and statuses on it are cleared. Rule 124.1\nThis means effects such as Stupefy's might reduction no longer apply, and a unit that was Empowered is no longer Empowered when it is replayed. Rule 124.2\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chosen Champion",
+      "Damage",
+      "Empowered",
+      "Temporary",
+      "Trash"
+    ]
+  },
+  {
+    "id": "faq-cards/temporal-breach.mdx-114",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What happens to equipment attached to a unit replayed by Temporal Breach?"
+    ],
+    "ruleNumbers": [
+      "719.5",
+      "435.4.b",
+      "124",
+      "435.4.a"
+    ],
+    "answer": "Yes",
+    "explanation": "The equipment detaches and remains at the unit's previous location because Temporal Breach moves the unit from the board to banishment.\n\nWhen Temporal Breach moves the unit from the board to banishment, all cards attached to that unit detach and remain at the unit's previous location. Rule 719.5 Rule 435.4.b\nThe replayed unit is a new game object, Rule 124 and nothing instructs the equipment to attach to it again.\n\nIf the unit was at a battlefield, the unattached equipment is recalled to its controller's base during the next cleanup. Rule 435.4.a\nIf the unit was at a base, the equipment instead remains unattached at that base.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Location"
+    ]
+  },
+  {
+    "id": "faq-cards/temporal-breach.mdx-115",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does a replayed unit trigger its attack or defend ability again during the same combat?"
+    ],
+    "ruleNumbers": [
+      "124",
+      "323.2.a",
+      "383.4.e",
+      "383.4.f",
+      "383.4.e.2.a",
+      "383.4.f.2.a"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, if the unit is replayed to the battlefield where combat is in progress, its attack or defend ability can trigger again because it becomes a new game object.\n\nThe unit becomes a new game object when it enters banishment, Rule 124 and that new object has not yet had its attack or defend trigger condition checked during that combat.\nAfter the replayed unit enters the battlefield, the next cleanup gives it the same attacker or defender designation as its controller. Rule 323.2.a\nGaining that designation causes its corresponding attack or defend ability to trigger. Rule 383.4.e Rule 383.4.f\nThe normal once-per-combat limit does not prevent this trigger because it applied to the previous game object, not the newly replayed one. Rule 383.4.e.2.a Rule 383.4.f.2.a\n\n Ahri, Inquisitive's \"When I attack or defend\" ability can trigger when she gains the defender designation at the start of combat.\n After that ability resolves, Temporal Breach can banish and replay her to the same battlefield.\n The replayed Ahri is a new game object and gains the defender designation during the next cleanup, triggering her ability a second time in the same combat.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/temporal-breach.mdx-116",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Ravenbloom Conservatory trigger again if Temporal Breach replays my only defending unit?"
+    ],
+    "ruleNumbers": [
+      "383.4.f",
+      "464.2.c.3",
+      "383.4.f.2.a",
+      "124",
+      "466.7.a"
+    ],
+    "answer": "No",
+    "explanation": "No, Ravenbloom Conservatory does not trigger a second time because it remains the same game object, and its defend trigger has already checked its condition during that combat.\n\nRavenbloom Conservatory's \"When you defend here\" ability is a defend trigger whose condition is fulfilled when its controller gains the defender designation. Rule 383.4.f\nWhen combat opens, the defending player and their units separately gain that designation, Rule 464.2.c.3 so Ravenbloom Conservatory checks its trigger condition then.\nA defend triggered ability can have its condition checked only once per combat. Rule 383.4.f.2.a\n\nTemporal Breach makes the replayed unit a new game object, Rule 124 which allows that new unit's own defend ability to receive its first condition check during the same combat.\nIt does not make Ravenbloom Conservatory a new object or begin a new combat, so Ravenbloom Conservatory's ability does not receive another condition check.\nThe defending player also keeps the defender designation until combat ends, Rule 466.7.a and therefore does not gain it again when the replayed unit gains its separate designation during cleanup.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Trigger"
+    ]
+  },
+  {
+    "id": "faq-cards/temporal-breach.mdx-117",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What happens if Temporal Breach banishes a token unit?"
+    ],
+    "ruleNumbers": [
+      "056.1",
+      "186",
+      "186.1",
+      "055"
+    ],
+    "answer": "Yes",
+    "explanation": "The token stops existing the moment it's banished, so there's nothing left for its owner to replay.\n\nTemporal Breach puts the token into its owner's banishment, which is a non-board zone. Rule 056.1\nTokens can only exist on the board or the chain — if a token enters any other zone, it ceases to exist immediately upon arriving there. Rule 186 Rule 186.1\nSo by the time Temporal Breach's \"then its owner plays it to the same location\" instruction would apply, the token is already gone, and that part of the spell does nothing for it. Rule 055\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Chain",
+      "Chosen Champion",
+      "Trash"
+    ]
+  },
+  {
+    "id": "faq-cards/temporal-breach.mdx-118",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Can I pay optional additional costs, like Accelerate, when replaying a unit banished by Temporal Breach?"
+    ],
+    "ruleNumbers": [
+      "354",
+      "354.2",
+      "355",
+      "356",
+      "356.1.b.1",
+      "356.1.b.3",
+      "805.2",
+      "356.2.b.1"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, since the replayed unit still goes through the complete, normal process of playing a card, and \"ignoring its cost\" only narrows one part of that process — the base cost — leaving everything else, including optional additional costs, unaffected.\n\n\"Its owner plays it\" instructs the normal process of playing a card — the unit is removed from banishment and put onto the chain as a pending item, Rule 354 Rule 354.2 it isn't placed directly onto the board.\nThat pending item goes through the full finalization process once it's ready to be finalized, including making relevant choices Rule 355 and determining total cost. Rule 356\nPlaying a card \"ignoring its cost\" only sets its base Energy and base Power cost to zero; Rule 356.1.b.1 further additional costs applied in later steps can still raise the total cost back above zero. Rule 356.1.b.3\nAccelerate is one such optional additional cost, paid as a player plays the unit with the ability, Rule 805.2 so its owner may still declare their intent to pay it during finalization Rule 356.2.b.1 and pay it as usual, unaffected by Temporal Breach ignoring the unit's base cost.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Accelerate",
+      "Chain",
+      "Legion"
+    ]
+  },
+  {
+    "id": "faq-cards/temporal-breach.mdx-119",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What happens if the replayed unit has a mandatory additional cost its owner can't pay?"
+    ],
+    "ruleNumbers": [
+      "356.1.b.1",
+      "356.1.b.3",
+      "356.2.a.1",
+      "358.2",
+      "358.5",
+      "354"
+    ],
+    "answer": "Yes",
+    "explanation": "The attempted play is cancelled, and the unit returns to its owner's banishment.\n\nTemporal Breach's instruction to play the unit \"ignoring its cost\" sets only its base Energy and base Power cost to zero. Rule 356.1.b.1\nMandatory additional costs must still be paid to complete playing the unit. Rule 356.1.b.3 Rule 356.2.a.1\nIf the owner can't pay one, the unit fails the check that all costs were paid, so the actions taken during its play process are undone and the play is cancelled. Rule 358.2 Rule 358.5\nThis rewind returns the unit from the chain, Rule 354 to banishment; it does not undo Temporal Breach's earlier, completed instruction that banished it.\n\n If Temporal Breach banishes Cruel Patron and its owner has no other friendly unit, they can't pay Cruel Patron's mandatory additional cost to kill a friendly unit.\n Cruel Patron cannot finish finalizing and returns to its owner's banishment.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Accelerate",
+      "Action",
+      "Chain",
+      "Legion"
+    ]
+  },
+  {
+    "id": "faq-cards/temporal-breach.mdx-120",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If the unit banished by Temporal Breach has Hidden, can its owner hide it instead of playing it?"
+    ],
+    "ruleNumbers": [
+      "811.1.c.1",
+      "419.1",
+      "421.1",
+      "811.1.b"
+    ],
+    "answer": "No",
+    "explanation": "No, hiding the unit does not fulfill Temporal Breach's instruction to play it.\n\nHide is a separate action, not a subset of play. Rule 811.1.c.1\nPlaying the unit puts it on the chain and queues it for finalization, Rule 419.1 whereas hiding would put it facedown at a battlefield. Rule 421.1\nMoreover, the unit is in banishment when its owner is instructed to play it, and Hidden only permits a card to be hidden from hand or the champion zone. Rule 811.1.b\nHiding is therefore not an alternative to the instructed play.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Control",
+      "Hidden",
+      "Reaction"
+    ]
+  },
+  {
+    "id": "faq-cards/temporal-breach.mdx-121",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If Temporal Breach banishes and replays my only unit at a battlefield, can I score there on my opponent's turn?"
+    ],
+    "ruleNumbers": [
+      "354.2",
+      "354.3",
+      "330",
+      "331",
+      "190.4.c",
+      "323.6",
+      "469.1",
+      "334.2",
+      "337.1",
+      "359.2"
+    ],
+    "answer": "No",
+    "explanation": "No, as control of the battlefield is never lost during this sequence.\n\nWhen Temporal Breach resolves, the replayed unit is added to the chain as a pending item, Rule 354.2 with its play process held until the spell has fully resolved. Rule 354.3\nOnce the spell finishes resolving, a cleanup runs — but the pending unit keeps the chain alive throughout it. Rule 330 Rule 331\nBecause the chain is not empty, the turn remains in a closed state, and cleanup step 4 — which would make the battlefield uncontrolled — only applies during an open state. Rule 190.4.c Rule 323.6\nControl is never lost, so there is no opportunity to score a point. Rule 469.1\nWhen all outstanding tasks are complete, the pending unit is finalized Rule 334.2 Rule 337.1 and replayed to the same battlefield you still control, as dictated by Temporal Breach's own text. Rule 359.2\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Conquer",
+      "Control",
+      "Showdown"
+    ]
+  },
+  {
+    "id": "faq-cards/temporal-breach.mdx-122",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What happens if Temporal Breach banishes a unit at Rockfall Path?"
+    ],
+    "ruleNumbers": [
+      "358.3.a"
+    ],
+    "answer": "Yes",
+    "explanation": "Temporal Breach banishes the unit, but its owner cannot play it back to Rockfall Path.\nThe unit remains in its owner's banishment.\n\nRockfall Path prevents the instructed play action.\nThis does not stop Temporal Breach from resolving; when it reaches the replay instruction, that game action is skipped as impossible. Rule 358.3.a\nThe earlier banish instruction is unaffected, so the unit remains banished.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Action",
+      "Battlefield"
+    ]
+  },
+  {
+    "id": "faq-cards/temporal-breach.mdx-123",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "What happens if Brynhir Thundersong prevents the owner of a unit banished by Temporal Breach from playing cards?"
+    ],
+    "ruleNumbers": [
+      "358.3.a"
+    ],
+    "answer": "Yes",
+    "explanation": "The unit remains banished.\n\nIf Brynhir Thundersong's play effect has resolved, opponents cannot play cards for the rest of that turn.\nTemporal Breach can still banish an opponent's unit, but that opponent cannot perform the instruction to play it back.\n\nThis does not stop Temporal Breach from resolving.\nThe replay is an impossible game action and is skipped, Rule 358.3.a just as it is when Rockfall Path prevents the unit from being played to its previous location.\nBecause the earlier banish instruction was completed normally, the unit remains in its owner's banishment.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Action",
+      "Battlefield"
+    ]
+  },
+  {
+    "id": "faq-cards/thrill-of-the-hunt.mdx-124",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "If Thrill of the Hunt banishes and replays my only unit at a battlefield, can I score there on my opponent's turn?"
+    ],
+    "ruleNumbers": [
+      "354.2",
+      "354.3",
+      "330",
+      "331",
+      "190.4.c",
+      "323.6",
+      "469.1",
+      "334.2",
+      "337.1",
+      "359.2"
+    ],
+    "answer": "No",
+    "explanation": "No, as control of the battlefield is never lost during this sequence.\n\nWhen Thrill of the Hunt resolves, the replayed unit is added to the chain as a pending item, Rule 354.2 with its play process held until the spell has fully resolved. Rule 354.3\nOnce the spell finishes resolving, a cleanup runs — but the pending unit keeps the chain alive throughout it. Rule 330 Rule 331\nBecause the chain is not empty, the turn remains in a closed state, and cleanup step 4 — which would make the battlefield uncontrolled — only applies during an open state. Rule 190.4.c Rule 323.6\nControl is never lost, so there is no opportunity to score a point. Rule 469.1\nWhen all outstanding tasks are complete, the pending unit is finalized Rule 334.2 Rule 337.1 and, if its owner chooses that battlefield, replayed to the battlefield you still control. Rule 359.2\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Chain",
+      "Conquer",
+      "Control",
+      "Showdown"
+    ]
+  },
+  {
+    "id": "faq-cards/vex-apathetic.mdx-125",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Vex, Apathetic's triggered ability target the unit that was just played?"
+    ],
+    "ruleNumbers": [
+      "355.10.d",
+      "809.1.d"
+    ],
+    "answer": "No",
+    "explanation": "No, as the unit to be stunned is determined automatically, so no targeting ever occurs.\n\nWhen Vex's ability triggers, the unit to be stunned is determined automatically — it is always and only the unit the opponent just played.\nBecause no choice is ever made about which unit is stunned, the unit is not a target. Rule 355.10.d\n\nThis means targeting protection — such as \"I can't be chosen by enemy spells and abilities\" — offers no defense against the stun.\nDeflect similarly does not become relevant, since Deflect is only added to a spell or ability's cost when it targets an opponent's permanent, Rule 809.1.d which is not the case here.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Ready",
+      "Recycle",
+      "Trash"
+    ]
+  },
+  {
+    "id": "faq-cards/vex-cheerless.mdx-126",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Do opponents have to pay resources to play cards from Hidden while Vex, Cheerless is in combat?"
+    ],
+    "ruleNumbers": [
+      "811.1.b",
+      "356.1",
+      "356.3",
+      "356.4"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, cards played from Hidden by your opponents still cost <Energy value={1} />Universal when Vex is in combat.\n\nWhen a card with Hidden is played from its facedown state, it is played \"ignoring its base cost\". Rule 811.1.b\nDuring step 3 of playing a card (\"Determine Total Cost\"), the following happens in order:\n\n1. Set base costs to zero. Rule 356.1\nIf an ability or instruction allows you to \"ignore\" costs, set the base costs to zero.\nHidden cards played from facedown have their base cost set to <Energy value={0} />.\n2. Apply cost increases. Rule 356.3\nVex's ability increases enemy spell costs by <Energy value={1} />Universal, which is applied to the total cost even though the base cost is zero.\n3. Apply discounts. Rule 356.4\nNo discounts apply in this scenario.\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Control",
+      "Hidden",
+      "Reaction"
+    ]
+  },
+  {
+    "id": "faq-cards/vex-cheerless.mdx-127",
+    "source": "riftboundfaq.com",
+    "paraphrases": [
+      "Does Vex, Cheerless reduce Deflect costs when you play spells?"
+    ],
+    "ruleNumbers": [
+      "356.2.a.2",
+      "809.1.d",
+      "356.2",
+      "356.4",
+      "356.4.f",
+      "356.4.e"
+    ],
+    "answer": "Yes",
+    "explanation": "Yes, the cost reduction applies to Deflect costs when you target an opponent's permanent while she's in combat.\n\nDeflect is a mandatory additional cost. Rule 356.2.a.2 Rule 809.1.d\nWhen you play a friendly spell that targets an opponent's permanent with Deflect, that additional cost is added before Vex's discount is applied. Rule 356.2 Rule 356.4\n\nVex's discount can offset resources added by Deflect because discounts can reduce additional costs. Rule 356.4.f\nHowever, her discount cannot reduce the spell's resulting cost below her printed minimum of <Energy value={1} />. Rule 356.4.e\n\n(Source: riftboundfaq.com by Christian I. (Near) and contributors, CC BY-SA 4.0, https://github.com/ChristianIvicevic/riftboundfaq)",
+    "keywords": [
+      "Battlefield",
+      "Control",
+      "Deflect",
+      "Might"
+    ]
+  }
+]

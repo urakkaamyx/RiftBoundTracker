@@ -13,21 +13,23 @@ public sealed record RulesAskResponse(
 /// </summary>
 public sealed class RulesAnswerService(
     RulesQuestionService questions, RulesEvidenceService evidenceService, IRulesExplanationProvider explanationProvider,
-    ILogger<RulesAnswerService> logger)
+    RulesCuratedRulingService curatedRulings, ILogger<RulesAnswerService> logger)
 {
     // The adjudicate -> validate -> explain pipeline is built, wired, and hardened (repeat-penalty
-    // fix, anti-example-copying instructions, semantic grounding check) but is being kept OFF the hot
-    // path for now based on real measurement, not guesswork: run against the actual resident model
-    // (Qwen2.5-1.5B, fine-tuned only on the single-pass ExplainAsync shape), it validated on 1 of 14
-    // real attempts across 7 test questions — and that one success turned out to be a hallucinated
-    // question the grounding check now correctly rejects, so its real success rate on this model is
-    // effectively zero. Every attempt still costs two full inference calls (~30-60s each) before
-    // falling back, which would roughly double-to-triple every Ask Rules question's latency for no
-    // realized benefit. Flip this to true once a model actually fine-tuned on the adjudication output
-    // shape is trained and shipped (scripts/training/generate_dataset.py would need a new category
-    // for it first — out of scope for this pass, which only fixed that script's existing drift).
+    // fix, anti-example-copying instructions, semantic grounding check, explanation-fidelity check)
+    // but is kept OFF the hot path based on real measurement across four separate fine-tuning rounds
+    // on a Qwen3-1.7B model dedicated to this exact task shape (scripts/training/generate_adjudication
+    // _dataset.py) — each round fixed some real-question failures and introduced different ones
+    // without the overall pass rate ever climbing, the signature of a real capability ceiling for a
+    // model this size on genuine multi-step rules reasoning, not something one more round fixes.
+    // RulesCuratedRulingService (checked below, before this) is the actual fix: for the class of
+    // question that has a knowable answer, C# now determines that answer directly from a verified
+    // lookup table, and the model's only remaining job is questions that table doesn't cover — which
+    // this flag still routes to the single-pass ExplainAsync fallback rather than the LLM-driven
+    // adjudicator, since that fallback has no exposure to this task's specific failure modes.
     // static readonly, not const — a const bool makes the compiler treat the disabled branch below
-    // as statically unreachable (CS0162), which it isn't: this is a runtime-flippable switch.
+    // as statically unreachable (CS0162), which it isn't: this is a runtime-flippable switch, worth
+    // revisiting if a future model is actually reliable at this specific task.
     private static readonly bool AdjudicationPipelineEnabled = false;
 
     public async Task<RulesAskResponse> AskAsync(string question, string? cardId, CancellationToken ct = default)
@@ -38,7 +40,19 @@ public sealed class RulesAnswerService(
 
         string? answer = null;
         var answerGenerated = false;
-        if ((result.Rules.Count > 0 || result.Cards.Count > 0) && explanationProvider.IsConfigured)
+
+        // Checked before any LLM call, not as a fallback after one fails — see
+        // RulesCuratedRulingService's own doc comment for why. A match here means the ruling is
+        // already known and verified; the model doesn't get a turn to second-guess it.
+        var curated = curatedRulings.TryMatch(question);
+        if (curated is not null)
+        {
+            logger.LogDebug("Ask Rules: curated ruling {Id} matched — skipping the LLM pipeline entirely", curated.Id);
+            answer = curated.Explanation;
+            answerGenerated = true;
+            confidence = "High";
+        }
+        else if ((result.Rules.Count > 0 || result.Cards.Count > 0) && explanationProvider.IsConfigured)
         {
             if (AdjudicationPipelineEnabled)
             {
@@ -50,9 +64,11 @@ public sealed class RulesAnswerService(
                 {
                     var explainContext = new RulesAdjudicatedExplanationContext(question, adjudication, evidenceRefs, analysis.CardContext);
                     var generated = await explanationProvider.ExplainAdjudicationAsync(explainContext, ct);
-                    logger.LogDebug("Ask Rules: adjudicated explanation success={Success} error={Error} raw={Raw}",
-                        generated.Success, generated.Error, generated.Answer);
-                    if (generated.Success)
+                    var faithful = !generated.Success || generated.Answer is null
+                        || IsExplanationFaithfulToVerdict(adjudication.OverallVerdict, generated.Answer);
+                    logger.LogDebug("Ask Rules: adjudicated explanation success={Success} faithfulToVerdict={Faithful} error={Error} raw={Raw}",
+                        generated.Success, faithful, generated.Error, generated.Answer);
+                    if (generated.Success && faithful)
                     {
                         answer = generated.Answer;
                         answerGenerated = true;
@@ -108,6 +124,31 @@ public sealed class RulesAnswerService(
             correctionNote = validated.Error;
         }
         return null;
+    }
+
+    // Caught directly in testing: ExplainAdjudicationAsync is explicitly told "THE RULING BELOW HAS
+    // ALREADY BEEN DETERMINED — do not re-adjudicate it, do not change any Yes/No/Insufficient
+    // answer given" — and did exactly that anyway on a real question. Adjudication correctly ruled
+    // "No" with correct reasoning and passed validation cleanly; the explanation stage then quietly
+    // re-decided the question and shipped "we don't know" instead. RulesAdjudicationValidator only
+    // checks the adjudication output — nothing previously checked that the explanation it produces
+    // still agrees with the verdict it was handed. This is a blunt, string-based check, not a
+    // semantic one: if the verdict was a real ruling (not already "Insufficient evidence") but the
+    // explanation reads like a refusal, treat the explanation as failed so AskAsync falls through to
+    // the existing single-pass fallback rather than shipping a self-contradicting answer.
+    private static readonly string[] HedgePhrases =
+    [
+        "doesn't establish", "does not establish", "don't have rules evidence", "don't have evidence",
+        "no rules evidence", "can't say for sure", "cannot say for sure", "can't guess", "cannot guess",
+        "no idea", "unknown issue", "is unknown", "not covered by the supplied evidence",
+        "isn't covered by", "is not covered by", "we don't know", "we do not know", "i don't know",
+        "i do not know", "that's also unknown", "is also unknown",
+    ];
+
+    private static bool IsExplanationFaithfulToVerdict(string verdict, string explanation)
+    {
+        if (verdict.Contains("Insufficient", StringComparison.OrdinalIgnoreCase)) return true;
+        return !HedgePhrases.Any(phrase => explanation.Contains(phrase, StringComparison.OrdinalIgnoreCase));
     }
 
     // High: an exact rule number resolved, or the question named exactly one official

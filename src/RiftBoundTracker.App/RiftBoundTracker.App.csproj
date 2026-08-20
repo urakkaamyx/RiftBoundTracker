@@ -46,6 +46,11 @@
 
   <ItemGroup>
     <None Include="Run with debug console.bat" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Regular Content items only copy to the PUBLISH output by SDK default — dotnet run (dev
+         testing) uses the plain build output, so this needs an explicit CopyToOutputDirectory entry
+         the same way the .bat file above does, or RulesCuratedRulingService finds nothing when
+         running locally even though a real release build would have had it. -->
+    <None Include="RulesData/CuratedRulings.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Sdk.Web copies any loose project-directory file into the publish output by default (Content

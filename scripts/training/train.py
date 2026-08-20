@@ -10,6 +10,11 @@ datasets bitsandbytes accelerate
 
 Override RIFTKEEP_BASE_MODEL to fine-tune a different base model (e.g. when adding a new option to
 LocalAiModelCatalog.cs) — defaults to the model this dataset/prompt format was designed around.
+Override RIFTKEEP_DATASET_PATH/RIFTKEEP_OUTPUT_DIR/RIFTKEEP_MAX_LENGTH for a differently-shaped
+dataset (e.g. generate_adjudication_dataset.py's output, whose longer evidence-heavy examples need
+more than the 1024-token default — check actual token lengths against the target tokenizer before
+overriding, not just evidence character counts, since chat-template overhead and tokenization ratio
+both vary by model).
 """
 import os
 from pathlib import Path
@@ -22,8 +27,9 @@ from trl import SFTConfig, SFTTrainer
 
 BASE_MODEL = os.environ.get("RIFTKEEP_BASE_MODEL", "Qwen/Qwen2.5-1.5B-Instruct")
 HERE = Path(__file__).resolve().parent
-DATASET_PATH = HERE / "output" / "dataset.jsonl"
-OUTPUT_DIR = HERE / "output" / "lora-adapter"
+DATASET_PATH = Path(os.environ.get("RIFTKEEP_DATASET_PATH", str(HERE / "output" / "dataset.jsonl")))
+OUTPUT_DIR = Path(os.environ.get("RIFTKEEP_OUTPUT_DIR", str(HERE / "output" / "lora-adapter")))
+MAX_LENGTH = int(os.environ.get("RIFTKEEP_MAX_LENGTH", "1024"))
 
 print(f"CUDA available: {torch.cuda.is_available()}, device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'cpu'}")
 
@@ -57,7 +63,7 @@ sft_config = SFTConfig(
     save_strategy="epoch",
     bf16=True,
     report_to=[],
-    max_length=1024,
+    max_length=MAX_LENGTH,
     packing=False,
 )
 

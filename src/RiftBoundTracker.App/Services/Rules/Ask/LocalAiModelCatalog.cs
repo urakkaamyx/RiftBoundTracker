@@ -14,10 +14,16 @@ public sealed record LocalAiModelOption(string Id, string DisplayName, string De
 /// my might 6...") reproducibly (3/3 attempts) got an incoherent, self-contradictory non-answer
 /// from it despite RulesEvidenceService retrieving exactly the right rules (143.2.a, 142.4.b — both
 /// state plainly that damage is marked separately from Might). Qwen2.5 answered the same question
-/// correctly on the first try. The GGUF asset is still hosted at ask-rules-model-qwen3-1.7b-v1 for
-/// reference, but isn't listed here until it's actually reliable — training-side notes on what was
-/// tried (and what wasn't: only dataset-ratio changes, never epochs/learning-rate) are in
-/// scripts/training/generate_dataset.py's category 7/8 comments.
+/// correctly on the first try.
+///
+/// A second Qwen3 1.7B was later fine-tuned specifically on the adjudicate/explain task shape
+/// (scripts/training/generate_adjudication_dataset.py) across four training rounds — each round
+/// fixed some failures and introduced different ones without the overall reliability ever climbing,
+/// the signature of a real capability ceiling for a 1.7B model on this task, not something one more
+/// round fixes. The actual fix that worked: RulesCuratedRulingService checks a hand-verified +
+/// riftboundfaq.com-sourced lookup table BEFORE any model call for the class of questions that has a
+/// knowable answer at all — the model's job shrank to "phrase a question the curated table doesn't
+/// cover," not "decide any ruling." See RulesCuratedRulingService's own doc comment.
 /// </summary>
 public static class LocalAiModelCatalog
 {

@@ -214,6 +214,10 @@ internal static class Program
         builder.Services.AddSingleton<IRulesExplanationProvider>(sp => sp.GetRequiredService<LocalLlmExplanationProvider>());
         builder.Services.AddScoped<RulesQuestionService>();
         builder.Services.AddScoped<RulesEvidenceService>();
+        // Singleton, not scoped — CuratedRulings.json is loaded once and never changes at runtime,
+        // same reasoning as LocalLlmExplanationProvider owning its model weights for the process
+        // lifetime rather than reloading per request.
+        builder.Services.AddSingleton<RulesCuratedRulingService>();
         builder.Services.AddScoped<RulesAnswerService>();
 
         var app = builder.Build();

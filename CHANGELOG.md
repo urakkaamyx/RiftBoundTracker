@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.27.1 — Fix mobile Vault layout: no more horizontal scrolling
+
+- Mass Add/Scan Card/Check Price/Import Pack and the All/Owned/Missing/Favorites tabs used to share one row you had to swipe sideways through on a phone. Split into a labelled Tools row above the tabs, and every row in the Vault toolbar now wraps instead of scrolling on narrow screens — tools, tabs, and rarity/type/domain filters all go multi-line, and the grid/list view toggle moved down to sit with Sort below the set banner. Desktop is unchanged.
+
 ## v1.27.0 — Reset Data: choose exactly what to wipe, catalog untouched
 
 - New "Reset Data" card in Settings opens a checklist: Owned Collection, Trade Binder, Favorites, Card Notes, Decks, Price History, and Price Checker Queue. Check exactly what you want gone and type RESET to confirm — the card catalog itself is never touched, only the data you own.

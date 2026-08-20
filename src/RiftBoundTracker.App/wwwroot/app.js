@@ -524,6 +524,16 @@ async function refreshCurrentPage() {
 // per-set counts (e.g. "Origins 99/352") never updated after any collection change, not just a
 // pack import — same root cause (a refresh step nobody added), just easier to notice in bulk.
 async function refreshAfterCollectionChange() {
+  // Deck Builder's Discover panel caches its card list by {tab, search} (see renderDiscoverResults)
+  // so switching tabs/paging doesn't re-fetch a huge catalog query on every deck render. But that
+  // cached array holds full card objects with a stale ownedCount, and every deck re-render re-wires
+  // the panel, which calls registerCards(cachedCards) — clobbering the just-updated cardsById entry
+  // right back to its pre-change value. Reproduced directly: clicking Acquired on a card already
+  // visible in the (still-open) Discover panel updated the deck row correctly but silently reverted
+  // cardsById, so a second Acquired click recomputed the same target quantity as the first. Dropping
+  // both caches here forces a fresh fetch on the next render, whenever ownership actually changed.
+  state.discoverCache = { key: null, cards: [] };
+  state.recommendedCache = { key: null, recs: [] };
   await Promise.all([loadSets(), loadOverview()]);
   await refreshCurrentPage();
 }

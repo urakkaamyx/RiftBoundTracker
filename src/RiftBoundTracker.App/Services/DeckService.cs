@@ -18,6 +18,7 @@ public record DeckDetailDto(DeckSummaryDto Summary, List<DeckCardDto> Cards);
 public record CreateDeckRequest(string? Name, string? Description, string? Format, string? CoverCardId);
 public record UpdateDeckRequest(string? Name, string? Description, string? Format, string? CoverCardId);
 public record SetDeckCardRequest(string CardId, int Quantity, string? Section);
+public record MarkAsTradeResult(int UpdatedCards, int NotOwnedCards);
 public record ImportDeckRequest(string? Name, string? Description, string? Format, string Contents);
 public record DeckImportResult(int DeckId, int AddedLines, List<string> UnmatchedLines);
 
@@ -101,26 +102,41 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
     // reasoning Test Draw excludes them for. A real deck reported this directly: marking it for
     // trade flagged 23 Order Rune and a Battlefield for trade alongside the real cards, which isn't
     // what "retiring this deck" means for either of those.
-    public async Task<int> MarkAsTradeAsync(int deckId, CancellationToken ct = default)
+    public async Task<MarkAsTradeResult> MarkAsTradeAsync(int deckId, CancellationToken ct = default)
     {
         var rows = await db.DeckCards.Where(dc => dc.DeckId == deckId).ToListAsync(ct);
-        if (rows.Count == 0) return 0;
+        if (rows.Count == 0) return new MarkAsTradeResult(0, 0);
 
         var quantityByCard = rows.GroupBy(r => r.CardId).ToDictionary(g => g.Key, g => g.Sum(r => r.Quantity));
         var cards = await db.Cards
             .Where(c => quantityByCard.Keys.Contains(c.Id) && c.Type != "Rune" && c.Type != "Battlefield")
             .ToListAsync(ct);
         var updated = 0;
+        // A card the deck wants raised but that stays put because OwnedCount caps it there is a
+        // fundamentally different outcome than one already at its target — it can never be marked
+        // for trade until copies are actually owned, so it must never be folded into "already
+        // marked" (a real deck reported exactly this: 19 of 20 cards were unowned, MarkAsTradeAsync
+        // correctly refused to mark them, but the only signal the caller got back was "0 updated",
+        // which the UI then reported as "everything was already marked" — false for 19 of the 20).
+        var notOwned = 0;
         foreach (var card in cards)
         {
-            var target = Math.Clamp(Math.Max(card.BinderCount, quantityByCard[card.Id]), 0, card.OwnedCount);
-            if (target == card.BinderCount) continue;
+            var wanted = quantityByCard[card.Id];
+            var target = Math.Clamp(Math.Max(card.BinderCount, wanted), 0, card.OwnedCount);
+            if (target == card.BinderCount)
+            {
+                // Zero owned, not merely capped short of the deck's full count — a card owned 2 of
+                // 3 needed and already marked at its max of 2 is a normal, unremarkable outcome, not
+                // "not owned." Only a genuine zero belongs in this bucket.
+                if (card.OwnedCount == 0 && wanted > 0) notOwned++;
+                continue;
+            }
             card.BinderCount = target;
             card.UpdatedAt = DateTimeOffset.UtcNow;
             updated++;
         }
         if (updated > 0) await db.SaveChangesAsync(ct);
-        return updated;
+        return new MarkAsTradeResult(updated, notOwned);
     }
 
     public async Task<DeckDetailDto?> SetCardAsync(int id, SetDeckCardRequest request, CancellationToken ct = default)

@@ -1653,9 +1653,11 @@ async function deleteActiveDeck() {
 async function markDeckForTrade() {
   if (!confirm(`Mark every card in "${state.activeDeck.summary.name}" as available in your Trade Binder?`)) return;
   const result = await api(`/api/decks/${state.activeDeckId}/mark-as-trade`, jsonOptions("POST", {}));
-  toast(result.updatedCards
-    ? `${result.updatedCards} card${result.updatedCards === 1 ? "" : "s"} marked for trade`
-    : "Every card in this deck was already marked for trade");
+  const parts = [];
+  if (result.updatedCards) parts.push(`${result.updatedCards} card${result.updatedCards === 1 ? "" : "s"} marked for trade`);
+  else if (!result.notOwnedCards) parts.push("Every card in this deck was already marked for trade");
+  if (result.notOwnedCards) parts.push(`${result.notOwnedCards} card${result.notOwnedCards === 1 ? " isn't" : "s aren't"} owned, so ${result.notOwnedCards === 1 ? "it can't" : "they can't"} be marked`);
+  toast(parts.join(". "));
   await loadOverview();
 }
 

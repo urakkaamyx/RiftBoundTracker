@@ -480,7 +480,7 @@ internal static class Program
             await decks.DeleteAsync(id, ct) ? Results.NoContent() : Results.NotFound());
 
         app.MapPost("/api/decks/{id:int}/mark-as-trade", async (int id, DeckService decks, CancellationToken ct) =>
-            Results.Ok(new { updatedCards = await decks.MarkAsTradeAsync(id, ct) }));
+            Results.Ok(await decks.MarkAsTradeAsync(id, ct)));
 
         app.MapPost("/api/decks/{id:int}/cards", async (int id, SetDeckCardRequest body, DeckService decks, CancellationToken ct) =>
         {

@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.27.4 — Mark for Trade: honest messaging for unowned cards
+
+- Fixed a follow-up to last update's Mark for Trade fix: a deck with cards you don't own at all got "0 updated" back from the server, which the toast then reported as "every card was already marked for trade" — false. It now correctly says how many cards aren't owned and can't be marked, instead of implying they were already handled.
+
 ## v1.27.3 — Update footer, refresh fixes, Mark for Trade fix, RiftKeep rename cleanup
 
 - Fixed a real race condition affecting every collection-changing action (owned counts, favorites, decks, pack import/remove/undo, catalog refresh): the set-hero banner (Owned/Missing/Completion%) and the sidebar's per-set counts could render with pre-change numbers because the refresh ran before the new totals had finished loading. Reproduced directly with a pack import — now fixed everywhere the same pattern was used.

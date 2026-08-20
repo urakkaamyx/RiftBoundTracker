@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.27.9 — Trade All, Runes/Battlefields tradeable again, Test Draw modal sizing
+
+- Mark for Trade no longer excludes Runes and Battlefields — that exclusion from a couple updates ago turned out to be unwanted; they're tradeable alongside the rest of the deck again.
+- Trade Binder: added a Trade All button that confirms every card currently offered for trade in one action, instead of one card at a time.
+- Test Draw's popup was still sized for the old 7-card draw, leaving a wide, mostly-empty box since it's only drawn 4 cards for a while now — it's properly sized to its content now.
+
 ## v1.27.8 — Fix the real cause of Acquired clicks not counting
 
 - Found the actual bug behind last update's Acquired-button fix not being enough: the Deck Builder's Discover panel caches its card list to avoid re-fetching on every render, and every deck re-render was re-registering that stale cached list, silently reverting the ownership count an Acquired click had just correctly updated. A second (or third) click would then recompute the same target as before and do nothing. Collection changes now drop that cache so it always refetches fresh.

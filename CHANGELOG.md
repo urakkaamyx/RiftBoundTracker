@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.27.6 — Mass Add accepts deck exports; Acquired button in Deck Builder
+
+- Mass Add now accepts a pasted RiftKeep deck export directly, not just a bare list of card codes — also fixed a real bug this surfaced where a comma in a card's own name (e.g. "Kennen, Keeper of Balance") split the line in half and caused a spurious parse error.
+- Deck Builder: each card in the current deck now has an "Acquired" button next to its ownership badge when you don't own enough copies — one click adds 1 to your Vault.
+
 ## v1.27.5 — Cheaper update checks
 
 - Update checks (on load and the periodic background poll) now use conditional requests against GitHub — when nothing's changed since the last check, GitHub sends back an empty "not modified" response instead of the full release payload every time.

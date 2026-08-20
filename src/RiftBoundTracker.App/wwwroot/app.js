@@ -1363,6 +1363,9 @@ function deckGroupMarkup(group, rows) {
     <div class="deck-row" data-hover-card="${escapeHtml(row.cardId)}">
       <img class="deck-row-bust" src="${escapeHtml(cardImage(row.card))}" alt="" aria-hidden="true" />
       <div class="deck-row-copy"><strong>${escapeHtml(row.card.name)}</strong><span>${escapeHtml(row.card.setId)}-${escapeHtml(cardCode(row.card))} / ${escapeHtml(row.section)}</span></div>
+      ${row.missing > 0
+        ? `<button type="button" class="deck-row-acquire" data-acquire-card="${escapeHtml(row.cardId)}" title="Add 1 copy of this card to your Vault">Acquired</button>`
+        : `<span class="deck-row-acquire-slot"></span>`}
       ${ownershipPill(row)}
       <div class="mini-stepper"><button data-deck-qty="${row.quantity - 1}" data-card-id="${escapeHtml(row.cardId)}" data-section="${row.section}">-</button><span>${row.quantity}</span><button data-deck-qty="${row.quantity + 1}" data-card-id="${escapeHtml(row.cardId)}" data-section="${row.section}">+</button></div>
     </div>`).join("")}</section>`;
@@ -1386,8 +1389,13 @@ function wireDeckWorkspace() {
   });
   root.querySelectorAll("[data-deck-qty]").forEach(button => button.addEventListener("click", () =>
     setDeckCard(state.activeDeckId, button.dataset.cardId, Number(button.dataset.deckQty), button.dataset.section)));
+  root.querySelectorAll("[data-acquire-card]").forEach(button => button.addEventListener("click", event => {
+    event.stopPropagation();
+    const card = cardsById.get(button.dataset.acquireCard);
+    if (card) changeOwned(card, 1).catch(err => toast(err.message, true));
+  }));
   root.querySelectorAll(".deck-row[data-hover-card]").forEach(row => row.addEventListener("click", event => {
-    if (event.target.closest(".mini-stepper")) return;
+    if (event.target.closest(".mini-stepper, .deck-row-acquire")) return;
     openFullscreenCardImage(row.dataset.hoverCard);
   }));
   root.querySelectorAll("[data-deck-tab]").forEach(button => button.addEventListener("click", () => {
@@ -1822,23 +1830,41 @@ async function refreshCatalog() {
 
 function parseCardEntry(raw) {
   const text = raw.trim();
-  const withSet = /^([A-Za-z]{2,4}|\*)[\s-]*([A-Za-z]{0,2}\d{1,3}[A-Za-z]?)$/.exec(text);
-  if (withSet) return { setId: withSet[1] === "*" ? null : withSet[1].toUpperCase(), code: withSet[2].toUpperCase() };
+  // Leading "{qty} " (RiftKeep deck-export format, e.g. "3 SFD-001 Against the Odds") is captured
+  // here too, with any trailing card-name text after the code simply ignored — the same shape
+  // DeckService.cs's ImportLinePattern matches server-side for deck import, so a pasted decklist
+  // and a bare card code both parse through this one pattern.
+  const withSet = /^(?:(?<qty>\d{1,2})\s*[xX]?\s+)?(?<set>[A-Za-z]{2,4}|\*)[\s-]+(?<code>[A-Za-z]{0,2}\d{1,3}[A-Za-z]?)\b/.exec(text);
+  if (withSet) {
+    return {
+      setId: withSet.groups.set === "*" ? null : withSet.groups.set.toUpperCase(),
+      code: withSet.groups.code.toUpperCase(),
+      quantity: withSet.groups.qty ? Math.max(1, Number(withSet.groups.qty)) : null,
+    };
+  }
   const bare = /^([A-Za-z]{0,2}\d{1,3}[A-Za-z]?)$/.exec(text);
-  return bare ? { setId: state.setId, code: bare[1].toUpperCase() } : null;
+  return bare ? { setId: state.setId, code: bare[1].toUpperCase(), quantity: null } : null;
 }
 
 async function previewMassAdd() {
   const root = document.getElementById("massAddResults");
-  const lines = document.getElementById("massAddInput").value.split(/[\r\n,]+/).map(value => value.trim()).filter(Boolean);
+  // Newline-only, not comma-separated — a comma split broke on real card names that contain their
+  // own comma (e.g. "Kennen, Keeper of Balance"), cutting a valid pasted-decklist line in half.
+  // Matches DeckService.cs's own import parser, which never split on commas either.
+  const lines = document.getElementById("massAddInput").value.split(/[\r\n]+/).map(value => value.trim()).filter(Boolean);
   massEntries = [];
   root.innerHTML = "";
   for (const raw of lines) {
+    // RiftKeep deck exports mark section boundaries with "# main" / "# sideboard" comment lines —
+    // meaningless here (Mass Add only tracks owned counts, not deck sections), so skip them
+    // instead of reporting "Could not parse" for a perfectly valid pasted line.
+    if (raw.startsWith("#")) continue;
     const quantityMatch = /\s+[xX](\d+)\s*$/.exec(raw);
-    const quantity = quantityMatch ? Math.max(1, Number(quantityMatch[1])) : 1;
+    const trailingQuantity = quantityMatch ? Math.max(1, Number(quantityMatch[1])) : null;
     const parsed = parseCardEntry(quantityMatch ? raw.slice(0, quantityMatch.index) : raw);
     if (!parsed) { massEntries.push({ raw, error: "Could not parse" }); continue; }
-    const cards = await api(`/api/cards/lookup?${queryString(parsed)}`);
+    const quantity = trailingQuantity ?? parsed.quantity ?? 1;
+    const cards = await api(`/api/cards/lookup?${queryString({ setId: parsed.setId, code: parsed.code })}`);
     registerCards(cards);
     if (!cards.length) massEntries.push({ raw, error: "No match" });
     else cards.forEach(card => massEntries.push({ raw, card, quantity, selected: cards.length === 1 }));

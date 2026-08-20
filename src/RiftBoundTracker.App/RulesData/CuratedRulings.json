@@ -1,5 +1,24 @@
 [
   {
+    "id": "ruling-15",
+    "source": "hand-verified",
+    "paraphrases": [
+      "Can I play more than one Legend in my deck?",
+      "Can I include two Champion Legends in one deck?",
+      "How many Legends can a deck have?",
+      "Is it legal to run multiple Champion Legends in a single deck?"
+    ],
+    "ruleNumbers": [
+      "103",
+      "103.1"
+    ],
+    "answer": "No",
+    "explanation": "No — a deck has exactly one Champion Legend, not more. Rule 103 defines a player's deck as \"a Main Deck, a Rune Deck, a Champion Legend, and a number of Battlefields\" (singular), and rule 103.1 (\"1 Champion Legend\") confirms the count directly. There's no provision anywhere in deck construction for including a second Legend.",
+    "keywords": [
+      "Champion Legend"
+    ]
+  },
+  {
     "id": "ruling-0",
     "source": "hand-verified",
     "paraphrases": [

@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.27.13 — Ask Rules' local AI now reasons over system-picked evidence, not its own guesses
+
+- Reworked how Ask Rules' local-AI tool agent decides what rule/card data to look at. It previously let the model invent its own free-text search queries — real testing caught it improvising an unsupported wildcard search that returned the wrong rule entirely for a real question. It now always gets the same carefully-ranked evidence the rest of Ask Rules already gathers (keyword, concept, and cross-reference matching), and can only ask follow-up questions by exact rule number or exact card name — never a guessed search term. Re-verified against the same real test questions used to build this feature; the previously-wrong answer is now correct, with no regressions on the ones that already worked.
+- Added a curated ruling for "how many Legends can a deck have" (exactly one, per rule 103/103.1) — found missing while testing the above.
+
 ## v1.27.12 — Deck-code premade packs, Mass Add deck codes, fullscreen close-button fix
 
 - Added three more premade Champion Deck packs — Shen (Vendetta), Zed (Vendetta), and Vex (Unleashed) — decoded from official RiftAtlas deck codes and cross-checked against the card catalog.

@@ -661,6 +661,25 @@ RULING_CASES = [
             "you get two separate triggers, not one combined trigger."
         ),
     },
+    {
+        "rule_numbers": ["103", "103.1"],
+        "questions": [
+            "Can I play more than one Legend in my deck?",
+            "Can I include two Champion Legends in one deck?",
+            "How many Legends can a deck have?",
+            "Is it legal to run multiple Champion Legends in a single deck?",
+        ],
+        "answer": "No",
+        "reason": "E1 defines a player's deck as containing a Champion Legend (singular); E2 (\"1 Champion Legend\") confirms the count directly.",
+        "evidence_ids": ["E1", "E2"],
+        "verdict": "No",
+        "explanation": (
+            "No — a deck has exactly one Champion Legend, not more. Rule 103 defines a player's deck "
+            "as \"a Main Deck, a Rune Deck, a Champion Legend, and a number of Battlefields\" "
+            "(singular), and rule 103.1 (\"1 Champion Legend\") confirms the count directly. There's "
+            "no provision anywhere in deck construction for including a second Legend."
+        ),
+    },
 ]
 
 # ---------------------------------------------------------------------------

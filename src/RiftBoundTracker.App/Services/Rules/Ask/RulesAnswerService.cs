@@ -54,10 +54,12 @@ public sealed class RulesAnswerService(
         }
         else if (toolAgent.IsConfigured)
         {
-            // No curated match — let the model actively look things up itself rather than reasoning
-            // from a single evidence dump RulesEvidenceService already gathered above (still used for
-            // Sources/Confidence display below regardless of which path answers the question).
-            var toolAnswer = await toolAgent.AnswerAsync(question, ct);
+            // No curated match — hand the model the same deterministic evidence RulesEvidenceService
+            // already gathered above (also used for Sources/Confidence display below regardless of
+            // which path answers the question). The model reasons over this; it doesn't get to
+            // invent its own search terms — see RulesToolAgentProvider's own doc comment for why.
+            var evidenceRefs = EvidenceIdMapper.Build(result.Rules, result.Cards);
+            var toolAnswer = await toolAgent.AnswerAsync(question, evidenceRefs, ct);
             logger.LogDebug("Ask Rules (tools): success={Success} error={Error}", toolAnswer.Success, toolAnswer.Error);
             if (toolAnswer.Success)
             {

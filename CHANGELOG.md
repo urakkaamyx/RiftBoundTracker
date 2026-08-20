@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.27.0 — Reset Data: choose exactly what to wipe, catalog untouched
+
+- New "Reset Data" card in Settings opens a checklist: Owned Collection, Trade Binder, Favorites, Card Notes, Decks, Price History, and Price Checker Queue. Check exactly what you want gone and type RESET to confirm — the card catalog itself is never touched, only the data you own.
+- A full backup is taken automatically before anything is deleted, so a mistake has a real way back.
+
 ## v1.26.5 — Ask Rules: fix a ranking regression, help the model with negations
 
 - Last update's multi-hop trace had a bug: a rule's score could grow unbounded from every cross-reference path that converged on it, so a heavily-cited "hub" rule with no real bearing on a question could outrank the rule that actually answers it. Caught on a real question about playing units to a battlefield you control — the deciding rule ranked 14th of 16 sources behind six unrelated hub rules. Capped how much score convergence alone can contribute, so citation-hub status can't beat a rule the question's own keywords or text matched directly.

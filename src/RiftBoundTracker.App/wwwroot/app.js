@@ -1876,29 +1876,60 @@ function parseCardEntry(raw) {
   return bare ? { setId: state.setId, code: bare[1].toUpperCase(), quantity: null } : null;
 }
 
+// A deck code is a single unbroken run of base32 characters — mirrors
+// RiftAtlasDeckCodeService.LooksLikeDeckCode server-side, just enough to route the paste to the
+// decode endpoint instead of the line-by-line parser below (which would otherwise report the
+// whole blob as one big "Could not parse" line).
+function looksLikeDeckCode(text) {
+  const trimmed = text.trim();
+  if (trimmed.length < 8 || /\s/.test(trimmed)) return false;
+  return /^[A-Za-z2-7]+$/.test(trimmed);
+}
+
 async function previewMassAdd() {
   const root = document.getElementById("massAddResults");
-  // Newline-only, not comma-separated — a comma split broke on real card names that contain their
-  // own comma (e.g. "Kennen, Keeper of Balance"), cutting a valid pasted-decklist line in half.
-  // Matches DeckService.cs's own import parser, which never split on commas either.
-  const lines = document.getElementById("massAddInput").value.split(/[\r\n]+/).map(value => value.trim()).filter(Boolean);
+  const raw = document.getElementById("massAddInput").value;
   massEntries = [];
   root.innerHTML = "";
-  for (const raw of lines) {
-    // RiftKeep deck exports mark section boundaries with "# main" / "# sideboard" comment lines —
-    // meaningless here (Mass Add only tracks owned counts, not deck sections), so skip them
-    // instead of reporting "Could not parse" for a perfectly valid pasted line.
-    if (raw.startsWith("#")) continue;
-    const quantityMatch = /\s+[xX](\d+)\s*$/.exec(raw);
-    const trailingQuantity = quantityMatch ? Math.max(1, Number(quantityMatch[1])) : null;
-    const parsed = parseCardEntry(quantityMatch ? raw.slice(0, quantityMatch.index) : raw);
-    if (!parsed) { massEntries.push({ raw, error: "Could not parse" }); continue; }
-    const quantity = trailingQuantity ?? parsed.quantity ?? 1;
-    const cards = await api(`/api/cards/lookup?${queryString({ setId: parsed.setId, code: parsed.code })}`);
-    registerCards(cards);
-    if (!cards.length) massEntries.push({ raw, error: "No match" });
-    else cards.forEach(card => massEntries.push({ raw, card, quantity, selected: cards.length === 1 }));
+
+  if (looksLikeDeckCode(raw)) {
+    let decoded;
+    try {
+      decoded = await api("/api/decks/decode-code", jsonOptions("POST", { contents: raw.trim() }));
+    } catch (err) {
+      root.innerHTML = `<div class="result-row error">${escapeHtml(err.message)}</div>`;
+      document.getElementById("massAddConfirm").hidden = true;
+      return;
+    }
+    for (const entry of decoded.entries) {
+      const label = `${entry.setId}-${entry.code}`;
+      const cards = await api(`/api/cards/lookup?${queryString({ setId: entry.setId, code: entry.code })}`);
+      registerCards(cards);
+      if (!cards.length) massEntries.push({ raw: label, error: "No match" });
+      else cards.forEach(card => massEntries.push({ raw: label, card, quantity: entry.quantity, selected: cards.length === 1 }));
+    }
+  } else {
+    // Newline-only, not comma-separated — a comma split broke on real card names that contain
+    // their own comma (e.g. "Kennen, Keeper of Balance"), cutting a valid pasted-decklist line in
+    // half. Matches DeckService.cs's own import parser, which never split on commas either.
+    const lines = raw.split(/[\r\n]+/).map(value => value.trim()).filter(Boolean);
+    for (const line of lines) {
+      // RiftKeep deck exports mark section boundaries with "# main" / "# sideboard" comment lines —
+      // meaningless here (Mass Add only tracks owned counts, not deck sections), so skip them
+      // instead of reporting "Could not parse" for a perfectly valid pasted line.
+      if (line.startsWith("#")) continue;
+      const quantityMatch = /\s+[xX](\d+)\s*$/.exec(line);
+      const trailingQuantity = quantityMatch ? Math.max(1, Number(quantityMatch[1])) : null;
+      const parsed = parseCardEntry(quantityMatch ? line.slice(0, quantityMatch.index) : line);
+      if (!parsed) { massEntries.push({ raw: line, error: "Could not parse" }); continue; }
+      const quantity = trailingQuantity ?? parsed.quantity ?? 1;
+      const cards = await api(`/api/cards/lookup?${queryString({ setId: parsed.setId, code: parsed.code })}`);
+      registerCards(cards);
+      if (!cards.length) massEntries.push({ raw: line, error: "No match" });
+      else cards.forEach(card => massEntries.push({ raw: line, card, quantity, selected: cards.length === 1 }));
+    }
   }
+
   root.innerHTML = massEntries.map((entry, index) => entry.error
     ? `<div class="result-row error">${escapeHtml(entry.raw)}: ${escapeHtml(entry.error)}</div>`
     : `<label class="result-row result-check"><img src="${escapeHtml(cardImage(entry.card))}" alt="" /><div><strong>${escapeHtml(entry.card.name)}</strong><span>${escapeHtml(entry.card.setId)}-${escapeHtml(cardCode(entry.card))} / +${entry.quantity}</span></div><input type="checkbox" data-mass-index="${index}" ${entry.selected ? "checked" : ""} /></label>`).join("");

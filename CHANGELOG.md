@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.27.12 — Deck-code premade packs, Mass Add deck codes, fullscreen close-button fix
+
+- Added three more premade Champion Deck packs — Shen (Vendetta), Zed (Vendetta), and Vex (Unleashed) — decoded from official RiftAtlas deck codes and cross-checked against the card catalog.
+- Mass Add now recognizes a pasted RiftAtlas deck code (the same compact format Import Deck already accepts) and adds every card in it straight to your owned collection in one action, instead of only building a Deck.
+- Fixed a real bug on mobile: the fullscreen card image viewer's close button could land underneath the browser's own URL bar and be unclickable. It was positioned `fixed` to the raw layout viewport, which is taller than the visible area whenever the browser's toolbar is showing; it's now positioned relative to the already viewport-corrected modal instead.
+
 ## v1.27.11 — Ask Rules: instant, verified answers for known rulings
 
 - Ask Rules now checks a 154-entry table of hand-verified and community-reviewed rulings (real card interactions, keyword mechanics, and common misconceptions) before asking the local AI anything — a match answers instantly and correctly with no AI involved at all. Covers a wide range of real rules questions, including several that the AI had been getting inconsistently right or wrong. Anything not in that table still goes through the AI as before.

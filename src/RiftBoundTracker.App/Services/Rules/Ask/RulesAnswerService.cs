@@ -13,7 +13,7 @@ public sealed record RulesAskResponse(
 /// </summary>
 public sealed class RulesAnswerService(
     RulesQuestionService questions, RulesEvidenceService evidenceService, IRulesExplanationProvider explanationProvider,
-    RulesCuratedRulingService curatedRulings, ILogger<RulesAnswerService> logger)
+    RulesCuratedRulingService curatedRulings, RulesToolAgentProvider toolAgent, ILogger<RulesAnswerService> logger)
 {
     // The adjudicate -> validate -> explain pipeline is built, wired, and hardened (repeat-penalty
     // fix, anti-example-copying instructions, semantic grounding check, explanation-fidelity check)
@@ -52,7 +52,21 @@ public sealed class RulesAnswerService(
             answerGenerated = true;
             confidence = "High";
         }
-        else if ((result.Rules.Count > 0 || result.Cards.Count > 0) && explanationProvider.IsConfigured)
+        else if (toolAgent.IsConfigured)
+        {
+            // No curated match — let the model actively look things up itself rather than reasoning
+            // from a single evidence dump RulesEvidenceService already gathered above (still used for
+            // Sources/Confidence display below regardless of which path answers the question).
+            var toolAnswer = await toolAgent.AnswerAsync(question, ct);
+            logger.LogDebug("Ask Rules (tools): success={Success} error={Error}", toolAnswer.Success, toolAnswer.Error);
+            if (toolAnswer.Success)
+            {
+                answer = toolAnswer.Answer;
+                answerGenerated = true;
+            }
+        }
+
+        if (!answerGenerated && (result.Rules.Count > 0 || result.Cards.Count > 0) && explanationProvider.IsConfigured)
         {
             if (AdjudicationPipelineEnabled)
             {

@@ -212,6 +212,7 @@ internal static class Program
         // resident across requests instead of reloading a ~1GB model on every question.
         builder.Services.AddSingleton<LocalLlmExplanationProvider>();
         builder.Services.AddSingleton<IRulesExplanationProvider>(sp => sp.GetRequiredService<LocalLlmExplanationProvider>());
+        builder.Services.AddSingleton<RulesToolAgentProvider>();
         builder.Services.AddScoped<RulesQuestionService>();
         builder.Services.AddScoped<RulesEvidenceService>();
         // Singleton, not scoped — CuratedRulings.json is loaded once and never changes at runtime,
@@ -497,6 +498,38 @@ internal static class Program
 
         app.MapPost("/api/decks/import", async (ImportDeckRequest body, DeckService decks, CancellationToken ct) =>
             Results.Ok(await decks.ImportAsync(body, ct)));
+
+        // Mass Add's deck-code path: decode only, no Deck entity created — Mass Add adds straight
+        // to owned counts, the same as a hand-typed "SET-CODE xN" line, and doesn't care about
+        // main/sideboard sections the way Import Deck does. Merges both sections (and the chosen
+        // champion, if the code names one) into one flat per-card quantity so a card appearing in
+        // both the main deck and as the champion isn't double-counted.
+        app.MapPost("/api/decks/decode-code", (DecodeDeckCodeRequest body) =>
+        {
+            if (!RiftAtlasDeckCodeService.LooksLikeDeckCode(body.Contents))
+                return Results.BadRequest(new { error = "That doesn't look like a deck code." });
+            try
+            {
+                var decoded = RiftAtlasDeckCodeService.Decode(body.Contents);
+                var merged = new Dictionary<(string SetId, string Code), int>();
+                foreach (var entry in decoded.MainDeck.Concat(decoded.Sideboard))
+                {
+                    var key = (entry.SetId, entry.Code);
+                    merged[key] = merged.GetValueOrDefault(key) + entry.Quantity;
+                }
+                if (decoded.ChosenChampionSetId is not null && decoded.ChosenChampionCode is not null)
+                {
+                    var key = (decoded.ChosenChampionSetId, decoded.ChosenChampionCode);
+                    if (!merged.ContainsKey(key)) merged[key] = 1;
+                }
+                var entries = merged.Select(kv => new DeckCodeEntryDto(kv.Key.SetId, kv.Key.Code, kv.Value)).ToList();
+                return Results.Ok(new DecodedDeckCodeResult(entries));
+            }
+            catch (FormatException ex)
+            {
+                return Results.BadRequest(new { error = $"Couldn't decode that deck code: {ex.Message}" });
+            }
+        });
 
         app.MapGet("/api/premade-packs", () => Results.Ok(PremadePackCatalogService.Packs
             .Select(p => new { p.Key, p.Name, p.Wave, CardCount = p.Cards.Sum(c => c.Quantity) })));
@@ -834,6 +867,9 @@ internal static class Program
 }
 
 public record OwnedRequest(int Owned);
+public record DecodeDeckCodeRequest(string Contents);
+public record DeckCodeEntryDto(string SetId, string Code, int Quantity);
+public record DecodedDeckCodeResult(List<DeckCodeEntryDto> Entries);
 public record PricingKeyRequest(string ApiKey);
 public record TopDeckKeyRequest(string ApiKey);
 public record CommunitySyncRequest(int? Days);

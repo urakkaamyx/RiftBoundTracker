@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.27.8 — Fix the real cause of Acquired clicks not counting
+
+- Found the actual bug behind last update's Acquired-button fix not being enough: the Deck Builder's Discover panel caches its card list to avoid re-fetching on every render, and every deck re-render was re-registering that stale cached list, silently reverting the ownership count an Acquired click had just correctly updated. A second (or third) click would then recompute the same target as before and do nothing. Collection changes now drop that cache so it always refetches fresh.
+
 ## v1.27.7 — Fix Acquired button not registering a second click
 
 - The Deck Builder's new Acquired button (added last update) could silently do nothing on a second click for a card needing 2+ more copies — a click landing before the previous one's response came back read stale data and computed the same target quantity. The button now disables itself the instant it's clicked so every click is counted.

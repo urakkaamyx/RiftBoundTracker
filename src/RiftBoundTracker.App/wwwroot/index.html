@@ -65,16 +65,22 @@
 
       <main class="page-stack">
         <section class="page active" id="page-vault" data-title="Your Vault" data-eyebrow="Collection">
-          <div class="vault-tabs" role="tablist" aria-label="Collection view">
-            <button class="vault-tab active" data-owned="all">All Cards <b id="tabAllCount">0</b></button>
-            <button class="vault-tab" data-owned="owned">Owned <b id="tabOwnedCount">0</b></button>
-            <button class="vault-tab" data-owned="missing">Missing <b id="tabMissingCount">0</b></button>
-            <button class="vault-tab" data-owned="favorites">Favorites <b id="tabFavoriteCount">0</b></button>
-            <span class="vault-tabs-spacer"></span>
-            <button class="command-btn" id="openMassAdd" title="Mass Add"><i data-icon="list-plus"></i><span>Mass Add</span></button>
-            <button class="command-btn" id="openScan"><i data-icon="scan"></i><span>Scan Card</span></button>
-            <button class="command-btn" id="openCheckPrice" title="Scan a card to look up its price — never adds it to your collection"><i data-icon="dollar"></i><span>Check Price</span></button>
-            <button class="command-btn" id="openPackImport" title="Import a Premade Pack"><i data-icon="archive"></i><span>Import Pack</span></button>
+          <div class="vault-toolbar-row">
+            <div class="vault-tabs" role="tablist" aria-label="Collection view">
+              <button class="vault-tab active" data-owned="all">All Cards <b id="tabAllCount">0</b></button>
+              <button class="vault-tab" data-owned="owned">Owned <b id="tabOwnedCount">0</b></button>
+              <button class="vault-tab" data-owned="missing">Missing <b id="tabMissingCount">0</b></button>
+              <button class="vault-tab" data-owned="favorites">Favorites <b id="tabFavoriteCount">0</b></button>
+            </div>
+            <div class="vault-tools-group">
+              <p class="vault-group-label">Tools</p>
+              <div class="vault-tools">
+                <button class="command-btn" id="openMassAdd" title="Mass Add"><i data-icon="list-plus"></i><span>Mass Add</span></button>
+                <button class="command-btn" id="openScan"><i data-icon="scan"></i><span>Scan Card</span></button>
+                <button class="command-btn" id="openCheckPrice" title="Scan a card to look up its price — never adds it to your collection"><i data-icon="dollar"></i><span>Check Price</span></button>
+                <button class="command-btn" id="openPackImport" title="Import a Premade Pack"><i data-icon="archive"></i><span>Import Pack</span></button>
+              </div>
+            </div>
           </div>
 
           <div class="filterbar">
@@ -82,9 +88,6 @@
             <select id="typeFilter" aria-label="Filter by type"><option value="">All types</option></select>
             <select id="domainFilter" aria-label="Filter by domain"><option value="">All domains</option></select>
             <button class="filter-reset" id="clearFilters"><i data-icon="sliders"></i> Clear filters</button>
-            <span class="filter-spacer"></span>
-            <button class="icon-btn view-toggle active" data-view="grid" title="Grid view"><i data-icon="grid"></i></button>
-            <button class="icon-btn view-toggle" data-view="list" title="List view"><i data-icon="list"></i></button>
           </div>
 
           <section class="set-hero" id="setHero">
@@ -99,6 +102,10 @@
 
           <div class="collection-toolbar">
             <div><strong id="vaultResultCount">0 cards</strong><span id="vaultResultMeta">in your catalog</span></div>
+            <div class="view-toggle-group">
+              <button class="icon-btn view-toggle active" data-view="grid" title="Grid view"><i data-icon="grid"></i></button>
+              <button class="icon-btn view-toggle" data-view="list" title="List view"><i data-icon="list"></i></button>
+            </div>
             <label>Sort <select id="sortFilter"><option value="num-asc">Collector number</option><option value="num-desc">Collector number descending</option><option value="name-asc">Name</option><option value="price-desc">Price: High to Low</option><option value="price-asc">Price: Low to High</option><option value="rarity">Rarity</option><option value="domain">Domain</option><option value="owned">Owned first</option></select></label>
           </div>
 

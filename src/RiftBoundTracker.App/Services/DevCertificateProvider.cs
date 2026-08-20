@@ -53,7 +53,7 @@ public static class DevCertificateProvider
     {
         using var rsa = RSA.Create(2048);
         var req = new CertificateRequest(
-            "CN=RiftBound Vault (local)", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            "CN=RiftKeep (local)", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
         req.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, false));
         req.CertificateExtensions.Add(new X509KeyUsageExtension(

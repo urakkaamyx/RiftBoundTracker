@@ -34,8 +34,8 @@ internal static class Program
             Console.SetOut(stdout);
             var stderr = new StreamWriter(Console.OpenStandardError()) { AutoFlush = true };
             Console.SetError(stderr);
-            Console.Title = "RiftBound Vault - Debug Console";
-            Console.WriteLine("=== RiftBound Vault debug console ===");
+            Console.Title = "RiftKeep - Debug Console";
+            Console.WriteLine("=== RiftKeep debug console ===");
             Console.WriteLine("Diagnostic output shows up here. Leave this window open while you reproduce the issue, then copy/paste what it shows.");
             Console.WriteLine();
         }
@@ -136,20 +136,20 @@ internal static class Program
         builder.Services.AddHttpClient("card-images", c => c.Timeout = TimeSpan.FromSeconds(30));
         builder.Services.AddHttpClient("github", c =>
         {
-            c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftBoundVault-UpdateChecker");
+            c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftKeep-UpdateChecker");
             c.Timeout = TimeSpan.FromSeconds(60);
         });
         builder.Services.AddHttpClient("justtcg", c =>
         {
             c.BaseAddress = new Uri("https://api.justtcg.com");
             c.Timeout = TimeSpan.FromSeconds(45);
-            c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftBoundVault-PriceTracker/2.0");
+            c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftKeep-PriceTracker/2.0");
         });
         builder.Services.AddHttpClient("riftbound-gg", c =>
         {
             c.BaseAddress = new Uri("https://api.dotgg.gg");
             c.Timeout = TimeSpan.FromSeconds(45);
-            c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftBoundVault-PriceTracker/1.6");
+            c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftKeep-PriceTracker/1.6");
             c.DefaultRequestHeaders.Accept.ParseAdd("application/json");
             c.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
             c.DefaultRequestHeaders.Referrer = new Uri("https://riftbound.gg/prices/");
@@ -159,7 +159,7 @@ internal static class Program
         {
             c.BaseAddress = new Uri("https://topdeck.gg");
             c.Timeout = TimeSpan.FromSeconds(45);
-            c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftBoundVault-CommunitySync/1.0");
+            c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftKeep-CommunitySync/1.0");
             c.DefaultRequestHeaders.Accept.ParseAdd("application/json");
         });
         builder.Services.AddHttpClient("rules-source", c =>
@@ -384,6 +384,9 @@ internal static class Program
         });
 
         app.MapGet("/api/update/progress", (UpdateService updater) => Results.Ok(updater.GetProgress()));
+
+        app.MapGet("/api/update/patch-notes", async (UpdateService updater, CancellationToken ct) =>
+            Results.Ok(await updater.GetAllReleaseNotesAsync(ct)));
 
         app.MapGet("/api/sets", async (CardCacheService cache, CancellationToken ct)
             => Results.Ok(await cache.GetSetsAsync(ct)));
@@ -774,7 +777,7 @@ internal static class Program
     {
         var addresses = GetLanAddresses();
         Console.WriteLine();
-        Console.WriteLine("  RiftBound Vault is running:");
+        Console.WriteLine("  RiftKeep is running:");
         Console.WriteLine($"    Local:        http://localhost:{port}");
         Console.WriteLine($"    Local (TLS):  https://localhost:{httpsPort}");
         for (var i = 0; i < addresses.Count; i++)

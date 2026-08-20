@@ -13,6 +13,8 @@ public record UpdateCheckResult(
 // Phase: "idle" | "downloading" | "extracting" | "restarting" | "error".
 public record UpdateProgressState(string Phase, long BytesDownloaded, long TotalBytes, string? Error);
 
+public record PatchNoteEntry(string Version, string? Notes);
+
 public class GitHubRelease
 {
     [JsonPropertyName("tag_name")] public string TagName { get; set; } = "";
@@ -116,7 +118,7 @@ public class UpdateService(IHttpClientFactory httpClientFactory, ILogger<UpdateS
             var exeName = Path.GetFileName(Environment.ProcessPath!);
 
             CleanUpOldStagingDirs();
-            var stagingRoot = Path.Combine(Path.GetTempPath(), $"RiftBoundVault-update-{Guid.NewGuid():N}");
+            var stagingRoot = Path.Combine(Path.GetTempPath(), $"RiftKeep-update-{Guid.NewGuid():N}");
             Directory.CreateDirectory(stagingRoot);
 
             logger.LogInformation("Downloading update {Tag} from {Url}", release.TagName, asset.BrowserDownloadUrl);
@@ -184,7 +186,7 @@ public class UpdateService(IHttpClientFactory httpClientFactory, ILogger<UpdateS
     {
         try
         {
-            foreach (var dir in Directory.GetDirectories(Path.GetTempPath(), "RiftBoundVault-update-*"))
+            foreach (var dir in Directory.GetDirectories(Path.GetTempPath(), "RiftKeep-update-*"))
                 Directory.Delete(dir, recursive: true);
         }
         catch
@@ -205,6 +207,27 @@ public class UpdateService(IHttpClientFactory httpClientFactory, ILogger<UpdateS
         {
             logger.LogWarning(ex, "Failed to check GitHub for the latest release");
             return null;
+        }
+    }
+
+    // The Patch Notes view (settings footer's "View Patch Notes") shows the whole release history,
+    // not just the latest version — GitHub's list endpoint already returns releases newest-first,
+    // so no re-sorting needed. Each entry's own Body is exactly one version's CHANGELOG.md section
+    // (release.ps1 seeds it from there), so the client can run the same per-version markdown
+    // renderer it already uses for a single release's notes.
+    public async Task<List<PatchNoteEntry>> GetAllReleaseNotesAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            var http = httpClientFactory.CreateClient("github");
+            var releases = await http.GetFromJsonAsync<List<GitHubRelease>>(
+                $"https://api.github.com/repos/{Owner}/{Repo}/releases", ct) ?? [];
+            return releases.Select(r => new PatchNoteEntry(r.TagName, r.Body)).ToList();
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to fetch release history from GitHub");
+            return [];
         }
     }
 

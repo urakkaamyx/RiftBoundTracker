@@ -1,6 +1,6 @@
 # Riftbound SVG Symbol Library
 
-Standalone SVG assets for the Riftbound Vault interface.
+Standalone SVG assets for the RiftKeep interface.
 
 - `domain_*.svg`: domain aliases intended for filters, analytics, and card metadata.
 - `rune_*.svg`: rune payment symbols used in card rules text.

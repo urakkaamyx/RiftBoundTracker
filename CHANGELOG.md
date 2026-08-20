@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.27.7 — Fix Acquired button not registering a second click
+
+- The Deck Builder's new Acquired button (added last update) could silently do nothing on a second click for a card needing 2+ more copies — a click landing before the previous one's response came back read stale data and computed the same target quantity. The button now disables itself the instant it's clicked so every click is counted.
+
 ## v1.27.6 — Mass Add accepts deck exports; Acquired button in Deck Builder
 
 - Mass Add now accepts a pasted RiftKeep deck export directly, not just a bare list of card codes — also fixed a real bug this surfaced where a comma in a card's own name (e.g. "Kennen, Keeper of Balance") split the line in half and caused a spurious parse error.

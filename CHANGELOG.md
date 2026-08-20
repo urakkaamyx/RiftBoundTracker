@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.27.10 — Ask Rules: fixed a repetition bug in local AI answers
+
+- Found and fixed a real bug where Ask Rules' local AI could occasionally get stuck repeating the same sentence or listing rule numbers over and over until it ran out of room to answer, instead of giving a normal response — caused by a repetition-penalty setting that was never actually being applied. Local AI answers should no longer do this.
+
 ## v1.27.9 — Trade All, Runes/Battlefields tradeable again, Test Draw modal sizing
 
 - Mark for Trade no longer excludes Runes and Battlefields — that exclusion from a couple updates ago turned out to be unwanted; they're tradeable alongside the rest of the deck again.

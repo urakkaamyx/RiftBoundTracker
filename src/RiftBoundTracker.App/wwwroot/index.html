@@ -216,6 +216,7 @@
               <section class="settings-section"><div class="settings-icon"><i data-icon="shield"></i></div><div><h2>Data Safety</h2><p id="databaseStatus">Loading...</p><div class="data-facts" id="databaseFacts"></div></div></section>
               <section class="settings-section"><div class="settings-icon"><i data-icon="database"></i></div><div><h2>Catalog</h2><p id="catalogStatus">Loading...</p><div class="settings-actions"><button class="command-btn" id="refreshCatalogBtn"><i data-icon="refresh"></i>Refresh Catalog</button></div></div></section>
               <section class="settings-section"><div class="settings-icon"><i data-icon="book-open"></i></div><div><h2>Rules Library</h2><p id="rulesSyncStatus">Loading...</p><div class="data-facts" id="rulesSyncFacts"></div><div class="settings-actions"><button class="command-btn" id="syncRulesBtn"><i data-icon="refresh"></i>Sync Now</button></div></div></section>
+              <section class="settings-section settings-section-danger"><div class="settings-icon"><i data-icon="trash"></i></div><div><h2>Reset Data</h2><p>Wipe your own data — owned counts, trade binder, favorites, notes, decks, or price history — without touching the card catalog itself. Choose exactly what to reset.</p><div class="settings-actions"><button class="command-btn danger" id="openPurgeData"><i data-icon="trash"></i>Choose What to Reset</button></div></div></section>
             </div>
             <p class="settings-group-label">APIs</p>
             <div class="settings-row settings-row-stack">
@@ -231,6 +232,30 @@
 
   <div class="modal-layer" id="cardDetailModal" hidden><div class="modal detail-modal"><button class="modal-close" data-close="cardDetailModal"><i data-icon="x"></i></button><div id="mobileCardDetail"></div></div></div>
 
+
+  <div class="modal-layer" id="purgeDataModal" hidden>
+    <div class="modal purge-modal">
+      <div class="modal-head"><div><span>Settings</span><h2>Reset Data</h2></div><button class="icon-btn" data-close="purgeDataModal"><i data-icon="x"></i></button></div>
+      <p class="settings-hint">This never touches the card catalog — only the data you check below. A full backup is made automatically before anything is deleted.</p>
+      <div class="purge-checklist">
+        <label class="purge-option"><input type="checkbox" data-purge-key="ownedCollection" /><div><b>Owned Collection</b><span>Resets every card's owned count to 0. Also clears the Trade Binder, since a card can't be offered for trade with zero copies owned.</span></div></label>
+        <label class="purge-option"><input type="checkbox" data-purge-key="tradeBinder" /><div><b>Trade Binder</b><span>Un-marks every card as available for trade. Owned counts are untouched.</span></div></label>
+        <label class="purge-option"><input type="checkbox" data-purge-key="favorites" /><div><b>Favorites</b><span>Clears every card's favorite star.</span></div></label>
+        <label class="purge-option"><input type="checkbox" data-purge-key="cardNotes" /><div><b>Card Notes</b><span>Clears any personal notes you've added to cards.</span></div></label>
+        <label class="purge-option"><input type="checkbox" data-purge-key="decks" /><div><b>Decks</b><span>Deletes every deck you've built.</span></div></label>
+        <label class="purge-option"><input type="checkbox" data-purge-key="priceHistory" /><div><b>Price History</b><span>Deletes saved price snapshots. Current prices still work; history graphs go blank until new data accumulates.</span></div></label>
+        <label class="purge-option"><input type="checkbox" data-purge-key="priceQueue" /><div><b>Price Checker Queue</b><span>Clears the list of cards queued for a price refresh.</span></div></label>
+      </div>
+      <div class="purge-confirm">
+        <label for="purgeConfirmInput">Type <code>RESET</code> to confirm</label>
+        <input type="text" id="purgeConfirmInput" autocomplete="off" placeholder="RESET" />
+      </div>
+      <div class="modal-actions">
+        <button class="command-btn quiet" data-close="purgeDataModal">Cancel</button>
+        <button class="command-btn danger" id="confirmPurgeBtn" disabled>Reset Selected Data</button>
+      </div>
+    </div>
+  </div>
 
   <div class="modal-layer" id="massAddModal" hidden>
     <div class="modal"><div class="modal-head"><div><span>Collection</span><h2>Mass Add</h2></div><button class="icon-btn" data-close="massAddModal"><i data-icon="x"></i></button></div><textarea id="massAddInput" rows="9" placeholder="OGN-045&#10;VEN-R01 x2&#10;88"></textarea><div class="modal-actions"><button class="command-btn" id="massAddPreview">Preview</button><button class="command-btn gold" id="massAddConfirm" hidden>Add Selected</button></div><div class="result-list" id="massAddResults"></div></div>

@@ -679,8 +679,29 @@ kbd { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; col
 .settings-group-label { margin: 0 0 -4px 2px; color: var(--faint); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 /* Pulled out of .settings-grid and pinned to the viewport so scrolling the rest of Settings never
    moves it — hidden automatically whenever #page-settings isn't .active since display:none on that
-   ancestor suppresses fixed-position descendants too. */
+   ancestor suppresses fixed-position descendants too. Safe to pin again now that Reset Data lives
+   in the top row instead of the last row — nothing in the grid's bottom-left corner for it to cover. */
 .settings-updates-fixed { position: fixed; left: calc(var(--sidebar-width) + 20px); bottom: 20px; z-index: 20; width: 320px; max-width: calc(100vw - var(--sidebar-width) - 40px); box-shadow: var(--shadow); background: var(--bg); }
+
+.settings-section-danger { border-color: color-mix(in srgb, var(--red) 45%, var(--border-soft)); background: color-mix(in srgb, var(--red) 6%, transparent); }
+.settings-section-danger .settings-icon { border-color: var(--red); color: var(--red); }
+.command-btn.danger { border-color: var(--red); color: var(--red); }
+.command-btn.danger:hover:not(:disabled) { background: var(--red); color: #fff; }
+.command-btn.danger:disabled { opacity: .4; cursor: default; }
+
+.purge-modal { max-width: 520px; }
+.purge-checklist { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; max-height: 320px; overflow-y: auto; }
+.purge-option { display: flex; gap: 11px; padding: 10px 12px; border: 1px solid var(--border-soft); border-radius: 7px; cursor: pointer; }
+.purge-option:hover { border-color: var(--border); }
+.purge-option input[type="checkbox"] { flex-shrink: 0; width: 16px; height: 16px; margin-top: 2px; accent-color: var(--red); }
+.purge-option:has(input:checked) { border-color: var(--red); background: color-mix(in srgb, var(--red) 8%, transparent); }
+.purge-option b { display: block; font-size: 12px; }
+.purge-option span { display: block; margin-top: 2px; color: var(--faint); font-size: 10.5px; line-height: 1.5; }
+.purge-confirm { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-soft); }
+.purge-confirm label { display: block; margin-bottom: 6px; color: var(--faint); font-size: 11px; }
+.purge-confirm label code { padding: 1px 5px; border-radius: 4px; background: var(--panel-2); color: var(--red); font-family: var(--mono); }
+.purge-confirm input { width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); color: var(--text); font-family: var(--mono); }
+.purge-confirm input:focus { outline: none; border-color: var(--red); }
 
 .ask-ai-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; margin-bottom: 4px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--panel-2); }
 .ask-ai-bar-status { display: flex; align-items: baseline; gap: 8px; font-size: 12px; }

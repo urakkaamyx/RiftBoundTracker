@@ -180,6 +180,7 @@ internal static class Program
         builder.Services.AddScoped<ScanService>();
         builder.Services.AddScoped<CatalogSyncService>();
         builder.Services.AddScoped<DatabaseSafetyService>();
+        builder.Services.AddScoped<PurgeService>();
         builder.Services.AddScoped<DeckService>();
         builder.Services.AddScoped<VaultService>();
         builder.Services.AddScoped<PremadePackImportService>();
@@ -293,6 +294,18 @@ internal static class Program
                 ownedCopies = await db.Cards.SumAsync(c => c.OwnedCount, ct),
                 migrations = await db.Database.GetAppliedMigrationsAsync(ct),
             }));
+
+        app.MapPost("/api/settings/purge", async (PurgeOptions body, PurgeService purge, CancellationToken ct) =>
+        {
+            try
+            {
+                return Results.Ok(await purge.PurgeAsync(body, ct));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(new { error = ex.Message });
+            }
+        });
 
         app.MapGet("/api/connection-info", () =>
         {

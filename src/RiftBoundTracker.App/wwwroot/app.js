@@ -3173,6 +3173,46 @@ async function syncRulesData() {
   }
 }
 
+function openPurgeDataModal() {
+  document.querySelectorAll("#purgeDataModal [data-purge-key]").forEach(input => { input.checked = false; });
+  const confirmInput = document.getElementById("purgeConfirmInput");
+  confirmInput.value = "";
+  updatePurgeConfirmState();
+  showModal("purgeDataModal");
+}
+
+function updatePurgeConfirmState() {
+  const anyChecked = !!document.querySelector("#purgeDataModal [data-purge-key]:checked");
+  const typedResetConfirmation = document.getElementById("purgeConfirmInput").value.trim().toUpperCase() === "RESET";
+  document.getElementById("confirmPurgeBtn").disabled = !(anyChecked && typedResetConfirmation);
+}
+
+async function confirmPurgeData() {
+  const button = document.getElementById("confirmPurgeBtn");
+  const options = {};
+  document.querySelectorAll("#purgeDataModal [data-purge-key]").forEach(input => {
+    options[input.dataset.purgeKey] = input.checked;
+  });
+  button.disabled = true;
+  try {
+    const result = await api("/api/settings/purge", jsonOptions("POST", options));
+    const parts = [];
+    if (result.ownedCardsReset) parts.push(`${result.ownedCardsReset} owned counts`);
+    if (result.binderCardsReset) parts.push(`${result.binderCardsReset} binder entries`);
+    if (result.favoritesCleared) parts.push(`${result.favoritesCleared} favorites`);
+    if (result.notesCleared) parts.push(`${result.notesCleared} notes`);
+    if (result.decksDeleted) parts.push(`${result.decksDeleted} decks`);
+    if (result.priceSnapshotsDeleted) parts.push(`${result.priceSnapshotsDeleted} price snapshots`);
+    if (result.priceQueueCleared) parts.push(`${result.priceQueueCleared} queued cards`);
+    toast(parts.length ? `Reset: ${parts.join(", ")}` : "Nothing needed resetting.");
+    closeModal("purgeDataModal");
+    location.reload();
+  } catch (err) {
+    toast(err.message, true);
+    button.disabled = false;
+  }
+}
+
 function wireEvents() {
   document.addEventListener("mouseover", event => {
     const row = event.target.closest("[data-hover-card]");
@@ -3333,6 +3373,11 @@ function wireEvents() {
   document.getElementById("clearTopdeckKey").addEventListener("click", clearTopdeckKey);
   document.getElementById("syncCommunityBtn").addEventListener("click", syncCommunityData);
   document.getElementById("syncRulesBtn").addEventListener("click", syncRulesData);
+  document.getElementById("openPurgeData").addEventListener("click", openPurgeDataModal);
+  document.getElementById("purgeConfirmInput").addEventListener("input", updatePurgeConfirmState);
+  document.querySelectorAll("#purgeDataModal [data-purge-key]").forEach(input =>
+    input.addEventListener("change", updatePurgeConfirmState));
+  document.getElementById("confirmPurgeBtn").addEventListener("click", confirmPurgeData);
   document.getElementById("rulesModeTabs").addEventListener("click", event => {
     const button = event.target.closest("[data-rules-mode]");
     if (button) setRulesPageMode(button.dataset.rulesMode);

@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.27.3 — Update footer, refresh fixes, Mark for Trade fix, RiftKeep rename cleanup
+
+- Fixed a real race condition affecting every collection-changing action (owned counts, favorites, decks, pack import/remove/undo, catalog refresh): the set-hero banner (Owned/Missing/Completion%) and the sidebar's per-set counts could render with pre-change numbers because the refresh ran before the new totals had finished loading. Reproduced directly with a pack import — now fixed everywhere the same pattern was used.
+- Mark for Trade no longer flags Runes or Battlefields — they're separate resource pools, not part of the deck itself, same reasoning Test Draw already excludes them for.
+- Trade Binder's Remove/Confirm Trade are now icon buttons (trash / repeat) instead of text.
+- Removed the "Refresh Sets" sidebar icon — a heavy full catalog re-sync too easy to misclick from the front page. Settings → Catalog still has it.
+- Replaced the old expanding "Updates" card in Settings with a footer that pops up on any page once an update is available, and stays permanently visible on Settings. "View Changelog" is now "View Patch Notes" and shows the full version history instead of just the latest release.
+- Settings polish: API key inputs stretch full width instead of stopping at 360px, the top-row status cards share equal height, and Catalog shows per-set owned/total chips like the other cards already do.
+- Finished a rename that was only partially done a while back — a handful of stray "Riftbound Vault" references (browser tab title, patch notes header, debug console, dev HTTPS cert, User-Agent strings) are now "RiftKeep" like everywhere else.
+
 ## v1.27.2 — Test Draw fix, mobile modal close button fix
 
 - Test Draw no longer includes Battlefields (a separate pool, never drawn from the Main Deck — same reasoning Runes were already excluded for) and now draws 4 cards instead of 7.

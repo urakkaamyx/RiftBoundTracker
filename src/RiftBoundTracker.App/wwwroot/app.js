@@ -948,6 +948,16 @@ async function confirmTrade(card) {
   toast(`${card.name} traded — removed from your collection`);
 }
 
+async function confirmTradeAll() {
+  const cards = state.binderCards || [];
+  if (!cards.length) return;
+  const copies = cards.reduce((sum, card) => sum + card.binderCount, 0);
+  if (!confirm(`Confirm you traded away all ${cards.length} card${cards.length === 1 ? "" : "s"} (${copies} cop${copies === 1 ? "y" : "ies"}) in your Trade Binder? They'll be removed from your collection.`)) return;
+  const result = await api("/api/binder/confirm-all", jsonOptions("POST", {}));
+  await refreshAfterCollectionChange();
+  toast(`${result.confirmedCards} card${result.confirmedCards === 1 ? "" : "s"} traded — ${result.confirmedCopies} cop${result.confirmedCopies === 1 ? "y" : "ies"} removed from your collection`);
+}
+
 async function setBinderAvailability(card, available) {
   if (card.ownedCount <= 0) return toast("Add a copy to your collection first", true);
   const count = available ? 1 : 0;
@@ -969,12 +979,14 @@ async function loadFavorites() {
 async function loadBinder() {
   const cards = await api("/api/binder");
   registerCards(cards);
+  state.binderCards = cards;
   const copies = cards.reduce((sum, card) => sum + card.binderCount, 0);
   document.getElementById("binderMeta").textContent = `${cards.length} card${cards.length === 1 ? "" : "s"} available to trade`;
   document.getElementById("binderEmpty").hidden = cards.length > 0;
   document.getElementById("binderValue").textContent = state.overview?.hasPricing ? formatMoney(state.overview.binderValue) : "Pricing not configured";
   document.getElementById("binderSummary").innerHTML = `
     <div><b>${cards.length}</b><span>Unique cards</span></div><div><b>${copies}</b><span>Total copies</span></div><div><b>${state.overview?.hasPricing ? formatMoney(state.overview.binderValue) : "--"}</b><span>Market value</span></div>`;
+  document.getElementById("tradeAllBtn").disabled = cards.length === 0;
   renderCardGrid(document.getElementById("binderGrid"), cards);
 }
 
@@ -3555,6 +3567,7 @@ function wireEvents() {
   document.getElementById("clearPriceQueue").addEventListener("click", () => clearPriceQueue().catch(err => toast(err.message, true)));
   document.getElementById("checkPriceQueue").addEventListener("click", checkPriceQueue);
   document.getElementById("priceQueueSettings").addEventListener("click", () => navigate("settings"));
+  document.getElementById("tradeAllBtn").addEventListener("click", () => confirmTradeAll().catch(err => toast(err.message, true)));
   document.getElementById("updateFooterCheck").addEventListener("click", checkForUpdates);
   document.getElementById("updateFooterApply").addEventListener("click", applyUpdate);
   document.getElementById("updateFooterPatchNotes").addEventListener("click", openPatchNotes);

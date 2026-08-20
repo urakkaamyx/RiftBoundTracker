@@ -455,6 +455,9 @@ internal static class Program
             return updated is null ? Results.NotFound() : Results.Ok(updated);
         });
 
+        app.MapPost("/api/binder/confirm-all", async (VaultService vault, CancellationToken ct) =>
+            Results.Ok(await vault.ConfirmTradeAllAsync(ct)));
+
         app.MapGet("/api/analytics", async (VaultService vault, CancellationToken ct) =>
             Results.Ok(await vault.GetOverviewAsync(ct)));
 

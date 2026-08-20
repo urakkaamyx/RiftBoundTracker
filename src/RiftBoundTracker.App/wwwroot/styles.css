@@ -923,7 +923,8 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .connection-body .settings-hint, .connection-body .connection-walkthrough, .connection-body .ask-answer-note { align-self: stretch; text-align: left; }
 .connection-walkthrough { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .connection-walkthrough code { padding: 2px 5px; border-radius: 4px; background: var(--panel-3); font: 500 11px var(--mono); }
-.test-hand { display: grid; grid-template-columns: repeat(7, minmax(60px, 1fr)); gap: 7px; overflow-x: auto; }
+.test-hand-modal { width: min(420px, 100%); }
+.test-hand { display: grid; grid-template-columns: repeat(4, minmax(70px, 1fr)); gap: 7px; overflow-x: auto; }
 .test-hand-card { position: relative; min-width: 70px; aspect-ratio: 744 / 1039; }
 .test-hand img { width: 100%; height: 100%; display: block; object-fit: cover; border-radius: 5px; }
 .test-hand-card .image-popout { right: 5px; bottom: 5px; }

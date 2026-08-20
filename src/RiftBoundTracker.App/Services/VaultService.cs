@@ -8,6 +8,7 @@ public record BinderRequest(int Count);
 public record SetProgressDto(string SetId, string SetLabel, int Total, int Owned, int Copies, double Completion);
 public record DistributionDto(string Label, int Cards, int Owned, int Copies);
 public record ValuableCardDto(CardEntity Card, double UnitPrice, double CollectionValue, double? Change24Hours);
+public record ConfirmTradeAllResult(int ConfirmedCards, int ConfirmedCopies);
 public record VaultOverviewDto(
     int TotalCards, int OwnedCards, int OwnedCopies, int MissingCards, int FavoriteCards,
     int BinderCards, int BinderCopies, int Decks, int ReadyDecks, bool HasPricing,
@@ -52,6 +53,24 @@ public sealed class VaultService(
         card.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(ct);
         return card;
+    }
+
+    // Confirms every card currently offered for trade at once — each card's full BinderCount
+    // (not just 1, unlike the per-card ConfirmTradeAsync) is removed from OwnedCount and the
+    // binder is fully cleared, for "I traded away everything in my binder" in one action.
+    public async Task<ConfirmTradeAllResult> ConfirmTradeAllAsync(CancellationToken ct = default)
+    {
+        var cards = await db.Cards.Where(c => c.BinderCount > 0).ToListAsync(ct);
+        var confirmedCopies = 0;
+        foreach (var card in cards)
+        {
+            confirmedCopies += card.BinderCount;
+            card.OwnedCount = Math.Max(0, card.OwnedCount - card.BinderCount);
+            card.BinderCount = 0;
+            card.UpdatedAt = DateTimeOffset.UtcNow;
+        }
+        if (cards.Count > 0) await db.SaveChangesAsync(ct);
+        return new ConfirmTradeAllResult(cards.Count, confirmedCopies);
     }
 
     public Task<List<CardEntity>> GetFavoritesAsync(CancellationToken ct = default) =>

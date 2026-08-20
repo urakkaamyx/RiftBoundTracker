@@ -138,7 +138,7 @@
         </section>
 
         <section class="page" id="page-binder" data-title="Trade Binder" data-eyebrow="Collection">
-          <div class="page-toolbar"><div><h2>Trade Binder</h2><p id="binderMeta">0 cards available to trade</p></div><div class="value-chip" id="binderValue">Pricing not configured</div></div>
+          <div class="page-toolbar"><div><h2>Trade Binder</h2><p id="binderMeta">0 cards available to trade</p></div><div class="value-chip" id="binderValue">Pricing not configured</div><button class="command-btn quiet" id="tradeAllBtn" title="Confirm every card in your Trade Binder as traded away at once"><i data-icon="repeat"></i>Trade All</button></div>
           <div class="binder-summary" id="binderSummary"></div>
           <div class="card-grid page-card-grid" id="binderGrid"></div>
           <div class="page-empty" id="binderEmpty" hidden><i data-icon="book-open"></i><h2>Your binder is empty</h2></div>
@@ -296,7 +296,7 @@
 
   <div class="modal-layer" id="importDeckModal" hidden><div class="modal"><div class="modal-head"><div><span>Deck Builder</span><h2>Import Deck</h2></div><button class="icon-btn" data-close="importDeckModal"><i data-icon="x"></i></button></div><div class="form-stack"><label>Deck name<input id="importDeckName" value="Imported Deck" /></label><label>Deck list<textarea id="importDeckContents" rows="12" placeholder="Paste a decklist — the format is detected automatically"></textarea></label></div><div class="modal-actions"><button type="button" class="command-btn gold" id="confirmImportDeck"><i data-icon="upload"></i>Import Deck</button></div><div id="importDeckResult"></div></div></div>
 
-  <div class="modal-layer" id="testHandModal" hidden><div class="modal"><div class="modal-head"><div><span>Test Draw</span><h2>Opening Hand</h2></div><button class="icon-btn" data-close="testHandModal"><i data-icon="x"></i></button></div><div class="test-hand" id="testHand"></div><div class="modal-actions"><button class="command-btn gold" id="redrawHand"><i data-icon="refresh"></i>Draw Again</button></div></div></div>
+  <div class="modal-layer" id="testHandModal" hidden><div class="modal test-hand-modal"><div class="modal-head"><div><span>Test Draw</span><h2>Opening Hand</h2></div><button class="icon-btn" data-close="testHandModal"><i data-icon="x"></i></button></div><div class="test-hand" id="testHand"></div><div class="modal-actions"><button class="command-btn gold" id="redrawHand"><i data-icon="refresh"></i>Draw Again</button></div></div></div>
 
   <div class="modal-layer" id="changelogModal" hidden><div class="modal"><div class="modal-head"><div><span>RiftKeep</span><h2>What's New</h2></div><button class="icon-btn" data-close="changelogModal"><i data-icon="x"></i></button></div><div class="changelog-body" id="changelogBody"></div></div></div>
 

@@ -38,6 +38,105 @@ public sealed class LocalLlmExplanationProvider(
         ruling, which is worse than not answering at all.
         """;
 
+    // Adjudication decides the ruling; it never writes player-facing prose. Citing evidence only by
+    // its E<n> id (never a typed rule number) is the hard boundary RulesAdjudicationValidator
+    // enforces against a hallucinated citation ever reaching the player — the model can't invent a
+    // rule number here even if it wanted to, since only a known E-id passes validation. Few-shot
+    // examples are baked in rather than a separate call, since the fine-tuned model has never seen
+    // this structured shape during training and instructions alone are unreliable for a 1.5B model.
+    private const string AdjudicationSystemPrompt = """
+        You are a rules adjudicator for the Riftbound trading card game. Your ONLY job is to decide
+        the correct ruling from the evidence supplied below — you are not writing the player-facing
+        answer here, only the internal ruling.
+
+        Rules:
+        - Cite evidence only by its E<number> id (e.g. E1, E3). Never type a rule number and never
+          invent a citation that isn't in the supplied evidence.
+        - Use only the supplied evidence. Never use outside knowledge of other card games, and never
+          invent a rule or mechanic that isn't in the evidence.
+        - If the question asks about more than one thing, treat each as its own issue.
+        - Evidence is often a conditional built on negations ("applies if X is not Y") — work out
+          literally which side of each "not" the actual situation falls on before deciding ANSWER.
+        - If the supplied evidence does not establish the answer, ANSWER is "Insufficient" — say so,
+          do not guess.
+        - You will usually be given far more evidence than any one issue needs. Most of it is
+          irrelevant to any given issue — that is normal and expected. REASON cites only the 1-3
+          ids that actually decide this issue. Never work through the evidence id by id, never
+          summarize what every id says, and never repeat the same sentence structure for multiple
+          ids — that is a mistake, not thoroughness.
+
+        Output exactly this shape, one block per issue, nothing else — no other text:
+        ISSUE: <restate the sub-question in your own words>
+        ANSWER: Yes|No|Insufficient
+        REASON: <ONE sentence, citing only the 1-3 E-ids that decide this issue — not a tour of the evidence>
+        EVIDENCE: <comma-separated E ids used for this issue, e.g. E1, E3>
+        MISSING: <only include this line if ANSWER is Insufficient>
+        ---
+        (repeat the ISSUE block above for each additional issue, each followed by its own ---)
+        VERDICT: <one line: Yes / No / Mixed / Insufficient evidence>
+
+        Example — simple question:
+        ISSUE: Does Exhaust let a card be played from the trash?
+        ANSWER: No
+        REASON: E1 defines Exhaust as a cost-paying keyword and says nothing about the trash zone.
+        EVIDENCE: E1
+        ---
+        VERDICT: No
+
+        Example — two issues, one is a negation:
+        ISSUE: Can a unit be played to a battlefield its controller already controls?
+        ANSWER: Yes
+        REASON: E1 lists a controlled battlefield as a valid location a unit can enter.
+        EVIDENCE: E1
+        ---
+        ISSUE: Does that make the battlefield Contested?
+        ANSWER: No
+        REASON: E2 only applies Contested when the arriving unit's controller does NOT already
+        control the battlefield; since they already do, that condition is false.
+        EVIDENCE: E2
+        ---
+        VERDICT: Mixed
+
+        Example — insufficient evidence:
+        ISSUE: Can a player sacrifice a Rune to draw a card?
+        ANSWER: Insufficient
+        REASON: The supplied evidence describes Runes only as a payment cost; nothing supplied
+        mentions sacrificing a Rune or a resulting draw effect.
+        EVIDENCE: E1
+        MISSING: A rule or card ability that grants a draw effect from sacrificing a Rune.
+        ---
+        VERDICT: Insufficient evidence
+
+        The three examples above are for OUTPUT FORMAT ONLY. Their questions, evidence ids, and
+        answers are not real and do not apply here. You will now be given a real question and a
+        real, numbered evidence list in the user turn — adjudicate ONLY that question, using ONLY
+        that evidence. Do not reuse or repeat any example's question or reasoning.
+        """;
+
+    // Explanation-of-an-already-decided-ruling — the counterpart to SystemPrompt above, but for the
+    // second stage of the adjudicate -> validate -> explain pipeline. Deliberately does NOT say
+    // "keep the answer concise — a few sentences, not an essay" (SystemPrompt's own instruction,
+    // left as-is there since ExplainAsync's single-pass path still wants that): a validated,
+    // possibly-multi-issue ruling needs room for a direct answer, an explanation, and a quotation
+    // per issue, not a fixed brevity ceiling.
+    private const string AdjudicatedExplanationSystemPrompt = """
+        You are a rules-reference assistant for the Riftbound trading card game, writing the
+        player-facing answer. THE RULING BELOW HAS ALREADY BEEN DETERMINED — do not re-adjudicate
+        it, do not change any Yes/No/Insufficient answer given, and do not reach a different
+        conclusion than the one supplied. Your only job is to communicate the already-decided ruling
+        clearly and naturally, using the supplied rule text to show why it's correct.
+
+        For each issue: give the direct answer first, explain briefly in plain language, quote the
+        rule text that establishes it, and — for anything conditional or negated — explicitly
+        connect the rule's condition to the player's actual situation (state what the condition
+        requires, state what's actually true here, state the result). If there is more than one
+        issue, address them as clearly separated points and end with a short conclusion; for a
+        single issue, do not force a numbered list or an artificial conclusion section.
+
+        If an issue's answer is "Insufficient", say plainly that the supplied evidence doesn't
+        establish an answer — never guess or fill the gap with outside knowledge.
+        """;
+
     private readonly SemaphoreSlim _gate = new(1, 1);
     private ModelParams? _modelParams;
     private LLamaWeights? _weights;
@@ -80,7 +179,15 @@ public sealed class LocalLlmExplanationProvider(
             {
                 MaxTokens = 350,
                 AntiPrompts = ["User:", "Question:", "<|im_end|>"],
-                SamplingPipeline = new DefaultSamplingPipeline { Temperature = 0.2f },
+                // RepeatPenalty defaults to 1 (a no-op multiplier) even though PenaltyCount defaults
+                // to a real 64-token window — confirmed directly by probing DefaultSamplingPipeline's
+                // own defaults, not assumed. Leaving it unset let this model loop into the exact
+                // degenerate-repetition failure this fix targets: real testing caught it verbatim
+                // repeating "Rule 465.2.c... Rule 465.2.c.2... Rule 465.2.c.3..." until MaxTokens cut
+                // it off, producing a wrong, unusable answer even though retrieval had the right
+                // evidence. 1.1 matches llama.cpp's own CLI default — enough to break the loop
+                // without over-constraining legitimate short repeated terms (e.g. "Rule 190.3.a").
+                SamplingPipeline = new DefaultSamplingPipeline { Temperature = 0.2f, RepeatPenalty = 1.1f },
                 // A defensive backstop, not the primary defense — BuildUserMessage's own evidence
                 // budget is what's supposed to keep prompts under the context size. This just
                 // means a case that budget didn't anticipate degrades to a truncated answer
@@ -103,6 +210,130 @@ public sealed class LocalLlmExplanationProvider(
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Local AI explanation failed");
+            return new RulesGeneratedAnswer(null, false, ex.Message);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    // Deliberately does not share inference-running code with ExplainAsync above — ExplainAsync is
+    // the fallback path RulesAnswerService reaches for when adjudication fails validation, and it
+    // needs to stay exactly as it already is (proven, unmodified) rather than risk a subtle change
+    // from being refactored into a shared helper alongside these two newer methods.
+    public async Task<RulesAdjudicationOutput> AdjudicateAsync(RulesAdjudicationContext context, CancellationToken ct = default)
+    {
+        if (!settings.IsEnabled())
+            return new RulesAdjudicationOutput(null, false, "Local AI explanations are turned off.");
+
+        var modelPath = FindModelPath();
+        if (modelPath is null)
+            return new RulesAdjudicationOutput(null, false, "The selected local model hasn't been downloaded yet.");
+
+        await _gate.WaitAsync(ct);
+        try
+        {
+            if (!EnsureWeightsLoaded(modelPath))
+                return new RulesAdjudicationOutput(null, false, "Could not load the local model.");
+
+            using var requestContext = _weights!.CreateContext(_modelParams!);
+            var executor = new InteractiveExecutor(requestContext);
+            var chatHistory = new ChatHistory();
+            chatHistory.AddMessage(AuthorRole.System, AdjudicationSystemPrompt);
+            var session = new ChatSession(executor, chatHistory)
+                .WithHistoryTransform(new PromptTemplateTransformer(_weights!, withAssistant: true));
+
+            var inferenceParams = new InferenceParams
+            {
+                // Adjudication output is compact structured lines, not prose — a few issues' worth
+                // of ISSUE/ANSWER/REASON/EVIDENCE blocks fits comfortably well under 500 tokens.
+                MaxTokens = 500,
+                AntiPrompts = ["User:", "Question:", "<|im_end|>"],
+                // See ExplainAsync's identical fix above for why RepeatPenalty must be set explicitly.
+                // This is where it was caught in the first place: given ~16 E-ids, the model would
+                // devolve the REASON field into "E1 states that... E2 states that... E3 states
+                // that..." straight through every id instead of the one sentence the prompt asks for,
+                // never reaching EVIDENCE/VERDICT — a guaranteed validation failure every time, not an
+                // occasional one, confirmed across 6 of 7 real test questions before this fix.
+                SamplingPipeline = new DefaultSamplingPipeline { Temperature = 0.1f, RepeatPenalty = 1.1f },
+                OverflowStrategy = LLama.Common.ContextOverflowStrategy.TruncateAndReprefill,
+            };
+
+            var output = new StringBuilder();
+            await foreach (var token in session.ChatAsync(new ChatHistory.Message(AuthorRole.User, BuildAdjudicationUserMessage(context)), inferenceParams)
+                .WithCancellation(ct))
+                output.Append(token);
+
+            var raw = StripTrailingAntiPrompt(StripLeadingThinkBlock(output.ToString()), inferenceParams.AntiPrompts);
+            return raw.Length == 0
+                ? new RulesAdjudicationOutput(null, false, "The local model returned an empty response.")
+                : new RulesAdjudicationOutput(raw, true, null);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Local AI adjudication failed");
+            return new RulesAdjudicationOutput(null, false, ex.Message);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    public async Task<RulesGeneratedAnswer> ExplainAdjudicationAsync(RulesAdjudicatedExplanationContext context, CancellationToken ct = default)
+    {
+        if (!settings.IsEnabled())
+            return new RulesGeneratedAnswer(null, false, "Local AI explanations are turned off.");
+
+        var modelPath = FindModelPath();
+        if (modelPath is null)
+            return new RulesGeneratedAnswer(null, false, "The selected local model hasn't been downloaded yet.");
+
+        await _gate.WaitAsync(ct);
+        try
+        {
+            if (!EnsureWeightsLoaded(modelPath))
+                return new RulesGeneratedAnswer(null, false, "Could not load the local model.");
+
+            using var requestContext = _weights!.CreateContext(_modelParams!);
+            var executor = new InteractiveExecutor(requestContext);
+            var chatHistory = new ChatHistory();
+            chatHistory.AddMessage(AuthorRole.System, AdjudicatedExplanationSystemPrompt);
+            var session = new ChatSession(executor, chatHistory)
+                .WithHistoryTransform(new PromptTemplateTransformer(_weights!, withAssistant: true));
+
+            var inferenceParams = new InferenceParams
+            {
+                // 350 -> ~750: doc's target style (direct answer + explanation + quotation +
+                // conditional walk-through per issue) genuinely needs more room than a "few
+                // sentences" summary did. ContextSize=6144 already has headroom for this — the
+                // explanation-stage prompt only carries evidence for the ids actually cited, not the
+                // full evidence set adjudication saw.
+                MaxTokens = 750,
+                AntiPrompts = ["User:", "Question:", "<|im_end|>"],
+                // See ExplainAsync's identical fix above. This call site produced the most severe
+                // failure seen in testing: given a validated single-sentence ruling to explain, it
+                // looped "A unit's Standard Move exhausts the unit as a cost." verbatim for the full
+                // 750-token budget instead of stopping — an unmistakable degenerate-repetition loop,
+                // not a borderline case.
+                SamplingPipeline = new DefaultSamplingPipeline { Temperature = 0.2f, RepeatPenalty = 1.1f },
+                OverflowStrategy = LLama.Common.ContextOverflowStrategy.TruncateAndReprefill,
+            };
+
+            var output = new StringBuilder();
+            await foreach (var token in session.ChatAsync(new ChatHistory.Message(AuthorRole.User, BuildAdjudicatedExplanationUserMessage(context)), inferenceParams)
+                .WithCancellation(ct))
+                output.Append(token);
+
+            var answer = StripTrailingAntiPrompt(StripLeadingThinkBlock(output.ToString()), inferenceParams.AntiPrompts);
+            return answer.Length == 0
+                ? new RulesGeneratedAnswer(null, false, "The local model returned an empty response.")
+                : new RulesGeneratedAnswer(answer, true, null);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Local AI explanation-of-adjudication failed");
             return new RulesGeneratedAnswer(null, false, ex.Message);
         }
         finally
@@ -238,6 +469,66 @@ public sealed class LocalLlmExplanationProvider(
             : "";
 
         return $"Question: {context.Question}{cardText}\n\nRules evidence:\n{evidenceText}";
+    }
+
+    // Same perItemCap/totalBudget as BuildUserMessage — adjudication needs the same full evidence
+    // text to actually reason from, so it faces the same context pressure the single-pass path did.
+    private static string BuildAdjudicationUserMessage(RulesAdjudicationContext context)
+    {
+        const int perItemCap = 1400;
+        const int totalBudget = 9000;
+        var used = 0;
+        var parts = new List<string>();
+        foreach (var e in context.Evidence)
+        {
+            var part = $"{e.Id} [{e.Label}] ({e.Authority}{(e.Current ? "" : ", historical")})\n{Cap(e.FullText, perItemCap)}";
+            if (used >= totalBudget) break;
+            var remaining = totalBudget - used;
+            var trimmed = part.Length > remaining ? Cap(part, remaining) : part;
+            parts.Add(trimmed);
+            used += trimmed.Length;
+        }
+        var evidenceText = string.Join("\n\n", parts);
+
+        var cardText = context.CardContext.Count > 0
+            ? "\n\nThe question is specifically about this card:\n" + string.Join("\n\n", context.CardContext.Select(c =>
+                $"[{c.Name}]" + (string.IsNullOrWhiteSpace(c.Text) ? "" : $"\n{c.Text}")))
+            : "";
+
+        var correctionText = string.IsNullOrWhiteSpace(context.CorrectionNote)
+            ? ""
+            : $"\n\nYour previous attempt was rejected: {context.CorrectionNote} Follow the exact output format and cite only the E-ids listed above.";
+
+        return $"Adjudicate this real question — it is not one of the system prompt's examples:\n" +
+               $"Question: {context.Question}{cardText}\n\nEvidence:\n{evidenceText}{correctionText}";
+    }
+
+    // Only the EvidenceRefs the adjudicator actually cited are included here — the explanation
+    // stage doesn't need the full evidence set adjudication saw, just enough to quote and connect
+    // to the already-decided answer, which keeps this prompt considerably smaller.
+    private static string BuildAdjudicatedExplanationUserMessage(RulesAdjudicatedExplanationContext context)
+    {
+        var citedIds = context.Adjudication.Issues.SelectMany(i => i.EvidenceIds).ToHashSet();
+        var evidenceById = context.Evidence.Where(e => citedIds.Contains(e.Id)).ToDictionary(e => e.Id);
+
+        var issueBlocks = context.Adjudication.Issues.Select(issue =>
+        {
+            var quotes = issue.EvidenceIds
+                .Where(evidenceById.ContainsKey)
+                .Select(id => evidenceById[id])
+                .Select(e => $"[{e.Label}] ({e.Authority}{(e.Current ? "" : ", historical")})\n{e.FullText}");
+            return $"Issue: {issue.Question}\nAnswer: {issue.Answer}\nReason: {issue.Reason}\n" +
+                   $"Supporting rule text:\n{string.Join("\n\n", quotes)}";
+        });
+
+        var cardText = context.CardContext.Count > 0
+            ? "\n\nThe question is specifically about this card:\n" + string.Join("\n\n", context.CardContext.Select(c =>
+                $"[{c.Name}]" + (string.IsNullOrWhiteSpace(c.Text) ? "" : $"\n{c.Text}")))
+            : "";
+
+        return $"Question: {context.Question}{cardText}\n\n" +
+               $"Ruling (already determined — explain it, do not change it):\n" +
+               $"{string.Join("\n\n---\n\n", issueBlocks)}\n\nOverall verdict: {context.Adjudication.OverallVerdict}";
     }
 
     public string? FindModelPath() => modelService.FindModelPath(settings.GetSelectedModelId());

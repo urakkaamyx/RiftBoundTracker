@@ -101,12 +101,16 @@ SYSTEM_PROMPT = (
     "material when they overlap. Clearly distinguish what a rule directly says from any\n"
     "interpretation you're making. Keep the answer concise — a few sentences, not an essay.\n"
     "A card's own printed text is valid evidence of what that card does — if it's supplied below,\n"
-    "describe the card's effect directly instead of calling the evidence insufficient."
+    "describe the card's effect directly instead of calling the evidence insufficient.\n"
+    "Rules text is often a conditional built on negations (\"applies if X is not Y and Z does not\n"
+    "W\") — before answering, work out literally which side of each \"not\" the actual situation in\n"
+    "the question falls on. Getting a negation backwards produces the opposite of the correct\n"
+    "ruling, which is worse than not answering at all."
 )
 
 # Mirrors BuildUserMessage's Cap/perItemCap/totalBudget exactly — see LocalLlmExplanationProvider.cs.
-PER_ITEM_CAP = 900
-TOTAL_BUDGET = 5500
+PER_ITEM_CAP = 1400
+TOTAL_BUDGET = 9000
 
 BRACKET_KEYWORD_RE = re.compile(r"\[([A-Za-z][A-Za-z\s\-]*)\]")
 

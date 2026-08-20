@@ -1685,14 +1685,15 @@ async function exportActiveDeck(format) {
 }
 
 function openTestHand() {
-  // Runes are a separate resource pool played from their own Rune Deck, never drawn alongside
-  // Main Deck cards — excluded here even though this app stores both in the same "main" section.
+  // Runes and Battlefields are both separate resource pools (Rune Deck / Battlefield pool), never
+  // drawn alongside Main Deck cards — excluded here even though this app stores all three in the
+  // same "main" section.
   const pool = state.activeDeck.cards
-    .filter(row => row.section === "main" && row.card.type !== "Rune")
+    .filter(row => row.section === "main" && row.card.type !== "Rune" && row.card.type !== "Battlefield")
     .flatMap(row => Array.from({ length: row.quantity }, () => row.card));
   if (!pool.length) return toast("Add cards to the deck first", true);
   const draw = () => {
-    const shuffled = [...pool].sort(() => Math.random() - .5).slice(0, Math.min(7, pool.length));
+    const shuffled = [...pool].sort(() => Math.random() - .5).slice(0, Math.min(4, pool.length));
     const root = document.getElementById("testHand");
     root.innerHTML = shuffled.map(card => `<div class="test-hand-card"><img src="${escapeHtml(cardImage(card))}" alt="${escapeHtml(card.name)}" title="${escapeHtml(card.name)}" />${cardImagePopout(card)}</div>`).join("");
     renderIcons(root);

@@ -794,11 +794,15 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .ask-evidence-rule-link { background: none; border: none; padding: 0; cursor: pointer; }
 .ask-evidence-rule-link:hover b { text-decoration: underline; }
 
-.modal-layer { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 18px; background: rgba(2,2,5,.76); backdrop-filter: blur(6px); }
-.modal { position: relative; width: min(620px, 100%); max-height: calc(100vh - 36px); overflow-y: auto; padding: 20px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow); }
+/* height set twice on purpose — the plain vh line is the fallback for browsers that don't support
+   dvh; the dvh line (when supported) overrides it with the browser's actual visible viewport. Plain
+   vh sizes against the LARGEST possible viewport (URL bar hidden) even while it's showing, which on
+   a real phone pushed .modal-close up behind the browser chrome, out of reach entirely. */
+.modal-layer { position: fixed; inset: 0; height: 100vh; height: 100dvh; z-index: 100; display: grid; place-items: center; padding: 18px; background: rgba(2,2,5,.76); backdrop-filter: blur(6px); }
+.modal { position: relative; width: min(620px, 100%); max-height: calc(100vh - 36px); max-height: calc(100dvh - 36px); overflow-y: auto; padding: 20px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow); }
 .compact-modal { width: min(440px, 100%); }
 .detail-modal { width: min(760px, 100%); }
-.legend-modal { width: min(1080px, 100%); height: min(720px, calc(100vh - 36px)); display: flex; flex-direction: column; transition: box-shadow .25s ease; }
+.legend-modal { width: min(1080px, 100%); height: min(720px, calc(100vh - 36px)); height: min(720px, calc(100dvh - 36px)); display: flex; flex-direction: column; transition: box-shadow .25s ease; }
 .legend-modal[data-domain-glow="fury"] { box-shadow: var(--shadow), 0 0 60px -14px color-mix(in srgb, var(--c-fury) 55%, transparent); }
 .legend-modal[data-domain-glow="calm"] { box-shadow: var(--shadow), 0 0 60px -14px color-mix(in srgb, var(--c-calm) 55%, transparent); }
 .legend-modal[data-domain-glow="order"] { box-shadow: var(--shadow), 0 0 60px -14px color-mix(in srgb, var(--c-order) 55%, transparent); }
@@ -958,7 +962,7 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .pack-import-row span { display: block; margin-top: 2px; font-size: 10px; color: var(--faint); }
 .pack-import-result-actions { margin-top: 10px; }
 
-.pack-import-modal { width: min(980px, 100%); height: min(680px, calc(100vh - 36px)); display: flex; flex-direction: column; }
+.pack-import-modal { width: min(980px, 100%); height: min(680px, calc(100vh - 36px)); height: min(680px, calc(100dvh - 36px)); display: flex; flex-direction: column; }
 .pack-import-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; }
 .pack-import-main { min-height: 0; overflow-y: auto; padding-right: 4px; }
 .pack-preview-panel { min-height: 0; border-left: 1px solid var(--border-soft); padding-left: 16px; display: flex; flex-direction: column; }
@@ -1119,8 +1123,8 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
   .manual-lookup { grid-template-columns: 62px 1fr auto; }
   .manual-lookup span { grid-column: 1 / -1; }
   .modal-layer { align-items: end; padding: 0; }
-  .modal { width: 100%; max-height: 92vh; border-radius: 8px 8px 0 0; }
-  .legend-modal { height: 92vh; }
+  .modal { width: 100%; max-height: 92vh; max-height: 92dvh; border-radius: 8px 8px 0 0; }
+  .legend-modal { height: 92vh; height: 92dvh; }
   .legend-picker-body { grid-template-columns: 1fr; overflow-y: auto; }
   .legend-picker-grid { overflow-y: visible; }
   .legend-detail-panel { border-left: 0; border-top: 1px solid var(--border-soft); padding-left: 0; padding-top: 12px; margin-top: 12px; }

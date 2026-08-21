@@ -23,10 +23,11 @@ namespace RiftBoundTracker.App.Services.Rules;
 /// So: the caller (RulesAnswerService) runs the normal evidence pipeline first and hands the result
 /// in as `evidence` — that's simply given to the model on turn one, no tool call involved, since
 /// it isn't optional or discretionary. The only tools left are narrow, exact-identifier lookups —
-/// get_rule(rule_number) and get_card(name) — for the rare case that bundle didn't already cover
-/// something the question or the evidence itself named. Both are deterministic: they either resolve
-/// to one real rule/card or they don't, with no free text and no ranking involved, so there's no
-/// room for the model to "arbitrarily" look anything up.
+/// get_rule(rule_number), get_card(name), and get_keyword(name) — for the rare case that bundle
+/// didn't already cover something the question or the evidence itself named, or a term the model
+/// needs defined to actually reason about it. All three are deterministic: they either resolve to
+/// one real rule/card/keyword or they don't, with no free text and no ranking involved, so there's
+/// no room for the model to "arbitrarily" look anything up.
 ///
 /// Why a raw base model at all: four rounds of fine-tuning a model specifically on the
 /// adjudicate/explain task shape never got reliability past a real ceiling (see
@@ -55,15 +56,18 @@ public sealed class RulesToolAgentProvider(
         data pulled from the actual rulebook and card catalog, not something you found yourself.
         Read all of it before answering. Base your answer on it and cite the E-ids you used.
 
-        If that evidence is missing something specific — one exact rule number or one exact card
-        name mentioned in the question or in the evidence itself — you may call one of these two
-        tools to fetch it. They do not search: they only return something if you give the exact
-        rule number or exact card name, so there's no point guessing or trying variations.
+        If that evidence is missing something specific, you may call one of these tools to fetch
+        it. They do not search: they only return something if you give an exact rule number, exact
+        card name, or a real Riftbound keyword/term, so there's no point guessing or trying
+        variations.
 
         - get_rule(rule_number): returns that rule's full text, only if the number matches a real
           rule exactly.
         - get_card(name): returns that card's printed text, current format legality, and any
           official errata, only if the name matches a real card exactly.
+        - get_keyword(name): returns the official definition of a Riftbound keyword or rules term
+          (e.g. "Tank", "Contested", "Hunt") — use this when you understand the question but need
+          to actually learn what a term means, not just look up a number you already have.
 
         To call a tool, output ONLY this, nothing else:
         <tool_call>{"name": "get_rule", "arguments": {"rule_number": "..."}}</tool_call>
@@ -203,8 +207,12 @@ public sealed class RulesToolAgentProvider(
                 if (!arguments.TryGetValue("name", out var cardName) || string.IsNullOrWhiteSpace(cardName))
                     return "Error: get_card requires a non-empty \"name\" argument.";
                 return await GetCardToolAsync(scope.ServiceProvider, cardName, ct);
+            case "get_keyword":
+                if (!arguments.TryGetValue("name", out var keywordName) || string.IsNullOrWhiteSpace(keywordName))
+                    return "Error: get_keyword requires a non-empty \"name\" argument.";
+                return await GetKeywordToolAsync(scope.ServiceProvider, keywordName, ct);
             default:
-                return $"Error: unknown tool \"{name}\". Available tools: get_rule, get_card.";
+                return $"Error: unknown tool \"{name}\". Available tools: get_rule, get_card, get_keyword.";
         }
     }
 
@@ -223,6 +231,36 @@ public sealed class RulesToolAgentProvider(
         var hit = response.Results.FirstOrDefault(h => h.MatchType == "RuleNumber");
         if (hit is null) return $"No rule numbered {parsed} exists.";
         return $"[Rule {hit.RuleNumber}] ({hit.Document.Authority})\n{Cap(hit.FullText, 1200)}";
+    }
+
+    // Conceptual "help me understand this term" lookup — distinct from get_rule (which needs a
+    // number the model already has) and search_rules-style free text (which this design deliberately
+    // has none of). Still fully deterministic: the name must resolve to a real RuleKeywords entry
+    // or one of its known player-slang aliases (the exact same normalize-and-match RulesSearchService
+    // itself uses for its own keyword fast path), never a fuzzy/ranked guess. Returns the keyword's
+    // canonical definition plus every other rule that references it, same shape RulesEvidenceService
+    // already builds for keyword evidence elsewhere in this app.
+    private static async Task<string> GetKeywordToolAsync(IServiceProvider sp, string name, CancellationToken ct)
+    {
+        var db = sp.GetRequiredService<AppDbContext>();
+        var normalized = RulesKeywordCatalogService.Normalize(name.Trim());
+        var keyword = await db.RuleKeywords
+            .Include(k => k.Aliases)
+            .FirstOrDefaultAsync(k => k.NormalizedName == normalized || k.Aliases.Any(a => a.NormalizedAlias == normalized), ct);
+        if (keyword is null) return $"\"{name.Trim()}\" isn't a known Riftbound keyword or term.";
+
+        var search = sp.GetRequiredService<RulesSearchService>();
+        var hits = (await search.SearchByKeywordIdAsync(keyword.Id, currentOnly: true, ct))
+            .OrderByDescending(h => h.Score)
+            .Take(8);
+        var parts = hits.Select(hit =>
+        {
+            var label = hit.RuleNumber is not null ? $"Rule {hit.RuleNumber}" : hit.Title;
+            return $"[{label}] ({hit.Document.Authority})\n{Cap(hit.FullText, 1200)}";
+        }).ToList();
+        return parts.Count > 0
+            ? string.Join("\n\n", parts)
+            : $"\"{keyword.Name}\" is a known keyword but has no rules text on file.";
     }
 
     private static async Task<string> GetCardToolAsync(IServiceProvider sp, string name, CancellationToken ct)

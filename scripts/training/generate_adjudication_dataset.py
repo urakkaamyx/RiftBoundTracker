@@ -777,7 +777,7 @@ INSUFFICIENT_CASES = [
 DESCRIPTIVE_CASES = [
     {
         "rule_numbers": ["414.1", "414.1.a", "414.2", "414.5"],
-        "questions": ["How does Exhaust work?", "What does Exhaust mean?", "Explain the Exhaust keyword."],
+        "questions": ["How does Exhaust work?", "What does Exhaust mean?", "What does Exhaust do?", "Explain the Exhaust keyword."],
         "reason": "E1 defines Exhausting as marking a Game Object \"spent\" (rotated 90 degrees), E3 says Exhausted is a state other effects can reference, and E4 says the Exhaust symbol represents the cost \"Exhaust this.\"",
         "evidence_ids": ["E1", "E3", "E4"],
         "explanation": (
@@ -791,7 +791,7 @@ DESCRIPTIVE_CASES = [
     },
     {
         "rule_numbers": ["415.1", "415.2"],
-        "questions": ["How does Ready work?", "What does the Ready state mean?"],
+        "questions": ["How does Ready work?", "What does the Ready state mean?", "What does Ready do?"],
         "reason": "E1 defines Readying as marking a Game Object as available for action, and E2 says Ready is a state other rules and effects can reference.",
         "evidence_ids": ["E1", "E2"],
         "explanation": (
@@ -802,7 +802,7 @@ DESCRIPTIVE_CASES = [
     },
     {
         "rule_numbers": ["815.1", "815.1.b", "815.2", "815.3"],
-        "questions": ["How does Tank work?", "What does the Tank keyword do?", "Explain Tank."],
+        "questions": ["How does Tank work?", "What does the Tank keyword do?", "What does Tank do?", "Explain Tank."],
         "reason": "E2 defines Tank as forcing lethal combat damage to be assigned to it before other units without Tank during the Combat Damage step; E3 says multiple instances are redundant.",
         "evidence_ids": ["E2", "E3"],
         "explanation": (
@@ -830,7 +830,7 @@ DESCRIPTIVE_CASES = [
     },
     {
         "rule_numbers": ["817.1", "817.2", "817.3"],
-        "questions": ["How does Vision work?", "What does the Vision keyword do?", "Explain Vision."],
+        "questions": ["How does Vision work?", "What does the Vision keyword do?", "What does Vision do?", "Explain Vision."],
         "reason": "E1 says Vision is a Triggered Ability keyword, and E2 says multiple instances trigger separately.",
         "evidence_ids": ["E1", "E2"],
         "explanation": (
@@ -852,6 +852,379 @@ DESCRIPTIVE_CASES = [
             "original action. It isn't an instant loss — if your trash is also empty, you'll keep "
             "burning out and giving away points each time until an opponent reaches the win "
             "threshold."
+        ),
+    },
+    {
+        "rule_numbers": ["805.1", "805.1.a", "805.2", "805.3", "805.4"],
+        "questions": ["What does Accelerate do?", "How does the Accelerate keyword work?", "What is Accelerate?"],
+        "reason": "Grounded directly in the cited rule text for the Accelerate keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4", "E5"],
+        "explanation": (
+            "Accelerate is a Unit ability you pay for as you play the unit, not something you use "
+            "later. It's short for \"As you play me, you may pay an additional cost. If you do, I "
+            "enter ready\" — normally a unit enters the board exhausted, so paying this cost is "
+            "how you get it into play ready to act immediately instead. It only exists at the "
+            "moment you're playing the card: once the unit is already on the board, Accelerate "
+            "has no function, and multiple copies of the ability on the same unit don't stack or "
+            "give you anything extra. You'd use it whenever you specifically need that unit "
+            "active right away — to attack, defend, or use a Readied-only ability the same turn "
+            "it comes down — and are willing to spend the extra cost for that tempo."
+        ),
+    },
+    {
+        "rule_numbers": ["806.1.b", "806.1.c", "806.2", "806.3"],
+        "questions": ["What does the Action keyword do?", "How does Action work?", "What is Action?"],
+        "reason": "Grounded directly in the cited rule text for the Action keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Action is a permission keyword, not an effect — it doesn't change what a card does, "
+            "only when you're allowed to do it. Normally you can only play cards or activate "
+            "abilities on your own turn; Action grants permission to do so during Showdowns even "
+            "on another player's turn. It's purely additive: everything else about the card still "
+            "applies as normal (a Unit with Action still has to be played to your base or a "
+            "battlefield you control, for instance) — Action only removes the \"must be your turn\" "
+            "restriction, nothing else. You'd care about Action when you want to react during an "
+            "opponent's Showdown instead of waiting for your own turn."
+        ),
+    },
+    {
+        "rule_numbers": ["807.1.b", "807.1.c", "807.1.d", "807.2"],
+        "questions": ["What does Assault do?", "How does the Assault keyword work?", "What is Assault?"],
+        "reason": "Grounded directly in the cited rule text for the Assault keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Assault X is short for \"While I am an attacker, I have +X Might\" (X defaults to 1 if "
+            "not stated). It only applies while the unit holds the Attacker designation during "
+            "Combat — the moment it stops being the attacker, the bonus goes away, since it isn't "
+            "a permanent stat boost. If a unit gets Assault from more than one source, the values "
+            "are summed rather than only the highest applying. Its purpose is to make attacking "
+            "with that unit specifically stronger than defending with it, so you'd care about it "
+            "when deciding whether to attack with a unit that has it rather than hold it back."
+        ),
+    },
+    {
+        "rule_numbers": ["808.1.b", "808.1.c", "808.1.d", "808.2"],
+        "questions": ["What does Deathknell do?", "How does the Deathknell keyword work?", "What is Deathknell?"],
+        "reason": "Grounded directly in the cited rule text for the Deathknell keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Deathknell is short for \"When I die, [Effect]\" — it's a triggered ability on "
+            "Permanents that fires specifically when that permanent is Killed and sent to the "
+            "Trash. That trigger condition matters: if the permanent leaves play some other way "
+            "(for example its death is replaced by a recall instead), Deathknell never triggers "
+            "at all, since it isn't a generic \"leaves play\" trigger. If a permanent has more than "
+            "one Deathknell effect, each one triggers separately and its controller chooses the "
+            "order they go on the chain. You'd expect Deathknell on cards designed to reward or "
+            "punish a unit's death specifically, giving you value even after it's gone."
+        ),
+    },
+    {
+        "rule_numbers": ["809.1.b", "809.1.c", "809.1.d", "809.2"],
+        "questions": ["What does Deflect do?", "How does the Deflect keyword work?", "What is Deflect?"],
+        "reason": "Grounded directly in the cited rule text for the Deflect keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Deflect X is short for \"Spells and abilities an opponent controls that target me "
+            "cost X more Power to play, as an additional cost, each time they choose me\" (X "
+            "defaults to 1). That extra Power cost can always be paid with Power of any domain, "
+            "regardless of the spell's own domain. It's a Mandatory Additional Cost imposed on "
+            "the opponent, not something you pay — if a target has Deflect from multiple sources, "
+            "those values are summed. Its purpose is to make that Game Object more expensive for "
+            "opponents to specifically target, so it matters whenever an opponent is deciding "
+            "whether it's worth paying more to target it."
+        ),
+    },
+    {
+        "rule_numbers": ["810.1.b", "810.1.c", "810.2"],
+        "questions": ["What does Ganking do?", "How does the Ganking keyword work?", "What is Ganking?"],
+        "reason": "Grounded directly in the cited rule text for the Ganking keyword.",
+        "evidence_ids": ["E1", "E2", "E3"],
+        "explanation": (
+            "Ganking is short for \"I may move to a battlefield from another battlefield with a "
+            "standard move\" — it's a passive ability that adds a new option to a unit's Standard "
+            "Move rather than replacing or restricting anything it could already do. It has no "
+            "activation cost and doesn't grant an extra move action, just an extra legal "
+            "destination for the move you already have. Multiple copies of Ganking on the same "
+            "unit don't add anything further. You'd use it when repositioning a unit directly "
+            "between battlefields, something a unit without Ganking normally can't do with a "
+            "standard move."
+        ),
+    },
+    {
+        "rule_numbers": ["811.1", "811.1.b", "811.1.c", "811.6"],
+        "questions": ["What does Hidden do?", "How does the Hidden keyword work?", "What is Hidden?"],
+        "reason": "Grounded directly in the cited rule text for the Hidden keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Hidden lets you take the Hide Discretionary Action instead of playing a card "
+            "normally. It's short for \"While this card is in your hand or Champion Zone on your "
+            "turn during an Open State, you may pay to hide this facedown at a battlefield you "
+            "control that doesn't already have a hidden card there, for as long as you control "
+            "that battlefield. Beginning next turn, this gains Reaction and may be played "
+            "ignoring its base cost.\" Hiding itself doesn't open a chain, but playing the card "
+            "from Hidden later does. A card with Hidden can still just be played normally "
+            "instead, at its usual cost and timing, with none of the targeting restrictions "
+            "Hidden play introduces. You'd choose to hide a card when you want to stage a threat "
+            "at a specific battlefield now and unleash it later for free, at the cost of it being "
+            "delayed a turn and restricted to targets at that battlefield when you do play it "
+            "from Hidden."
+        ),
+    },
+    {
+        "rule_numbers": ["812.1.b", "812.1.c", "812.2"],
+        "questions": ["What does Legion do?", "How does the Legion keyword work?", "What is Legion?"],
+        "reason": "Grounded directly in the cited rule text for the Legion keyword.",
+        "evidence_ids": ["E1", "E2", "E3"],
+        "explanation": (
+            "Legion is short for \"If you have played another card this turn, this card gains "
+            "[Text]\" — the bonus text only becomes active once you've finalized a different card "
+            "earlier in the same turn. A single card played earlier satisfies every Legion "
+            "ability on every card you control at once; you don't need to play a separate card "
+            "for each one. It rewards building a turn around playing multiple cards rather than "
+            "just one, so you'd care about sequencing — playing something else first unlocks the "
+            "Legion bonus on whatever you play after it."
+        ),
+    },
+    {
+        "rule_numbers": ["813.1.b", "813.1.c", "813.2", "813.3"],
+        "questions": ["What does the Reaction keyword do?", "How does Reaction work?", "What is Reaction?"],
+        "reason": "Grounded directly in the cited rule text for the Reaction keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Reaction grants everything Action does, plus more: it's short for \"This can be "
+            "played during Closed States on any player's turn\" on top of Action's Showdown "
+            "permission. Like Action, it's purely a permission — it doesn't change any of the "
+            "card's other restrictions (a Unit with Reaction still has to be played to your base "
+            "or a battlefield you control). You'd use a card with Reaction specifically to "
+            "respond during a Closed State, on your own turn or an opponent's, which is a level "
+            "of flexibility Action alone doesn't grant."
+        ),
+    },
+    {
+        "rule_numbers": ["814.1.b", "814.1.c", "814.1.d", "814.2"],
+        "questions": ["What does Shield do?", "How does the Shield keyword work?", "What is Shield?"],
+        "reason": "Grounded directly in the cited rule text for the Shield keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Shield X is short for \"While I am a defender, I have +X Might\" (X defaults to 1). "
+            "It's the defensive mirror of Assault — it only applies while the unit holds the "
+            "Defender designation during Combat, and disappears once combat ends or it stops "
+            "defending. Values from multiple sources of Shield are summed together. Its purpose "
+            "is to make that unit specifically stronger on defense, so it matters when deciding "
+            "whether to block or hold a unit back to defend with it."
+        ),
+    },
+    {
+        "rule_numbers": ["816.1.b", "816.1.c", "816.2"],
+        "questions": ["What does Temporary do?", "How does the Temporary keyword work?", "What is Temporary?"],
+        "reason": "Grounded directly in the cited rule text for the Temporary keyword.",
+        "evidence_ids": ["E1", "E2", "E3"],
+        "explanation": (
+            "Temporary is short for \"At the start of this permanent's controller's Beginning "
+            "Phase, before scoring, kill this.\" It's a triggered ability that guarantees the "
+            "permanent dies on its controller's very next Beginning Phase, before any scoring "
+            "happens that turn. Multiple copies of Temporary on the same permanent are redundant "
+            "— regardless of how many it has, it still only triggers, and dies, once. Its purpose "
+            "is to make a permanent explicitly short-lived, so you'd expect to get whatever value "
+            "it provides quickly, before that Beginning Phase arrives and removes it."
+        ),
+    },
+    {
+        "rule_numbers": ["818.1.b", "818.1.c", "818.2", "818.3"],
+        "questions": ["What does Equip do?", "How does the Equip keyword work?", "What is Equip?"],
+        "reason": "Grounded directly in the cited rule text for the Equip keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Equip is an Activated Ability on Gear with the Equipment tag — it's short for "
+            "\"[Cost]: Attach this gear to a unit you control,\" where choosing which unit is a "
+            "Target of the ability. You activate it and pay its cost whenever you want, and once "
+            "paid, the gear attaches to your chosen unit and that unit is now considered Equipped "
+            "by it. Multiple Equip abilities on the same gear are separate activated abilities "
+            "that can each be paid for and used independently. Its purpose is giving you control "
+            "over when a piece of Equipment gets attached, and to which unit, rather than that "
+            "happening automatically when the gear is played."
+        ),
+    },
+    {
+        "rule_numbers": ["819.1.a", "819.1.b", "819.1.c", "819.1.d"],
+        "questions": ["What does Quick-Draw do?", "How does the Quick-Draw keyword work?", "What is Quick-Draw?"],
+        "reason": "Grounded directly in the cited rule text for the Quick-Draw keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Quick-Draw appears on Gear that has an Equip ability, and is short for granting the "
+            "card Reaction plus \"When you play this, attach it to a Unit you control.\" In effect, "
+            "it lets you play the gear at Reaction timing (during Closed States, any player's "
+            "turn) and have it immediately attach to a unit you control as it's played, instead "
+            "of needing to play it and then separately activate Equip later. Multiple copies of "
+            "Quick-Draw on the same gear don't trigger separately or add anything beyond the "
+            "first. Its purpose is speed and flexibility — getting a piece of gear attached in "
+            "one step, at a wider range of timings than a normal Equip activation would allow."
+        ),
+    },
+    {
+        "rule_numbers": ["820.1.b", "820.1.d", "820.2", "820.3"],
+        "questions": ["What does Repeat do?", "How does the Repeat keyword work?", "What is Repeat?"],
+        "reason": "Grounded directly in the cited rule text for the Repeat keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Repeat is an optional additional cost on Spells and Abilities — short for \"You may "
+            "pay [Cost] as an additional cost as you play this. If you do, execute the "
+            "instructions of this chain item one additional time during resolution.\" You pay it "
+            "(or don't) as part of playing the card, and any choices for that extra execution are "
+            "made at the normal choice step, and don't have to match the choices made for the "
+            "first execution. If a card has multiple instances of Repeat, each one can be paid "
+            "separately, and each one paid adds another full execution of the effect on "
+            "resolution — though the card is still only Played once, regardless of how many times "
+            "its effect runs. You'd pay Repeat whenever you have the spare resources and want "
+            "more value out of a single card."
+        ),
+    },
+    {
+        "rule_numbers": ["821.1.b", "821.1.c", "821.1.c.7"],
+        "questions": ["What does Weaponmaster do?", "How does the Weaponmaster keyword work?", "What is Weaponmaster?"],
+        "reason": "Grounded directly in the cited rule text for the Weaponmaster keyword.",
+        "evidence_ids": ["E1", "E2", "E3"],
+        "explanation": (
+            "Weaponmaster is a Play Effect on Units — short for \"When you play me, you may choose "
+            "a Card you control with the Equipment tag... Pay the cost of its Equip ability, "
+            "reduced by [A] (one Power of any domain), to attach it to this unit.\" It can choose "
+            "an Equipment whether or not that Equipment even has its own Equip ability, and it "
+            "only does anything the moment the unit with Weaponmaster is played — it has no "
+            "function once that unit is already on the board. Multiple instances of Weaponmaster "
+            "on the same unit trigger separately and can each choose a different Equipment. Its "
+            "purpose is to let a freshly-played unit immediately grab a piece of Equipment you "
+            "already control, more cheaply than activating Equip normally would cost."
+        ),
+    },
+    {
+        "rule_numbers": ["822.1.b", "822.1.c", "822.2", "822.3"],
+        "questions": ["What does Ambush do?", "How does the Ambush keyword work?", "What is Ambush?"],
+        "reason": "Grounded directly in the cited rule text for the Ambush keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Ambush is short for \"I may be played to a battlefield where you control Units\" plus "
+            "\"I have Reaction as long as I'm being played to a battlefield where you control "
+            "Units.\" It's a passive ability that adds a new valid location option when you're "
+            "playing the unit — it doesn't remove or restrict any location you could already play "
+            "to. Multiple copies of Ambush on the same card don't add anything further. If, by "
+            "the time Finalization completes, there are no longer any units at the battlefield "
+            "you chose via Ambush, that location stops being valid under Ambush's permission "
+            "(though another effect could still make it valid). Its purpose is letting you drop a "
+            "unit directly into a battlefield you already have a presence at, with the added "
+            "flexibility of Reaction timing while doing so."
+        ),
+    },
+    {
+        "rule_numbers": ["823.1.a", "823.1.b", "823.1.c.1", "823.2"],
+        "questions": ["What does the Hunt keyword do?", "How does Hunt work?", "What is Hunt?"],
+        "reason": "Grounded directly in the cited rule text for the Hunt keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Hunt X is short for \"When I Conquer or Hold, my controller gains X XP\" (X defaults "
+            "to 1 and is called the Hunt Value). It's both a Conquer effect and a Hold effect at "
+            "once, so it fires either way a unit claims a battlefield — actually taking it "
+            "(Conquer) or keeping control of one it already had (Hold). If a unit has Hunt "
+            "granted from more than one source, the Hunt Values are summed into one combined "
+            "trigger rather than firing separately. Its purpose is turning battlefield control "
+            "into a direct XP reward, so it matters whenever a unit with Hunt is about to Conquer "
+            "or Hold — that's when the XP is actually gained."
+        ),
+    },
+    {
+        "rule_numbers": ["824.1.a", "824.1.b", "824.1.c", "824.1.d"],
+        "questions": ["What does Level do?", "How does the Level keyword work?", "What is Level?"],
+        "reason": "Grounded directly in the cited rule text for the Level keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Level [N] is short for \"While you have [N] or more XP, this card gains '[Text]'\" — a "
+            "Dependent Keyword that only activates its bonus text once its controller's XP total "
+            "reaches the stated threshold, and turns back off if it drops below that again. If "
+            "the card's controller changes, the ability re-evaluates against the new controller's "
+            "XP immediately. Its purpose is to reward accumulating XP over the course of a game "
+            "by making a card grow more powerful once you cross that threshold, so it matters "
+            "most in longer games where XP has had time to build up."
+        ),
+    },
+    {
+        "rule_numbers": ["825.1", "825.3", "825.3.a", "825.3.b", "825.4"],
+        "questions": ["What does Unique do?", "How does the Unique keyword work?", "What is Unique?"],
+        "reason": "Grounded directly in the cited rule text for the Unique keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4", "E5"],
+        "explanation": (
+            "Unique isn't a gameplay effect at all — it's a Deck Constraint Permission that "
+            "applies only during deck construction: a deck can contain only one card of a given "
+            "name if that card has Unique. If a card is both Signature and Unique, your deck can "
+            "still run any combination of the three total Signature slots that Signature cards "
+            "are limited to, but you're still capped at one copy of that specific Unique card by "
+            "name. Beyond that deck-building restriction, Unique adds nothing during actual play. "
+            "It matters when you're building a deck and deciding how many copies of a card you're "
+            "allowed to include, not during a game in progress."
+        ),
+    },
+    {
+        "rule_numbers": ["826.3", "826.4", "826.4.a", "826.4.b"],
+        "questions": ["What does Backline do?", "How does the Backline keyword work?", "What is Backline?"],
+        "reason": "Grounded directly in the cited rule text for the Backline keyword.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Backline is short for \"I must be assigned lethal damage after any other unit with "
+            "the same controller as me that does not have Backline, during the Combat Damage "
+            "step\" — the exact opposite order from Tank. In practice, units without Backline must "
+            "be given their lethal damage first; a Backline unit stays off-limits for damage "
+            "assignment until every non-Backline unit under the same control already has its "
+            "lethal damage. If a controller has multiple Backline units, damage can go to any of "
+            "them once eligible. Multiple copies of Backline on one unit don't stack. Its purpose "
+            "is to shield that unit from being the first target for lethal combat damage, "
+            "mattering both when you assign your own damage and when an opponent is choosing "
+            "which of your units to target."
+        ),
+    },
+    {
+        "rule_numbers": ["827.1.b", "827.1.c.1", "827.2"],
+        "questions": ["What does Empower do?", "How does the Empower keyword work?", "What is Empower?"],
+        "reason": "Grounded directly in the cited rule text for the Empower keyword.",
+        "evidence_ids": ["E1", "E2", "E3"],
+        "explanation": (
+            "Empower is an Activated Ability, normally on permanents and legends — short for "
+            "\"[Cost]: Empower this. Play only if not Empowered.\" You pay its cost to give its own "
+            "source the Empowered status; it doesn't target anything else, and it can't be "
+            "activated again once that source is already Empowered. Multiple instances of Empower "
+            "on the same card are separate activated abilities, each payable on its own. Its "
+            "purpose is to let you unlock whatever the Empowered status enables on that card, on "
+            "your own timing, by spending the stated cost when you choose to."
+        ),
+    },
+    {
+        "rule_numbers": ["828.1.b", "828.1.c", "828.1.d"],
+        "questions": ["What does Empowered do?", "How does the Empowered keyword work?", "What is Empowered?"],
+        "reason": "Grounded directly in the cited rule text for the Empowered keyword.",
+        "evidence_ids": ["E1", "E2", "E3"],
+        "explanation": (
+            "Empowered is a Dependent Keyword, short for \"While I have the Empowered status, this "
+            "card gains '[Text]'\" — its bonus text is only active for as long as the card "
+            "actually has the Empowered status (typically granted via that card's own Empower "
+            "ability), and turns off if that status is ever lost. If the dependent text is itself "
+            "a trigger condition like \"When I become Empowered,\" that trigger fires at the moment "
+            "the status is gained, not continuously afterward. Its purpose is to gate a card's "
+            "stronger ability behind actually becoming Empowered first, so it matters together "
+            "with whatever grants that status."
+        ),
+    },
+    {
+        "rule_numbers": ["829.1.b", "829.1.b.2", "829.1.c"],
+        "questions": ["What does Flow do?", "How does the Flow keyword work?", "What is Flow?"],
+        "reason": "Grounded directly in the cited rule text for the Flow keyword.",
+        "evidence_ids": ["E1", "E2", "E3"],
+        "explanation": (
+            "Flow is a passive ability on Spells, short for \"You may play this from your trash "
+            "for its flow cost. Then banish it.\" It gives you an alternate way to play a spell "
+            "that's already in your trash, paying the Flow cost instead of its normal cost — "
+            "everything else about when and how it can be played stays the same as usual, aside "
+            "from which zone it's played from and what cost you pay. Once played this way, it's "
+            "banished afterward instead of going back to the trash. If a spell has multiple Flow "
+            "costs, you choose which one to pay when you play it. Its purpose is giving a spell a "
+            "second life once it's already been used and sent to the trash, at the Flow cost "
+            "rather than its base cost."
         ),
     },
 ]

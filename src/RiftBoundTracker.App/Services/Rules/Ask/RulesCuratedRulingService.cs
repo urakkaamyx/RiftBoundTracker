@@ -68,7 +68,17 @@ public sealed class RulesCuratedRulingService(IWebHostEnvironment env, ILogger<R
     public CuratedRuling? TryMatch(string question)
     {
         var questionWords = RulesTextSimilarity.SignificantWords(question);
-        if (questionWords.Count < 2) return null;
+        // Only reject genuinely empty word sets, not single-word ones — "What does Backline do?"
+        // reduces to exactly one significant word ("backline") once "what"/"does"/"do" are
+        // stripped, which used to fail this check outright and made the single most natural
+        // keyword-lookup phrasing unmatchable against ANY curated entry, no matter how well it
+        // otherwise fit. A single-word match still has to clear MinOverlap in both directions
+        // below, which for a 1-word set means an exact match — actually stricter than the 65%
+        // fuzzy bar a multi-word match gets, so this doesn't reopen the false-positive risk the
+        // original 2-word floor was guarding against (a generic word incidentally overlapping a
+        // longer, unrelated paraphrase) — it only stops excluding short, specific, single-term
+        // questions and paraphrases from ever being compared at all.
+        if (questionWords.Count < 1) return null;
 
         CuratedRuling? best = null;
         var bestScore = 0.0;
@@ -77,7 +87,7 @@ public sealed class RulesCuratedRulingService(IWebHostEnvironment env, ILogger<R
             foreach (var paraphrase in ruling.Paraphrases)
             {
                 var paraphraseWords = RulesTextSimilarity.SignificantWords(paraphrase);
-                if (paraphraseWords.Count < 2) continue;
+                if (paraphraseWords.Count < 1) continue;
                 // Both directions must clear the bar — otherwise a short, generic question would
                 // "fully overlap" with one word of a much longer, more specific paraphrase (or vice
                 // versa), which isn't the same question at all.

@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.27.14 — Ask Rules: instant answers for the full keyword glossary, plus a new lookup tool
+
+- Ask Rules' local AI can now ask what a Riftbound keyword or rules term means (e.g. "Tank", "Hunt") as a bounded lookup, on top of the exact rule-number and card-name lookups it already had — still no free-text search, just one more precise way to fill a real gap in what it was given.
+- Added curated, instant answers for 23 of the 25 official keywords (Tank and Vision were already covered) — what each one is, how it works, when it applies, and why. Verified against the live rules text.
+- Fixed a real gap in curated-answer matching: the single most natural way to ask about a keyword — "What does Tank do?" — was being rejected before it ever got compared to anything, because it reduces to one meaningful word after stripping filler like "what"/"does". This affected every existing single-keyword entry too (Exhaust, Ready, Counter, etc.), not just the new ones — all now match correctly.
+
 ## v1.27.13 — Ask Rules' local AI now reasons over system-picked evidence, not its own guesses
 
 - Reworked how Ask Rules' local-AI tool agent decides what rule/card data to look at. It previously let the model invent its own free-text search queries — real testing caught it improvising an unsupported wildcard search that returned the wrong rule entirely for a real question. It now always gets the same carefully-ranked evidence the rest of Ask Rules already gathers (keyword, concept, and cross-reference matching), and can only ask follow-up questions by exact rule number or exact card name — never a guessed search term. Re-verified against the same real test questions used to build this feature; the previously-wrong answer is now correct, with no regressions on the ones that already worked.

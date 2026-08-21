@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.27.15 — Ask Rules: instant answers for deck construction
+
+- Added curated, instant answers for deck construction — Domain Identity, Main Deck minimum size, Chosen Champion requirements, the 3-copy card limit, the 3-Signature-card limit, Rune Deck size, and Battlefield rules — each verified against the live rule text.
+
 ## v1.27.14 — Ask Rules: instant answers for the full keyword glossary, plus a new lookup tool
 
 - Ask Rules' local AI can now ask what a Riftbound keyword or rules term means (e.g. "Tank", "Hunt") as a bounded lookup, on top of the exact rule-number and card-name lookups it already had — still no free-text search, just one more precise way to fill a real gap in what it was given.

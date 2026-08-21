@@ -1227,6 +1227,99 @@ DESCRIPTIVE_CASES = [
             "rather than its base cost."
         ),
     },
+    {
+        "rule_numbers": ["103.1.b", "103.1.b.1", "103.1.b.2", "103.1.b.3", "103.1.b.4"],
+        "questions": ["What determines my deck's Domain Identity?", "Can I put any card in my deck regardless of domain?", "How does Domain Identity restrict what cards I can play?"],
+        "reason": "Grounded directly in the cited rule text for Domain Identity.",
+        "evidence_ids": ["E1", "E2", "E3", "E4", "E5"],
+        "explanation": (
+            "Your deck's Domain Identity is set entirely by your Champion Legend's domains — "
+            "shown as symbols in the legend's upper-left corner — and every card in your deck has "
+            "to abide by it. A single-domain card is allowed as long as its domain is part of "
+            "your identity. A multi-domain card is stricter: it's only allowed if your identity "
+            "contains all of that card's domains, not just one of them. So a two-domain Legend "
+            "gives you access to cards in either of those domains individually, plus cards that "
+            "need both, but not a card needing a third domain your Legend doesn't have."
+        ),
+    },
+    {
+        "rule_numbers": ["103.2"],
+        "questions": ["How many cards do I need in my Main Deck?", "What's the minimum Main Deck size?", "How many cards does a Main Deck need?"],
+        "reason": "Grounded directly in the cited rule text for Main Deck minimum size.",
+        "evidence_ids": ["E1"],
+        "explanation": (
+            "Your Main Deck needs at least 40 cards — made up of your Chosen Champion Unit plus "
+            "Units, Gear, and Spells. That's a floor, not a fixed count: there's no rule here "
+            "preventing a larger Main Deck, only a requirement that it's never fewer than 40."
+        ),
+    },
+    {
+        "rule_numbers": ["103.2.a", "103.2.a.1", "103.2.a.2"],
+        "questions": ["Can any champion unit be my Chosen Champion?", "Does my Chosen Champion have to match my Champion Legend?", "What are the requirements for my Chosen Champion?"],
+        "reason": "Grounded directly in the cited rule text for Chosen Champion tag requirement.",
+        "evidence_ids": ["E1", "E2", "E3"],
+        "explanation": (
+            "Your Chosen Champion has to be a champion unit whose champion tag matches the tag on "
+            "your Champion Legend — not just any unit that shares a name or theme with it. For "
+            "example, if your Legend has the tag Jinx, any champion unit tagged Jinx qualifies, "
+            "even one with a different title. But a signature unit that shares the Legend's tag "
+            "still doesn't qualify — Chosen Champion specifically has to be a champion unit, not "
+            "a signature. Whatever you pick starts the game in your Champion Zone."
+        ),
+    },
+    {
+        "rule_numbers": ["103.2.b", "103.2.b.1", "103.2.b.2"],
+        "questions": ["How many copies of the same card can I include in my deck?", "Can I run more than 3 copies of a card?", "Is there a copy limit per card in Riftbound?"],
+        "reason": "Grounded directly in the cited rule text for Card copy limit.",
+        "evidence_ids": ["E1", "E2", "E3"],
+        "explanation": (
+            "Your Main Deck can include up to 3 copies of any given named card — and that cap "
+            "includes your Chosen Champion specifically: if your Chosen Champion is, say, "
+            "Volibear, Furious, you can still run 2 more copies of that exact card in your Main "
+            "Deck, for 3 total. The limit is per exact name, not per character — two cards that "
+            "represent the same character but have different names (like two different versions "
+            "of the same champion) are tracked separately and can each have their own 3 copies."
+        ),
+    },
+    {
+        "rule_numbers": ["103.2.d", "103.2.d.1", "103.2.d.2", "103.2.d.3"],
+        "questions": ["How many Signature cards can I include in my deck?", "Is there a limit on Signature cards?", "Can I run more than 3 Signature cards?"],
+        "reason": "Grounded directly in the cited rule text for Signature card limit.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Your deck can only contain 3 Signature cards total that share your Champion Legend's "
+            "tag — and that's a hard cap regardless of how many different Signature cards you're "
+            "mixing together, not 3 copies of each. Every Signature card in your deck has to "
+            "carry the same Champion tag as your Legend. Signature cards also aren't Champion "
+            "units themselves, so they can never be placed in the Champion Zone even if you also "
+            "chose them as your Chosen Champion's tag-mate."
+        ),
+    },
+    {
+        "rule_numbers": ["103.3", "103.3.a", "103.3.a.1", "103.3.b"],
+        "questions": ["How many cards go in my Rune Deck?", "What's the Rune Deck size requirement?", "How many Runes do I need in my deck?"],
+        "reason": "Grounded directly in the cited rule text for Rune Deck size.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "Your Rune Deck needs exactly 12 Rune cards, and like your Main Deck, they have to "
+            "match your Champion Legend's Domain Identity. The Rune Deck is shuffled and kept as "
+            "its own separate deck from your Main Deck — they're never combined."
+        ),
+    },
+    {
+        "rule_numbers": ["103.4", "103.4.a", "103.4.b", "103.4.c"],
+        "questions": ["How many Battlefields do I need in my deck?", "Can I include two copies of the same Battlefield?", "What are the rules for Battlefields in deck construction?"],
+        "reason": "Grounded directly in the cited rule text for Battlefield deck-building rules.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
+        "explanation": (
+            "How many Battlefields your deck needs is set by whatever Mode of Play you're using, "
+            "not a fixed number across the board — and those Battlefields are subject to your "
+            "deck's Domain Identity where applicable, same as your other cards. The one hard "
+            "restriction: if your Mode of Play calls for more than one Battlefield, you can't "
+            "include two copies of a Battlefield with the same name — each one has to be a "
+            "different Battlefield card."
+        ),
+    },
 ]
 
 

@@ -30,6 +30,18 @@ public class RulesConceptCatalogService(AppDbContext db)
         ("Card State", ["tap", "untap", "tapped", "untapped", "exhausted", "ready", "stunned"], ["Exhaust", "Ready", "Stun"]),
         ("Deck Construction", ["deckbuilding", "deck construction", "build a deck", "domain identity", "color identity"], ["Domain Identity", "Chosen Champion", "Champion Legend", "Domain"]),
         ("Healing", ["heal", "healing", "heals", "restore"], ["Heal"]),
+        // Real bug this fixes: a question about playing a unit directly to a battlefield you
+        // control (rule 355.2.a) never surfaced that rule as evidence, even after the "Control"
+        // keyword's under-tagging was fixed separately — with "Control" now correctly tagging 239
+        // rules instead of 90, dozens of them tie for score on any question mentioning control and
+        // battlefield together (this game is fundamentally about battlefield control), and 355.2.a
+        // has nothing to distinguish it from the crowd. It's also tagged "Location" — a keyword the
+        // question's own wording never triggers on its own, since nobody phrases it as "what's a
+        // valid location." This concept bridges that gap: it gives 355.2.a a third keyword hit
+        // (Location, on top of Control and Battlefield) specifically when the question is actually
+        // about where a unit can be played, which outranks every rule that only shares the generic
+        // Control+Battlefield pair.
+        ("Valid Play Locations", ["play directly to a battlefield", "play to a battlefield", "play units to a battlefield", "bypass base", "bypass my base", "bypass playing to base", "instead of my base", "instead of playing to base", "without playing to base", "skip playing to base", "playing to base"], ["Location"]),
     ];
 
     public async Task EnsureSeededAsync(CancellationToken ct = default)

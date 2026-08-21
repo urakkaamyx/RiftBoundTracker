@@ -82,6 +82,16 @@ public sealed class RulesToolAgentProvider(
         card/rule names from outside that text, even ones that sound related or that you recall
         from elsewhere. If it doesn't fully answer the question, say what it does say and note the
         gap — never fill it from memory.
+
+        Watch for negated conditions in rule text — phrases like "does not," "is not," "cannot," or
+        "never." A rule written as a negation still describes exactly one specific situation; it
+        does not mean the opposite situation is also covered, and it does not mean the described
+        situation is somehow more likely just because it was written down. Before you apply a rule
+        like this, explicitly work out whether the negated condition is TRUE or FALSE in the
+        specific scenario the question describes, and only then decide whether the rule applies.
+        Getting this backwards — treating "does not control it" as support for "does control it,"
+        or "cannot be assigned damage" as support for "can be assigned damage" — is the single most
+        common way to get a rules question wrong. Double-check this specifically before answering.
         """;
 
     private readonly SemaphoreSlim _gate = new(1, 1);

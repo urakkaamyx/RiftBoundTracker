@@ -396,24 +396,29 @@ def remap_issue(issue, id_map):
 # ---------------------------------------------------------------------------
 RULING_CASES = [
     {
-        "rule_numbers": ["190.3.a", "190.3.a.1"],
+        "rule_numbers": ["355.2", "355.2.a", "190.3.a", "190.3.a.1"],
         "questions": [
             "If I play a unit to a battlefield I already control, does that make it Contested?",
             "My opponent already controls a battlefield and I move a unit there — is it Contested now?",
             "Does moving a unit onto a battlefield its controller already controls apply Contested status?",
+            "Can you play units to battlefields you control and bypass playing to base, and does this make the Battlefield contested?",
+            "Can I play a unit directly to a battlefield I control instead of my base?",
         ],
         "answer": "No",
-        "reason": "E2 only applies Contested when the arriving unit's controller does NOT already control the battlefield; since they already do, that condition is false.",
-        "evidence_ids": ["E2"],
+        "reason": "E1-E2 establish a battlefield you control is already a valid default location to play a Unit to, no need to route through base first. E3-E4 only apply Contested when the arriving unit's controller does NOT already control the battlefield; since they already do, that condition is false.",
+        "evidence_ids": ["E1", "E2", "E3", "E4"],
         "verdict": "No",
         "explanation": (
-            "No — moving a unit onto a battlefield its controller already controls does not make it "
-            "Contested. Contested status only applies when a unit's controller does NOT already "
-            "control the battlefield it's moving to: \"Units moving to or being played to a "
-            "battlefield apply Contested status if that battlefield is not already Contested and "
-            "that Unit's controller does not already control that battlefield.\" Here the controller "
-            "already controls the battlefield, so that second condition is false and Contested is "
-            "never applied."
+            "You can play a unit directly to a battlefield you control, bypassing base — a "
+            "battlefield you control is one of the default valid locations for playing a Unit, "
+            "right alongside your base, not something you need to route through base to reach. "
+            "Doing so does not make that battlefield Contested, because you already control it: "
+            "Contested status only applies when a unit's controller does NOT already control the "
+            "battlefield it's moving to — \"Units moving to or being played to a battlefield apply "
+            "Contested status if that battlefield is not already Contested and that Unit's "
+            "controller does not already control that battlefield.\" Here the controller already "
+            "controls the battlefield, so that second condition is false and Contested is never "
+            "applied."
         ),
     },
     {

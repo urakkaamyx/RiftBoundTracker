@@ -43,7 +43,7 @@ public sealed class RulesKeywordLinkerService(AppDbContext db)
             var pattern = WholeWord(keyword.Name);
             foreach (var entry in currentEntries)
             {
-                if (pattern.IsMatch(entry.Text))
+                if (pattern.Matches(entry.Text).Any(IsRealMatch))
                     db.RuleEntryKeywords.Add(new RuleEntryKeywordEntity { RuleEntryId = entry.Id, KeywordId = keyword.Id });
             }
         }
@@ -58,7 +58,7 @@ public sealed class RulesKeywordLinkerService(AppDbContext db)
             var pattern = WholeWord(keyword.Name);
             foreach (var card in cardText)
             {
-                if (pattern.IsMatch(card.TextPlain!))
+                if (pattern.Matches(card.TextPlain!).Any(IsRealMatch))
                     db.CardRuleReferences.Add(new CardRuleReferenceEntity { CardId = card.Id, KeywordId = keyword.Id });
             }
         }
@@ -66,6 +66,24 @@ public sealed class RulesKeywordLinkerService(AppDbContext db)
         await db.SaveChangesAsync(ct);
     }
 
+    // Matches the keyword plus up to 4 trailing letters, not just the bare word — real rule text
+    // almost always uses an inflected form ("controls", "controller", "controlled") rather than the
+    // bare keyword itself. Confirmed directly against the corpus: an exact-word match tagged only 90
+    // of the 239 rules substantively about Control, missing the other 149 (including rule 355.2.a,
+    // "a Battlefield the controller controls" — the actual answer to a real "can I play directly to
+    // a battlefield I control" question that a from-evidence model got wrong because this rule never
+    // made it into its evidence at all). The {1,4} window is wide enough to catch irregular doubled-
+    // consonant forms a simple suffix list would miss (controller, controlling), verified against
+    // every keyword in the live corpus before shipping — the denylist below is the small number of
+    // real false hits that check turned up (unrelated words that happen to start with a keyword,
+    // all from Code of Conduct / tournament-administration text, never gameplay rules).
+    private static readonly HashSet<string> InflectionDenylist = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "healthy", "stunt", "exhaustive", "exhaustively",
+    };
+
     private static Regex WholeWord(string term) =>
-        new(@"\b" + Regex.Escape(term) + @"\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        new(@"\b" + Regex.Escape(term) + @"[a-z]{0,4}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static bool IsRealMatch(Match match) => !InflectionDenylist.Contains(match.Value);
 }

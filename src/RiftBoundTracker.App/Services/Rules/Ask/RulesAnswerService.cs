@@ -35,7 +35,15 @@ public sealed class RulesAnswerService(
     public async Task<RulesAskResponse> AskAsync(string question, string? cardId, CancellationToken ct = default)
     {
         var analysis = await questions.AnalyzeAsync(question, cardId, ct);
-        var result = await evidenceService.GatherAsync(analysis, currentOnly: true, limit: 16, ct);
+        // Raised from 16 after a real failure traced directly to this cap: fixing a separate
+        // under-tagging bug correctly pulled rule 355.2.a into a heavily-tied "Control"+"Battlefield"
+        // topic (this game is fundamentally about battlefield control, so dozens of rules share that
+        // exact keyword pair), which pushed rule 190.3.a — the OTHER fact the same question needed —
+        // out of the top 16 entirely. The model can't reason correctly about evidence it never saw;
+        // no prompt or keyword fix helps if the two facts a compound question needs never coexist in
+        // the same evidence set. 24 gives dense, common-keyword topics enough room for their most
+        // relevant rules to survive together without unbounded evidence growth for every question.
+        var result = await evidenceService.GatherAsync(analysis, currentOnly: true, limit: 24, ct);
         var confidence = DetermineConfidence(result, analysis);
 
         string? answer = null;

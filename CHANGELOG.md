@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.27.16 — Ask Rules: fixed a real retrieval bug affecting the whole rules corpus
+
+- Found and fixed the actual cause of a wrong Ask Rules answer (playing a unit directly to a battlefield you control was being misjudged as Contesting it): the system that tags each rule with the keywords it discusses only matched the exact bare word "Control" — missing "controls", "controller", "controlled" entirely. That's how real rule text almost always phrases it, so 149 of 239 rules substantively about Control (62%) were invisible to keyword-based search. Fixed for every keyword, not just Control, and re-verified against the full rules corpus with no new false matches.
+- Added a "Valid Play Locations" concept so a question about playing directly to a battlefield (bypassing base) reliably surfaces the rule that actually answers it, the same mechanism already used for phrases like "my unit dies" reaching the right rule text.
+- Raised Ask Rules' evidence limit (16 → 24) after finding that a heavily-tied, common-keyword topic could push a directly relevant rule out of consideration entirely, even after the fixes above.
+- Added the exact combined ruling this bug was traced from — "can I play directly to a battlefield I control, bypassing base, and does that Contest it" (no, and no) — as a curated instant answer, since the underlying scoring tie-break for extremely common keyword pairs like Control+Battlefield is a deeper problem than today's fixes fully resolve on their own.
+
 ## v1.27.15 — Ask Rules: instant answers for deck construction
 
 - Added curated, instant answers for deck construction — Domain Identity, Main Deck minimum size, Chosen Champion requirements, the 3-copy card limit, the 3-Signature-card limit, Rune Deck size, and Battlefield rules — each verified against the live rule text.

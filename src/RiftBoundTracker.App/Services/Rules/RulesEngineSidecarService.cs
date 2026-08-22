@@ -48,6 +48,7 @@ public sealed class RulesEngineSidecarService(
     private string EngineRootDir => Path.Combine(env.ContentRootPath, "App_Data", "RulesEngine");
     private string PythonExePath => Path.Combine(EngineRootDir, "python", "python.exe");
     private string EntryScriptPath => Path.Combine(EngineRootDir, "riftkeep.py");
+    private string InstalledReleaseTagPath => Path.Combine(EngineRootDir, ".release-tag");
 
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly object _progressLock = new();
@@ -55,7 +56,15 @@ public sealed class RulesEngineSidecarService(
     private Process? _process;
     private bool _shutdownRegistered;
 
-    public bool IsInstalled => File.Exists(PythonExePath) && File.Exists(EntryScriptPath);
+    // A file existing on disk only ever proves *some* version was downloaded, never *which* one —
+    // without this, an app update that bumps ReleaseTag would never actually reach a user who
+    // already has an older engine installed, since nothing would ever re-trigger the download.
+    // An install from before this check existed (no marker file) is treated as stale on purpose,
+    // so it gets the same one-time re-fetch as a genuine version bump.
+    private string? InstalledReleaseTag => File.Exists(InstalledReleaseTagPath) ? File.ReadAllText(InstalledReleaseTagPath).Trim() : null;
+
+    public bool IsInstalled =>
+        File.Exists(PythonExePath) && File.Exists(EntryScriptPath) && InstalledReleaseTag == ReleaseTag;
 
     public RulesEngineStatus GetStatus()
     {
@@ -127,6 +136,7 @@ public sealed class RulesEngineSidecarService(
             var nested = Path.Combine(extractTempDir, "RulesEngine");
             Directory.Move(Directory.Exists(nested) ? nested : extractTempDir, EngineRootDir);
             if (Directory.Exists(extractTempDir)) Directory.Delete(extractTempDir, recursive: true);
+            await File.WriteAllTextAsync(InstalledReleaseTagPath, ReleaseTag, ct);
 
             SetProgress(p => p with { Phase = "done", DownloadedBytes = asset.Size, TotalBytes = asset.Size });
         }
@@ -139,20 +149,28 @@ public sealed class RulesEngineSidecarService(
     }
 
     /// <summary>
-    /// Ensures the sidecar is installed, running, and healthy. Safe to call repeatedly — probes
-    /// /v1/status first (possibly reaching an instance this process didn't start) before ever
-    /// spawning a child process, per the integration guide's explicit "never silently launch a
-    /// second copy."
+    /// Ensures the sidecar is installed, running, healthy, and the version this app build actually
+    /// expects. Safe to call repeatedly — probes /v1/status first (possibly reaching an instance
+    /// this process didn't start) before ever spawning a child process, per the integration guide's
+    /// explicit "never silently launch a second copy." A healthy but wrong-version instance does
+    /// NOT count as good enough here: without checking IsInstalled (which itself checks the
+    /// installed release tag) before trusting a health check, an older engine that shipped before
+    /// an app update would keep answering forever and never get replaced — this is what "no way to
+    /// update the Rules Engine" turned out to mean.
     /// </summary>
     public async Task<bool> EnsureRunningAsync(CancellationToken ct = default)
     {
         await _gate.WaitAsync(ct);
         try
         {
-            if (await IsHealthyAsync(ct)) return true;
+            if (IsInstalled && await IsHealthyAsync(ct)) return true;
 
             if (!IsInstalled)
             {
+                // Stop the previous version - it may still be running and answering health checks
+                // under the old code path above, and its files are about to be overwritten.
+                StopProcess();
+                KillStaleEngineProcesses();
                 await DownloadAsync(ct);
                 if (!IsInstalled) return false;
             }

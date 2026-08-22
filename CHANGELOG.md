@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.2 — Ask Rules engine now actually updates itself
+
+- Fixed the real cause behind "I have no way to update the Rules Engine": once an engine version was installed, nothing ever checked whether it was still the version the app expected, so it kept running forever even after a newer one shipped — the update mechanism silently never fired. Ask Rules now checks the installed engine's version against what this app build expects, and automatically fetches and swaps in the right one (cleanly stopping the old one first) the next time you use Ask Rules — no manual reinstall needed. Verified end-to-end: an old install with no version marker was correctly detected as stale, swapped for the current engine, and answered correctly right after.
+
 ## v1.28.1 — Ask Rules: Attach/Exhausted question, and a real update-failure fix
 
 - Fixed a real "Access to the path 'mupdfcpp64.dll' is denied" failure: updating the rules engine could fail if a sidecar process from a previous run of the app was still holding its files open, since nothing stopped that leftover process before overwriting its files. The updater now stops any running copy of the engine — including one left over from before the app was last restarted — before replacing its files.

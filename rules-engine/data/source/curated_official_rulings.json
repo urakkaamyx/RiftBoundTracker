@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "sourceId": "vendetta-faq-2026-08-14",
+  "sourceType": "official_faq",
+  "sourceUrl": "https://playriftbound.com/en-us/news/rules-and-releases/vendetta-rules-faq-and-clarifications/",
+  "published": "2026-08-14",
+  "effectiveFrom": "2026-08-14",
+  "partialSelection": true,
+  "authority": {
+    "status": "current_overlay",
+    "scope": ["gameplay_rules"],
+    "precedence": "takes_precedence_over_core_rules_where_different_until_next_core_rules_document",
+    "exhaustive": false
+  },
+  "note": "Curated, paraphrased official rulings used only for deterministic cases that are explicitly covered here. This is NOT a complete local mirror of the Vendetta FAQ and does not satisfy current-authority completeness.",
+  "documents": [
+    {
+      "evidenceId": "O:vendetta-faq-2026-08-14:curated-linked-instructions",
+      "heading": "Linked instructions — ignored vs negated",
+      "question": "When does a failed earlier instruction cause a linked later instruction to be ignored?",
+      "text": "Current official ruling summary: mistargeting makes the affected instruction ignored. Prevention, replacement, an already-satisfied binary state, or another circumstance that stops the instructed event makes the instruction negated rather than ignored. Negating the earlier instruction does not by itself ignore a later linked instruction, unless the later instruction specifically depends on the action that failed.",
+      "explicitRuleReferences": ["359.3.e.14", "359.3.e.14.a", "359.3.e.14.b", "423.1.a.1"]
+    },
+    {
+      "evidenceId": "O:vendetta-faq-2026-08-14:curated-copy-status",
+      "heading": "Copy effects and temporary status",
+      "question": "Does copying an empowered unit copy empowered or other temporary modifications?",
+      "text": "Current official ruling summary: a copy effect copies the source object's copyable traits, but temporary statuses and modifications such as empowered, Buff, attacker/defender designations, and temporary Might changes are not copied. Temporary modifications already applied to the object receiving the copy effect remain in place.",
+      "explicitRuleReferences": ["477.1.b.1", "477.1.b.1.b"]
+    },
+    {
+      "evidenceId": "O:vendetta-faq-2026-08-14:curated-layer-transition",
+      "heading": "Layer evaluation has no intermediate trigger window",
+      "question": "Can a unit trigger from an intermediate Might value while layers are recalculated?",
+      "text": "Current official ruling summary: layer evaluation is applied as one rules evaluation with no trigger window between the trait-altering and arithmetic results. A unit does not momentarily trigger from an intermediate Might value that exists only as a conceptual step in layer evaluation.",
+      "explicitRuleReferences": ["477", "477.1", "477.3"]
+    },
+    {
+      "evidenceId": "O:vendetta-faq-2026-08-14:curated-attach-replacement-order",
+      "heading": "Attach replacement sequencing",
+      "question": "When an attach replacement also copies or changes another object, are the events simultaneous?",
+      "text": "Current official ruling summary: where an attach replacement replaces the attach event with that attach plus an additional instructed event, the attach event executes first and the added event follows; they are not simultaneous.",
+      "explicitRuleReferences": ["369.1", "370.1.a.2", "370.1.b.1"]
+    }
+  ]
+}

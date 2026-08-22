@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0a111b">
+  <title>RiftKeep Rules</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand" aria-label="RiftKeep Rules">
+        <span class="brand-mark" aria-hidden="true">◇</span>
+        <span class="brand-copy"><strong>RiftKeep</strong><small>Rules Archive & Judge</small></span>
+      </div>
+      <div class="authority-pill" id="authority-pill" role="status" aria-live="polite">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="authority-label">Checking authority…</span>
+      </div>
+    </header>
+
+    <nav class="primary-nav" aria-label="Rules tools">
+      <button class="nav-item is-active" type="button" data-view="ask" aria-current="page">Ask Rules</button>
+      <button class="nav-item" type="button" data-view="search">Search</button>
+      <button class="nav-item" type="button" data-view="sources">Sources & Changes</button>
+    </nav>
+
+    <main id="main-content" tabindex="-1">
+      <section class="view is-active" id="view-ask" data-view-panel="ask" aria-labelledby="ask-title">
+        <div class="hero-panel">
+          <p class="eyebrow">Deterministic rules judge</p>
+          <h1 id="ask-title">Ask a Riftbound rules question</h1>
+          <p class="lede">RiftKeep checks current Core Rules, official rulings, card text, errata, and proof dependencies before it gives you a conclusion.</p>
+          <form id="ask-form" class="ask-form">
+            <label for="ask-question">Your question</label>
+            <textarea id="ask-question" name="question" maxlength="4000" rows="5" placeholder="Example: Can I summon a unit straight to a battlefield I control, and is it contested?" required></textarea>
+            <div class="form-actions">
+              <span class="field-help">Ctrl+Enter submits · No guessed facts when context is missing</span>
+              <button class="button button-primary" type="submit" id="ask-submit">Ask RiftKeep</button>
+            </div>
+          </form>
+          <div class="recent-wrap" id="recent-wrap" hidden>
+            <span class="recent-label">Recent</span>
+            <div class="recent-list" id="recent-list"></div>
+          </div>
+        </div>
+
+        <div id="ask-state" class="state-panel" hidden role="status" aria-live="polite"></div>
+        <section id="answer-panel" class="answer-panel" hidden aria-labelledby="answer-title">
+          <div class="answer-heading">
+            <div>
+              <p class="eyebrow">Judge answer</p>
+              <h2 id="answer-title">Ruling</h2>
+            </div>
+            <span class="proof-badge" id="answer-proof">Proof pending</span>
+          </div>
+          <p class="answer-text" id="answer-text"></p>
+          <div id="issue-list" class="issue-list"></div>
+        </section>
+      </section>
+
+      <section class="view" id="view-search" data-view-panel="search" aria-labelledby="search-title" hidden>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Archive search</p>
+            <h1 id="search-title">Search rules, cards, and rulings</h1>
+          </div>
+        </div>
+        <form id="search-form" class="search-bar">
+          <label class="sr-only" for="search-query">Search query</label>
+          <input id="search-query" name="q" maxlength="500" type="search" placeholder="Ganking, 355.2, Akali, Hidden…" required>
+          <label class="sr-only" for="search-kind">Search kind</label>
+          <select id="search-kind" name="kind">
+            <option value="">Everything</option>
+            <option value="rule">Rules</option>
+            <option value="card">Cards</option>
+            <option value="official_ruling">Current official rulings</option>
+            <option value="errata">Errata</option>
+            <option value="official_source">Official sources</option>
+          </select>
+          <button class="button button-primary" type="submit">Search</button>
+        </form>
+        <div id="search-state" class="state-panel" hidden role="status" aria-live="polite"></div>
+        <div class="search-layout">
+          <section aria-label="Search results">
+            <div id="search-summary" class="result-summary"></div>
+            <div id="search-results" class="result-list"></div>
+            <div class="pager" id="search-pager" hidden>
+              <button class="button button-secondary" type="button" id="search-prev">Previous</button>
+              <span id="search-page-label"></span>
+              <button class="button button-secondary" type="button" id="search-next">Next</button>
+            </div>
+          </section>
+          <aside class="detail-panel" id="detail-panel" aria-label="Selected result" tabindex="-1">
+            <div class="empty-detail">
+              <span aria-hidden="true">⌕</span>
+              <p>Select a result to inspect its authoritative details.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-sources" data-view-panel="sources" aria-labelledby="sources-title" hidden>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Authority ledger</p>
+            <h1 id="sources-title">Sources & changes</h1>
+          </div>
+          <button class="button button-secondary" type="button" id="refresh-sources">Refresh</button>
+        </div>
+        <div id="sources-state" class="state-panel" hidden role="status" aria-live="polite"></div>
+        <div class="source-grid">
+          <section class="surface-card" aria-labelledby="authority-title">
+            <h2 id="authority-title">Current authority</h2>
+            <div id="authority-details"></div>
+          </section>
+          <section class="surface-card" aria-labelledby="history-title">
+            <h2 id="history-title">Version history</h2>
+            <div id="version-history"></div>
+          </section>
+        </div>
+        <section class="surface-card changes-card" aria-labelledby="changes-title">
+          <div class="card-heading-row">
+            <h2 id="changes-title">What changed?</h2>
+            <div class="inline-control">
+              <label for="changes-family">Rules family</label>
+              <select id="changes-family">
+                <option value="core">Core Rules</option>
+                <option value="tournament">Tournament Rules</option>
+              </select>
+              <button class="button button-secondary" type="button" id="load-changes">Load</button>
+            </div>
+          </div>
+          <div id="changes-results"></div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span id="release-label">RiftKeep Rules</span>
+      <span>Exact evidence is rendered from the backend authority corpus.</span>
+    </footer>
+  </div>
+
+  <dialog id="evidence-dialog" aria-labelledby="evidence-title">
+    <div class="dialog-shell">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">Authoritative evidence</p>
+          <h2 id="evidence-title">Evidence</h2>
+        </div>
+        <button type="button" class="icon-button" id="evidence-close" aria-label="Close evidence">×</button>
+      </div>
+      <div id="evidence-body"></div>
+    </div>
+  </dialog>
+
+  <div id="global-status" class="sr-only" role="status" aria-live="polite"></div>
+</body>
+</html>

@@ -12,8 +12,10 @@ public sealed record NextJsArticlePage(string Title, string RichTextHtml, DateTi
 /// during planning by fetching the real Rules Hub and an errata article directly. Reading that
 /// JSON is far more reliable than scraping rendered DOM: every article-style page (Rules Hub,
 /// Patch Notes, Errata) shares the same "masthead + articleRichText + related carousel" blade
-/// shape, so this one fetcher covers all of them — only the richText.body HTML differs per page,
-/// and that's handed off to a page-specific parser (RulesHubParser, ErrataArticleParser).
+/// shape, so this one fetcher covers all of them — only the richText.body HTML differs per page.
+/// Shared with the Community Decks feature (CommunityDeckSyncService/CommunityRecommendationService);
+/// the Rules-specific page parsers that used to consume its output were retired along with the old
+/// Ask Rules retrieval pipeline, but this fetcher itself is still load-bearing elsewhere.
 /// </summary>
 public sealed partial class NextJsArticlePageFetcher(IHttpClientFactory httpClientFactory)
 {

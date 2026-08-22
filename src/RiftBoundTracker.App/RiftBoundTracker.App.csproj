@@ -7,7 +7,7 @@
     <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.27.16</Version>
+    <Version>1.28.0</Version>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>app.ico</ApplicationIcon>
@@ -29,28 +29,10 @@
     <PackageReference Include="QRCoder" Version="1.8.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
-    <!-- Pure-managed PDF text extraction (no native deps) for parsing the official Core/Tournament
-         Rules PDFs — see RulesPdfParser. -->
-    <PackageReference Include="PdfPig" Version="0.1.10" />
-    <!-- HTML parsing for the Rules Hub / errata article pages — see RulesHubParser, ErrataArticleParser. -->
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.72" />
-    <!-- Fully local LLM inference (llama.cpp bindings) for Ask Rules' optional plain-language
-         explanation layer — see LocalLlmExplanationProvider. CPU backend only: works on every
-         machine with no GPU/driver dependency, at the cost of being slower than a GPU backend
-         would be. A ~1B-2B GGUF model answering a few-sentence question from supplied evidence is
-         fast enough on CPU (a few seconds) that the extra complexity of also shipping CUDA/Vulkan
-         backends isn't worth it for this use case. -->
-    <PackageReference Include="LLamaSharp" Version="0.27.0" />
-    <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.27.0" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="Run with debug console.bat" CopyToOutputDirectory="PreserveNewest" />
-    <!-- Regular Content items only copy to the PUBLISH output by SDK default — dotnet run (dev
-         testing) uses the plain build output, so this needs an explicit CopyToOutputDirectory entry
-         the same way the .bat file above does, or RulesCuratedRulingService finds nothing when
-         running locally even though a real release build would have had it. -->
-    <None Include="RulesData/CuratedRulings.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Sdk.Web copies any loose project-directory file into the publish output by default (Content

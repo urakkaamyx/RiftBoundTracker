@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "checkCount": 120,
+  "failureCount": 0,
+  "metrics": {
+    "keywordCount": 25,
+    "gameActionCount": 32,
+    "ruleConceptCount": 52,
+    "naturalDoPhraseCoverage": true,
+    "singularPluralAliasCoverage": true,
+    "proofVerifiedDefinitions": true,
+    "scenarioFalsePositiveGuard": true
+  },
+  "failures": []
+}

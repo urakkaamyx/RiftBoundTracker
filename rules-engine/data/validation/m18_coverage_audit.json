@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "gold": {
+    "totalCases": 1846,
+    "semanticGroups": 99,
+    "conditionalOrInsufficientSemanticGroups": 7,
+    "explicitNoSemanticGroups": 19,
+    "nonAffirmativeSemanticGroups": 26,
+    "currentFaqSectionsCovered": 35,
+    "realCardRecordsCovered": 1304,
+    "officialErrataEventsCovered": 63,
+    "goldCPromotedReleaseGating": 16,
+    "goldCRemainingReportOnly": 18
+  },
+  "definitions": {
+    "checks": 120,
+    "keywordCount": 25,
+    "gameActionCount": 32,
+    "ruleConceptCount": 52,
+    "naturalDoPhraseCoverage": true,
+    "singularPluralAliasCoverage": true,
+    "proofVerifiedDefinitions": true,
+    "scenarioFalsePositiveGuard": true
+  },
+  "cardInteractions": {
+    "checks": 74,
+    "faqProgramCount": 34,
+    "executableProgramCount": 16,
+    "goldCRemainingReportOnly": 18
+  }
+}

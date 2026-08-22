@@ -1818,13 +1818,6 @@ async function loadSettings() {
   document.getElementById("communitySyncFacts").innerHTML = communitySync.lastSyncAt
     ? `<span>${communitySync.tournamentCount} tournaments</span><span>${communitySync.deckCount} decks</span><span>${communitySync.unresolvedCardCount} unresolved cards</span>`
     : "";
-  const rulesSync = await api("/api/rules/status");
-  document.getElementById("rulesSyncStatus").textContent = rulesSync.lastSuccessfulSyncAt
-    ? `Last synced ${formatRelativeTime(rulesSync.lastSuccessfulSyncAt)}${rulesSync.lastSyncOk ? "" : ` — failed: ${rulesSync.lastError}`}.`
-    : "Never synced yet — pulls the Core/Tournament Rules, errata, and banned-card list from playriftbound.com.";
-  document.getElementById("rulesSyncFacts").innerHTML = rulesSync.lastSuccessfulSyncAt
-    ? `<span>${rulesSync.rulesIndexed} rules</span><span>${rulesSync.keywordsIndexed} keywords</span><span>${rulesSync.errataIndexed} errata</span><span>${rulesSync.legalityEntriesIndexed} legality entries</span>`
-    : "";
   const db = health.database;
   document.getElementById("databaseStatus").textContent = db
     ? `Database verified: ${db.integrity}. Protected collection totals are checked at startup.`
@@ -2864,14 +2857,10 @@ function showLiveHit(match) {
 
 async function loadRules() {
   const meta = document.getElementById("rulesLibraryMeta");
-  try {
-    const status = await api("/api/rules/status");
-    meta.textContent = status.lastSuccessfulSyncAt
-      ? `${status.rulesIndexed} rules · ${status.keywordsIndexed} keywords · updated ${formatRelativeTime(status.lastSuccessfulSyncAt)}`
-      : "Not synced yet — open Settings to sync the rules library.";
-  } catch {
-    meta.textContent = "Could not load rules library status.";
-  }
+  // Rules Browser (search/glossary/errata/legality) is on the old EF-backed catalog and isn't
+  // wired to the rules engine sidecar yet — see the backend's own note on why (ID-scheme
+  // mismatch, not a quick swap). Ask Rules itself (below) is fully on the new engine already.
+  meta.textContent = "Browsing rules directly is being rebuilt on the new rules engine — Ask Rules already uses it below.";
   renderRulesQuickTopics();
   await loadLocalAiStatus();
 
@@ -2882,113 +2871,82 @@ async function loadRules() {
 }
 
 async function loadLocalAiStatus() {
-  const data = await api("/api/rules/local-ai/models");
+  const data = await api("/api/rules/engine/status");
   state.localAiEnabled = data.enabled;
-  state.localAiModels = data.models;
-  const selected = data.models.find(m => m.selected);
+  state.rulesEngineStatus = data.engine;
 
   const toggleBtn = document.getElementById("toggleLocalAi");
   toggleBtn.textContent = data.enabled ? "Disable" : "Enable";
-  toggleBtn.disabled = !data.enabled && !(selected && selected.present);
+  toggleBtn.disabled = false;
 
-  document.getElementById("askRulesProviderStatus").textContent =
-    data.enabled && selected
-      ? `On — running ${selected.displayName} locally (${(selected.bytes / 1e9).toFixed(1)} GB).`
-      : selected && selected.present
-        ? "Off — Ask Rules will still answer from real rules evidence, just without a written-out summary."
-        : "No model downloaded yet — pick one below. Ask Rules will still answer from real rules evidence either way.";
+  document.getElementById("askRulesProviderStatus").textContent = !data.enabled
+    ? "Off — turn Ask Rules on below to get answers from the rules engine."
+    : data.engine.running
+      ? "On — the rules engine is running."
+      : data.engine.installed
+        ? "On — the rules engine will start on your next question."
+        : "On — the rules engine hasn't been downloaded yet.";
 
-  renderLocalAiModelList();
+  renderRulesEngineStatus();
 }
 
-function renderLocalAiModelList() {
+function renderRulesEngineStatus() {
   const root = document.getElementById("localAiModelList");
-  root.innerHTML = state.localAiModels.map(m => {
-    const sizeGb = (m.approxBytes / 1e9).toFixed(1);
-    let action;
-    let refresh = "";
-    if (state.downloadingModelId === m.id) {
-      const p = state.localAiDownloadProgress || {};
-      const pct = p.totalBytes ? Math.round((p.downloadedBytes / p.totalBytes) * 100) : 0;
-      action = p.phase === "checking"
-        ? `<span class="local-ai-model-status">Checking for the release…</span>`
-        : `<div class="local-ai-model-progress">Downloading… ${pct}%<div class="progress-track"><span style="width:${pct}%"></span></div></div>`;
-    } else if (m.present && m.selected) {
-      action = `<span class="local-ai-model-badge">In use</span>`;
-    } else if (m.present) {
-      action = `<button type="button" class="command-btn quiet" data-select-model="${m.id}">Use this</button>`;
-    } else {
-      action = `<button type="button" class="command-btn quiet" data-download-model="${m.id}">Download (${sizeGb} GB)</button>`;
-    }
-    if (m.present && state.downloadingModelId !== m.id)
-      refresh = `<button type="button" class="icon-btn" data-redownload-model="${m.id}" title="Re-download this model (e.g. if an improved version has been published)"><i data-icon="refresh"></i></button>`;
-    return `
-      <div class="local-ai-model-row${m.selected ? " selected" : ""}">
-        <div class="local-ai-model-copy">
-          <b>${escapeHtml(m.displayName)}</b>
-          <span>${escapeHtml(m.description)}</span>
-        </div>
-        <div class="local-ai-model-action">${action}${refresh}</div>
-      </div>`;
-  }).join("");
-  renderIcons(root);
-  root.querySelectorAll("[data-download-model]").forEach(btn =>
-    btn.addEventListener("click", () => downloadLocalAiModel(btn.dataset.downloadModel)));
-  root.querySelectorAll("[data-redownload-model]").forEach(btn =>
-    btn.addEventListener("click", () => downloadLocalAiModel(btn.dataset.redownloadModel)));
-  root.querySelectorAll("[data-select-model]").forEach(btn =>
-    btn.addEventListener("click", () => selectLocalAiModel(btn.dataset.selectModel)));
-}
-
-async function selectLocalAiModel(modelId, { silent } = {}) {
-  try {
-    await api("/api/rules/local-ai/select-model", jsonOptions("POST", { modelId }));
-    if (!silent) toast("Switched Ask Rules' local model.");
-    await loadLocalAiStatus();
-  } catch (err) {
-    toast(err.message, true);
-  }
-}
-
-async function downloadLocalAiModel(modelId) {
-  state.downloadingModelId = modelId;
-  state.localAiDownloadProgress = null;
-  renderLocalAiModelList();
-  try {
-    await api("/api/rules/local-ai/download-model", jsonOptions("POST", { modelId }));
-  } catch (err) {
-    state.downloadingModelId = null;
-    toast(err.message, true);
-    renderLocalAiModelList();
-    return;
-  }
-  pollLocalAiModelProgress(modelId);
-}
-
-async function pollLocalAiModelProgress(modelId) {
-  let progress;
-  try {
-    progress = await api(`/api/rules/local-ai/model-progress?modelId=${encodeURIComponent(modelId)}`);
-  } catch (err) {
-    state.downloadingModelId = null;
-    toast(err.message, true);
-    renderLocalAiModelList();
+  const engine = state.rulesEngineStatus || {};
+  if (!state.localAiEnabled) {
+    root.innerHTML = "";
     return;
   }
 
-  if (progress.phase === "downloading" || progress.phase === "checking") {
-    state.localAiDownloadProgress = progress;
-    renderLocalAiModelList();
-    setTimeout(() => pollLocalAiModelProgress(modelId), 500);
-  } else if (progress.phase === "error") {
-    state.downloadingModelId = null;
-    toast(progress.error || "Model download failed.", true);
-    renderLocalAiModelList();
-  } else {
-    // "done" (or any other terminal state) — a freshly downloaded model is the one you just asked
-    // for, so make it the active selection instead of leaving it downloaded-but-unused.
-    state.downloadingModelId = null;
-    await selectLocalAiModel(modelId, { silent: true });
+  if (engine.phase === "downloading" || engine.phase === "checking") {
+    const pct = engine.totalBytes ? Math.round((engine.downloadedBytes / engine.totalBytes) * 100) : 0;
+    root.innerHTML = engine.phase === "checking"
+      ? `<span class="local-ai-model-status">Checking for the rules engine release…</span>`
+      : `<div class="local-ai-model-progress">Downloading the rules engine… ${pct}%<div class="progress-track"><span style="width:${pct}%"></span></div></div>`;
+    return;
+  }
+
+  const action = engine.installed
+    ? `<span class="local-ai-model-badge">${engine.running ? "Running" : "Ready"}</span>`
+    : `<button type="button" class="command-btn quiet" id="downloadRulesEngineBtn">Download</button>`;
+  root.innerHTML = `
+    <div class="local-ai-model-row">
+      <div class="local-ai-model-copy">
+        <b>RiftKeep Rules Engine</b>
+        <span>${engine.installed ? "Deterministic rules engine, downloaded and ready." : "Not downloaded yet — needed for Ask Rules to answer."}</span>
+      </div>
+      <div class="local-ai-model-action">${action}</div>
+    </div>`;
+  const downloadBtn = document.getElementById("downloadRulesEngineBtn");
+  if (downloadBtn) downloadBtn.addEventListener("click", downloadRulesEngine);
+}
+
+async function downloadRulesEngine() {
+  try {
+    await api("/api/rules/engine/download", jsonOptions("POST", {}));
+  } catch (err) {
+    toast(err.message, true);
+    return;
+  }
+  pollRulesEngineProgress();
+}
+
+async function pollRulesEngineProgress() {
+  let data;
+  try {
+    data = await api("/api/rules/engine/status");
+  } catch (err) {
+    toast(err.message, true);
+    return;
+  }
+  state.rulesEngineStatus = data.engine;
+  renderRulesEngineStatus();
+  if (data.engine.phase === "downloading" || data.engine.phase === "checking") {
+    setTimeout(pollRulesEngineProgress, 500);
+  } else if (data.engine.phase === "error") {
+    toast(data.engine.error || "Rules engine download failed.", true);
+  } else if (data.engine.phase === "done") {
+    toast("Rules engine downloaded.");
   }
 }
 
@@ -3222,8 +3180,13 @@ async function askRulesQuestion() {
   const button = document.getElementById("askRulesBtn");
   button.disabled = true;
   root.innerHTML = `<div class="loading-line" style="padding:20px">Checking the rules...</div>`;
+  // The Tournament Rules checkbox is the only way tournament/format context reaches the engine -
+  // it never guesses this from the question's own wording. Prepending this exact phrase is what
+  // the engine's routing patch keys off of, so it's a stable, deliberate flag, not a hint.
+  const tournamentContext = document.getElementById("askRulesTournament").checked;
+  const engineQuestion = tournamentContext ? `In a tournament: ${question}` : question;
   try {
-    const result = await api("/api/rules/ask", jsonOptions("POST", { question }));
+    const result = await api("/api/rules/ask", jsonOptions("POST", { question: engineQuestion }));
     renderAskRulesResult(result);
   } catch (err) {
     root.innerHTML = `<div class="page-empty"><i data-icon="alert-triangle"></i><h2>Couldn't answer that</h2><span>${escapeHtml(err.message)}</span></div>`;
@@ -3238,37 +3201,37 @@ function renderAskRulesResult(result) {
   const confidenceClass = result.confidence.toLowerCase();
   const confidenceLabel = result.confidence.replace(/([a-z])([A-Z])/g, "$1 $2");
 
-  const chips = [
-    ...result.keywords.map(k => `<span class="rule-chip">${escapeHtml(k.name)}</span>`),
-    ...result.concepts.map(c => `<span class="rule-chip">${escapeHtml(c.name)}</span>`)
-  ].join("");
-
+  const clarifying = result.clarifyingQuestions || [];
   const cardNotes = result.cardNotes || [];
-  const hasEvidence = result.sources.length > 0 || cardNotes.length > 0;
+  const sources = result.sources || [];
+  const hasEvidence = sources.length > 0 || cardNotes.length > 0;
+
   const answerBlock = result.answerGenerated
     ? `<p class="ask-answer-text">${escapeHtml(result.answer)}</p>`
-    : hasEvidence
-      ? `<p class="ask-answer-note">Local AI answers are off (Settings → Ask Rules), so here's the most relevant official rules text directly.</p>`
-      : `<p class="ask-answer-note">I didn't find any official rule, keyword, or clarification that covers this question. Try rephrasing with an official term, or browse the Rules search instead.</p>`;
+    : `<p class="ask-answer-note">The rules engine doesn't have a proven answer for this yet. Try rephrasing with an official term, or check Settings → Ask Rules to make sure it's turned on.</p>`;
 
-  const ruleEvidenceRows = result.sources.map(s => `
-    <div class="ask-evidence-row">
-      <div class="ask-evidence-row-head">
-        <button type="button" class="ask-evidence-rule-link" data-rule-popup="${s.ruleId}"><b>${escapeHtml(s.ruleNumber ? `Rule ${s.ruleNumber}` : s.document)}</b></button>
-        <span class="authority-badge ${s.current ? "current" : "historical"}">${s.current ? "Current" : "Historical"} · ${escapeHtml(s.authority)}</span>
-      </div>
-      <p>${escapeHtml(s.title.startsWith("Rule ") ? s.snippet : s.title)}</p>
-      <span>${escapeHtml(s.document)} — matched via ${s.matchedVia.map(escapeHtml).join(", ")}</span>
-    </div>`).join("");
+  // The engine declines to guess a missing fact — it asks for it instead. Showing that request
+  // directly (rather than silently treating the answer as final) is the same fail-closed
+  // discipline the backend itself follows.
+  const clarifyingBlock = clarifying.length
+    ? `<div class="rule-detail-section" style="margin-top:0;padding-top:0;border-top:0"><h4>Needs more detail</h4><ul class="ask-clarify-list">${clarifying.map(q => `<li>${escapeHtml(q)}</li>`).join("")}</ul></div>`
+    : "";
 
-  const cardNoteLabels = { CardText: "Card Text", OfficialErrata: "Errata", CoreRules: "Card Status" };
   const cardEvidenceRows = cardNotes.map(c => `
     <div class="ask-evidence-row">
       <div class="ask-evidence-row-head">
-        <b>${escapeHtml(c.cardName)}</b>
-        <span class="authority-badge current">${escapeHtml(cardNoteLabels[c.authority] || "Card Status")}</span>
+        <b>${escapeHtml(c.name)}</b>
+        <span class="authority-badge current">Card Text</span>
       </div>
-      <p>${escapeHtml(c.note)}</p>
+      <p>${escapeHtml(c.text || "")}</p>
+    </div>`).join("");
+
+  const ruleEvidenceRows = sources.map(s => `
+    <div class="ask-evidence-row">
+      <div class="ask-evidence-row-head">
+        <button type="button" class="ask-evidence-rule-link" data-rule-popup="${escapeHtml(s.family || "core")}/${escapeHtml(s.ruleId)}"><b>Rule ${escapeHtml(s.ruleId)}</b></button>
+      </div>
+      <p>${escapeHtml(s.text)}</p>
     </div>`).join("");
 
   root.innerHTML = `
@@ -3278,7 +3241,7 @@ function renderAskRulesResult(result) {
         <span class="confidence-badge ${confidenceClass}">${escapeHtml(confidenceLabel)}</span>
       </div>
       ${answerBlock}
-      ${chips ? `<div class="rule-chip-row" style="margin-bottom:16px">${chips}</div>` : ""}
+      ${clarifyingBlock}
       ${hasEvidence ? `<div class="rule-detail-section" style="margin-top:0;padding-top:0;border-top:0"><h4>Why?</h4><div class="ask-evidence-list">${cardEvidenceRows}${ruleEvidenceRows}</div></div>` : ""}
     </div>`;
   renderIcons(root);
@@ -3286,24 +3249,23 @@ function renderAskRulesResult(result) {
 
 // Lets a cited rule in Ask Rules' "Why?" list be read in place instead of forcing a trip to the
 // Rules tab and a manual re-search for the same rule number.
-async function showRulePopup(ruleId) {
+async function showRulePopup(familyAndRuleId) {
   const heading = document.getElementById("rulePopupHeading");
   const body = document.getElementById("rulePopupBody");
   heading.textContent = "Loading...";
   body.innerHTML = `<div class="loading-line" style="padding:20px">Loading...</div>`;
   showModal("rulePopupModal");
   try {
-    const detail = await api(`/api/rules/${ruleId}`);
-    const r = detail.rule;
-    heading.textContent = r.ruleNumber ? `Rule ${r.ruleNumber}` : (r.title || "Rule Detail");
+    const [family, ruleId] = familyAndRuleId.split("/");
+    const r = await api(`/api/rules/detail/${encodeURIComponent(family)}/${encodeURIComponent(ruleId)}`);
+    heading.textContent = `Rule ${r.ruleId}`;
     body.innerHTML = `
       <div class="rule-detail-head">
-        ${r.ruleNumber ? `<span class="rule-detail-number">${escapeHtml(r.ruleNumber)}</span>` : "<span></span>"}
-        <span class="authority-badge ${r.isCurrent ? "current" : "historical"}">${r.isCurrent ? "Current" : "Historical"} · ${escapeHtml(r.authority)}</span>
+        <span class="rule-detail-number">${escapeHtml(r.ruleId)}</span>
+        ${r.majorSectionTitle ? `<span class="authority-badge current">${escapeHtml(r.majorSectionTitle)}</span>` : "<span></span>"}
       </div>
-      ${detail.parent ? `<p class="rule-detail-breadcrumb">${escapeHtml(detail.parent.title ? detail.parent.title : `Part of ${detail.parent.ruleNumber || ""}`)}</p>` : ""}
-      ${r.title ? `<h2>${escapeHtml(r.title)}</h2><p class="rule-detail-text">${escapeHtml(r.text)}</p>` : `<p class="rule-detail-text" style="font-size:13px">${escapeHtml(r.text)}</p>`}
-      ${detail.keywords.length ? `<div class="rule-detail-section"><h4>Keywords</h4><div class="rule-chip-row">${detail.keywords.map(k => `<span class="rule-chip">${escapeHtml(k.name)}</span>`).join("")}</div></div>` : ""}`;
+      <p class="rule-detail-text">${escapeHtml(r.text)}</p>
+      ${r.exampleText ? `<p class="rule-detail-text" style="font-size:13px">${escapeHtml(r.exampleText)}</p>` : ""}`;
     renderIcons(body);
   } catch (err) {
     heading.textContent = "Rule Detail";
@@ -3322,22 +3284,6 @@ async function toggleLocalAi() {
   } catch (err) {
     toast(err.message, true);
     button.disabled = false;
-  }
-}
-
-async function syncRulesData() {
-  const button = document.getElementById("syncRulesBtn");
-  button.disabled = true;
-  try {
-    const result = await api("/api/rules/sync", { method: "POST" });
-    toast(result.ok
-      ? `Synced ${result.documentsUpdated} documents, ${result.rulesIndexed} rules`
-      : `Sync failed: ${result.error}`, !result.ok);
-  } catch (err) {
-    toast(err.message, true);
-  } finally {
-    button.disabled = false;
-    await loadSettings();
   }
 }
 
@@ -3540,7 +3486,6 @@ function wireEvents() {
   document.getElementById("saveTopdeckKey").addEventListener("click", saveTopdeckKey);
   document.getElementById("clearTopdeckKey").addEventListener("click", clearTopdeckKey);
   document.getElementById("syncCommunityBtn").addEventListener("click", syncCommunityData);
-  document.getElementById("syncRulesBtn").addEventListener("click", syncRulesData);
   document.getElementById("openPurgeData").addEventListener("click", openPurgeDataModal);
   document.getElementById("purgeConfirmInput").addEventListener("input", updatePurgeConfirmState);
   document.querySelectorAll("#purgeDataModal [data-purge-key]").forEach(input =>
@@ -3553,7 +3498,7 @@ function wireEvents() {
   document.getElementById("askRulesBtn").addEventListener("click", askRulesQuestion);
   document.getElementById("askRulesResult").addEventListener("click", event => {
     const button = event.target.closest("[data-rule-popup]");
-    if (button) showRulePopup(Number(button.dataset.rulePopup));
+    if (button) showRulePopup(button.dataset.rulePopup);
   });
   document.getElementById("askRulesInput").addEventListener("keydown", event => {
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") askRulesQuestion();

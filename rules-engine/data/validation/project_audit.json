@@ -1,0 +1,2156 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-22T15:26:58.187353+00:00",
+  "passed": true,
+  "criticalIssueCount": 0,
+  "warningCount": 2,
+  "criticalIssues": [],
+  "warnings": [
+    {
+      "code": "historical_patch_note_bodies_incomplete",
+      "detail": [
+        {
+          "sourceId": "origins-core-patch",
+          "reason": "patch-note body not locally ingested"
+        },
+        {
+          "sourceId": "spiritforged-core-patch",
+          "reason": "patch-note body not locally ingested"
+        },
+        {
+          "sourceId": "unleashed-core-patch",
+          "reason": "patch-note body not locally ingested"
+        },
+        {
+          "sourceId": "vendetta-core-patch",
+          "reason": "patch-note body not locally ingested"
+        }
+      ],
+      "blocking": false
+    },
+    {
+      "code": "historical_faq_bodies_incomplete",
+      "detail": [
+        {
+          "sourceId": "unleashed-faq-2026-04-29",
+          "reason": "historical FAQ body not locally ingested"
+        },
+        {
+          "sourceId": "spiritforged-faq-2026-01-14",
+          "reason": "historical FAQ body not locally ingested"
+        },
+        {
+          "sourceId": "origins-faq-2025-10-16",
+          "reason": "historical FAQ body not locally ingested"
+        }
+      ],
+      "blocking": false
+    }
+  ],
+  "checks": [
+    {
+      "name": "required_recovery_files_present",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "core_rule_count_2381",
+      "passed": true,
+      "detail": 2381
+    },
+    {
+      "name": "tournament_rule_count_935",
+      "passed": true,
+      "detail": 935
+    },
+    {
+      "name": "combined_numbered_rule_count_3316",
+      "passed": true,
+      "detail": 3316
+    },
+    {
+      "name": "card_count_1304",
+      "passed": true,
+      "detail": 1304
+    },
+    {
+      "name": "core_no_duplicate_visible_ids",
+      "passed": true
+    },
+    {
+      "name": "tournament_no_duplicate_visible_ids",
+      "passed": true
+    },
+    {
+      "name": "core_no_duplicate_internal_ids",
+      "passed": true
+    },
+    {
+      "name": "tournament_no_duplicate_internal_ids",
+      "passed": true
+    },
+    {
+      "name": "core_no_empty_numbered_bodies",
+      "passed": true
+    },
+    {
+      "name": "tournament_no_empty_numbered_bodies",
+      "passed": true
+    },
+    {
+      "name": "critical_347_1_b_preserved",
+      "passed": true,
+      "detail": "When that Chain closes, Focus passes to the next Player in Turn Order."
+    },
+    {
+      "name": "core_parser_validation_passes",
+      "passed": true,
+      "detail": {
+        "parserCount": 2381,
+        "independentLayoutCount": 2381,
+        "missingFromParser": [],
+        "extraInParser": [],
+        "duplicateParserIds": [],
+        "emptyText": [],
+        "passed": true
+      }
+    },
+    {
+      "name": "tournament_parser_validation_passes",
+      "passed": true,
+      "detail": {
+        "parserCount": 935,
+        "independentLayoutCount": 935,
+        "missingFromParser": [],
+        "extraInParser": [],
+        "duplicateParserIds": [],
+        "emptyText": [],
+        "passed": true
+      }
+    },
+    {
+      "name": "errata_validation_passes",
+      "passed": true,
+      "detail": {
+        "passed": true,
+        "failureCount": 0,
+        "failures": [],
+        "sourceDocumentCount": 4,
+        "errataEventCount": 63,
+        "errataIdentityCount": 63,
+        "matchedIdentityCount": 63,
+        "effectiveCardPrintingCount": 91,
+        "sourceIds": [
+          "origins-errata",
+          "spiritforged-errata",
+          "unleashed-errata",
+          "vendetta-errata"
+        ]
+      }
+    },
+    {
+      "name": "errata_event_count_63",
+      "passed": true,
+      "detail": 63
+    },
+    {
+      "name": "errata_affected_printings_91",
+      "passed": true,
+      "detail": 91
+    },
+    {
+      "name": "current_overlay_integrity_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "vendetta_faq_has_35_sections",
+      "passed": true,
+      "detail": 35
+    },
+    {
+      "name": "effective_rule_overrides_valid",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "generatedAt": "2026-08-22T14:06:43Z",
+        "recordCount": 1,
+        "valid": true,
+        "errors": [],
+        "overrides": [
+          {
+            "overrideId": "vendetta-2026-might-copyable",
+            "kind": "add_list_member",
+            "target": "copyable_traits",
+            "value": "Might",
+            "statement": "Might is a copyable trait that copy effects can replace or add to.",
+            "scope": "game_rules",
+            "overriddenRuleIds": [
+              "477.1.b.1.a"
+            ],
+            "sourceEvidenceId": "O:vendetta-faq-2026-08-14:0030",
+            "sourceId": "vendetta-faq-2026-08-14",
+            "sourceContentHash": "6257c7e1609126a50f61f50f80c9ad3b7fc21c7091c52d9b5d1bff55c23ae8a1",
+            "sourceSnapshotSha256": "a68712057b00b3590e779ffdea024b1d5201891f12e94dfde3de49e09d323891",
+            "sourceUrl": "https://playriftbound.com/en-us/news/rules-and-releases/vendetta-rules-faq-and-clarifications/",
+            "effectiveFrom": "2026-08-14",
+            "authority": {
+              "status": "current_overlay",
+              "scope": [
+                "official_rulings"
+              ],
+              "precedence": {
+                "over": [
+                  "core-rules-2026-07-16"
+                ],
+                "onlyWhereDifferent": true,
+                "expiresWhen": "next_core_rules_document_released"
+              },
+              "exhaustive": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "compiled_rule_catalog_has_2381_rules",
+      "passed": true,
+      "detail": {
+        "ruleCount": 2381,
+        "executableRuleCount": 0,
+        "conditionalRuleCount": 486,
+        "modalityCounts": {
+          "permission": 472,
+          "prohibition": 80,
+          "requirement": 94,
+          "restriction": 113
+        },
+        "effectTypeCounts": {
+          "cost": 137,
+          "definition_candidate": 871,
+          "movement": 78,
+          "permission": 472,
+          "prohibition": 80,
+          "replacement": 40,
+          "requirement": 94,
+          "restriction": 113,
+          "state_change_or_status": 90,
+          "targeting": 86,
+          "trigger": 153
+        },
+        "policy": "All Core Rules receive deterministic structural metadata. Catalog entries remain non-executable until a separately regression-tested Rule Program compiles them into logic."
+      }
+    },
+    {
+      "name": "compiled_rule_catalog_safe_non_executable_default",
+      "passed": true,
+      "detail": {
+        "ruleCount": 2381,
+        "executableRuleCount": 0,
+        "conditionalRuleCount": 486,
+        "modalityCounts": {
+          "permission": 472,
+          "prohibition": 80,
+          "requirement": 94,
+          "restriction": 113
+        },
+        "effectTypeCounts": {
+          "cost": 137,
+          "definition_candidate": 871,
+          "movement": 78,
+          "permission": 472,
+          "prohibition": 80,
+          "replacement": 40,
+          "requirement": 94,
+          "restriction": 113,
+          "state_change_or_status": 90,
+          "targeting": 86,
+          "trigger": 153
+        },
+        "policy": "All Core Rules receive deterministic structural metadata. Catalog entries remain non-executable until a separately regression-tested Rule Program compiles them into logic."
+      }
+    },
+    {
+      "name": "rule_programs_all_valid",
+      "passed": true,
+      "detail": {
+        "programCount": 8,
+        "validProgramCount": 8
+      }
+    },
+    {
+      "name": "m8_migrated_eight_adjudication_families",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "semanticRuleCount": 2381,
+        "conditionalRuleCount": 486,
+        "modalityCounts": {
+          "permission": 472,
+          "prohibition": 80,
+          "requirement": 94,
+          "restriction": 113
+        },
+        "effectTypeCounts": {
+          "cost": 137,
+          "definition_candidate": 871,
+          "movement": 78,
+          "permission": 472,
+          "prohibition": 80,
+          "replacement": 40,
+          "requirement": 94,
+          "restriction": 113,
+          "state_change_or_status": 90,
+          "targeting": 86,
+          "trigger": 153
+        },
+        "replacementTaggedRuleCount": 40,
+        "executableProgramCount": 8,
+        "migratedAdjudicationFamilyCount": 8,
+        "migratedAdjudicationFamilies": [
+          "combat_replacement_assignment",
+          "discard_to_trash",
+          "exhaust_state",
+          "ready_state",
+          "replacement_not_play",
+          "stun_state",
+          "targeting_permission_restriction",
+          "trigger_snapshot"
+        ],
+        "remainingHandCodedFamilyCount": 39,
+        "remainingHandCodedFamilies": [
+          "attach_replacement_sequence",
+          "become_state_transition",
+          "cant_beats_can_play_location",
+          "card_rule_precedence",
+          "competing_positive_play_requirements",
+          "conquer_scoring",
+          "contested_on_entry",
+          "copied_ability_new_instance",
+          "copy_effect_semantics",
+          "copy_might_current_faq",
+          "counter_resolution",
+          "delayed_trigger_attribution",
+          "dependent_keyword_reference",
+          "finalize_vs_resolve_control",
+          "flow_leave_chain_current_faq",
+          "hidden_lifecycle",
+          "hold_scoring",
+          "ignore_deflect_scope",
+          "invalid_other_base_play",
+          "kayle_empowered_stacks",
+          "layer_intermediate_state",
+          "legend_control_current_faq",
+          "linked_instructions_current_faq",
+          "mistarget_resolution",
+          "multi_type_reflexive_trigger",
+          "naming_rules",
+          "play_finalize_semantics",
+          "prevent_damage",
+          "rebuttal_remake_choices",
+          "recall_not_move",
+          "replacement_chosen_event",
+          "replacement_inherits_modifiers",
+          "replacement_missing_counter_event",
+          "replacement_missing_might_event",
+          "replacement_missing_stun_event",
+          "replacement_order",
+          "swap_replacement_current_faq",
+          "unit_play_location",
+          "untargetable_legality"
+        ],
+        "policy": "Coverage metrics distinguish structural semantic compilation from executable Rule Programs and remaining legacy adjudication families."
+      }
+    },
+    {
+      "name": "rule_version_integrity_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "core_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "core_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 164,
+        "actual": 164
+      }
+    },
+    {
+      "name": "definition_lookup_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "definition_lookup_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 120,
+        "actual": 120
+      }
+    },
+    {
+      "name": "regression_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "regression_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 99,
+        "actual": 99
+      }
+    },
+    {
+      "name": "language_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "language_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 42,
+        "actual": 42
+      }
+    },
+    {
+      "name": "scenario_language_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "scenario_language_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 43,
+        "actual": 43
+      }
+    },
+    {
+      "name": "scenario_model_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "scenario_model_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 58,
+        "actual": 58
+      }
+    },
+    {
+      "name": "compiler_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "compiler_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 42,
+        "actual": 42
+      }
+    },
+    {
+      "name": "proof_engine_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "proof_engine_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 72,
+        "actual": 72
+      }
+    },
+    {
+      "name": "llm_interpretation_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "llm_interpretation_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 84,
+        "actual": 84
+      }
+    },
+    {
+      "name": "llm_explanation_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "llm_explanation_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 80,
+        "actual": 80
+      }
+    },
+    {
+      "name": "gold_corpus_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "gold_corpus_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 34,
+        "actual": 34
+      }
+    },
+    {
+      "name": "card_interaction_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "card_interaction_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 74,
+        "actual": 74
+      }
+    },
+    {
+      "name": "product_api_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "product_api_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 132,
+        "actual": 132
+      }
+    },
+    {
+      "name": "ui_integration_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "ui_integration_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 148,
+        "actual": 148
+      }
+    },
+    {
+      "name": "update_automation_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "update_automation_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 70,
+        "actual": 70
+      }
+    },
+    {
+      "name": "production_hardening_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "production_hardening_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 74,
+        "actual": 74
+      }
+    },
+    {
+      "name": "release_candidate_audit_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "release_candidate_audit_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 48,
+        "actual": 48
+      }
+    },
+    {
+      "name": "stable_release_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "stable_release_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 191,
+        "actual": 191
+      }
+    },
+    {
+      "name": "update_test_report.json_passes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "update_test_report.json_baseline_count",
+      "passed": true,
+      "detail": {
+        "expectedMinimum": 29,
+        "actual": 29
+      }
+    },
+    {
+      "name": "gold_corpus_frozen_1846",
+      "passed": true,
+      "detail": {
+        "caseCount": 1846,
+        "actualRows": 1846
+      }
+    },
+    {
+      "name": "gold_corpus_case_ids_unique",
+      "passed": true,
+      "detail": {
+        "duplicates": 0
+      }
+    },
+    {
+      "name": "gold_corpus_not_engine_derived",
+      "passed": true
+    },
+    {
+      "name": "gold_manifest_frozen",
+      "passed": true,
+      "detail": {
+        "runnerMayRegenerateExpectations": false,
+        "sourceDriftRequiresExplicitRecertification": true,
+        "goldAFullAdjudicationsPerSemanticGroup": 1,
+        "goldCReleaseGating": false
+      }
+    },
+    {
+      "name": "gold_metrics_thresholds",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "passed": true,
+        "totalCases": 1846,
+        "tierCounts": {
+          "A": 396,
+          "B": 1416,
+          "C": 34
+        },
+        "categoryCounts": {
+          "adjudication": 396,
+          "card_record": 1304,
+          "current_faq_section": 35,
+          "official_errata_event": 63,
+          "rule_version_record": 2,
+          "update_diff_fixture": 12,
+          "future_card_interaction": 34
+        },
+        "goldASemanticGroups": 99,
+        "goldAFullAdjudications": 99,
+        "distinctRequiredRuleIds": 125,
+        "requiredRuleIds": [
+          "002",
+          "054",
+          "054.1",
+          "054.2",
+          "124",
+          "188",
+          "189",
+          "190.3.a",
+          "190.3.a.1",
+          "190.4.c",
+          "323.6",
+          "323.7",
+          "355.10",
+          "355.10.b",
+          "355.15",
+          "355.2",
+          "355.2.a",
+          "355.2.b",
+          "355.8",
+          "355.9.b",
+          "359.2",
+          "359.3.e.1",
+          "359.3.e.10",
+          "359.3.e.14",
+          "359.3.e.14.a",
+          "359.3.e.14.b",
+          "359.3.e.5",
+          "359.3.e.7",
+          "359.3.e.8",
+          "359.3.f.3",
+          "369.1",
+          "369.3",
+          "370.1",
+          "370.1.b",
+          "372",
+          "372.1",
+          "372.2",
+          "373",
+          "373.1",
+          "373.1.a",
+          "375",
+          "383.2",
+          "383.2.c",
+          "387.1.b",
+          "411.4",
+          "411.5",
+          "411.6",
+          "414.1",
+          "414.1.b",
+          "414.1.c",
+          "414.4",
+          "415.1",
+          "415.1.b",
+          "415.1.c",
+          "417",
+          "417.1.b",
+          "419",
+          "419.1",
+          "419.4",
+          "419.4.a",
+          "419.4.a.1",
+          "419.4.b",
+          "422",
+          "422.1",
+          "422.1.a",
+          "422.1.b",
+          "423.1.a",
+          "423.1.a.1",
+          "425.1",
+          "425.1.a",
+          "425.1.b",
+          "425.1.c",
+          "428.5",
+          "428.5.d",
+          "433",
+          "433.1.a",
+          "434",
+          "437",
+          "437.2",
+          "437.2.a",
+          "437.4",
+          "438",
+          "438.1",
+          "441",
+          "441.1",
+          "441.1.c.1",
+          "455",
+          "456",
+          "456.1",
+          "456.3",
+          "465.2.c.1",
+          "465.2.c.5",
+          "469.1",
+          "469.2",
+          "470",
+          "471.2.b",
+          "477",
+          "477.1",
+          "477.1.b",
+          "477.1.b.1",
+          "477.1.b.1.a",
+          "477.1.b.1.b",
+          "477.3",
+          "477.3.b",
+          "727.1",
+          "727.1.b",
+          "727.1.b.1",
+          "758",
+          "758.1",
+          "761",
+          "761.1",
+          "761.2",
+          "762",
+          "763",
+          "766",
+          "767",
+          "810",
+          "811",
+          "811.1.b",
+          "813",
+          "818",
+          "827",
+          "829",
+          "829.1.b",
+          "829.1.b.1"
+        ],
+        "distinctOfficialEvidenceIds": 26,
+        "officialEvidenceIds": [
+          "O:vendetta-faq-2026-08-14:0002",
+          "O:vendetta-faq-2026-08-14:0004",
+          "O:vendetta-faq-2026-08-14:0005",
+          "O:vendetta-faq-2026-08-14:0006",
+          "O:vendetta-faq-2026-08-14:0008",
+          "O:vendetta-faq-2026-08-14:0009",
+          "O:vendetta-faq-2026-08-14:0010",
+          "O:vendetta-faq-2026-08-14:0011",
+          "O:vendetta-faq-2026-08-14:0013",
+          "O:vendetta-faq-2026-08-14:0015",
+          "O:vendetta-faq-2026-08-14:0016",
+          "O:vendetta-faq-2026-08-14:0017",
+          "O:vendetta-faq-2026-08-14:0019",
+          "O:vendetta-faq-2026-08-14:0021",
+          "O:vendetta-faq-2026-08-14:0022",
+          "O:vendetta-faq-2026-08-14:0023",
+          "O:vendetta-faq-2026-08-14:0025",
+          "O:vendetta-faq-2026-08-14:0027",
+          "O:vendetta-faq-2026-08-14:0028",
+          "O:vendetta-faq-2026-08-14:0029",
+          "O:vendetta-faq-2026-08-14:0030",
+          "O:vendetta-faq-2026-08-14:0031",
+          "O:vendetta-faq-2026-08-14:0032",
+          "O:vendetta-faq-2026-08-14:0033",
+          "O:vendetta-faq-2026-08-14:0034",
+          "O:vendetta-faq-2026-08-14:0035"
+        ],
+        "conditionalOrInsufficientSemanticGroups": 7,
+        "explicitNoSemanticGroups": 19,
+        "nonAffirmativeSemanticGroups": 26,
+        "realCardRecordsCovered": 1304,
+        "currentFaqSectionsCovered": 35,
+        "officialErrataEventsCovered": 63,
+        "ruleVersionRecordsCovered": 2,
+        "updateDiffFixturesCovered": 12,
+        "forwardCardInteractionFixtures": 34,
+        "goldCPromotedReleaseGating": 16,
+        "goldCRemainingReportOnly": 18,
+        "goldCReleaseGating": true
+      }
+    },
+    {
+      "name": "card_interaction_catalog_all_1304_printings",
+      "passed": true,
+      "detail": 1304
+    },
+    {
+      "name": "card_interaction_catalog_34_faq_programs",
+      "passed": true,
+      "detail": 34
+    },
+    {
+      "name": "card_interaction_catalog_structural_compiler_nonadjudicative",
+      "passed": true,
+      "detail": {
+        "effectiveTextIsAuthoritativeInput": true,
+        "clauseClassificationIsStructuralNotAdjudicative": true,
+        "unresolvedReferencesAreNotGuessed": true,
+        "faqProgramsRequireAuthorityAndIdentityMatching": true
+      }
+    },
+    {
+      "name": "card_interaction_executor_16_source_guarded_programs",
+      "passed": true,
+      "detail": {
+        "programCount": 16,
+        "validProgramCount": 16
+      }
+    },
+    {
+      "name": "card_interaction_promotions_frozen_16_of_34",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "milestone": "M13",
+        "frozen": true,
+        "derivedExpectationsFromEngine": false,
+        "promotionCount": 16,
+        "goldCFixtureCount": 34,
+        "remainingReportOnlyCount": 18,
+        "policy": {
+          "promotionsAreReleaseGating": true,
+          "unpromotedGoldCRemainsReportOnly": true,
+          "normalBuildMayNotGenerateExpectedVerdicts": true,
+          "sourceDriftDisablesExecutor": true
+        },
+        "promotions": [
+          {
+            "caseId": "GC-FAQ-002",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0003",
+            "programId": "CARDI:0003",
+            "question": "What is the difference between Iascylla and Azir, Sovereign’s uses of “this battlefield”?",
+            "questionSha256": "799fbafa7ee5357d9023ea8a0f69d5e049f73fb66c276016832a6637cd546ecb",
+            "expectedIssueVerdicts": [
+              "iascylla_snapshots_held_battlefield_azir_checks_current_battlefield"
+            ],
+            "expectedIssueCount": 1,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-003",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0004",
+            "programId": "CARDI:0004",
+            "question": "What happens when I play Moonfall choosing an enemy unit while I control an empowered Mel, Newly Awakened?",
+            "questionSha256": "9e50d8c4bdfb49cf6528413116ed5af551475f2c62e5e9177021201d8aee4ee6",
+            "expectedIssueVerdicts": [
+              "moonfall_chosen_unit_minus3_others_minus2"
+            ],
+            "expectedIssueCount": 1,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-004",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0005",
+            "programId": "CARDI:0005",
+            "question": "What about casting Stupefy while I have an empowered Mel, Newly Awakened?",
+            "questionSha256": "178a22fcb531b9973b7f9f6118c89014d9f02a85683d0f9ee98c06534f59d68c",
+            "expectedIssueVerdicts": [
+              "stupefy_minus2_minimum1"
+            ],
+            "expectedIssueCount": 1,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-005",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0006",
+            "programId": "CARDI:0006",
+            "question": "Speaking of Mel, can my opponent play Abandon on my spell while I control an empowered Mel, Newly Awakened? What happens?",
+            "questionSha256": "58f5f549a8c45a281a54dfb6ea292f953da52a38832dccf110bf160cd0a3430d",
+            "expectedIssueVerdicts": [
+              "yes_abandon_can_be_played",
+              "abandon_predict_only_no_counter_or_return"
+            ],
+            "expectedIssueCount": 2,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-006",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0007",
+            "programId": "CARDI:0007",
+            "question": "How does it work if I cast Abandon while having an empowered Mel, Newly Awakened but they Rebuttal my spell?",
+            "questionSha256": "6e449771bb90cfc96908968bfeeb3ad33b4e18dbb0c24b214e21622ae0752e59",
+            "expectedIssueVerdicts": [
+              "rebuttal_control_change_is_not_countering"
+            ],
+            "expectedIssueCount": 1,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-008",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0009",
+            "programId": "CARDI:0009",
+            "question": "What happens if I choose to copy an empowered unit when I equip an unempowered unit with Shady Spectacles?",
+            "questionSha256": "9fd1ffd22cb7a506bfa4412486b2188d7c324834f9d986d1f910192deb66d674",
+            "expectedIssueVerdicts": [
+              "empowered_status_not_copied"
+            ],
+            "expectedIssueCount": 1,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-009",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0010",
+            "programId": "CARDI:0010",
+            "question": "What happens when my opponent’s Akshan, Mischievous steals my equipped Shady Spectacles? What happens if they want to copy Aphelios?",
+            "questionSha256": "260030eb2e5fd132b50350603814253a0ab3b47b31f53eee40efad6d162c22d8",
+            "expectedIssueVerdicts": [
+              "stolen_spectacles_old_copy_ends_then_akshan_copies",
+              "copied_aphelios_trigger_does_not_see_prior_attach"
+            ],
+            "expectedIssueCount": 2,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-013",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0014",
+            "programId": "CARDI:0014",
+            "question": "If my opponent plays two spells in succession, can I counter the first one with Crumbling Sands?",
+            "questionSha256": "ef2e20708adea5d3b4aa7fb5d14d13dac26334ebf5e767e994ec918cd20dfa13",
+            "expectedIssueVerdicts": [
+              "yes_crumbling_sands_can_counter_first_spell"
+            ],
+            "expectedIssueCount": 1,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-017",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0018",
+            "programId": "CARDI:0018",
+            "question": "What happens if my opponent plays Flash on their Akali, Silent that’s currently in combat after I play Star-Crossed targeting her?",
+            "questionSha256": "b4c22ef5b24ec18c76ada52973f351690077de8cc4ae0fc9251e684197b09a39",
+            "expectedIssueVerdicts": [
+              "akali_mistargets_star_crossed_and_is_unaffected"
+            ],
+            "expectedIssueCount": 1,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-023",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0024",
+            "programId": "CARDI:0024",
+            "question": "What happens when my opponent plays Hidden Blade targeting my Akali, Deadly Weapon in reaction to her move trigger? Will it still deal damage to the chosen unit?",
+            "questionSha256": "45a533c50e0478247cd12c191db068501b70f8e74acf863bbebb63844bf5004a",
+            "expectedIssueVerdicts": [
+              "akali_move_trigger_snapshot_survives_hidden_blade",
+              "yes_akali_trigger_still_deals_damage"
+            ],
+            "expectedIssueCount": 2,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-025",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0026",
+            "programId": "CARDI:0026",
+            "question": "What card does Astral Heron’s triggered ability discount?",
+            "questionSha256": "b31bc3a5c2b03a44ee1f2749baf03bfd717496b97c7f99590e03dea1f193b4af",
+            "expectedIssueVerdicts": [
+              "astral_heron_discounts_next_card_played_after_resolution"
+            ],
+            "expectedIssueCount": 1,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-029",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0030",
+            "programId": "CARDI:0030",
+            "question": "What happens if I play Dragon Form on a unit that has -1 [M] from Stupefy applied to it? Will my Fiora, Grand Duelist trigger? Is there a moment where my unit becomes 5 [M] before the -1 [M] from Stupefy brings it down to 4 [M]?",
+            "questionSha256": "d3ccf7ef77824c5332da1822a30d5c9a18943c857e98c3a2a89dbfb86ee9bcdf",
+            "expectedIssueVerdicts": [
+              "dragon_form_results_in_4_might_with_existing_stupefy",
+              "no_fiora_does_not_trigger_from_intermediate_layer_value",
+              "no_intermediate_5_might_window"
+            ],
+            "expectedIssueCount": 3,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-030",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0031",
+            "programId": "CARDI:0031",
+            "question": "What happens when I play Hostile Takeover gaining control of my opponent’s ready unit, move it to base, and then play Temporal Breach choosing it? Where will the unit go?",
+            "questionSha256": "7942a46304d0be322316b7249c754a75919275718c625a7e64f91e45db17ffd7",
+            "expectedIssueVerdicts": [
+              "temporal_breach_play_cannot_finalize_to_other_players_base",
+              "unit_remains_in_banishment"
+            ],
+            "expectedIssueCount": 2,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-031",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0032",
+            "programId": "CARDI:0032",
+            "question": "My 11 Might Renekton, Brute is disempowered by my own Profiteer. What happens when my opponent plays Stupefy choosing him? Will his ability trigger? What happens if instead I activated his ability?",
+            "questionSha256": "d3906e948ce3a0e9fbaba94ab973b61169e494c1089e24b01ad8cc24cd685d3a",
+            "expectedIssueVerdicts": [
+              "renekton_does_not_reenter_10_or_more_state",
+              "no_renekton_trigger_from_stupefy_sequence",
+              "no_renekton_trigger_from_own_might_activation"
+            ],
+            "expectedIssueCount": 3,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-033",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0034",
+            "programId": "CARDI:0034",
+            "question": "What happens when I play Hextech Ray on an Elder Dragon while Imperial Decree’s delayed trigger is active and I have an Immortal Phoenix in the Trash? Can I play Immortal Phoenix from the Trash?",
+            "questionSha256": "e2ab0118e10ed0fd562b8320aadaebbdd56d9f164ea61a09621c454cf6843f82",
+            "expectedIssueVerdicts": [
+              "imperial_decree_delayed_trigger_kill_is_attributed_to_generating_spell",
+              "yes_immortal_phoenix_can_trigger_and_be_played"
+            ],
+            "expectedIssueCount": 2,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          },
+          {
+            "caseId": "GC-FAQ-034",
+            "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0035",
+            "programId": "CARDI:0035",
+            "question": "If I play Ride the Wind targeting my unit at Vilemaw’s Lair and attempt to move them to base, what happens?",
+            "questionSha256": "f985df46831594c112b0a96212227eb6008080d3073c0378f77a006add04e8cf",
+            "expectedIssueVerdicts": [
+              "move_negated_but_linked_ready_still_executes"
+            ],
+            "expectedIssueCount": 1,
+            "sourceGuarded": true,
+            "derivedFromEngine": false,
+            "verificationMethod": "human-reviewed source-guarded card interaction executor"
+          }
+        ]
+      }
+    },
+    {
+      "name": "card_interaction_metrics_m13_gate",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 2,
+        "printingCount": 1304,
+        "identityCount": 937,
+        "clauseCount": 1795,
+        "faqProgramCount": 34,
+        "errataAffectedPrintings": 91,
+        "goldCFixtureCount": 34,
+        "goldCPromotedExecutable": 16,
+        "goldCRemainingReportOnly": 18,
+        "executableProgramCount": 16,
+        "validExecutableProgramCount": 16,
+        "structuralContextAloneAppliesGameRules": false,
+        "guardedExecutorCanApplyGameRules": true,
+        "abilityKindCounts": {
+          "activated": 641,
+          "continuous": 60,
+          "instruction_or_static": 535,
+          "replacement": 49,
+          "triggered": 510
+        },
+        "effectTagCounts": {
+          "add_resource": 58,
+          "attach": 99,
+          "banish": 55,
+          "choose": 188,
+          "control": 161,
+          "copy": 10,
+          "counter": 14,
+          "damage": 194,
+          "detach": 6,
+          "discard": 49,
+          "draw": 173,
+          "empower": 129,
+          "exhaust": 255,
+          "heal": 14,
+          "kill": 160,
+          "might": 481,
+          "move": 176,
+          "play": 662,
+          "ready": 188,
+          "recall": 18,
+          "recycle": 73,
+          "replace": 52,
+          "return_to_hand": 44,
+          "stun": 42,
+          "trigger": 637
+        }
+      }
+    },
+    {
+      "name": "product_api_contract_v1",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "apiVersion": "v1",
+        "policy": {
+          "engineIsAuthority": true,
+          "transportContainsNoAdjudicationLogic": true,
+          "filesystemPathsExposed": false,
+          "fuzzyCardIdentityLookup": false,
+          "currentAuthorityRequiredForAsk": true,
+          "boundedInput": true,
+          "deterministicErrors": true
+        },
+        "serviceMethods": {
+          "status": "Release/corpus/current-authority summary.",
+          "search": "Unified FTS search over the existing canonical index.",
+          "getRule": "Exact Core/Tournament rule lookup with provenance/navigation.",
+          "getCard": "Exact printing-ID or exact-name lookup with provenance/variants.",
+          "ask": "Natural-language adjudication wrapper around RulesEngine.ask().",
+          "getEvidence": "Resolve backend citation IDs to authoritative evidence.",
+          "sources": "Current and historical official source metadata plus rule-version ledgers.",
+          "changes": "Adjacent-version rule change summary/details when archived diff data exists."
+        },
+        "httpRoutes": [
+          {
+            "method": "GET",
+            "path": "/v1/status"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/search?q=...&kind=...&limit=...&offset=..."
+          },
+          {
+            "method": "GET",
+            "path": "/v1/rules/{family}/{ruleId}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/cards/{printingId-or-exact-name}"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ask",
+            "body": {
+              "question": "string"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/v1/evidence/{evidenceId}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/sources"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/changes?family=core|tournament&sourceId=optional"
+          }
+        ],
+        "errorEnvelope": {
+          "ok": false,
+          "error": {
+            "code": "stable_snake_case_code",
+            "message": "human-readable message",
+            "details": {}
+          }
+        },
+        "limits": {
+          "questionCharacters": 4000,
+          "searchCharacters": 500,
+          "searchLimitMaximum": 100,
+          "searchOffsetMaximum": 10000,
+          "httpBodyBytes": 65536
+        }
+      }
+    },
+    {
+      "name": "product_api_engine_authority_boundary",
+      "passed": true,
+      "detail": {
+        "engineIsAuthority": true,
+        "transportContainsNoAdjudicationLogic": true,
+        "filesystemPathsExposed": false,
+        "fuzzyCardIdentityLookup": false,
+        "currentAuthorityRequiredForAsk": true,
+        "boundedInput": true,
+        "deterministicErrors": true
+      }
+    },
+    {
+      "name": "product_api_no_filesystem_or_fuzzy_identity",
+      "passed": true,
+      "detail": {
+        "engineIsAuthority": true,
+        "transportContainsNoAdjudicationLogic": true,
+        "filesystemPathsExposed": false,
+        "fuzzyCardIdentityLookup": false,
+        "currentAuthorityRequiredForAsk": true,
+        "boundedInput": true,
+        "deterministicErrors": true
+      }
+    },
+    {
+      "name": "product_api_metrics_m14_gate",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "apiVersion": "v1",
+        "serviceMethods": [
+          "ask",
+          "changes",
+          "getCard",
+          "getEvidence",
+          "getRule",
+          "search",
+          "sources",
+          "status"
+        ],
+        "httpRouteCount": 8,
+        "searchKinds": [
+          "rule",
+          "card",
+          "official_ruling",
+          "official_ruling_history",
+          "errata",
+          "official_source",
+          "patch_note_history"
+        ],
+        "currentAuthorityComplete": true,
+        "loopbackDefault": true,
+        "maxBodyBytes": 65536,
+        "filesystemPathsExposed": false
+      }
+    },
+    {
+      "name": "ui_contract_m15_v1",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "uiVersion": "m15-v1",
+        "policy": {
+          "productApiIsOnlyDataAuthority": true,
+          "browserAdjudicationLogic": false,
+          "browserEvidenceSelectionLogic": false,
+          "browserCardIdentityInference": false,
+          "browserRuleSemantics": false,
+          "sameOriginApiOnly": true,
+          "externalRuntimeDependencies": false,
+          "dynamicHtmlInjection": false,
+          "filesystemPathsExposed": false
+        },
+        "surfaces": [
+          "ask_rules",
+          "search",
+          "card_rule_detail",
+          "evidence",
+          "sources_history",
+          "changes"
+        ],
+        "apiRoutesConsumed": [
+          "/v1/status",
+          "/v1/search",
+          "/v1/rules/{family}/{ruleId}",
+          "/v1/cards/{identifier}",
+          "/v1/ask",
+          "/v1/evidence/{evidenceId}",
+          "/v1/sources",
+          "/v1/changes"
+        ],
+        "staticRoutes": [
+          "/",
+          "/index.html",
+          "/styles.css",
+          "/app.js"
+        ],
+        "accessibility": {
+          "semanticLandmarks": true,
+          "formLabels": true,
+          "liveStatusRegion": true,
+          "keyboardNavigation": true,
+          "visibleFocus": true,
+          "reducedMotion": true
+        }
+      }
+    },
+    {
+      "name": "ui_product_api_only_boundary",
+      "passed": true,
+      "detail": {
+        "productApiIsOnlyDataAuthority": true,
+        "browserAdjudicationLogic": false,
+        "browserEvidenceSelectionLogic": false,
+        "browserCardIdentityInference": false,
+        "browserRuleSemantics": false,
+        "sameOriginApiOnly": true,
+        "externalRuntimeDependencies": false,
+        "dynamicHtmlInjection": false,
+        "filesystemPathsExposed": false
+      }
+    },
+    {
+      "name": "ui_offline_same_origin_boundary",
+      "passed": true,
+      "detail": {
+        "productApiIsOnlyDataAuthority": true,
+        "browserAdjudicationLogic": false,
+        "browserEvidenceSelectionLogic": false,
+        "browserCardIdentityInference": false,
+        "browserRuleSemantics": false,
+        "sameOriginApiOnly": true,
+        "externalRuntimeDependencies": false,
+        "dynamicHtmlInjection": false,
+        "filesystemPathsExposed": false
+      }
+    },
+    {
+      "name": "ui_metrics_m15_gate",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "checkCount": 148,
+        "staticRouteCount": 4,
+        "externalRuntimeDependencies": 0,
+        "sameOriginApiOnly": true,
+        "dynamicHtmlInjection": false,
+        "browserAdjudicationLogic": false,
+        "browserEvidenceSelectionLogic": false,
+        "accessibilityLandmarks": true,
+        "responsive": true,
+        "securityHeaders": [
+          "Content-Security-Policy",
+          "Permissions-Policy",
+          "Referrer-Policy",
+          "X-Content-Type-Options",
+          "X-Frame-Options"
+        ]
+      }
+    },
+    {
+      "name": "update_automation_schema_v1",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "supportedCandidateKinds": [
+          "core_rules_pdf",
+          "official_snapshot",
+          "reviewed_file",
+          "tournament_rules_pdf"
+        ],
+        "explicitHumanReviewForMaterialChanges": true,
+        "isolatedRehearsal": true,
+        "hashBoundPublishBundle": true,
+        "staleBaselineProtection": true,
+        "postPublishReleaseGate": true,
+        "rollbackOnGateFailure": true,
+        "registeredOfficialHostAllowlist": true,
+        "sealedTransactionDocuments": true,
+        "certifiedReleaseTestCount": 19
+      }
+    },
+    {
+      "name": "update_automation_candidate_kinds",
+      "passed": true,
+      "detail": [
+        "core_rules_pdf",
+        "official_snapshot",
+        "reviewed_file",
+        "tournament_rules_pdf"
+      ]
+    },
+    {
+      "name": "update_automation_explicit_human_review",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "supportedCandidateKinds": [
+          "core_rules_pdf",
+          "official_snapshot",
+          "reviewed_file",
+          "tournament_rules_pdf"
+        ],
+        "explicitHumanReviewForMaterialChanges": true,
+        "isolatedRehearsal": true,
+        "hashBoundPublishBundle": true,
+        "staleBaselineProtection": true,
+        "postPublishReleaseGate": true,
+        "rollbackOnGateFailure": true,
+        "registeredOfficialHostAllowlist": true,
+        "sealedTransactionDocuments": true,
+        "certifiedReleaseTestCount": 19
+      }
+    },
+    {
+      "name": "update_automation_isolated_rehearsal",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "supportedCandidateKinds": [
+          "core_rules_pdf",
+          "official_snapshot",
+          "reviewed_file",
+          "tournament_rules_pdf"
+        ],
+        "explicitHumanReviewForMaterialChanges": true,
+        "isolatedRehearsal": true,
+        "hashBoundPublishBundle": true,
+        "staleBaselineProtection": true,
+        "postPublishReleaseGate": true,
+        "rollbackOnGateFailure": true,
+        "registeredOfficialHostAllowlist": true,
+        "sealedTransactionDocuments": true,
+        "certifiedReleaseTestCount": 19
+      }
+    },
+    {
+      "name": "update_automation_hash_bound_publish",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "supportedCandidateKinds": [
+          "core_rules_pdf",
+          "official_snapshot",
+          "reviewed_file",
+          "tournament_rules_pdf"
+        ],
+        "explicitHumanReviewForMaterialChanges": true,
+        "isolatedRehearsal": true,
+        "hashBoundPublishBundle": true,
+        "staleBaselineProtection": true,
+        "postPublishReleaseGate": true,
+        "rollbackOnGateFailure": true,
+        "registeredOfficialHostAllowlist": true,
+        "sealedTransactionDocuments": true,
+        "certifiedReleaseTestCount": 19
+      }
+    },
+    {
+      "name": "update_automation_stale_baseline_protection",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "supportedCandidateKinds": [
+          "core_rules_pdf",
+          "official_snapshot",
+          "reviewed_file",
+          "tournament_rules_pdf"
+        ],
+        "explicitHumanReviewForMaterialChanges": true,
+        "isolatedRehearsal": true,
+        "hashBoundPublishBundle": true,
+        "staleBaselineProtection": true,
+        "postPublishReleaseGate": true,
+        "rollbackOnGateFailure": true,
+        "registeredOfficialHostAllowlist": true,
+        "sealedTransactionDocuments": true,
+        "certifiedReleaseTestCount": 19
+      }
+    },
+    {
+      "name": "update_automation_post_publish_gate",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "supportedCandidateKinds": [
+          "core_rules_pdf",
+          "official_snapshot",
+          "reviewed_file",
+          "tournament_rules_pdf"
+        ],
+        "explicitHumanReviewForMaterialChanges": true,
+        "isolatedRehearsal": true,
+        "hashBoundPublishBundle": true,
+        "staleBaselineProtection": true,
+        "postPublishReleaseGate": true,
+        "rollbackOnGateFailure": true,
+        "registeredOfficialHostAllowlist": true,
+        "sealedTransactionDocuments": true,
+        "certifiedReleaseTestCount": 19
+      }
+    },
+    {
+      "name": "update_automation_rollback_on_failure",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "supportedCandidateKinds": [
+          "core_rules_pdf",
+          "official_snapshot",
+          "reviewed_file",
+          "tournament_rules_pdf"
+        ],
+        "explicitHumanReviewForMaterialChanges": true,
+        "isolatedRehearsal": true,
+        "hashBoundPublishBundle": true,
+        "staleBaselineProtection": true,
+        "postPublishReleaseGate": true,
+        "rollbackOnGateFailure": true,
+        "registeredOfficialHostAllowlist": true,
+        "sealedTransactionDocuments": true,
+        "certifiedReleaseTestCount": 19
+      }
+    },
+    {
+      "name": "update_automation_official_host_allowlist",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "supportedCandidateKinds": [
+          "core_rules_pdf",
+          "official_snapshot",
+          "reviewed_file",
+          "tournament_rules_pdf"
+        ],
+        "explicitHumanReviewForMaterialChanges": true,
+        "isolatedRehearsal": true,
+        "hashBoundPublishBundle": true,
+        "staleBaselineProtection": true,
+        "postPublishReleaseGate": true,
+        "rollbackOnGateFailure": true,
+        "registeredOfficialHostAllowlist": true,
+        "sealedTransactionDocuments": true,
+        "certifiedReleaseTestCount": 19
+      }
+    },
+    {
+      "name": "update_automation_sealed_transaction_documents",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "supportedCandidateKinds": [
+          "core_rules_pdf",
+          "official_snapshot",
+          "reviewed_file",
+          "tournament_rules_pdf"
+        ],
+        "explicitHumanReviewForMaterialChanges": true,
+        "isolatedRehearsal": true,
+        "hashBoundPublishBundle": true,
+        "staleBaselineProtection": true,
+        "postPublishReleaseGate": true,
+        "rollbackOnGateFailure": true,
+        "registeredOfficialHostAllowlist": true,
+        "sealedTransactionDocuments": true,
+        "certifiedReleaseTestCount": 19
+      }
+    },
+    {
+      "name": "update_automation_certified_release_suite_count",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "supportedCandidateKinds": [
+          "core_rules_pdf",
+          "official_snapshot",
+          "reviewed_file",
+          "tournament_rules_pdf"
+        ],
+        "explicitHumanReviewForMaterialChanges": true,
+        "isolatedRehearsal": true,
+        "hashBoundPublishBundle": true,
+        "staleBaselineProtection": true,
+        "postPublishReleaseGate": true,
+        "rollbackOnGateFailure": true,
+        "registeredOfficialHostAllowlist": true,
+        "sealedTransactionDocuments": true,
+        "certifiedReleaseTestCount": 19
+      }
+    },
+    {
+      "name": "runtime_hardening_contract_v1",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "runtimeArtifacts": [
+          "data/canonical/core_rules.json",
+          "data/canonical/tournament_rules.json",
+          "data/canonical/cards.json",
+          "data/canonical/semantic_ir.json",
+          "data/canonical/compiled_rule_catalog.json",
+          "data/canonical/rule_programs.json",
+          "data/canonical/supplemental_sources.json",
+          "data/canonical/official_errata.json",
+          "data/canonical/effective_rule_overrides.json",
+          "data/canonical/card_interaction_catalog.json",
+          "data/canonical/card_interaction_programs.json",
+          "data/index/rules.sqlite",
+          "data/source/official_source_manifest.json",
+          "data/source/current_authority_overlay.json",
+          "data/source/core_rules.pdf",
+          "data/source/tournament_rules.pdf",
+          "data/source/rule_versions/core/history.json",
+          "data/source/rule_versions/tournament/history.json"
+        ],
+        "indexSchemaVersion": 1,
+        "cache": {
+          "bounded": true,
+          "threadSafe": true,
+          "deepCopyResults": true,
+          "adjudicationCached": false
+        },
+        "policies": {
+          "failStartupOnCorruption": true,
+          "failClosedOnRuntimeDrift": true,
+          "readOnlySqliteAtRuntime": true,
+          "atomicCanonicalWrites": true,
+          "networkRequiredForServing": false
+        }
+      }
+    },
+    {
+      "name": "runtime_hardening_integrity_passes",
+      "passed": true,
+      "detail": {
+        "passed": true,
+        "artifactCount": 18,
+        "errors": []
+      }
+    },
+    {
+      "name": "runtime_hardening_sqlite_schema_v1",
+      "passed": true,
+      "detail": {
+        "passed": true,
+        "quickCheck": "ok",
+        "userVersion": 1,
+        "expectedUserVersion": 1,
+        "docCount": 3720,
+        "ftsCount": 3720
+      }
+    },
+    {
+      "name": "runtime_hardening_offline_serving",
+      "passed": true,
+      "detail": {
+        "integrity": false,
+        "metrics": false
+      }
+    },
+    {
+      "name": "runtime_hardening_cache_and_adjudication_policy",
+      "passed": true,
+      "detail": {
+        "cache": {
+          "bounded": true,
+          "threadSafe": true,
+          "deepCopyResults": true,
+          "adjudicationCached": false
+        },
+        "metrics": {
+          "schemaVersion": 1,
+          "checkCount": 74,
+          "runtimeArtifactCount": 18,
+          "indexSchemaVersion": 1,
+          "startupValidationSeconds": 0.2691,
+          "searchCache": {
+            "maxEntries": 256,
+            "entries": 3,
+            "hits": 57,
+            "misses": 3,
+            "evictions": 0
+          },
+          "httpMetrics": {
+            "requests": 21,
+            "errors": 1,
+            "active": 0,
+            "maxConcurrent": 10,
+            "statusCounts": {
+              "200": 20,
+              "404": 1
+            },
+            "storesRequestContent": false
+          },
+          "networkRequiredForServing": false,
+          "adjudicationCached": false,
+          "atomicIndexReplacement": true,
+          "runtimeDriftFailClosed": true,
+          "startupCorruptionFailClosed": true
+        }
+      }
+    },
+    {
+      "name": "runtime_hardening_atomic_index",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "checkCount": 74,
+        "runtimeArtifactCount": 18,
+        "indexSchemaVersion": 1,
+        "startupValidationSeconds": 0.2691,
+        "searchCache": {
+          "maxEntries": 256,
+          "entries": 3,
+          "hits": 57,
+          "misses": 3,
+          "evictions": 0
+        },
+        "httpMetrics": {
+          "requests": 21,
+          "errors": 1,
+          "active": 0,
+          "maxConcurrent": 10,
+          "statusCounts": {
+            "200": 20,
+            "404": 1
+          },
+          "storesRequestContent": false
+        },
+        "networkRequiredForServing": false,
+        "adjudicationCached": false,
+        "atomicIndexReplacement": true,
+        "runtimeDriftFailClosed": true,
+        "startupCorruptionFailClosed": true
+      }
+    },
+    {
+      "name": "runtime_hardening_drift_fail_closed",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "checkCount": 74,
+        "runtimeArtifactCount": 18,
+        "indexSchemaVersion": 1,
+        "startupValidationSeconds": 0.2691,
+        "searchCache": {
+          "maxEntries": 256,
+          "entries": 3,
+          "hits": 57,
+          "misses": 3,
+          "evictions": 0
+        },
+        "httpMetrics": {
+          "requests": 21,
+          "errors": 1,
+          "active": 0,
+          "maxConcurrent": 10,
+          "statusCounts": {
+            "200": 20,
+            "404": 1
+          },
+          "storesRequestContent": false
+        },
+        "networkRequiredForServing": false,
+        "adjudicationCached": false,
+        "atomicIndexReplacement": true,
+        "runtimeDriftFailClosed": true,
+        "startupCorruptionFailClosed": true
+      }
+    },
+    {
+      "name": "runtime_hardening_corruption_fail_closed",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "checkCount": 74,
+        "runtimeArtifactCount": 18,
+        "indexSchemaVersion": 1,
+        "startupValidationSeconds": 0.2691,
+        "searchCache": {
+          "maxEntries": 256,
+          "entries": 3,
+          "hits": 57,
+          "misses": 3,
+          "evictions": 0
+        },
+        "httpMetrics": {
+          "requests": 21,
+          "errors": 1,
+          "active": 0,
+          "maxConcurrent": 10,
+          "statusCounts": {
+            "200": 20,
+            "404": 1
+          },
+          "storesRequestContent": false
+        },
+        "networkRequiredForServing": false,
+        "adjudicationCached": false,
+        "atomicIndexReplacement": true,
+        "runtimeDriftFailClosed": true,
+        "startupCorruptionFailClosed": true
+      }
+    },
+    {
+      "name": "runtime_hardening_contract_fail_closed",
+      "passed": true,
+      "detail": {
+        "failStartupOnCorruption": true,
+        "failClosedOnRuntimeDrift": true,
+        "readOnlySqliteAtRuntime": true,
+        "atomicCanonicalWrites": true,
+        "networkRequiredForServing": false
+      }
+    },
+    {
+      "name": "m18_release_candidate_zero_blockers",
+      "passed": true,
+      "detail": {
+        "passed": true,
+        "blockers": 0,
+        "findings": {
+          "Critical": 0,
+          "High": 0,
+          "Medium": 1,
+          "Low": 0
+        }
+      }
+    },
+    {
+      "name": "m18_conformance_ready",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "milestone": "M18",
+        "generatedFromBaseline": "M17 Revision 2",
+        "releaseCandidateReady": true,
+        "blockingFindingCount": 0,
+        "findingCounts": {
+          "Critical": 0,
+          "High": 0,
+          "Medium": 1,
+          "Low": 0
+        },
+        "criticalHighFindings": 0,
+        "findings": [
+          {
+            "code": "gold_c_report_only_remaining",
+            "severity": "Medium",
+            "blocking": false,
+            "detail": {
+              "remaining": 18
+            }
+          }
+        ],
+        "architecturePromiseCount": 18,
+        "certifiedBaselineReportCount": 17,
+        "automatedReleaseSuiteCount": 18,
+        "retention": {
+          "expected": [
+            "RiftKeepRules_Engine_Milestone16.zip",
+            "RiftKeepRules_Engine_Milestone17.zip"
+          ],
+          "actual": [
+            "RiftKeepRules_Engine_Milestone16.zip",
+            "RiftKeepRules_Engine_Milestone17.zip"
+          ],
+          "candidates": [],
+          "passed": true,
+          "hashes": {
+            "RiftKeepRules_Engine_Milestone16.zip": "509947c1a86ed5d0362a3d2783c71c051f4ca4a10c5b1c06febe670a695d44c1",
+            "RiftKeepRules_Engine_Milestone17.zip": "8d7881ab7775ceeab7f6c392cb1e60900a99fdb94c7f10cad4a9ab0d9b14b9be"
+          }
+        },
+        "subAudits": {
+          "m18_reproducibility_audit.json": {
+            "passed": true,
+            "checkCount": null
+          },
+          "m18_coverage_audit.json": {
+            "passed": true,
+            "checkCount": null
+          },
+          "m18_update_lifecycle_audit.json": {
+            "passed": true,
+            "checkCount": null
+          },
+          "m18_clean_install_audit.json": {
+            "passed": true,
+            "checkCount": null
+          },
+          "release_candidate_audit_test_report.json": {
+            "passed": true,
+            "checkCount": 43
+          }
+        },
+        "consolidatedValidationPassed": true,
+        "projectAuditCritical": 0,
+        "projectAuditWarnings": 2
+      }
+    },
+    {
+      "name": "m18_adversarial_audit_gate",
+      "passed": true,
+      "detail": {
+        "passed": true,
+        "checkCount": 48,
+        "failureCount": 0,
+        "failures": [],
+        "metrics": {
+          "schemaVersion": 1,
+          "checkCount": 48,
+          "baselineBlockingFindings": 0,
+          "baselineMediumFindings": 1,
+          "definitionChecks": 120,
+          "recoveredBaselineSuiteCount": 17,
+          "retentionHashesVerified": true,
+          "cleanInstallPassed": true,
+          "updateLifecyclePassed": true,
+          "productParityPassed": true
+        }
+      }
+    },
+    {
+      "name": "stable_1_0_contract_identity",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "product": {
+          "name": "RiftKeep Rules Engine",
+          "version": "1.0.0",
+          "releaseLine": "stable"
+        },
+        "compatibility": {
+          "productApi": "v1",
+          "sqliteIndexSchema": 1,
+          "updateTransactionSchema": 1,
+          "runtimeHardeningSchema": 1,
+          "releaseCandidateAuditSchema": 1,
+          "uiContractSchema": 1,
+          "uiVersion": "m15-v1",
+          "pythonMinimum": "3.11"
+        },
+        "policies": {
+          "currentAuthorityRequiredForAsk": true,
+          "normalServingRequiresNetwork": false,
+          "llmOptionalForCorrectness": true,
+          "browserContainsAdjudicationLogic": false,
+          "adjudicationCached": false,
+          "runtimeDriftFailsClosed": true,
+          "sourceUpdatesRequireTransactionalGate": true,
+          "latestTwoMilestoneRetention": true
+        },
+        "knownLimitations": [
+          {
+            "code": "gold_c_report_only_remaining",
+            "severity": "known_non_blocking",
+            "count": 18,
+            "scope": "forward card-interaction fixtures",
+            "currentAuthorityImpact": false
+          },
+          {
+            "code": "historical_patch_note_bodies_incomplete",
+            "severity": "known_non_blocking",
+            "count": 4,
+            "scope": "superseded historical change context",
+            "currentAuthorityImpact": false
+          },
+          {
+            "code": "historical_faq_bodies_incomplete",
+            "severity": "known_non_blocking",
+            "count": 3,
+            "scope": "superseded historical FAQ archive",
+            "currentAuthorityImpact": false
+          }
+        ],
+        "semanticVersioning": {
+          "major": "Breaking Product API contract, proof/verdict semantics, stable source identity, or persisted schema compatibility.",
+          "minor": "Backward-compatible capabilities, new authoritative source families, or new proven adjudication coverage.",
+          "patch": "Backward-compatible correctness, data, security, documentation, or performance fixes.",
+          "authorityUpdates": "Official rules/card/FAQ updates use M16 transactional update automation and do not imply a software major version by themselves."
+        }
+      }
+    },
+    {
+      "name": "stable_1_0_manifest_identity",
+      "passed": true,
+      "detail": {
+        "product": {
+          "name": "RiftKeep Rules Engine",
+          "version": "1.0.0",
+          "releaseLine": "stable"
+        },
+        "suiteCount": 19,
+        "artifactCount": 44
+      }
+    },
+    {
+      "name": "stable_1_0_manifest_hash_inventory",
+      "passed": true,
+      "detail": {
+        "passed": true,
+        "errors": [],
+        "artifactCount": 44,
+        "productVersion": "1.0.0",
+        "apiVersion": "v1",
+        "certifiedReleaseSuiteCount": 19
+      }
+    },
+    {
+      "name": "stable_1_0_clean_install",
+      "passed": true,
+      "detail": {
+        "schemaVersion": 1,
+        "passed": true,
+        "distributionFileCount": 185,
+        "buildPassed": true,
+        "manifestPassed": true,
+        "selfCheckPassed": true,
+        "apiPassed": true,
+        "uiPassed": true,
+        "definitionPassed": true,
+        "deterministicAskPassed": true,
+        "readOnlyIndexPassed": true,
+        "networkRequired": false,
+        "externalNetworkAttempted": false,
+        "productVersion": "1.0.0",
+        "currentAuthorityComplete": true,
+        "manifest": {
+          "passed": true,
+          "errors": [],
+          "artifactCount": 44,
+          "productVersion": "1.0.0",
+          "apiVersion": "v1",
+          "certifiedReleaseSuiteCount": 19
+        },
+        "cleanExtractionPathPolicy": "fresh temporary ZIP/extraction; no inherited data/validation reports"
+      }
+    },
+    {
+      "name": "stable_1_0_acceptance_gate",
+      "passed": true,
+      "detail": {
+        "passed": true,
+        "checkCount": 191,
+        "failureCount": 0,
+        "failures": [],
+        "metrics": {
+          "schemaVersion": 1,
+          "checkCount": 191,
+          "productVersion": "1.0.0",
+          "productApiVersion": "v1",
+          "criticalArtifactCount": 44,
+          "certifiedReleaseSuiteCount": 19,
+          "manifestPassed": true,
+          "currentAuthorityComplete": true,
+          "networkRequiredForServing": false,
+          "m18CriticalHighBlockers": 0
+        }
+      }
+    },
+    {
+      "name": "current_gameplay_authority_complete",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "authority_coverage_gameplayRulesCurrent",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "authority_coverage_tournamentProcedureCurrent",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "authority_coverage_sanctionedFormatLegalityCurrent",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "authority_coverage_cardDatabaseCurrentSnapshot",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "authority_coverage_officialCardErrataHistory",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "baseline": {
+    "coreRules": 2381,
+    "tournamentRules": 935,
+    "combinedNumberedRules": 3316,
+    "cards": 1304,
+    "currentGameplayAuthorityComplete": true
+  },
+  "note": "The historical patch-note and superseded-FAQ archive warnings are non-blocking for current gameplay authority but must remain visible until their complete official bodies are mirrored."
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "frozen": true,
+  "generatedForMilestone": "M12",
+  "corpusSha256": "aa28057699bb340416dcb8bac5ce2d60445d365ddc60264e58521f7f52a6286b",
+  "sourceHashes": {
+    "tests/regression_cases.json": "9a6ed6d4ef29ecbf20f628753ab09ab1c5327ef11b0f840760963abf67b16948",
+    "data/source/riftbound_cards.json": "9c1c5f762a999ecb96d033dca5c1b2b782b8eb2b57960acaad170b337feaed83",
+    "data/source/official_text/vendetta_faq_2026-08-14.txt": "a68712057b00b3590e779ffdea024b1d5201891f12e94dfde3de49e09d323891",
+    "data/canonical/official_errata_history.json": "e4819fd925893cbceb8be4597031a2e5102632dfb0f84f3b2222abced947b18e",
+    "data/source/rule_versions/core/history.json": "814b8457c6ed178c3ae104c6b2ceaafe5e87a2a21e4cd276a47ec889c1bbd26d",
+    "data/source/rule_versions/tournament/history.json": "f9834758ba2747ea78970163e1e7478b14b996b8514fbcf8f102a3bfe9abcd23",
+    "tests/run_update_tests.py": "573c674c7eda0b56305cf4060056e1849ac8c01847652bcf8d2a6461f2da8474"
+  },
+  "expectedCounts": {
+    "total": 1846,
+    "tiers": {
+      "A": 396,
+      "B": 1416,
+      "C": 34
+    },
+    "categories": {
+      "adjudication": 396,
+      "card_record": 1304,
+      "current_faq_section": 35,
+      "official_errata_event": 63,
+      "rule_version_record": 2,
+      "update_diff_fixture": 12,
+      "future_card_interaction": 34
+    }
+  },
+  "policy": {
+    "runnerMayRegenerateExpectations": false,
+    "sourceDriftRequiresExplicitRecertification": true,
+    "goldAFullAdjudicationsPerSemanticGroup": 1,
+    "goldCReleaseGating": false
+  }
+}

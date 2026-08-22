@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "distributionFileCount": 185,
+  "buildPassed": true,
+  "manifestPassed": true,
+  "selfCheckPassed": true,
+  "apiPassed": true,
+  "uiPassed": true,
+  "definitionPassed": true,
+  "deterministicAskPassed": true,
+  "readOnlyIndexPassed": true,
+  "networkRequired": false,
+  "externalNetworkAttempted": false,
+  "productVersion": "1.0.0",
+  "currentAuthorityComplete": true,
+  "manifest": {
+    "passed": true,
+    "errors": [],
+    "artifactCount": 44,
+    "productVersion": "1.0.0",
+    "apiVersion": "v1",
+    "certifiedReleaseSuiteCount": 19
+  },
+  "cleanExtractionPathPolicy": "fresh temporary ZIP/extraction; no inherited data/validation reports"
+}

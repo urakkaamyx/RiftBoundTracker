@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "checkCount": 148,
+  "staticRouteCount": 4,
+  "externalRuntimeDependencies": 0,
+  "sameOriginApiOnly": true,
+  "dynamicHtmlInjection": false,
+  "browserAdjudicationLogic": false,
+  "browserEvidenceSelectionLogic": false,
+  "accessibilityLandmarks": true,
+  "responsive": true,
+  "securityHeaders": [
+    "Content-Security-Policy",
+    "Permissions-Policy",
+    "Referrer-Policy",
+    "X-Content-Type-Options",
+    "X-Frame-Options"
+  ]
+}

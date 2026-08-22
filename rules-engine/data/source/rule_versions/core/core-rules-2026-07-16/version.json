@@ -1,0 +1,11 @@
+{
+  "sourceId": "core-rules-2026-07-16",
+  "status": "current",
+  "sourceSha256": "9c5fb8b8638f2cd19ceda237929fa2c37aac23c797cc7410294993470ba5a30b",
+  "sourceFile": "data/source/core_rules.pdf",
+  "parsedRules": "data/source/rule_versions/core/core-rules-2026-07-16/parsed_rules.json",
+  "ruleCount": 2381,
+  "previousSourceId": null,
+  "nextSourceId": null,
+  "effectiveFrom": null
+}

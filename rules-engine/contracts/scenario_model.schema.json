@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RiftKeep Generalized Scenario Model",
+  "type": "object",
+  "required": [
+    "schemaVersion", "originalText", "interpretedText", "players", "objects",
+    "zones", "locations", "states", "relations", "references", "events",
+    "temporalRelations", "unknowns", "clarifyingQuestions", "assumptions", "policy"
+  ],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "originalText": {"type": "string"},
+    "interpretedText": {"type": "string"},
+    "players": {"type": "array", "items": {"type": "object", "required": ["playerId", "role", "mentions"]}},
+    "objects": {"type": "array", "items": {"type": "object", "required": ["objectId", "kind", "surface", "sourceEntityId", "provenance"]}},
+    "zones": {"type": "array", "items": {"type": "object", "required": ["zoneId", "zoneType", "boardGroup", "surface", "provenance"]}},
+    "locations": {"type": "array", "items": {"type": "object", "required": ["locationId", "locationType", "surface", "provenance"]}},
+    "states": {"type": "array", "items": {"type": "object", "required": ["stateId", "objectId", "state", "value", "provenance"]}},
+    "relations": {"type": "array", "items": {"type": "object", "required": ["relationId", "type", "provenance"]}},
+    "references": {"type": "array", "items": {"type": "object", "required": ["referenceId", "surface", "status", "provenance"]}},
+    "events": {"type": "array", "items": {"type": "object", "required": ["eventId", "type", "surface", "ordering", "provenance"]}},
+    "temporalRelations": {"type": "array", "items": {"type": "object", "required": ["type", "firstEventId", "secondEventId", "confidence", "provenance"]}},
+    "unknowns": {"type": "array", "items": {"type": "object", "required": ["unknownId", "kind", "whyUnknown"]}},
+    "clarifyingQuestions": {"type": "array", "items": {"type": "object", "required": ["kind", "question", "whyNeeded"]}},
+    "assumptions": {"type": "array"},
+    "policy": {"type": "object"}
+  },
+  "additionalProperties": true
+}

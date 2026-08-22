@@ -1,0 +1,137 @@
+{
+  "authorityStatus": {
+    "status": "complete",
+    "currentRulesComplete": true,
+    "activeOverlays": [
+      "vendetta-faq-2026-08-14"
+    ],
+    "ingestedOverlays": [
+      "vendetta-faq-2026-08-14"
+    ],
+    "missing": [],
+    "coverage": {
+      "gameplayRulesCurrent": {
+        "status": "complete",
+        "complete": true,
+        "missing": [],
+        "note": "Current Core Rules plus every active official FAQ/rulings overlay."
+      },
+      "tournamentProcedureCurrent": {
+        "status": "complete",
+        "complete": true,
+        "missing": [],
+        "note": "Current Tournament Rules PDF."
+      },
+      "sanctionedFormatLegalityCurrent": {
+        "status": "complete",
+        "complete": true,
+        "missing": [],
+        "note": "Current structured snapshot from the official Rules Hub."
+      },
+      "cardDatabaseCurrentSnapshot": {
+        "status": "available",
+        "complete": true,
+        "missing": [],
+        "note": "User-supplied card database snapshot; current card text is kept separate from proven printed-history text."
+      },
+      "officialCardErrataHistory": {
+        "status": "complete",
+        "complete": true,
+        "missing": [],
+        "note": "All registered official errata pages mirrored and versioned."
+      },
+      "officialPatchNoteHistory": {
+        "status": "partial",
+        "complete": false,
+        "missing": [
+          {
+            "sourceId": "origins-core-patch",
+            "reason": "patch-note body not locally ingested"
+          },
+          {
+            "sourceId": "spiritforged-core-patch",
+            "reason": "patch-note body not locally ingested"
+          },
+          {
+            "sourceId": "unleashed-core-patch",
+            "reason": "patch-note body not locally ingested"
+          },
+          {
+            "sourceId": "vendetta-core-patch",
+            "reason": "patch-note body not locally ingested"
+          }
+        ],
+        "note": "Patch notes are non-exhaustive change context; PDF-to-PDF diff remains authoritative for actual Core Rules changes."
+      },
+      "historicalFaqArchive": {
+        "status": "partial",
+        "complete": false,
+        "missing": [
+          {
+            "sourceId": "unleashed-faq-2026-04-29",
+            "reason": "historical FAQ body not locally ingested"
+          },
+          {
+            "sourceId": "spiritforged-faq-2026-01-14",
+            "reason": "historical FAQ body not locally ingested"
+          },
+          {
+            "sourceId": "origins-faq-2025-10-16",
+            "reason": "historical FAQ body not locally ingested"
+          }
+        ],
+        "note": "Superseded FAQs are historical evidence only and must not override current rules."
+      }
+    },
+    "policy": "Current gameplay adjudication requires the current Core Rules and every active official overlay. Other source families report coverage independently rather than being collapsed into one boolean."
+  },
+  "supplemental": {
+    "snapshotCount": 1,
+    "documentCount": 35
+  },
+  "currentOverlayIntegrity": {
+    "schemaVersion": 1,
+    "passed": true,
+    "activeOverlayCount": 1,
+    "errors": [],
+    "checks": [
+      {
+        "sourceId": "vendetta-faq-2026-08-14",
+        "passed": true
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "vendetta-faq-2026-08-14",
+        "passed": true,
+        "errors": [],
+        "checks": {
+          "latestPointerExists": true,
+          "snapshotRecordExists": true,
+          "archiveExists": true,
+          "archiveHashMatchesSnapshot": true,
+          "pointerHashMatchesSnapshot": true,
+          "sourceIdMatches": true,
+          "sourceUrlMatchesManifest": true,
+          "authorityStatusCurrentOverlay": true,
+          "precedenceDeclared": true,
+          "snapshotValidationPassed": true,
+          "sectionCountMatches": true,
+          "sectionCountMeetsProfile": true,
+          "evidenceIdsUnique": true,
+          "evidenceIdsContiguous": true,
+          "catalogCoversEverySection": true,
+          "catalogRolesPresent": true
+        },
+        "sectionCount": 35,
+        "sha256": "a68712057b00b3590e779ffdea024b1d5201891f12e94dfde3de49e09d323891",
+        "captureMode": "normalized_official_web_crawl_transcription",
+        "validation": {
+          "passed": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    ]
+  }
+}

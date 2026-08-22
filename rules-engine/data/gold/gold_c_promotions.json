@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 1,
+  "milestone": "M13",
+  "frozen": true,
+  "derivedExpectationsFromEngine": false,
+  "promotionCount": 16,
+  "goldCFixtureCount": 34,
+  "remainingReportOnlyCount": 18,
+  "policy": {
+    "promotionsAreReleaseGating": true,
+    "unpromotedGoldCRemainsReportOnly": true,
+    "normalBuildMayNotGenerateExpectedVerdicts": true,
+    "sourceDriftDisablesExecutor": true
+  },
+  "promotions": [
+    {
+      "caseId": "GC-FAQ-002",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0003",
+      "programId": "CARDI:0003",
+      "question": "What is the difference between Iascylla and Azir, Sovereign’s uses of “this battlefield”?",
+      "questionSha256": "799fbafa7ee5357d9023ea8a0f69d5e049f73fb66c276016832a6637cd546ecb",
+      "expectedIssueVerdicts": [
+        "iascylla_snapshots_held_battlefield_azir_checks_current_battlefield"
+      ],
+      "expectedIssueCount": 1,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-003",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0004",
+      "programId": "CARDI:0004",
+      "question": "What happens when I play Moonfall choosing an enemy unit while I control an empowered Mel, Newly Awakened?",
+      "questionSha256": "9e50d8c4bdfb49cf6528413116ed5af551475f2c62e5e9177021201d8aee4ee6",
+      "expectedIssueVerdicts": [
+        "moonfall_chosen_unit_minus3_others_minus2"
+      ],
+      "expectedIssueCount": 1,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-004",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0005",
+      "programId": "CARDI:0005",
+      "question": "What about casting Stupefy while I have an empowered Mel, Newly Awakened?",
+      "questionSha256": "178a22fcb531b9973b7f9f6118c89014d9f02a85683d0f9ee98c06534f59d68c",
+      "expectedIssueVerdicts": [
+        "stupefy_minus2_minimum1"
+      ],
+      "expectedIssueCount": 1,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-005",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0006",
+      "programId": "CARDI:0006",
+      "question": "Speaking of Mel, can my opponent play Abandon on my spell while I control an empowered Mel, Newly Awakened? What happens?",
+      "questionSha256": "58f5f549a8c45a281a54dfb6ea292f953da52a38832dccf110bf160cd0a3430d",
+      "expectedIssueVerdicts": [
+        "yes_abandon_can_be_played",
+        "abandon_predict_only_no_counter_or_return"
+      ],
+      "expectedIssueCount": 2,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-006",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0007",
+      "programId": "CARDI:0007",
+      "question": "How does it work if I cast Abandon while having an empowered Mel, Newly Awakened but they Rebuttal my spell?",
+      "questionSha256": "6e449771bb90cfc96908968bfeeb3ad33b4e18dbb0c24b214e21622ae0752e59",
+      "expectedIssueVerdicts": [
+        "rebuttal_control_change_is_not_countering"
+      ],
+      "expectedIssueCount": 1,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-008",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0009",
+      "programId": "CARDI:0009",
+      "question": "What happens if I choose to copy an empowered unit when I equip an unempowered unit with Shady Spectacles?",
+      "questionSha256": "9fd1ffd22cb7a506bfa4412486b2188d7c324834f9d986d1f910192deb66d674",
+      "expectedIssueVerdicts": [
+        "empowered_status_not_copied"
+      ],
+      "expectedIssueCount": 1,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-009",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0010",
+      "programId": "CARDI:0010",
+      "question": "What happens when my opponent’s Akshan, Mischievous steals my equipped Shady Spectacles? What happens if they want to copy Aphelios?",
+      "questionSha256": "260030eb2e5fd132b50350603814253a0ab3b47b31f53eee40efad6d162c22d8",
+      "expectedIssueVerdicts": [
+        "stolen_spectacles_old_copy_ends_then_akshan_copies",
+        "copied_aphelios_trigger_does_not_see_prior_attach"
+      ],
+      "expectedIssueCount": 2,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-013",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0014",
+      "programId": "CARDI:0014",
+      "question": "If my opponent plays two spells in succession, can I counter the first one with Crumbling Sands?",
+      "questionSha256": "ef2e20708adea5d3b4aa7fb5d14d13dac26334ebf5e767e994ec918cd20dfa13",
+      "expectedIssueVerdicts": [
+        "yes_crumbling_sands_can_counter_first_spell"
+      ],
+      "expectedIssueCount": 1,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-017",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0018",
+      "programId": "CARDI:0018",
+      "question": "What happens if my opponent plays Flash on their Akali, Silent that’s currently in combat after I play Star-Crossed targeting her?",
+      "questionSha256": "b4c22ef5b24ec18c76ada52973f351690077de8cc4ae0fc9251e684197b09a39",
+      "expectedIssueVerdicts": [
+        "akali_mistargets_star_crossed_and_is_unaffected"
+      ],
+      "expectedIssueCount": 1,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-023",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0024",
+      "programId": "CARDI:0024",
+      "question": "What happens when my opponent plays Hidden Blade targeting my Akali, Deadly Weapon in reaction to her move trigger? Will it still deal damage to the chosen unit?",
+      "questionSha256": "45a533c50e0478247cd12c191db068501b70f8e74acf863bbebb63844bf5004a",
+      "expectedIssueVerdicts": [
+        "akali_move_trigger_snapshot_survives_hidden_blade",
+        "yes_akali_trigger_still_deals_damage"
+      ],
+      "expectedIssueCount": 2,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-025",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0026",
+      "programId": "CARDI:0026",
+      "question": "What card does Astral Heron’s triggered ability discount?",
+      "questionSha256": "b31bc3a5c2b03a44ee1f2749baf03bfd717496b97c7f99590e03dea1f193b4af",
+      "expectedIssueVerdicts": [
+        "astral_heron_discounts_next_card_played_after_resolution"
+      ],
+      "expectedIssueCount": 1,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-029",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0030",
+      "programId": "CARDI:0030",
+      "question": "What happens if I play Dragon Form on a unit that has -1 [M] from Stupefy applied to it? Will my Fiora, Grand Duelist trigger? Is there a moment where my unit becomes 5 [M] before the -1 [M] from Stupefy brings it down to 4 [M]?",
+      "questionSha256": "d3ccf7ef77824c5332da1822a30d5c9a18943c857e98c3a2a89dbfb86ee9bcdf",
+      "expectedIssueVerdicts": [
+        "dragon_form_results_in_4_might_with_existing_stupefy",
+        "no_fiora_does_not_trigger_from_intermediate_layer_value",
+        "no_intermediate_5_might_window"
+      ],
+      "expectedIssueCount": 3,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-030",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0031",
+      "programId": "CARDI:0031",
+      "question": "What happens when I play Hostile Takeover gaining control of my opponent’s ready unit, move it to base, and then play Temporal Breach choosing it? Where will the unit go?",
+      "questionSha256": "7942a46304d0be322316b7249c754a75919275718c625a7e64f91e45db17ffd7",
+      "expectedIssueVerdicts": [
+        "temporal_breach_play_cannot_finalize_to_other_players_base",
+        "unit_remains_in_banishment"
+      ],
+      "expectedIssueCount": 2,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-031",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0032",
+      "programId": "CARDI:0032",
+      "question": "My 11 Might Renekton, Brute is disempowered by my own Profiteer. What happens when my opponent plays Stupefy choosing him? Will his ability trigger? What happens if instead I activated his ability?",
+      "questionSha256": "d3906e948ce3a0e9fbaba94ab973b61169e494c1089e24b01ad8cc24cd685d3a",
+      "expectedIssueVerdicts": [
+        "renekton_does_not_reenter_10_or_more_state",
+        "no_renekton_trigger_from_stupefy_sequence",
+        "no_renekton_trigger_from_own_might_activation"
+      ],
+      "expectedIssueCount": 3,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-033",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0034",
+      "programId": "CARDI:0034",
+      "question": "What happens when I play Hextech Ray on an Elder Dragon while Imperial Decree’s delayed trigger is active and I have an Immortal Phoenix in the Trash? Can I play Immortal Phoenix from the Trash?",
+      "questionSha256": "e2ab0118e10ed0fd562b8320aadaebbdd56d9f164ea61a09621c454cf6843f82",
+      "expectedIssueVerdicts": [
+        "imperial_decree_delayed_trigger_kill_is_attributed_to_generating_spell",
+        "yes_immortal_phoenix_can_trigger_and_be_played"
+      ],
+      "expectedIssueCount": 2,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    },
+    {
+      "caseId": "GC-FAQ-034",
+      "authorityEvidenceId": "O:vendetta-faq-2026-08-14:0035",
+      "programId": "CARDI:0035",
+      "question": "If I play Ride the Wind targeting my unit at Vilemaw’s Lair and attempt to move them to base, what happens?",
+      "questionSha256": "f985df46831594c112b0a96212227eb6008080d3073c0378f77a006add04e8cf",
+      "expectedIssueVerdicts": [
+        "move_negated_but_linked_ready_still_executes"
+      ],
+      "expectedIssueCount": 1,
+      "sourceGuarded": true,
+      "derivedFromEngine": false,
+      "verificationMethod": "human-reviewed source-guarded card interaction executor"
+    }
+  ]
+}

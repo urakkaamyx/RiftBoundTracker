@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "sourceId": "rules-hub-current",
+  "sourceUrl": "https://playriftbound.com/en-us/rules-hub/",
+  "capturedAt": "2026-08-21",
+  "purpose": "Structured current metadata captured from the official Rules Hub; production sync should refresh this source.",
+  "constructed": {
+    "lastUpdated": "2026-07-16",
+    "setsStatement": "All sets currently produced for Riftbound are legal in sanctioned Constructed tournaments; Standard rotation is intended to begin in 2028.",
+    "banned": {
+      "cards": ["Called Shot", "Draven, Vanquisher", "Fight or Flight", "Scrapheap", "Stealthy Pursuer"],
+      "battlefields": ["The Arena’s Greatest", "Aspirant’s Climb", "Dreaming Tree", "Obelisk of Power", "Reaver’s Row"]
+    }
+  },
+  "twoVsTwoConstructed": {
+    "lastUpdated": "2026-07-16",
+    "banned": {
+      "legends": ["Master Yi, Wuju Bladesman"],
+      "cards": ["Called Shot", "Draven Vanquisher", "Fight or Flight", "Scrapheap", "Stealthy Pursuer"],
+      "battlefields": ["The Arena’s Greatest", "Aspirant’s Climb", "Dreaming Tree", "Obelisk of Power", "Reaver’s Row"]
+    }
+  },
+  "currentDocuments": {
+    "coreRulesLastUpdated": "2026-07-16",
+    "tournamentRulesLastUpdated": "2026-07-16"
+  }
+}

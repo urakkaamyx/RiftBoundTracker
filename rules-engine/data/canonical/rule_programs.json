@@ -1,0 +1,1042 @@
+{
+  "schemaVersion": 1,
+  "programCount": 15,
+  "validProgramCount": 15,
+  "programs": [
+    {
+      "programId": "discard-to-trash",
+      "obligation": "discard_to_trash",
+      "evidenceRuleIds": [
+        "422",
+        "422.1",
+        "422.1.a",
+        "422.1.b"
+      ],
+      "sourceTextGuards": {
+        "422": "Discard",
+        "422.1": "Discarding a card is moving it from a player's hand directly into their trash without activating or executing its normal rules text.",
+        "422.1.a": "The player who is performing the action chooses which cards to send to their Trash, and may use Private Information to do so.",
+        "422.1.b": "“When I am discarded” abilities or other Triggered Abilities that trigger on discarding are executed after discarding has occurred."
+      },
+      "cases": [
+        {
+          "when": [],
+          "verdict": "yes",
+          "truth": "true",
+          "claim": "Discarding a card moves it directly from its player's hand to that player's Trash without executing the card's normal rules text.",
+          "evidenceRuleIds": [
+            "422",
+            "422.1",
+            "422.1.a",
+            "422.1.b"
+          ]
+        }
+      ],
+      "fallback": null,
+      "sourceTextGuardHashes": {
+        "422": {
+          "expectedTextHash": "eb1a70e39274bb762b5d7c1adb5debeea2b05e12af28207f21a375b596853273",
+          "actualTextHash": "eb1a70e39274bb762b5d7c1adb5debeea2b05e12af28207f21a375b596853273"
+        },
+        "422.1": {
+          "expectedTextHash": "9a0b5bc199069166d060f0802cb9fdc3a67a336396a017a9f72eb1353dcdd15a",
+          "actualTextHash": "9a0b5bc199069166d060f0802cb9fdc3a67a336396a017a9f72eb1353dcdd15a"
+        },
+        "422.1.a": {
+          "expectedTextHash": "fe36604f6b7762db5f86c0f8d22e66e41e4a0c1853b5a60962063d0ad6e6e7fc",
+          "actualTextHash": "fe36604f6b7762db5f86c0f8d22e66e41e4a0c1853b5a60962063d0ad6e6e7fc"
+        },
+        "422.1.b": {
+          "expectedTextHash": "6853a768ad21e2198b0b4608d273632e0d54aa98a4f0d1a9eb7b40f2ca19ec3f",
+          "actualTextHash": "6853a768ad21e2198b0b4608d273632e0d54aa98a4f0d1a9eb7b40f2ca19ec3f"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "replace-not-play",
+      "obligation": "replacement_not_play",
+      "evidenceRuleIds": [
+        "438",
+        "438.1"
+      ],
+      "sourceTextGuards": {
+        "438": "Replace",
+        "438.1": "Replacing is the act of Creating a token in the place of another card or token without playing it while inheriting all effects or statuses of the game object it replaced."
+      },
+      "cases": [
+        {
+          "when": [],
+          "verdict": "no",
+          "truth": "true",
+          "claim": "Replacing creates a token in another object's place without playing that token.",
+          "evidenceRuleIds": [
+            "438",
+            "438.1"
+          ]
+        }
+      ],
+      "fallback": null,
+      "sourceTextGuardHashes": {
+        "438": {
+          "expectedTextHash": "95e154398a4bc0091aa4d6b607472ac5a89e41fbc84a3a49f823314d6de9eebc",
+          "actualTextHash": "95e154398a4bc0091aa4d6b607472ac5a89e41fbc84a3a49f823314d6de9eebc"
+        },
+        "438.1": {
+          "expectedTextHash": "fb94bcb38b115544a4870bb61db72b87efe96abaa66b8156f23d67a789db1fd8",
+          "actualTextHash": "fb94bcb38b115544a4870bb61db72b87efe96abaa66b8156f23d67a789db1fd8"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "ready-binary-state",
+      "obligation": "ready_state",
+      "evidenceRuleIds": [
+        "415.1",
+        "415.1.b",
+        "415.1.c"
+      ],
+      "sourceTextGuards": {
+        "415.1": "Readying is an action that marks a non-spell Game Object on the board as available for action.",
+        "415.1.b": "A Unit that is already Ready cannot be Readied again.",
+        "415.1.c": "If a Unit is instructed to be Readied while it is already Ready, nothing additional happens."
+      },
+      "cases": [
+        {
+          "when": [
+            {
+              "fact": "unit_already_ready",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "no",
+          "truth": "true",
+          "claim": "An already Ready Unit cannot be Readied again; an instruction to Ready it causes nothing additional to happen, so there is no new Ready event from that instruction.",
+          "evidenceRuleIds": [
+            "415.1",
+            "415.1.b",
+            "415.1.c"
+          ],
+          "applicabilityRuleId": "415.1.b"
+        }
+      ],
+      "fallback": {
+        "verdict": "conditional",
+        "truth": "unknown",
+        "claim": "This compiled ruling only resolves the already-Ready case; the question does not establish that state.",
+        "evidenceRuleIds": [
+          "415.1",
+          "415.1.b",
+          "415.1.c"
+        ]
+      },
+      "sourceTextGuardHashes": {
+        "415.1": {
+          "expectedTextHash": "65eeb80253baa19efd1d214a1afed8a71d4901b8ab780e44465c458bba6e3bf3",
+          "actualTextHash": "65eeb80253baa19efd1d214a1afed8a71d4901b8ab780e44465c458bba6e3bf3"
+        },
+        "415.1.b": {
+          "expectedTextHash": "b2dc58f574f44b807ced33bdbccdecc8afe8720fba8b0c86abb7c538e22956c7",
+          "actualTextHash": "b2dc58f574f44b807ced33bdbccdecc8afe8720fba8b0c86abb7c538e22956c7"
+        },
+        "415.1.c": {
+          "expectedTextHash": "a936a2f2f48a95872cc5f7e55e215d8281a62b8c65b1ddb487e0965090a39124",
+          "actualTextHash": "a936a2f2f48a95872cc5f7e55e215d8281a62b8c65b1ddb487e0965090a39124"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "exhaust-binary-state-and-cost",
+      "obligation": "exhaust_state",
+      "evidenceRuleIds": [
+        "414.1",
+        "414.1.b",
+        "414.1.c",
+        "414.4"
+      ],
+      "sourceTextGuards": {
+        "414.1": "Exhausting is an action that marks a non-spell Game Object on the board as \"spent.\"",
+        "414.1.b": "A Game Object that is already Exhausted cannot be Exhausted again.",
+        "414.1.c": "If a Game Object is instructed to be Exhausted while it is already Exhausted, nothing additional happens.",
+        "414.4": "When Exhausting is listed as a Cost, then the Action must be able to be completed for the cost to be paid."
+      },
+      "cases": [
+        {
+          "when": [
+            {
+              "fact": "object_already_exhausted",
+              "op": "is_true"
+            },
+            {
+              "fact": "exhaust_is_cost",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "no",
+          "truth": "true",
+          "claim": "An already Exhausted Game Object cannot be Exhausted again, so an Exhaust cost cannot be paid with it because the required action cannot be completed.",
+          "evidenceRuleIds": [
+            "414.1",
+            "414.1.b",
+            "414.1.c",
+            "414.4"
+          ],
+          "applicabilityRuleId": "414.4"
+        },
+        {
+          "when": [
+            {
+              "fact": "object_already_exhausted",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "no",
+          "truth": "true",
+          "claim": "An already Exhausted Game Object cannot be Exhausted again; an instruction to Exhaust it causes nothing additional to happen.",
+          "evidenceRuleIds": [
+            "414.1",
+            "414.1.b",
+            "414.1.c"
+          ],
+          "applicabilityRuleId": "414.1.b"
+        }
+      ],
+      "fallback": {
+        "verdict": "conditional",
+        "truth": "unknown",
+        "claim": "Whether this Exhaust instruction or cost can be performed depends on the object's current Exhausted state and whether Exhaust is being paid as a cost.",
+        "evidenceRuleIds": [
+          "414.1.b",
+          "414.1.c",
+          "414.4"
+        ]
+      },
+      "sourceTextGuardHashes": {
+        "414.1": {
+          "expectedTextHash": "2407af5471fae88e048a141ffe4549b1078b8b68d3add0d17210f3f07030f3f9",
+          "actualTextHash": "2407af5471fae88e048a141ffe4549b1078b8b68d3add0d17210f3f07030f3f9"
+        },
+        "414.1.b": {
+          "expectedTextHash": "33a0f58b5498adb2f7e3d4bed7eba21268c3f07f9c4ddbd2b5e0375527a9e561",
+          "actualTextHash": "33a0f58b5498adb2f7e3d4bed7eba21268c3f07f9c4ddbd2b5e0375527a9e561"
+        },
+        "414.1.c": {
+          "expectedTextHash": "7803b5da21658ae3e807bd4c8b761bb3213dd936de4deb049863bfaaf65a5e9d",
+          "actualTextHash": "7803b5da21658ae3e807bd4c8b761bb3213dd936de4deb049863bfaaf65a5e9d"
+        },
+        "414.4": {
+          "expectedTextHash": "1ab13a848785b2d0fa3e398b91a2750b947e47ef8faae4beb185eeaca68f1aa5",
+          "actualTextHash": "1ab13a848785b2d0fa3e398b91a2750b947e47ef8faae4beb185eeaca68f1aa5"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "stun-binary-state",
+      "obligation": "stun_state",
+      "evidenceRuleIds": [
+        "423.1.a",
+        "423.1.a.1"
+      ],
+      "sourceTextGuards": {
+        "423.1.a": "Stunned is a binary state. A Unit is Stunned or it isn't.",
+        "423.1.a.1": "A Stunned Unit can not be Stunned again."
+      },
+      "cases": [
+        {
+          "when": [
+            {
+              "fact": "unit_already_stunned",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "no",
+          "truth": "true",
+          "claim": "Stunned is a binary state, and a Unit that is already Stunned cannot be Stunned again; no new Stun action occurs.",
+          "evidenceRuleIds": [
+            "423.1.a",
+            "423.1.a.1"
+          ],
+          "applicabilityRuleId": "423.1.a.1"
+        }
+      ],
+      "fallback": {
+        "verdict": "conditional",
+        "truth": "unknown",
+        "claim": "This compiled ruling only resolves the already-Stunned case; the question does not establish that state.",
+        "evidenceRuleIds": [
+          "423.1.a",
+          "423.1.a.1"
+        ]
+      },
+      "sourceTextGuardHashes": {
+        "423.1.a": {
+          "expectedTextHash": "a710438e7c551fb9b43d0e06247efc0e78e87527cf39814e0e289116eee48ee8",
+          "actualTextHash": "a710438e7c551fb9b43d0e06247efc0e78e87527cf39814e0e289116eee48ee8"
+        },
+        "423.1.a.1": {
+          "expectedTextHash": "44b751e30a50e7f817faab0ff3d8da3ee4d7d9a094ad56c151199324434b3999",
+          "actualTextHash": "44b751e30a50e7f817faab0ff3d8da3ee4d7d9a094ad56c151199324434b3999"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "play-location-not-target",
+      "obligation": "targeting_permission_restriction",
+      "evidenceRuleIds": [
+        "355.10",
+        "355.10.b"
+      ],
+      "sourceTextGuards": {
+        "355.10": "A game object, player, or zone mentioned in the text of a spell, activated ability, or triggered ability is a target UNLESS any of the following are true:",
+        "355.10.b": "It is included only as part of a targeting restriction for another choice or only as a restriction or permission for a game action. e.g., “Kill a unit at a battlefield” targets a unit, but not a battlefield, because the units are targets and “at a battlefield” is a restriction. e.g., “Kill all units at a battlefield” targets a battlefield, but not any units. e.g., “Play a unit from your hand to a battlefield” doesn’t target a battlefield."
+      },
+      "cases": [
+        {
+          "when": [
+            {
+              "fact": "battlefield_mention_is_play_location_only",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "no",
+          "truth": "true",
+          "claim": "A Battlefield mentioned only as the destination, restriction, or permission for playing a Unit is not itself a target.",
+          "evidenceRuleIds": [
+            "355.10",
+            "355.10.b"
+          ],
+          "applicabilityRuleId": "355.10.b"
+        }
+      ],
+      "fallback": {
+        "verdict": "conditional",
+        "truth": "unknown",
+        "claim": "Whether the mentioned Battlefield is a target depends on whether it is merely a restriction/permission for another Game Action or is independently chosen as a target.",
+        "evidenceRuleIds": [
+          "355.10",
+          "355.10.b"
+        ]
+      },
+      "sourceTextGuardHashes": {
+        "355.10": {
+          "expectedTextHash": "9acb840608e516564db86c14def825a1e64e856ac59cb07f72d6965a57e78643",
+          "actualTextHash": "9acb840608e516564db86c14def825a1e64e856ac59cb07f72d6965a57e78643"
+        },
+        "355.10.b": {
+          "expectedTextHash": "b72ce6fdc4bbce48e361ceffc430a95c1e392e899feea0620760220c81607d76",
+          "actualTextHash": "b72ce6fdc4bbce48e361ceffc430a95c1e392e899feea0620760220c81607d76"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "combat-damage-replacement-assignment",
+      "obligation": "combat_replacement_assignment",
+      "evidenceRuleIds": [
+        "465.2.c.1",
+        "465.2.c.5"
+      ],
+      "sourceTextGuards": {
+        "465.2.c.1": "Assigning Damage is not Dealing Damage.",
+        "465.2.c.5": "When assigning damage in this way, replacement effects that would apply to the resulting damage are considered to apply to the assignment instead."
+      },
+      "cases": [
+        {
+          "when": [
+            {
+              "fact": "combat_damage_replacement_effect_applies",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "apply_during_assignment",
+          "truth": "true",
+          "claim": "During combat damage assignment, Replacement Effects that would apply to the resulting combat damage are considered to apply to the assignment instead. Assignment itself is not Dealing Damage.",
+          "evidenceRuleIds": [
+            "465.2.c.1",
+            "465.2.c.5"
+          ],
+          "applicabilityRuleId": "465.2.c.5"
+        }
+      ],
+      "fallback": {
+        "verdict": "conditional",
+        "truth": "unknown",
+        "claim": "This combat rule applies when a Replacement Effect would modify the resulting combat damage; the question does not establish that condition.",
+        "evidenceRuleIds": [
+          "465.2.c.1",
+          "465.2.c.5"
+        ]
+      },
+      "sourceTextGuardHashes": {
+        "465.2.c.1": {
+          "expectedTextHash": "5b834d2c49f65f056d84e4c3ba37e53de5df5b4aa3be3b38f2ecc26bf9098338",
+          "actualTextHash": "5b834d2c49f65f056d84e4c3ba37e53de5df5b4aa3be3b38f2ecc26bf9098338"
+        },
+        "465.2.c.5": {
+          "expectedTextHash": "df029d73aa174d86f48c34fe47f85f253b640c2534865a3df927d935fc6aaf55",
+          "actualTextHash": "df029d73aa174d86f48c34fe47f85f253b640c2534865a3df927d935fc6aaf55"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "trigger-condition-snapshot",
+      "obligation": "trigger_snapshot",
+      "evidenceRuleIds": [
+        "359.3.f.3",
+        "383.2",
+        "383.2.c"
+      ],
+      "sourceTextGuards": {
+        "359.3.f.3": "Some information used by triggered abilities is referenced from the trigger condition of the ability. This information is checked when the trigger condition is fulfilled.",
+        "383.2": "Triggered Abilities have a Condition and an Effect.",
+        "383.2.c": "The Condition of a Trigger is evaluated after a potentially inciting event has been processed."
+      },
+      "cases": [
+        {
+          "when": [
+            {
+              "fact": "trigger_uses_information_from_condition",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "snapshot_at_trigger",
+          "truth": "true",
+          "claim": "Information referenced from a triggered ability's trigger condition is checked when that trigger condition is fulfilled; later changes do not cause that referenced information to be re-read on resolution unless another rule or instruction requires it.",
+          "evidenceRuleIds": [
+            "359.3.f.3",
+            "383.2",
+            "383.2.c"
+          ],
+          "applicabilityRuleId": "359.3.f.3"
+        }
+      ],
+      "fallback": {
+        "verdict": "conditional",
+        "truth": "unknown",
+        "claim": "This snapshot rule applies only to information referenced from the trigger condition itself; that relationship is not established in the question.",
+        "evidenceRuleIds": [
+          "359.3.f.3",
+          "383.2",
+          "383.2.c"
+        ]
+      },
+      "sourceTextGuardHashes": {
+        "359.3.f.3": {
+          "expectedTextHash": "7abac406454b3b494be7f762a7c4c242d7b4748f39d0f284d0a28bd356eb2063",
+          "actualTextHash": "7abac406454b3b494be7f762a7c4c242d7b4748f39d0f284d0a28bd356eb2063"
+        },
+        "383.2": {
+          "expectedTextHash": "dec8edc7c713f69043f4c60b511ee3f2c24e38a1a265473e2ac766e76ce2e815",
+          "actualTextHash": "dec8edc7c713f69043f4c60b511ee3f2c24e38a1a265473e2ac766e76ce2e815"
+        },
+        "383.2.c": {
+          "expectedTextHash": "2ca7ab013851fa8be2d2675df14c42e9e0db120eabf41ab326cd460fb765630d",
+          "actualTextHash": "2ca7ab013851fa8be2d2675df14c42e9e0db120eabf41ab326cd460fb765630d"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "deck-champion-legend-count",
+      "obligation": "champion_legend_count",
+      "evidenceRuleIds": [
+        "103",
+        "103.1"
+      ],
+      "sourceTextGuards": {
+        "103": "To play Riftbound, a player must have a Main Deck, a Rune Deck, a Champion Legend, and a number of Battlefields determined by the Mode of Play. These are collectively referred to as a player’s deck.",
+        "103.1": "1 Champion Legend"
+      },
+      "cases": [
+        {
+          "when": [
+            {
+              "fact": "deck_legend_count_exceeds_one",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "no",
+          "truth": "true",
+          "claim": "A deck requires exactly 1 Champion Legend; more than one is not allowed.",
+          "evidenceRuleIds": [
+            "103",
+            "103.1"
+          ]
+        },
+        {
+          "when": [
+            {
+              "fact": "deck_legend_count_exceeds_one",
+              "op": "is_false"
+            }
+          ],
+          "verdict": "yes",
+          "truth": "true",
+          "claim": "A deck requires exactly 1 Champion Legend, and this satisfies that requirement.",
+          "evidenceRuleIds": [
+            "103",
+            "103.1"
+          ]
+        },
+        {
+          "when": [
+            {
+              "fact": "deck_legend_count_how_many",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "exactly_one_required",
+          "truth": "true",
+          "claim": "Rule 103.1 sets this as a fixed requirement, not a range: precisely 1 Champion Legend, no more and no fewer.",
+          "evidenceRuleIds": [
+            "103",
+            "103.1"
+          ]
+        }
+      ],
+      "fallback": {
+        "verdict": "exactly_one_required",
+        "truth": "true",
+        "claim": "A deck requires exactly 1 Champion Legend.",
+        "evidenceRuleIds": [
+          "103",
+          "103.1"
+        ]
+      },
+      "sourceTextGuardHashes": {
+        "103": {
+          "expectedTextHash": "3cb0b8f46ad52ddb588a7c0bf4a881d345f6e434b79e04a027c82f69e2cbf06f",
+          "actualTextHash": "3cb0b8f46ad52ddb588a7c0bf4a881d345f6e434b79e04a027c82f69e2cbf06f"
+        },
+        "103.1": {
+          "expectedTextHash": "40ba78cc4377e865930a417421515fa9e011600318a0545a25ec0464522b5cab",
+          "actualTextHash": "40ba78cc4377e865930a417421515fa9e011600318a0545a25ec0464522b5cab"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "deck-main-deck-minimum",
+      "obligation": "main_deck_minimum",
+      "evidenceRuleIds": [
+        "103.2"
+      ],
+      "sourceTextGuards": {
+        "103.2": "A Main Deck of at least 40 cards: A Chosen Champion Unit, as well as Units, Gear, and Spells"
+      },
+      "cases": [
+        {
+          "when": [
+            {
+              "fact": "deck_main_deck_below_minimum",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "no",
+          "truth": "true",
+          "claim": "A Main Deck must contain at least 40 cards.",
+          "evidenceRuleIds": [
+            "103.2"
+          ]
+        },
+        {
+          "when": [
+            {
+              "fact": "deck_main_deck_below_minimum",
+              "op": "is_false"
+            }
+          ],
+          "verdict": "yes",
+          "truth": "true",
+          "claim": "40 is a minimum, not an exact count, so this satisfies the Main Deck size requirement (subject to any other deck-construction rules).",
+          "evidenceRuleIds": [
+            "103.2"
+          ]
+        },
+        {
+          "when": [
+            {
+              "fact": "deck_main_deck_how_many",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "at_least_forty_required",
+          "truth": "true",
+          "claim": "That is a minimum, not an exact count - a larger Main Deck is not invalid merely for exceeding 40.",
+          "evidenceRuleIds": [
+            "103.2"
+          ]
+        }
+      ],
+      "fallback": {
+        "verdict": "at_least_forty_required",
+        "truth": "true",
+        "claim": "A Main Deck must contain at least 40 cards.",
+        "evidenceRuleIds": [
+          "103.2"
+        ]
+      },
+      "sourceTextGuardHashes": {
+        "103.2": {
+          "expectedTextHash": "981495096cd7e2d21b530ed7b57c38e699f2740bed3c99ae9742bb4484c98e74",
+          "actualTextHash": "981495096cd7e2d21b530ed7b57c38e699f2740bed3c99ae9742bb4484c98e74"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "deck-same-name-copy-limit",
+      "obligation": "same_name_copy_limit",
+      "evidenceRuleIds": [
+        "103.2.b",
+        "103.2.b.1",
+        "103.2.b.2"
+      ],
+      "sourceTextGuards": {
+        "103.2.b": "Your Main Deck can include up to 3 copies of the same named card.",
+        "103.2.b.1": "This includes your Chosen Champion.",
+        "103.2.b.2": "Cards have different names even if they represent the same character."
+      },
+      "cases": [
+        {
+          "when": [
+            {
+              "fact": "deck_copy_limit_chosen_champion_question",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "chosen_champion_counts_toward_limit",
+          "truth": "true",
+          "claim": "The up-to-3-copies limit includes your Chosen Champion; it is not an additional copy on top of the limit.",
+          "evidenceRuleIds": [
+            "103.2.b",
+            "103.2.b.1"
+          ]
+        },
+        {
+          "when": [
+            {
+              "fact": "deck_copy_limit_exceeds_three",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "no",
+          "truth": "true",
+          "claim": "A Main Deck can include up to 3 copies of the same named card, including your Chosen Champion.",
+          "evidenceRuleIds": [
+            "103.2.b",
+            "103.2.b.1"
+          ]
+        },
+        {
+          "when": [
+            {
+              "fact": "deck_copy_limit_exceeds_three",
+              "op": "is_false"
+            }
+          ],
+          "verdict": "yes",
+          "truth": "true",
+          "claim": "Up to 3 copies of the same named card is allowed, and this satisfies that limit.",
+          "evidenceRuleIds": [
+            "103.2.b"
+          ]
+        },
+        {
+          "when": [
+            {
+              "fact": "deck_copy_limit_how_many",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "up_to_three_allowed",
+          "truth": "true",
+          "claim": "This includes your Chosen Champion. Note cards have different names even if they represent the same character, so this limit is per exact card name.",
+          "evidenceRuleIds": [
+            "103.2.b",
+            "103.2.b.1",
+            "103.2.b.2"
+          ]
+        }
+      ],
+      "fallback": {
+        "verdict": "up_to_three_allowed",
+        "truth": "true",
+        "claim": "A Main Deck can include up to 3 copies of the same named card, including your Chosen Champion.",
+        "evidenceRuleIds": [
+          "103.2.b",
+          "103.2.b.1"
+        ]
+      },
+      "sourceTextGuardHashes": {
+        "103.2.b": {
+          "expectedTextHash": "250b2fc4051359b3101f1491a9fee900067d9fdda91f13140d8d72539e25c9f0",
+          "actualTextHash": "250b2fc4051359b3101f1491a9fee900067d9fdda91f13140d8d72539e25c9f0"
+        },
+        "103.2.b.1": {
+          "expectedTextHash": "82e72e896932fb9d94c2952031dca0f389fdce7a8b3e3836d4eb7af4588fffa2",
+          "actualTextHash": "82e72e896932fb9d94c2952031dca0f389fdce7a8b3e3836d4eb7af4588fffa2"
+        },
+        "103.2.b.2": {
+          "expectedTextHash": "b6ad68c92bcc4e327bb7b663918ba1a3c1b51f946b9654d9027448ea58b971ca",
+          "actualTextHash": "b6ad68c92bcc4e327bb7b663918ba1a3c1b51f946b9654d9027448ea58b971ca"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "deck-signature-limit",
+      "obligation": "signature_limit",
+      "evidenceRuleIds": [
+        "103.2.d",
+        "103.2.d.1",
+        "103.2.d.2",
+        "103.2.d.3"
+      ],
+      "sourceTextGuards": {
+        "103.2.d": "Your deck may only contain 3 total Signature cards that have the same Champion tag as your Champion Legend.",
+        "103.2.d.1": "Regardless of name, a deck may only contain a sum total of 3 Signature cards.",
+        "103.2.d.2": "All of the Signature cards must have the Champion tag that corresponds to the Champion Legend of the deck.",
+        "103.2.d.3": "Signature cards are not Champion units and cannot be placed in the Champion Zone."
+      },
+      "cases": [
+        {
+          "when": [
+            {
+              "fact": "deck_signature_different_champion_question",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "no",
+          "truth": "true",
+          "claim": "Every Signature card in a deck must share the Champion tag of that deck's Champion Legend.",
+          "evidenceRuleIds": [
+            "103.2.d",
+            "103.2.d.2"
+          ]
+        },
+        {
+          "when": [
+            {
+              "fact": "deck_signature_as_chosen_champion_question",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "no",
+          "truth": "true",
+          "claim": "Signature cards are not Champion units and cannot be placed in the Champion Zone, so a Signature card cannot be your Chosen Champion.",
+          "evidenceRuleIds": [
+            "103.2.d.3"
+          ]
+        },
+        {
+          "when": [
+            {
+              "fact": "deck_signature_exceeds_three",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "no",
+          "truth": "true",
+          "claim": "A deck may contain at most 3 total Signature cards, regardless of name.",
+          "evidenceRuleIds": [
+            "103.2.d",
+            "103.2.d.1"
+          ]
+        },
+        {
+          "when": [
+            {
+              "fact": "deck_signature_exceeds_three",
+              "op": "is_false"
+            }
+          ],
+          "verdict": "yes",
+          "truth": "true",
+          "claim": "Up to 3 total Signature cards is allowed, provided they share the deck's Champion tag, and this satisfies that limit.",
+          "evidenceRuleIds": [
+            "103.2.d",
+            "103.2.d.1"
+          ]
+        },
+        {
+          "when": [
+            {
+              "fact": "deck_signature_how_many",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "up_to_three_total_required",
+          "truth": "true",
+          "claim": "A deck may contain at most 3 total Signature cards, all sharing the Champion tag of that deck's Champion Legend.",
+          "evidenceRuleIds": [
+            "103.2.d",
+            "103.2.d.1",
+            "103.2.d.2"
+          ]
+        }
+      ],
+      "fallback": {
+        "verdict": "up_to_three_total_required",
+        "truth": "true",
+        "claim": "A deck may contain at most 3 total Signature cards, all sharing the Champion tag of that deck's Champion Legend; Signature cards cannot be the Chosen Champion.",
+        "evidenceRuleIds": [
+          "103.2.d",
+          "103.2.d.1",
+          "103.2.d.2",
+          "103.2.d.3"
+        ]
+      },
+      "sourceTextGuardHashes": {
+        "103.2.d": {
+          "expectedTextHash": "702944c2df4007225e48667069db938ed5c90fa0962e6415b5b2285ece4e2183",
+          "actualTextHash": "702944c2df4007225e48667069db938ed5c90fa0962e6415b5b2285ece4e2183"
+        },
+        "103.2.d.1": {
+          "expectedTextHash": "467d4a6b7e14161352e0738f35afd9e5f506149b10184b053113205ec2f0e43a",
+          "actualTextHash": "467d4a6b7e14161352e0738f35afd9e5f506149b10184b053113205ec2f0e43a"
+        },
+        "103.2.d.2": {
+          "expectedTextHash": "c347bceabf75d17bd1824c4736332493185f0da24da0fe505f40ede20cb219b8",
+          "actualTextHash": "c347bceabf75d17bd1824c4736332493185f0da24da0fe505f40ede20cb219b8"
+        },
+        "103.2.d.3": {
+          "expectedTextHash": "50207690051283f17cbf23ed230839d1b5d5e361eeb2018751185c9959ae9064",
+          "actualTextHash": "50207690051283f17cbf23ed230839d1b5d5e361eeb2018751185c9959ae9064"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "deck-rune-deck-count",
+      "obligation": "rune_deck_count",
+      "evidenceRuleIds": [
+        "103.3",
+        "103.3.a",
+        "103.3.a.1"
+      ],
+      "sourceTextGuards": {
+        "103.3": "Rune Deck",
+        "103.3.a": "12 Rune Cards",
+        "103.3.a.1": "Cards in the Rune Deck must be of the Domain Identity of your Champion Legend."
+      },
+      "cases": [
+        {
+          "when": [
+            {
+              "fact": "deck_rune_domain_identity_question",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "must_match_domain_identity",
+          "truth": "true",
+          "claim": "Cards in the Rune Deck must be of the Domain Identity of your Champion Legend.",
+          "evidenceRuleIds": [
+            "103.3.a.1"
+          ]
+        },
+        {
+          "when": [
+            {
+              "fact": "deck_rune_count_not_twelve",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "no",
+          "truth": "true",
+          "claim": "A Rune Deck must contain exactly 12 Rune Cards.",
+          "evidenceRuleIds": [
+            "103.3",
+            "103.3.a"
+          ]
+        },
+        {
+          "when": [
+            {
+              "fact": "deck_rune_count_not_twelve",
+              "op": "is_false"
+            }
+          ],
+          "verdict": "yes",
+          "truth": "true",
+          "claim": "Exactly 12 Rune Cards satisfies the Rune Deck requirement.",
+          "evidenceRuleIds": [
+            "103.3",
+            "103.3.a"
+          ]
+        },
+        {
+          "when": [
+            {
+              "fact": "deck_rune_count_how_many",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "exactly_twelve_required",
+          "truth": "true",
+          "claim": "That is a fixed count, not a minimum - a Rune Deck is kept and shuffled separately from the Main Deck.",
+          "evidenceRuleIds": [
+            "103.3",
+            "103.3.a"
+          ]
+        }
+      ],
+      "fallback": {
+        "verdict": "exactly_twelve_required",
+        "truth": "true",
+        "claim": "A Rune Deck must contain exactly 12 Rune Cards, kept and shuffled separately from the Main Deck, and matching the Domain Identity of your Champion Legend.",
+        "evidenceRuleIds": [
+          "103.3",
+          "103.3.a",
+          "103.3.a.1"
+        ]
+      },
+      "sourceTextGuardHashes": {
+        "103.3": {
+          "expectedTextHash": "aea04a85382c0988a7eb1689122bc71a2fb528f0433fa808efd8aba57edbfcb6",
+          "actualTextHash": "aea04a85382c0988a7eb1689122bc71a2fb528f0433fa808efd8aba57edbfcb6"
+        },
+        "103.3.a": {
+          "expectedTextHash": "afb3ab99900851ead5fb18b0d53a82197eb8a4b301133fa4d1e6b5f93ba8bbfa",
+          "actualTextHash": "afb3ab99900851ead5fb18b0d53a82197eb8a4b301133fa4d1e6b5f93ba8bbfa"
+        },
+        "103.3.a.1": {
+          "expectedTextHash": "c0509019bc6cd88e710ab5e5a40b9952c5fe1f8fd9cceb322aa279992670b7d7",
+          "actualTextHash": "c0509019bc6cd88e710ab5e5a40b9952c5fe1f8fd9cceb322aa279992670b7d7"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "deck-battlefield-duplicate-limit",
+      "obligation": "battlefield_duplicate_limit",
+      "evidenceRuleIds": [
+        "103.4",
+        "103.4.c"
+      ],
+      "sourceTextGuards": {
+        "103.4": "Battlefields",
+        "103.4.c": "Cannot include more than one of a Battlefield of the same name when there are more than one required for the deck."
+      },
+      "cases": [
+        {
+          "when": [
+            {
+              "fact": "deck_battlefield_duplicate_question",
+              "op": "is_true"
+            }
+          ],
+          "verdict": "no",
+          "truth": "true",
+          "claim": "A deck cannot include more than one Battlefield of the same name when more than one Battlefield is required for that deck.",
+          "evidenceRuleIds": [
+            "103.4.c"
+          ]
+        }
+      ],
+      "fallback": {
+        "verdict": "conditional",
+        "truth": "unknown",
+        "claim": "Whether a duplicate-named Battlefield is allowed depends on whether more than one Battlefield is required for this deck.",
+        "evidenceRuleIds": [
+          "103.4.c"
+        ]
+      },
+      "sourceTextGuardHashes": {
+        "103.4": {
+          "expectedTextHash": "18f45637766d773f786f06f8529322a5cccbb14368d4dd4879d181ae31fdc3b1",
+          "actualTextHash": "18f45637766d773f786f06f8529322a5cccbb14368d4dd4879d181ae31fdc3b1"
+        },
+        "103.4.c": {
+          "expectedTextHash": "cf57233f5e99a8da084a72ec4ebc51230aba075d77b7ff0ca68e5423b557027a",
+          "actualTextHash": "cf57233f5e99a8da084a72ec4ebc51230aba075d77b7ff0ca68e5423b557027a"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "deck-battlefield-count-requirement",
+      "obligation": "battlefield_count_requirement",
+      "evidenceRuleIds": [
+        "103.4",
+        "103.4.a"
+      ],
+      "sourceTextGuards": {
+        "103.4": "Battlefields",
+        "103.4.a": "The number will be dictated by your Mode of Play."
+      },
+      "cases": [],
+      "fallback": {
+        "verdict": "conditional",
+        "truth": "unknown",
+        "claim": "The number of Battlefields required for a deck is dictated by your Mode of Play, so this can't be answered with a single number without knowing which Mode of Play you're using.",
+        "evidenceRuleIds": [
+          "103.4",
+          "103.4.a"
+        ]
+      },
+      "sourceTextGuardHashes": {
+        "103.4": {
+          "expectedTextHash": "18f45637766d773f786f06f8529322a5cccbb14368d4dd4879d181ae31fdc3b1",
+          "actualTextHash": "18f45637766d773f786f06f8529322a5cccbb14368d4dd4879d181ae31fdc3b1"
+        },
+        "103.4.a": {
+          "expectedTextHash": "5cf0c7a6e7745367996daca07636687a6924a75f32afd03b778f40ab15ff6f72",
+          "actualTextHash": "5cf0c7a6e7745367996daca07636687a6924a75f32afd03b778f40ab15ff6f72"
+        }
+      },
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    }
+  ],
+  "policy": "Only explicit regression-tested programs execute. Every program is disabled if any guarded governing rule text changes or required evidence is missing."
+}

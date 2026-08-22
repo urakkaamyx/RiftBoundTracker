@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "core": {
+    "parserCount": 2381,
+    "independentLayoutCount": 2381,
+    "missingFromParser": [],
+    "extraInParser": [],
+    "duplicateParserIds": [],
+    "emptyText": [],
+    "passed": true
+  },
+  "tournament": {
+    "parserCount": 935,
+    "independentLayoutCount": 935,
+    "missingFromParser": [],
+    "extraInParser": [],
+    "duplicateParserIds": [],
+    "emptyText": [],
+    "passed": true
+  },
+  "criticalSpotChecks": {
+    "347.1.a": "The card or activated ability will start a Chain as normal.",
+    "347.1.b": "When that Chain closes, Focus passes to the next Player in Turn Order.",
+    "705.1": "Overview"
+  }
+}

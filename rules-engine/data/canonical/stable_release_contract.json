@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "product": {
+    "name": "RiftKeep Rules Engine",
+    "version": "1.0.1",
+    "releaseLine": "stable"
+  },
+  "compatibility": {
+    "productApi": "v1",
+    "sqliteIndexSchema": 1,
+    "updateTransactionSchema": 1,
+    "runtimeHardeningSchema": 1,
+    "releaseCandidateAuditSchema": 1,
+    "uiContractSchema": 1,
+    "uiVersion": "m15-v1",
+    "pythonMinimum": "3.11"
+  },
+  "policies": {
+    "currentAuthorityRequiredForAsk": true,
+    "normalServingRequiresNetwork": false,
+    "llmOptionalForCorrectness": true,
+    "browserContainsAdjudicationLogic": false,
+    "adjudicationCached": false,
+    "runtimeDriftFailsClosed": true,
+    "sourceUpdatesRequireTransactionalGate": true,
+    "latestTwoMilestoneRetention": true
+  },
+  "knownLimitations": [
+    {
+      "code": "gold_c_report_only_remaining",
+      "severity": "known_non_blocking",
+      "count": 18,
+      "scope": "forward card-interaction fixtures",
+      "currentAuthorityImpact": false
+    },
+    {
+      "code": "historical_patch_note_bodies_incomplete",
+      "severity": "known_non_blocking",
+      "count": 4,
+      "scope": "superseded historical change context",
+      "currentAuthorityImpact": false
+    },
+    {
+      "code": "historical_faq_bodies_incomplete",
+      "severity": "known_non_blocking",
+      "count": 3,
+      "scope": "superseded historical FAQ archive",
+      "currentAuthorityImpact": false
+    }
+  ],
+  "semanticVersioning": {
+    "major": "Breaking Product API contract, proof/verdict semantics, stable source identity, or persisted schema compatibility.",
+    "minor": "Backward-compatible capabilities, new authoritative source families, or new proven adjudication coverage.",
+    "patch": "Backward-compatible correctness, data, security, documentation, or performance fixes.",
+    "authorityUpdates": "Official rules/card/FAQ updates use M16 transactional update automation and do not imply a software major version by themselves."
+  }
+}

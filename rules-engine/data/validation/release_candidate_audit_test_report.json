@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "checkCount": 48,
+  "failureCount": 0,
+  "failures": [],
+  "metrics": {
+    "schemaVersion": 1,
+    "checkCount": 48,
+    "baselineBlockingFindings": 0,
+    "baselineMediumFindings": 1,
+    "definitionChecks": 120,
+    "recoveredBaselineSuiteCount": 17,
+    "retentionHashesVerified": true,
+    "cleanInstallPassed": true,
+    "updateLifecyclePassed": true,
+    "productParityPassed": true
+  }
+}

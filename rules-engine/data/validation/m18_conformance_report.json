@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "milestone": "M18",
+  "generatedFromBaseline": "M17 Revision 2",
+  "releaseCandidateReady": true,
+  "blockingFindingCount": 0,
+  "findingCounts": {
+    "Critical": 0,
+    "High": 0,
+    "Medium": 1,
+    "Low": 0
+  },
+  "criticalHighFindings": 0,
+  "findings": [
+    {
+      "code": "gold_c_report_only_remaining",
+      "severity": "Medium",
+      "blocking": false,
+      "detail": {
+        "remaining": 18
+      }
+    }
+  ],
+  "architecturePromiseCount": 18,
+  "certifiedBaselineReportCount": 17,
+  "automatedReleaseSuiteCount": 18,
+  "retention": {
+    "expected": [
+      "RiftKeepRules_Engine_Milestone16.zip",
+      "RiftKeepRules_Engine_Milestone17.zip"
+    ],
+    "actual": [
+      "RiftKeepRules_Engine_Milestone16.zip",
+      "RiftKeepRules_Engine_Milestone17.zip"
+    ],
+    "candidates": [],
+    "passed": true,
+    "hashes": {
+      "RiftKeepRules_Engine_Milestone16.zip": "509947c1a86ed5d0362a3d2783c71c051f4ca4a10c5b1c06febe670a695d44c1",
+      "RiftKeepRules_Engine_Milestone17.zip": "8d7881ab7775ceeab7f6c392cb1e60900a99fdb94c7f10cad4a9ab0d9b14b9be"
+    }
+  },
+  "subAudits": {
+    "m18_reproducibility_audit.json": {
+      "passed": true,
+      "checkCount": null
+    },
+    "m18_coverage_audit.json": {
+      "passed": true,
+      "checkCount": null
+    },
+    "m18_update_lifecycle_audit.json": {
+      "passed": true,
+      "checkCount": null
+    },
+    "m18_clean_install_audit.json": {
+      "passed": true,
+      "checkCount": null
+    },
+    "release_candidate_audit_test_report.json": {
+      "passed": true,
+      "checkCount": 43
+    }
+  },
+  "consolidatedValidationPassed": true,
+  "projectAuditCritical": 0,
+  "projectAuditWarnings": 2
+}

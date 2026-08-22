@@ -1,203 +1,100 @@
 namespace RiftBoundTracker.App.Services.Rules;
 
+public sealed record RulesAskCitationDto(string RuleId, string? Family, string Text, string? SectionTitle);
+public sealed record RulesAskCardDto(string Id, string Name, string? Text);
+
 public sealed record RulesAskResponse(
     string Question, string? Answer, bool AnswerGenerated, string Confidence,
-    List<DetectedKeywordDto> Keywords, List<DetectedConceptDto> Concepts, List<RuleCitationDto> Sources,
-    List<CardEvidence> CardNotes);
+    List<string> ClarifyingQuestions, List<RulesAskCitationDto> Sources, List<RulesAskCardDto> CardNotes);
 
 /// <summary>
-/// Orchestrates one question end to end (architecture doc section 4): analyze -> gather evidence
-/// -> decide confidence -> optionally explain. The confidence levels (doc section 18) are derived
-/// from real, measured retrieval signals — never estimated by an LLM — because the whole point of
-/// this architecture is that evidence quality, not AI confidence, drives the answer.
+/// Orchestrates one question end to end against the Rules Engine sidecar's Product API — no rules
+/// logic lives here. Per the engine's own integration guide, this app "does not know how Riftbound
+/// rules work"; it only calls /v1/ask, and separately calls /v1/cards/{id} for the one gap proven
+/// directly against the real engine this session: a plain "what does this card do" question isn't
+/// an adjudication template, so /v1/ask alone declines it even though the card's exact text is
+/// sitting right there in its own namedCards evidence. RulesEvidenceService/RulesQuestionService/
+/// RulesCuratedRulingService/RulesToolAgentProvider (the retrieval+LLM pipeline built earlier this
+/// session) are retired entirely in favor of this — the fixes for that pipeline's real failures
+/// (wrong retrieval, negation errors, hallucinated backwards reasoning) belong in the engine, not
+/// worked around in C#.
 /// </summary>
 public sealed class RulesAnswerService(
-    RulesQuestionService questions, RulesEvidenceService evidenceService, IRulesExplanationProvider explanationProvider,
-    RulesCuratedRulingService curatedRulings, RulesToolAgentProvider toolAgent, ILogger<RulesAnswerService> logger)
+    RulesEngineSidecarService sidecar, RulesEngineClient engine,
+    RulesLocalAiSettingsService settings, ILogger<RulesAnswerService> logger)
 {
-    // The adjudicate -> validate -> explain pipeline is built, wired, and hardened (repeat-penalty
-    // fix, anti-example-copying instructions, semantic grounding check, explanation-fidelity check)
-    // but is kept OFF the hot path based on real measurement across four separate fine-tuning rounds
-    // on a Qwen3-1.7B model dedicated to this exact task shape (scripts/training/generate_adjudication
-    // _dataset.py) — each round fixed some real-question failures and introduced different ones
-    // without the overall pass rate ever climbing, the signature of a real capability ceiling for a
-    // model this size on genuine multi-step rules reasoning, not something one more round fixes.
-    // RulesCuratedRulingService (checked below, before this) is the actual fix: for the class of
-    // question that has a knowable answer, C# now determines that answer directly from a verified
-    // lookup table, and the model's only remaining job is questions that table doesn't cover — which
-    // this flag still routes to the single-pass ExplainAsync fallback rather than the LLM-driven
-    // adjudicator, since that fallback has no exposure to this task's specific failure modes.
-    // static readonly, not const — a const bool makes the compiler treat the disabled branch below
-    // as statically unreachable (CS0162), which it isn't: this is a runtime-flippable switch, worth
-    // revisiting if a future model is actually reliable at this specific task.
-    private static readonly bool AdjudicationPipelineEnabled = false;
+    // The engine's own stable prefix for "no compiled adjudication template can prove this" —
+    // confirmed directly this session across multiple uncompiled-family questions (Mobilize,
+    // generic card lookups). Matching on this substring (not full equality) is deliberately the
+    // same pragmatic pattern this app already used for detecting hedge/refusal language elsewhere
+    // — robust to the engine wording shifting slightly across future releases.
+    private const string DeterministicDeclinePrefix = "I can't determine this from the currently compiled deterministic rules";
 
     public async Task<RulesAskResponse> AskAsync(string question, string? cardId, CancellationToken ct = default)
     {
-        var analysis = await questions.AnalyzeAsync(question, cardId, ct);
-        // Raised from 16 after a real failure traced directly to this cap: fixing a separate
-        // under-tagging bug correctly pulled rule 355.2.a into a heavily-tied "Control"+"Battlefield"
-        // topic (this game is fundamentally about battlefield control, so dozens of rules share that
-        // exact keyword pair), which pushed rule 190.3.a — the OTHER fact the same question needed —
-        // out of the top 16 entirely. The model can't reason correctly about evidence it never saw;
-        // no prompt or keyword fix helps if the two facts a compound question needs never coexist in
-        // the same evidence set. 24 gives dense, common-keyword topics enough room for their most
-        // relevant rules to survive together without unbounded evidence growth for every question.
-        var result = await evidenceService.GatherAsync(analysis, currentOnly: true, limit: 24, ct);
-        var confidence = DetermineConfidence(result, analysis);
+        if (!settings.IsEnabled())
+            return new RulesAskResponse(question, null, false, "InsufficientEvidence", [], [], []);
 
-        string? answer = null;
-        var answerGenerated = false;
-
-        // Checked before any LLM call, not as a fallback after one fails — see
-        // RulesCuratedRulingService's own doc comment for why. A match here means the ruling is
-        // already known and verified; the model doesn't get a turn to second-guess it.
-        var curated = curatedRulings.TryMatch(question);
-        if (curated is not null)
+        if (!await sidecar.EnsureRunningAsync(ct))
         {
-            logger.LogDebug("Ask Rules: curated ruling {Id} matched — skipping the LLM pipeline entirely", curated.Id);
-            answer = curated.Explanation;
-            answerGenerated = true;
-            confidence = "High";
-        }
-        else if (toolAgent.IsConfigured)
-        {
-            // No curated match — hand the model the same deterministic evidence RulesEvidenceService
-            // already gathered above (also used for Sources/Confidence display below regardless of
-            // which path answers the question). The model reasons over this; it doesn't get to
-            // invent its own search terms — see RulesToolAgentProvider's own doc comment for why.
-            var evidenceRefs = EvidenceIdMapper.Build(result.Rules, result.Cards);
-            var toolAnswer = await toolAgent.AnswerAsync(question, evidenceRefs, ct);
-            logger.LogDebug("Ask Rules (tools): success={Success} error={Error}", toolAnswer.Success, toolAnswer.Error);
-            if (toolAnswer.Success)
-            {
-                answer = toolAnswer.Answer;
-                answerGenerated = true;
-            }
+            logger.LogWarning("Ask Rules: rules engine sidecar is not available");
+            return new RulesAskResponse(question, null, false, "InsufficientEvidence", [], [], []);
         }
 
-        if (!answerGenerated && (result.Rules.Count > 0 || result.Cards.Count > 0) && explanationProvider.IsConfigured)
+        // An explicit "Ask About This Card" flow already knows the card — skip straight to the
+        // card API rather than round-tripping through /v1/ask for something already resolved.
+        if (!string.IsNullOrWhiteSpace(cardId))
         {
-            if (AdjudicationPipelineEnabled)
-            {
-                var evidenceRefs = EvidenceIdMapper.Build(result.Rules, result.Cards);
-                logger.LogDebug("Ask Rules: assigned {Count} evidence ids for {Question}", evidenceRefs.Count, question);
+            var direct = await engine.GetCardAsync(cardId, ct);
+            return BuildCardResponse(question, direct);
+        }
 
-                var adjudication = await TryAdjudicateAsync(question, analysis.CardContext, evidenceRefs, ct);
-                if (adjudication is not null)
-                {
-                    var explainContext = new RulesAdjudicatedExplanationContext(question, adjudication, evidenceRefs, analysis.CardContext);
-                    var generated = await explanationProvider.ExplainAdjudicationAsync(explainContext, ct);
-                    var faithful = !generated.Success || generated.Answer is null
-                        || IsExplanationFaithfulToVerdict(adjudication.OverallVerdict, generated.Answer);
-                    logger.LogDebug("Ask Rules: adjudicated explanation success={Success} faithfulToVerdict={Faithful} error={Error} raw={Raw}",
-                        generated.Success, faithful, generated.Error, generated.Answer);
-                    if (generated.Success && faithful)
-                    {
-                        answer = generated.Answer;
-                        answerGenerated = true;
-                    }
-                }
-            }
+        var ask = await engine.AskAsync(question, ct);
+        // Real testing caught a second decline shape beyond the documented prefix: for a topic
+        // with no recognized keyword/rule lookup target at all ("Legend" isn't a rules-keyword the
+        // engine indexes), it returns "ok": true with a genuinely empty answer string rather than
+        // the "I can't determine..." text — a blank answer is just as much a non-answer as that
+        // prefix is, and treating only the prefix as "declined" let this slip through as a
+        // reported "High confidence" empty response.
+        var declined = string.IsNullOrWhiteSpace(ask.Answer) || ask.Answer.StartsWith(DeterministicDeclinePrefix, StringComparison.Ordinal);
+        logger.LogDebug("Ask Rules: /v1/ask ok={Ok} declined={Declined} namedCards={NamedCards} clarifying={Clarifying}",
+            ask.Ok, declined, ask.NamedCards.Count, ask.ClarifyingQuestions.Count);
+        if (declined && ask.NamedCards.Count == 1)
+        {
+            var cardLookup = await engine.GetCardAsync(ask.NamedCards[0].Id, ct);
+            if (cardLookup.MatchCount >= 1)
+                return BuildCardResponse(question, cardLookup);
+        }
 
-            // Fallback to the original single-pass path whenever adjudication is disabled, never
-            // validated (even after a retry), or the adjudicated-explanation call itself failed — Ask
-            // Rules must never regress to no answer at all because the newer pipeline had a bad run.
-            if (!answerGenerated)
-            {
-                var context = new RulesExplanationContext(question, result.Rules, analysis.CardContext, result.Cards);
-                var generated = await explanationProvider.ExplainAsync(context, ct);
-                logger.LogDebug("Ask Rules: fallback single-pass explanation success={Success} error={Error}",
-                    generated.Success, generated.Error);
-                if (generated.Success)
-                {
-                    answer = generated.Answer;
-                    answerGenerated = true;
-                }
-            }
+        if (declined)
+        {
+            // Only the prefixed decline text is worth showing as "the answer" — a genuinely blank
+            // answer has nothing to display, so AnswerGenerated is false and the frontend shows
+            // its own "no answer" note instead of an empty paragraph.
+            var hasDeclineText = !string.IsNullOrWhiteSpace(ask.Answer);
+            return new RulesAskResponse(
+                question, hasDeclineText ? ask.Answer : null, hasDeclineText, "InsufficientEvidence",
+                ask.ClarifyingQuestions, [], NamedCardsToNotes(ask.NamedCards));
         }
 
         return new RulesAskResponse(
-            question, answer, answerGenerated, confidence,
-            analysis.DetectedKeywords, analysis.DetectedConcepts, RulesCitationService.Format(result.Rules), result.Cards);
+            question, ask.Answer, true, "High", ask.ClarifyingQuestions, [], NamedCardsToNotes(ask.NamedCards));
     }
 
-    // Up to one retry: the first attempt gets the plain evidence packet, a failed attempt's specific
-    // validation error is fed back as CorrectionNote so the retry can actually fix it rather than
-    // blindly repeating the same prompt. Two failures in a row means AskAsync falls back to ExplainAsync.
-    private async Task<RulesAdjudication?> TryAdjudicateAsync(
-        string question, List<CardSummaryDto> cardContext, IReadOnlyList<EvidenceRef> evidenceRefs, CancellationToken ct)
+    private static RulesAskResponse BuildCardResponse(string question, CardLookupResult lookup)
     {
-        string? correctionNote = null;
-        for (var attempt = 1; attempt <= 2; attempt++)
-        {
-            var context = new RulesAdjudicationContext(question, cardContext, evidenceRefs, correctionNote);
-            var output = await explanationProvider.AdjudicateAsync(context, ct);
-            logger.LogDebug("Ask Rules: adjudication attempt {Attempt} success={Success} error={Error} raw={Raw}",
-                attempt, output.Success, output.Error, output.RawText);
-            if (!output.Success || output.RawText is null)
-            {
-                correctionNote = "Your previous attempt returned no usable output.";
-                continue;
-            }
+        if (lookup.MatchCount == 0)
+            return new RulesAskResponse(question, null, false, "InsufficientEvidence", [], [], []);
 
-            var validated = RulesAdjudicationValidator.ParseAndValidate(output.RawText, evidenceRefs, question);
-            logger.LogDebug("Ask Rules: adjudication validation attempt {Attempt} success={Success} error={Error}",
-                attempt, validated.Success, validated.Error);
-            if (validated.Success) return validated.Adjudication;
-            correctionNote = validated.Error;
-        }
-        return null;
+        var card = lookup.Matches[0];
+        var answer = $"{card.Name} ({card.SetId}-{card.CollectorCode}, {card.Type}): {card.EffectiveText}";
+        var note = new RulesAskCardDto(card.Id, card.Name, card.EffectiveText);
+        // A card's own printed text, not a proof-verified ruling about an interaction — "Medium"
+        // reflects that distinction honestly rather than claiming the same certainty as a fully
+        // adjudicated verdict.
+        return new RulesAskResponse(question, answer, true, "Medium", [], [], [note]);
     }
 
-    // Caught directly in testing: ExplainAdjudicationAsync is explicitly told "THE RULING BELOW HAS
-    // ALREADY BEEN DETERMINED — do not re-adjudicate it, do not change any Yes/No/Insufficient
-    // answer given" — and did exactly that anyway on a real question. Adjudication correctly ruled
-    // "No" with correct reasoning and passed validation cleanly; the explanation stage then quietly
-    // re-decided the question and shipped "we don't know" instead. RulesAdjudicationValidator only
-    // checks the adjudication output — nothing previously checked that the explanation it produces
-    // still agrees with the verdict it was handed. This is a blunt, string-based check, not a
-    // semantic one: if the verdict was a real ruling (not already "Insufficient evidence") but the
-    // explanation reads like a refusal, treat the explanation as failed so AskAsync falls through to
-    // the existing single-pass fallback rather than shipping a self-contradicting answer.
-    private static readonly string[] HedgePhrases =
-    [
-        "doesn't establish", "does not establish", "don't have rules evidence", "don't have evidence",
-        "no rules evidence", "can't say for sure", "cannot say for sure", "can't guess", "cannot guess",
-        "no idea", "unknown issue", "is unknown", "not covered by the supplied evidence",
-        "isn't covered by", "is not covered by", "we don't know", "we do not know", "i don't know",
-        "i do not know", "that's also unknown", "is also unknown",
-    ];
-
-    private static bool IsExplanationFaithfulToVerdict(string verdict, string explanation)
-    {
-        if (verdict.Contains("Insufficient", StringComparison.OrdinalIgnoreCase)) return true;
-        return !HedgePhrases.Any(phrase => explanation.Contains(phrase, StringComparison.OrdinalIgnoreCase));
-    }
-
-    // High: an exact rule number resolved, or the question named exactly one official
-    // keyword/concept and evidence answers it directly. Medium: the question named two or more
-    // distinct official keywords/concepts — genuinely needed combining multiple rules. Low: only a
-    // full-text fallback match, nothing the question explicitly named. InsufficientEvidence:
-    // nothing came back at all. Deliberately counts what the QUESTION directly named
-    // (analysis.DetectedKeywords / phrase-matched concepts), not every keyword evidence-gathering
-    // pulled in — a concept like "Card State" pulls in sibling keywords (Exhaust's evidence also
-    // surfaces Ready/Stun) as useful related context, but that shouldn't by itself downgrade "How
-    // does Exhaust work?" from a clean single-concept question to a multi-concept one.
-    private static string DetermineConfidence(RulesEvidenceResult result, RulesQuestionAnalysis analysis)
-    {
-        if (result.Rules.Count == 0 && result.Cards.Count == 0) return "InsufficientEvidence";
-        if (result.Rules.Any(e => e.MatchedVia.Any(v => v.StartsWith("rule number", StringComparison.Ordinal))))
-            return "High";
-        // An exact card-name match (legality/errata) is as direct a hit as a rule number — the
-        // question named a specific card and evidence answers it about that exact card.
-        if (result.Cards.Count > 0) return "High";
-
-        var directSignals = analysis.DetectedKeywords.Count
-            + analysis.DetectedConcepts.Count(c => c.MatchedPhrase is not null);
-        if (directSignals >= 2) return "Medium";
-        if (directSignals == 1) return "High";
-
-        return "Low";
-    }
+    private static List<RulesAskCardDto> NamedCardsToNotes(List<EngineNamedCard> namedCards) =>
+        namedCards.Select(c => new RulesAskCardDto(c.Id, c.Name, c.EffectiveText)).ToList();
 }

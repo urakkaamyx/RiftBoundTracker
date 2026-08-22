@@ -207,6 +207,7 @@
             </div>
             <p class="settings-hint ask-ai-hint">A small AI model ships with the app and runs entirely on this machine — nothing is ever sent anywhere, no account or key needed. Ask Rules always answers from real local rules evidence first; turning this on adds a plain-language summary on top, generated locally. Off by default since it loads a ~1GB model into memory and takes a few seconds per question.</p>
             <div id="localAiModelList" class="local-ai-model-list"></div>
+            <label class="ask-tournament-toggle"><input type="checkbox" id="askRulesTournament" /> Tournament Rules</label>
             <div class="ask-rules-form">
               <textarea id="askRulesInput" rows="2" placeholder="Ask a Riftbound rules question in plain English…"></textarea>
               <button type="button" class="command-btn gold" id="askRulesBtn"><i data-icon="search"></i>Ask</button>
@@ -222,7 +223,6 @@
             <div class="settings-row">
               <section class="settings-section"><div class="settings-icon"><i data-icon="shield"></i></div><div><h2>Data Safety</h2><p id="databaseStatus">Loading...</p><div class="data-facts" id="databaseFacts"></div></div></section>
               <section class="settings-section"><div class="settings-icon"><i data-icon="database"></i></div><div><h2>Catalog</h2><p id="catalogStatus">Loading...</p><div class="data-facts" id="catalogFacts"></div><div class="settings-actions"><button class="command-btn" id="refreshCatalogBtn"><i data-icon="refresh"></i>Refresh Catalog</button></div></div></section>
-              <section class="settings-section"><div class="settings-icon"><i data-icon="book-open"></i></div><div><h2>Rules Library</h2><p id="rulesSyncStatus">Loading...</p><div class="data-facts" id="rulesSyncFacts"></div><div class="settings-actions"><button class="command-btn" id="syncRulesBtn"><i data-icon="refresh"></i>Sync Now</button></div></div></section>
               <section class="settings-section settings-section-danger"><div class="settings-icon"><i data-icon="trash"></i></div><div><h2>Reset Data</h2><p>Wipe your own data — owned counts, trade binder, favorites, notes, decks, or price history — without touching the card catalog itself. Choose exactly what to reset.</p><div class="settings-actions"><button class="command-btn danger" id="openPurgeData"><i data-icon="trash"></i>Choose What to Reset</button></div></div></section>
             </div>
             <p class="settings-group-label">APIs</p>

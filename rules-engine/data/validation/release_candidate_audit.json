@@ -1,0 +1,434 @@
+{
+  "schemaVersion": 1,
+  "passed": false,
+  "releaseCandidateReady": false,
+  "blockingFindingCount": 6,
+  "findingCounts": {
+    "Critical": 3,
+    "High": 3,
+    "Medium": 1,
+    "Low": 0
+  },
+  "architecturePromises": [
+    {
+      "milestone": "M1",
+      "name": "Authoritative Corpus Foundation",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "M2",
+      "name": "Deterministic Retrieval & Basic Adjudication",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "M3",
+      "name": "Hard Interaction Families",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "M4",
+      "name": "Full Current Authority Overlay",
+      "passed": false,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": [
+        "update_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M5",
+      "name": "Player Language & Clarification",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "M6",
+      "name": "Audit, Update Lifecycle & Scenario Understanding",
+      "passed": false,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": [
+        "update_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M7",
+      "name": "Generalized Scenario Model",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "M8",
+      "name": "Generalized Rule Compiler",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "M9",
+      "name": "Proof Engine / Complete Adjudication",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "M10",
+      "name": "LLM Interpretation Layer",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "M11",
+      "name": "LLM Explanation Layer",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "M12",
+      "name": "Large Gold Test Corpus",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "M13",
+      "name": "Card Interaction Engine",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "M14",
+      "name": "Search / Ask-Rules Product API",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "M15",
+      "name": "RiftKeep UI Integration",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "M16",
+      "name": "Update Automation",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "M17",
+      "name": "Production Hardening",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    },
+    {
+      "milestone": "P17-D",
+      "name": "Definition Lookup Hotfix",
+      "passed": true,
+      "missingArtifacts": [],
+      "missingReports": [],
+      "failedReports": []
+    }
+  ],
+  "certifiedReports": {
+    "core_test_report.json": {
+      "passed": true,
+      "expected": 164,
+      "actual": 164
+    },
+    "definition_lookup_test_report.json": {
+      "passed": true,
+      "expected": 120,
+      "actual": 120
+    },
+    "regression_report.json": {
+      "passed": true,
+      "expected": 99,
+      "actual": 99
+    },
+    "language_test_report.json": {
+      "passed": true,
+      "expected": 42,
+      "actual": 42
+    },
+    "scenario_language_test_report.json": {
+      "passed": true,
+      "expected": 43,
+      "actual": 43
+    },
+    "scenario_model_test_report.json": {
+      "passed": true,
+      "expected": 58,
+      "actual": 58
+    },
+    "compiler_test_report.json": {
+      "passed": true,
+      "expected": 42,
+      "actual": 42
+    },
+    "proof_engine_test_report.json": {
+      "passed": true,
+      "expected": 72,
+      "actual": 72
+    },
+    "llm_interpretation_test_report.json": {
+      "passed": true,
+      "expected": 84,
+      "actual": 84
+    },
+    "llm_explanation_test_report.json": {
+      "passed": true,
+      "expected": 80,
+      "actual": 80
+    },
+    "gold_corpus_report.json": {
+      "passed": true,
+      "expected": 34,
+      "actual": 34
+    },
+    "card_interaction_test_report.json": {
+      "passed": true,
+      "expected": 74,
+      "actual": 74
+    },
+    "product_api_test_report.json": {
+      "passed": true,
+      "expected": 132,
+      "actual": 132
+    },
+    "ui_integration_test_report.json": {
+      "passed": true,
+      "expected": 148,
+      "actual": 148
+    },
+    "update_test_report.json": {
+      "passed": false,
+      "expected": 29,
+      "actual": 29
+    },
+    "update_automation_test_report.json": {
+      "passed": true,
+      "expected": 70,
+      "actual": 70
+    },
+    "production_hardening_test_report.json": {
+      "passed": true,
+      "expected": 74,
+      "actual": 74
+    }
+  },
+  "authorityChecks": {
+    "coreRuleCount": {
+      "actual": 2381,
+      "expected": 2381,
+      "passed": true
+    },
+    "tournamentRuleCount": {
+      "actual": 935,
+      "expected": 935,
+      "passed": true
+    },
+    "cardCount": {
+      "actual": 1304,
+      "expected": 1304,
+      "passed": true
+    },
+    "faqSectionCount": {
+      "actual": 35,
+      "expected": 35,
+      "passed": true
+    },
+    "errataEventCount": {
+      "actual": 63,
+      "expected": 63,
+      "passed": true
+    },
+    "errataAffectedPrintings": {
+      "actual": 91,
+      "expected": 91,
+      "passed": true
+    },
+    "coreSourceId": {
+      "actual": "core-rules-2026-07-16",
+      "expected": "core-rules-2026-07-16",
+      "passed": true
+    },
+    "tournamentSourceId": {
+      "actual": "tournament-rules-2026-07-16",
+      "expected": "tournament-rules-2026-07-16",
+      "passed": true
+    },
+    "faqSourceId": {
+      "actual": "vendetta-faq-2026-08-14",
+      "expected": "vendetta-faq-2026-08-14",
+      "passed": true
+    },
+    "cardSourceSha256": {
+      "actual": "9c1c5f762a999ecb96d033dca5c1b2b782b8eb2b57960acaad170b337feaed83",
+      "expected": "9c1c5f762a999ecb96d033dca5c1b2b782b8eb2b57960acaad170b337feaed83",
+      "passed": true
+    }
+  },
+  "sourceHashes": {
+    "coreSourceSha256": {
+      "actual": "9c5fb8b8638f2cd19ceda237929fa2c37aac23c797cc7410294993470ba5a30b",
+      "expected": "9c5fb8b8638f2cd19ceda237929fa2c37aac23c797cc7410294993470ba5a30b",
+      "passed": true
+    },
+    "tournamentSourceSha256": {
+      "actual": "6a5be5501c494ecc841fb2572e715d9006f611ff2e5c97023a5be1b5c884e61f",
+      "expected": "6a5be5501c494ecc841fb2572e715d9006f611ff2e5c97023a5be1b5c884e61f",
+      "passed": true
+    },
+    "faqSnapshotSha256": {
+      "actual": "a68712057b00b3590e779ffdea024b1d5201891f12e94dfde3de49e09d323891",
+      "expected": "a68712057b00b3590e779ffdea024b1d5201891f12e94dfde3de49e09d323891",
+      "passed": true
+    }
+  },
+  "retention": {
+    "expected": [
+      "RiftKeepRules_Engine_Milestone18.zip",
+      "RiftKeepRules_Engine_Milestone19.zip"
+    ],
+    "actual": [],
+    "candidates": [],
+    "passed": false,
+    "hashes": {
+      "RiftKeepRules_Engine_Milestone18.zip": null
+    },
+    "currentRelease": {
+      "archive": "RiftKeepRules_Engine_Milestone19.zip",
+      "sidecar": "RiftKeepRules_Engine_Milestone19.zip.sha256",
+      "actualSha256": null,
+      "sidecarSha256": null,
+      "passed": false
+    }
+  },
+  "findings": [
+    {
+      "code": "architecture_promise_missing",
+      "severity": "Critical",
+      "blocking": true,
+      "detail": {
+        "milestone": "M4",
+        "name": "Full Current Authority Overlay",
+        "passed": false,
+        "missingArtifacts": [],
+        "missingReports": [],
+        "failedReports": [
+          "update_test_report.json"
+        ]
+      }
+    },
+    {
+      "code": "architecture_promise_missing",
+      "severity": "Critical",
+      "blocking": true,
+      "detail": {
+        "milestone": "M6",
+        "name": "Audit, Update Lifecycle & Scenario Understanding",
+        "passed": false,
+        "missingArtifacts": [],
+        "missingReports": [],
+        "failedReports": [
+          "update_test_report.json"
+        ]
+      }
+    },
+    {
+      "code": "certified_report_mismatch",
+      "severity": "Critical",
+      "blocking": true,
+      "detail": {
+        "report": "update_test_report.json",
+        "expected": 29,
+        "actual": 29,
+        "reportedPassed": false
+      }
+    },
+    {
+      "code": "gold_c_report_only_remaining",
+      "severity": "Medium",
+      "blocking": false,
+      "detail": {
+        "remaining": 18
+      }
+    },
+    {
+      "code": "actual_retention_mismatch",
+      "severity": "High",
+      "blocking": true,
+      "detail": {
+        "expected": [
+          "RiftKeepRules_Engine_Milestone18.zip",
+          "RiftKeepRules_Engine_Milestone19.zip"
+        ],
+        "actual": [],
+        "candidates": [],
+        "passed": false,
+        "hashes": {
+          "RiftKeepRules_Engine_Milestone18.zip": null
+        },
+        "currentRelease": {
+          "archive": "RiftKeepRules_Engine_Milestone19.zip",
+          "sidecar": "RiftKeepRules_Engine_Milestone19.zip.sha256",
+          "actualSha256": null,
+          "sidecarSha256": null,
+          "passed": false
+        }
+      }
+    },
+    {
+      "code": "retained_release_hash_mismatch",
+      "severity": "High",
+      "blocking": true,
+      "detail": {
+        "file": "RiftKeepRules_Engine_Milestone18.zip",
+        "expected": "06eea3100cbced4190e8062ece7163e57882c41eb3a49414400a3a6e0c89a20b",
+        "actual": null
+      }
+    },
+    {
+      "code": "current_release_sidecar_missing",
+      "severity": "High",
+      "blocking": true,
+      "detail": {
+        "archive": "RiftKeepRules_Engine_Milestone19.zip",
+        "sidecar": "RiftKeepRules_Engine_Milestone19.zip.sha256",
+        "actualSha256": null,
+        "sidecarSha256": null,
+        "passed": false
+      }
+    }
+  ]
+}

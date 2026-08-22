@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "errors": [],
+  "artifactCount": 18,
+  "artifacts": [
+    {
+      "path": "data/canonical/core_rules.json",
+      "exists": true,
+      "bytes": 5642304
+    },
+    {
+      "path": "data/canonical/tournament_rules.json",
+      "exists": true,
+      "bytes": 1326868
+    },
+    {
+      "path": "data/canonical/cards.json",
+      "exists": true,
+      "bytes": 3079282
+    },
+    {
+      "path": "data/canonical/semantic_ir.json",
+      "exists": true,
+      "bytes": 2036807
+    },
+    {
+      "path": "data/canonical/compiled_rule_catalog.json",
+      "exists": true,
+      "bytes": 2118284
+    },
+    {
+      "path": "data/canonical/rule_programs.json",
+      "exists": true,
+      "bytes": 17957
+    },
+    {
+      "path": "data/canonical/supplemental_sources.json",
+      "exists": true,
+      "bytes": 87942
+    },
+    {
+      "path": "data/canonical/official_errata.json",
+      "exists": true,
+      "bytes": 49629
+    },
+    {
+      "path": "data/canonical/effective_rule_overrides.json",
+      "exists": true,
+      "bytes": 1281
+    },
+    {
+      "path": "data/canonical/card_interaction_catalog.json",
+      "exists": true,
+      "bytes": 2820322
+    },
+    {
+      "path": "data/canonical/card_interaction_programs.json",
+      "exists": true,
+      "bytes": 23393
+    },
+    {
+      "path": "data/index/rules.sqlite",
+      "exists": true,
+      "bytes": 9703424
+    },
+    {
+      "path": "data/source/official_source_manifest.json",
+      "exists": true,
+      "bytes": 9919
+    },
+    {
+      "path": "data/source/current_authority_overlay.json",
+      "exists": true,
+      "bytes": 751
+    },
+    {
+      "path": "data/source/core_rules.pdf",
+      "exists": true,
+      "bytes": 42947831
+    },
+    {
+      "path": "data/source/tournament_rules.pdf",
+      "exists": true,
+      "bytes": 16697889
+    },
+    {
+      "path": "data/source/rule_versions/core/history.json",
+      "exists": true,
+      "bytes": 541
+    },
+    {
+      "path": "data/source/rule_versions/tournament/history.json",
+      "exists": true,
+      "bytes": 576
+    }
+  ],
+  "schemaChecks": {
+    "data/canonical/compiled_rule_catalog.json": {
+      "passed": true,
+      "expected": 1,
+      "actual": 1
+    },
+    "data/canonical/rule_programs.json": {
+      "passed": true,
+      "expected": 1,
+      "actual": 1
+    },
+    "data/canonical/supplemental_sources.json": {
+      "passed": true,
+      "expected": 1,
+      "actual": 1
+    },
+    "data/canonical/official_errata.json": {
+      "passed": true,
+      "expected": 1,
+      "actual": 1
+    },
+    "data/canonical/card_interaction_catalog.json": {
+      "passed": true,
+      "expected": 1,
+      "actual": 1
+    },
+    "data/canonical/card_interaction_programs.json": {
+      "passed": true,
+      "expected": 1,
+      "actual": 1
+    },
+    "data/source/rule_versions/core/history.json": {
+      "passed": true,
+      "expected": 1,
+      "actual": 1
+    },
+    "data/source/rule_versions/tournament/history.json": {
+      "passed": true,
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  "sqlite": {
+    "passed": true,
+    "quickCheck": "ok",
+    "userVersion": 1,
+    "expectedUserVersion": 1,
+    "docCount": 3720,
+    "ftsCount": 3720
+  },
+  "ruleVersionIntegrity": {
+    "passed": true,
+    "errors": []
+  },
+  "currentOverlayIntegrity": {
+    "passed": true,
+    "errors": []
+  },
+  "authority": {
+    "currentRulesComplete": true,
+    "missing": []
+  },
+  "snapshotId": "890eea9ce4345ce879f0f50c9afda9479b81045ebaa8f2820d91aeca37cebe90",
+  "networkRequiredForServing": false
+}

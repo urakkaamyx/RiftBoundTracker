@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-22T14:06:43Z",
+  "recordCount": 1,
+  "valid": true,
+  "errors": [],
+  "overrides": [
+    {
+      "overrideId": "vendetta-2026-might-copyable",
+      "kind": "add_list_member",
+      "target": "copyable_traits",
+      "value": "Might",
+      "statement": "Might is a copyable trait that copy effects can replace or add to.",
+      "scope": "game_rules",
+      "overriddenRuleIds": [
+        "477.1.b.1.a"
+      ],
+      "sourceEvidenceId": "O:vendetta-faq-2026-08-14:0030",
+      "sourceId": "vendetta-faq-2026-08-14",
+      "sourceContentHash": "6257c7e1609126a50f61f50f80c9ad3b7fc21c7091c52d9b5d1bff55c23ae8a1",
+      "sourceSnapshotSha256": "a68712057b00b3590e779ffdea024b1d5201891f12e94dfde3de49e09d323891",
+      "sourceUrl": "https://playriftbound.com/en-us/news/rules-and-releases/vendetta-rules-faq-and-clarifications/",
+      "effectiveFrom": "2026-08-14",
+      "authority": {
+        "status": "current_overlay",
+        "scope": [
+          "official_rulings"
+        ],
+        "precedence": {
+          "over": [
+            "core-rules-2026-07-16"
+          ],
+          "onlyWhereDifferent": true,
+          "expiresWhen": "next_core_rules_document_released"
+        },
+        "exhaustive": null
+      }
+    }
+  ]
+}

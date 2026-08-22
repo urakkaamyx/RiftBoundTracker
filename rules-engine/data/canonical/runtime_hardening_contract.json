@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "runtimeArtifacts": [
+    "data/canonical/core_rules.json",
+    "data/canonical/tournament_rules.json",
+    "data/canonical/cards.json",
+    "data/canonical/semantic_ir.json",
+    "data/canonical/compiled_rule_catalog.json",
+    "data/canonical/rule_programs.json",
+    "data/canonical/supplemental_sources.json",
+    "data/canonical/official_errata.json",
+    "data/canonical/effective_rule_overrides.json",
+    "data/canonical/card_interaction_catalog.json",
+    "data/canonical/card_interaction_programs.json",
+    "data/index/rules.sqlite",
+    "data/source/official_source_manifest.json",
+    "data/source/current_authority_overlay.json",
+    "data/source/core_rules.pdf",
+    "data/source/tournament_rules.pdf",
+    "data/source/rule_versions/core/history.json",
+    "data/source/rule_versions/tournament/history.json"
+  ],
+  "indexSchemaVersion": 1,
+  "cache": {
+    "bounded": true,
+    "threadSafe": true,
+    "deepCopyResults": true,
+    "adjudicationCached": false
+  },
+  "policies": {
+    "failStartupOnCorruption": true,
+    "failClosedOnRuntimeDrift": true,
+    "readOnlySqliteAtRuntime": true,
+    "atomicCanonicalWrites": true,
+    "networkRequiredForServing": false
+  }
+}

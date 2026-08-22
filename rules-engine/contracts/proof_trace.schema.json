@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "riftkeep://contracts/proof_trace.schema.json",
+  "title": "RiftKeep Adjudication Proof Trace",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "issue",
+    "rulingStatus",
+    "effectiveVerdict",
+    "steps",
+    "acceptedEvidence",
+    "rejectedEvidence",
+    "applicability",
+    "precedence",
+    "conflicts",
+    "rulePrograms",
+    "orderedChains",
+    "stateTransitions",
+    "dependencies",
+    "completeness",
+    "verification"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "issue": {
+      "type": "string"
+    },
+    "rulingStatus": {
+      "type": "string"
+    },
+    "effectiveVerdict": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "steps": {
+      "type": "array"
+    },
+    "acceptedEvidence": {
+      "type": "array"
+    },
+    "rejectedEvidence": {
+      "type": "array"
+    },
+    "applicability": {
+      "type": "array"
+    },
+    "precedence": {
+      "type": "array"
+    },
+    "conflicts": {
+      "type": "array"
+    },
+    "orderedChains": {
+      "type": "array"
+    },
+    "stateTransitions": {
+      "type": "array"
+    },
+    "dependencies": {
+      "type": "array"
+    },
+    "completeness": {
+      "type": "object"
+    },
+    "verification": {
+      "type": "object",
+      "required": [
+        "passed",
+        "errors"
+      ],
+      "properties": {
+        "passed": {
+          "type": "boolean"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "rulePrograms": {
+      "type": "array"
+    }
+  }
+}

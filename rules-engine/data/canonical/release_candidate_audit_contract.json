@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 1,
+  "milestones": [
+    {
+      "milestone": "M1",
+      "name": "Authoritative Corpus Foundation",
+      "requiredArtifacts": [
+        "data/canonical/core_rules.json",
+        "data/canonical/tournament_rules.json",
+        "data/canonical/cards.json"
+      ],
+      "requiredReports": [
+        "core_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M2",
+      "name": "Deterministic Retrieval & Basic Adjudication",
+      "requiredArtifacts": [
+        "data/index/rules.sqlite",
+        "src/riftkeep_rules/retrieval.py"
+      ],
+      "requiredReports": [
+        "regression_report.json"
+      ]
+    },
+    {
+      "milestone": "M3",
+      "name": "Hard Interaction Families",
+      "requiredArtifacts": [
+        "src/riftkeep_rules/adjudicator.py"
+      ],
+      "requiredReports": [
+        "regression_report.json"
+      ]
+    },
+    {
+      "milestone": "M4",
+      "name": "Full Current Authority Overlay",
+      "requiredArtifacts": [
+        "data/source/current_authority_overlay.json",
+        "data/canonical/effective_rule_overrides.json"
+      ],
+      "requiredReports": [
+        "update_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M5",
+      "name": "Player Language & Clarification",
+      "requiredArtifacts": [
+        "src/riftkeep_rules/player_language.py",
+        "src/riftkeep_rules/clarify.py"
+      ],
+      "requiredReports": [
+        "language_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M6",
+      "name": "Audit, Update Lifecycle & Scenario Understanding",
+      "requiredArtifacts": [
+        "data/source/rule_versions/core/history.json",
+        "data/source/rule_versions/tournament/history.json"
+      ],
+      "requiredReports": [
+        "scenario_language_test_report.json",
+        "update_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M7",
+      "name": "Generalized Scenario Model",
+      "requiredArtifacts": [
+        "src/riftkeep_rules/scenario_model.py"
+      ],
+      "requiredReports": [
+        "scenario_model_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M8",
+      "name": "Generalized Rule Compiler",
+      "requiredArtifacts": [
+        "data/canonical/compiled_rule_catalog.json",
+        "data/canonical/rule_programs.json"
+      ],
+      "requiredReports": [
+        "compiler_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M9",
+      "name": "Proof Engine / Complete Adjudication",
+      "requiredArtifacts": [
+        "src/riftkeep_rules/proof_engine.py"
+      ],
+      "requiredReports": [
+        "proof_engine_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M10",
+      "name": "LLM Interpretation Layer",
+      "requiredArtifacts": [
+        "src/riftkeep_rules/llm_interpretation.py"
+      ],
+      "requiredReports": [
+        "llm_interpretation_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M11",
+      "name": "LLM Explanation Layer",
+      "requiredArtifacts": [
+        "src/riftkeep_rules/llm_explanation.py"
+      ],
+      "requiredReports": [
+        "llm_explanation_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M12",
+      "name": "Large Gold Test Corpus",
+      "requiredArtifacts": [
+        "data/gold/gold_corpus.json",
+        "data/gold/gold_manifest.json"
+      ],
+      "requiredReports": [
+        "gold_corpus_report.json"
+      ]
+    },
+    {
+      "milestone": "M13",
+      "name": "Card Interaction Engine",
+      "requiredArtifacts": [
+        "data/canonical/card_interaction_catalog.json",
+        "data/canonical/card_interaction_programs.json"
+      ],
+      "requiredReports": [
+        "card_interaction_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M14",
+      "name": "Search / Ask-Rules Product API",
+      "requiredArtifacts": [
+        "src/riftkeep_rules/product_api.py",
+        "src/riftkeep_rules/api_http.py"
+      ],
+      "requiredReports": [
+        "product_api_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M15",
+      "name": "RiftKeep UI Integration",
+      "requiredArtifacts": [
+        "web/index.html",
+        "web/styles.css",
+        "web/app.js"
+      ],
+      "requiredReports": [
+        "ui_integration_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M16",
+      "name": "Update Automation",
+      "requiredArtifacts": [
+        "src/riftkeep_rules/update_automation.py",
+        "src/riftkeep_rules/release_gate.py"
+      ],
+      "requiredReports": [
+        "update_automation_test_report.json"
+      ]
+    },
+    {
+      "milestone": "M17",
+      "name": "Production Hardening",
+      "requiredArtifacts": [
+        "src/riftkeep_rules/runtime_hardening.py",
+        "data/canonical/runtime_hardening_contract.json"
+      ],
+      "requiredReports": [
+        "production_hardening_test_report.json"
+      ]
+    },
+    {
+      "milestone": "P17-D",
+      "name": "Definition Lookup Hotfix",
+      "requiredArtifacts": [
+        "tests/run_definition_lookup_tests.py"
+      ],
+      "requiredReports": [
+        "definition_lookup_test_report.json"
+      ]
+    }
+  ],
+  "expectedReports": {
+    "core_test_report.json": 164,
+    "definition_lookup_test_report.json": 120,
+    "regression_report.json": 99,
+    "language_test_report.json": 42,
+    "scenario_language_test_report.json": 43,
+    "scenario_model_test_report.json": 58,
+    "compiler_test_report.json": 42,
+    "proof_engine_test_report.json": 72,
+    "llm_interpretation_test_report.json": 84,
+    "llm_explanation_test_report.json": 80,
+    "gold_corpus_report.json": 34,
+    "card_interaction_test_report.json": 74,
+    "product_api_test_report.json": 132,
+    "ui_integration_test_report.json": 148,
+    "update_test_report.json": 29,
+    "update_automation_test_report.json": 70,
+    "production_hardening_test_report.json": 74
+  },
+  "sourceAuthority": {
+    "coreRuleCount": 2381,
+    "tournamentRuleCount": 935,
+    "cardCount": 1304,
+    "faqSectionCount": 35,
+    "errataEventCount": 63,
+    "errataAffectedPrintings": 91,
+    "currentCoreSourceId": "core-rules-2026-07-16",
+    "currentTournamentSourceId": "tournament-rules-2026-07-16",
+    "currentFaqSourceId": "vendetta-faq-2026-08-14",
+    "coreSourceSha256": "9c5fb8b8638f2cd19ceda237929fa2c37aac23c797cc7410294993470ba5a30b",
+    "tournamentSourceSha256": "6a5be5501c494ecc841fb2572e715d9006f611ff2e5c97023a5be1b5c884e61f",
+    "faqSnapshotSha256": "a68712057b00b3590e779ffdea024b1d5201891f12e94dfde3de49e09d323891",
+    "cardSourceSha256": "9c1c5f762a999ecb96d033dca5c1b2b782b8eb2b57960acaad170b337feaed83"
+  },
+  "releasePolicy": {
+    "latestTwoMilestones": [
+      18,
+      19
+    ],
+    "criticalOrHighFindingsAllowed": 0,
+    "requiredAuditCriticalIssues": 0,
+    "requiredCurrentAuthorityComplete": true,
+    "requiredIndexSchemaVersion": 1,
+    "requiredCertifiedReleaseSuiteCount": 19,
+    "goldCFixtureCount": 34,
+    "goldCPromoted": 16,
+    "goldCRemainingReportOnly": 18,
+    "retainedReleaseHashes": {
+      "RiftKeepRules_Engine_Milestone18.zip": "06eea3100cbced4190e8062ece7163e57882c41eb3a49414400a3a6e0c89a20b"
+    },
+    "currentReleaseArchive": "RiftKeepRules_Engine_Milestone19.zip",
+    "currentReleaseHashSidecar": "RiftKeepRules_Engine_Milestone19.zip.sha256"
+  }
+}

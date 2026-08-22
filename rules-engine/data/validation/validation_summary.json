@@ -1,0 +1,1922 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-22T15:26:56.951916+00:00",
+  "passed": true,
+  "parserValidation": {
+    "core": true,
+    "tournament": true
+  },
+  "errataValidation": {
+    "passed": true,
+    "failureCount": 0,
+    "failures": [],
+    "sourceDocumentCount": 4,
+    "errataEventCount": 63,
+    "errataIdentityCount": 63,
+    "matchedIdentityCount": 63,
+    "effectiveCardPrintingCount": 91,
+    "sourceIds": [
+      "origins-errata",
+      "spiritforged-errata",
+      "unleashed-errata",
+      "vendetta-errata"
+    ]
+  },
+  "currentOverlayIntegrity": {
+    "schemaVersion": 1,
+    "passed": true,
+    "activeOverlayCount": 1,
+    "errors": [],
+    "checks": [
+      {
+        "sourceId": "vendetta-faq-2026-08-14",
+        "passed": true
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "vendetta-faq-2026-08-14",
+        "passed": true,
+        "errors": [],
+        "checks": {
+          "latestPointerExists": true,
+          "snapshotRecordExists": true,
+          "archiveExists": true,
+          "archiveHashMatchesSnapshot": true,
+          "pointerHashMatchesSnapshot": true,
+          "sourceIdMatches": true,
+          "sourceUrlMatchesManifest": true,
+          "authorityStatusCurrentOverlay": true,
+          "precedenceDeclared": true,
+          "snapshotValidationPassed": true,
+          "sectionCountMatches": true,
+          "sectionCountMeetsProfile": true,
+          "evidenceIdsUnique": true,
+          "evidenceIdsContiguous": true,
+          "catalogCoversEverySection": true,
+          "catalogRolesPresent": true
+        },
+        "sectionCount": 35,
+        "sha256": "a68712057b00b3590e779ffdea024b1d5201891f12e94dfde3de49e09d323891",
+        "captureMode": "normalized_official_web_crawl_transcription",
+        "validation": {
+          "passed": true,
+          "errors": [],
+          "warnings": []
+        }
+      }
+    ]
+  },
+  "ruleVersionIntegrity": {
+    "schemaVersion": 1,
+    "passed": true,
+    "errors": [],
+    "families": {
+      "core": {
+        "passed": true,
+        "checks": {
+          "historyExists": true,
+          "exactlyOneCurrentVersion": true,
+          "historyCurrentPointerMatches": true,
+          "manifestCurrentMatchesLedger": true,
+          "livePdfExists": true,
+          "parsedSnapshotExists": true,
+          "versionMetadataExists": true,
+          "livePdfHashMatchesLedger": true,
+          "parsedSourceIdMatchesLedger": true,
+          "parsedSourceHashMatchesLedger": true,
+          "ruleCountMatchesLedger": true,
+          "internalRuleIdsUnique": true
+        },
+        "errors": [],
+        "versionCount": 1,
+        "currentSourceId": "core-rules-2026-07-16"
+      },
+      "tournament": {
+        "passed": true,
+        "checks": {
+          "historyExists": true,
+          "exactlyOneCurrentVersion": true,
+          "historyCurrentPointerMatches": true,
+          "manifestCurrentMatchesLedger": true,
+          "livePdfExists": true,
+          "parsedSnapshotExists": true,
+          "versionMetadataExists": true,
+          "livePdfHashMatchesLedger": true,
+          "parsedSourceIdMatchesLedger": true,
+          "parsedSourceHashMatchesLedger": true,
+          "ruleCountMatchesLedger": true,
+          "internalRuleIdsUnique": true
+        },
+        "errors": [],
+        "versionCount": 1,
+        "currentSourceId": "tournament-rules-2026-07-16"
+      }
+    }
+  },
+  "tests": {
+    "core": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/core_test_report.json",
+      "modifiedAt": "2026-08-22T15:23:28.374610+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 164,
+        "failureCount": 0,
+        "failures": []
+      },
+      "freshForCurrentBuild": true
+    },
+    "definitions": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/definition_lookup_test_report.json",
+      "modifiedAt": "2026-08-22T15:23:46.844692+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 120,
+        "failureCount": 0,
+        "metrics": {
+          "keywordCount": 25,
+          "gameActionCount": 32,
+          "ruleConceptCount": 52,
+          "naturalDoPhraseCoverage": true,
+          "singularPluralAliasCoverage": true,
+          "proofVerifiedDefinitions": true,
+          "scenarioFalsePositiveGuard": true
+        },
+        "failures": []
+      },
+      "freshForCurrentBuild": true
+    },
+    "regressions": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/regression_report.json",
+      "modifiedAt": "2026-08-22T15:24:17.343961+00:00",
+      "report": {
+        "passed": true,
+        "caseCount": 99,
+        "failures": [],
+        "cases": [
+          {
+            "name": "controlled battlefield play and contested",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              },
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "1. Yes. A Unit may be played directly to its controller's Battlefield its controller controls as a default valid location.\n   Rule 355.2: \"For Units, choose a valid Location where that Unit will enter upon being Played.\"\n   Rule 355.2.a: \"By default, Valid locations include the controller’s Base or a Battlefield the controller controls.\"\n\n2. No. The Unit's arrival does not newly apply Contested because its controller already controls that Battlefield.\n   Rule 190.3.a: \"Contested is a temporary status applied to the battlefield when a Unit controlled by a Player who does not currently Control that Battlefield Moves or otherwise becomes present there.\"\n   Rule 190.3.a.1: \"Units moving to or being played to a battlefield apply Contested status if that battlefield is not already Contested and that Unit’s controller does not already control that battlefield.\""
+          },
+          {
+            "name": "hidden card cleanup explicit open state",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Remove it to its owner's Trash. During Cleanup, after battlefield control is lost for having no Units there in an Open State with no ongoing Combat/Showdown, the following Cleanup task removes Hidden cards from that now-uncontrolled Battlefield to their owners' Trash.\n   Rule 323.6: \"4. Players lose control of any controlled Battlefields without their Units occupying them if the turn is in an Open State and there is no Showdown or Combat ongoing there.\"\n   Rule 323.7: \"5. Recall all Unattached non-Unit Gear and non-Unit Runes at Battlefields, and all Permanents and Runes in Bases other than their controller’s. Remove all Hidden cards from all Battlefields that are not controlled by the same player and place them in their owner's Trash.\"\n   Rule 190.4.c: \"If a player has no Units at a Battlefield and the turn is in an Open state, they lose Control of that Battlefield in the following cleanup unless there is a Combat or Showdown ongoing there.\"\n   Rule 811.1.b: \"It is functionally short for \"While this card is in your hand or in your Champion Zone on your turn during an Open State, you may pay [A] to hide this facedown at a battlefield you control that doesn't already have a facedown card hidden there for as long as you control that battlefield. Beginning on the next turn, this gains [Reaction] and you may play this, ignoring its base cost.\"\""
+          },
+          {
+            "name": "hidden card missing timing facts remains conditional",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "It depends. The Hidden-card outcome is conditional because losing battlefield control requires an Open State with no ongoing Combat or Showdown; the question does not establish all of those facts.\n   To decide this completely, I need:\n   - Is the game in an Open State when this Cleanup would happen?\n   - Is Combat ongoing at that battlefield?\n   - Is a Showdown ongoing at that battlefield?\n   Rule 190.4.c: \"If a player has no Units at a Battlefield and the turn is in an Open state, they lose Control of that Battlefield in the following cleanup unless there is a Combat or Showdown ongoing there.\"\n   Rule 323.6: \"4. Players lose control of any controlled Battlefields without their Units occupying them if the turn is in an Open State and there is no Showdown or Combat ongoing there.\"\n   Rule 323.7: \"5. Recall all Unattached non-Unit Gear and non-Unit Runes at Battlefields, and all Permanents and Runes in Bases other than their controller’s. Remove all Hidden cards from all Battlefields that are not controlled by the same player and place them in their owner's Trash.\"\n   Rule 811.1.b: \"It is functionally short for \"While this card is in your hand or in your Champion Zone on your turn during an Open State, you may pay [A] to hide this facedown at a battlefield you control that doesn't already have a facedown card hidden there for as long as you control that battlefield. Beginning on the next turn, this gains [Reaction] and you may play this, ignoring its base cost.\"\""
+          },
+          {
+            "name": "fully prevented damage is not dealt",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - that damage was not dealt. If all of the damage is prevented, that damage is not considered to have been dealt to the Unit at all.\n   Rule 437.2: \"When damage is Prevented, it is replaced with an event where it deals that much damage reduced by the Prevent Value tracked on the Unit specifically.\"\n   Rule 437.2.a: \"The damage being dealt as a result of Preventing can never be less than 0, but can be 0. This is equivalent to not dealing damage.\"\n   Rule 437.4: \"Damage dealt to a Unit that has that all of that damage Prevented is not considered to have been dealt to it at all.\"\n   Rule 417.1.b: \"To Deal Damage to Units, mark the specified amount of Damage on the Unit.\""
+          },
+          {
+            "name": "card only restriction beats default play permission",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. The card's active 'only' restriction controls the scenario over the default play-location permission.\n   The default rule would normally allow it: A Unit may be played directly to its controller's Battlefield its controller controls as a default valid location.\n   Rule 355.2: \"For Units, choose a valid Location where that Unit will enter upon being Played.\"\n   Rule 355.2.a: \"By default, Valid locations include the controller’s Base or a Battlefield the controller controls.\"\n   Mageseeker Warden: \"While I'm at a battlefield, opponents can only play units to their base.While I'm at a battlefield, spells and abilities can't ready enemy units and gear.\"\n   Rule 002: \"Card text supersedes rules text. Whenever a card fundamentally contradicts the rules, the card's indication is what is true.\"\n   Rule 054: \"“Can’t beats Can”\"\n   Rule 054.1: \"Cards that forbid actions or effects, as a broad method of determination, supersede cards that allow or permit that same action or effect.\"\n   Rule 054.2: \"If a card specifies that an action can “only” be performed under certain circumstances, it cannot be performed under any other circumstances.\""
+          },
+          {
+            "name": "default play to uncontrolled battlefield is not valid",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No under that rule. The destination is not a default valid Unit-play location, and the stated scenario does not provide a Game Effect that makes it valid.\n   Rule 355.2: \"For Units, choose a valid Location where that Unit will enter upon being Played.\"\n   Rule 355.2.a: \"By default, Valid locations include the controller’s Base or a Battlefield the controller controls.\"\n   Rule 355.2.b: \"Some Game Effects may grant players permission to play Units to locations that are not normally Valid. Such locations become Valid for the purposes of Playing the Unit.\""
+          },
+          {
+            "name": "moving to uncontrolled uncontested battlefield applies contested",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes. The Unit's arrival applies Contested because the battlefield is not already Contested and the Unit's controller does not already control it.\n   Rule 190.3.a: \"Contested is a temporary status applied to the battlefield when a Unit controlled by a Player who does not currently Control that Battlefield Moves or otherwise becomes present there.\"\n   Rule 190.3.a.1: \"Units moving to or being played to a battlefield apply Contested status if that battlefield is not already Contested and that Unit’s controller does not already control that battlefield.\""
+          },
+          {
+            "name": "hidden card remains when battlefield control is retained",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No on that sequence. The Cleanup control-loss condition is false in the stated scenario, so this proof does not establish that the Hidden card is removed for loss of battlefield control at that Cleanup.\n   Rule 323.6: \"4. Players lose control of any controlled Battlefields without their Units occupying them if the turn is in an Open State and there is no Showdown or Combat ongoing there.\"\n   Rule 323.7: \"5. Recall all Unattached non-Unit Gear and non-Unit Runes at Battlefields, and all Permanents and Runes in Bases other than their controller’s. Remove all Hidden cards from all Battlefields that are not controlled by the same player and place them in their owner's Trash.\"\n   Rule 811.1.b: \"It is functionally short for \"While this card is in your hand or in your Champion Zone on your turn during an Open State, you may pay [A] to hide this facedown at a battlefield you control that doesn't already have a facedown card hidden there for as long as you control that battlefield. Beginning on the next turn, this gains [Reaction] and you may play this, ignoring its base cost.\"\""
+          },
+          {
+            "name": "partial prevention still deals damage",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes - damage was still dealt. Some damage remains after prevention, so damage is still dealt; only a resulting amount of 0 is equivalent to no damage being dealt.\n   Rule 437.2: \"When damage is Prevented, it is replaced with an event where it deals that much damage reduced by the Prevent Value tracked on the Unit specifically.\"\n   Rule 437.2.a: \"The damage being dealt as a result of Preventing can never be less than 0, but can be 0. This is equivalent to not dealing damage.\"\n   Rule 437.4: \"Damage dealt to a Unit that has that all of that damage Prevented is not considered to have been dealt to it at all.\"\n   Rule 417.1.b: \"To Deal Damage to Units, mark the specified amount of Damage on the Unit.\""
+          },
+          {
+            "name": "card restriction with missing location remains conditional",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "It depends. Mageseeker Warden's restriction matters only while it is at a battlefield; that condition is not established.\n   To decide this completely, I need:\n   - Is Mageseeker Warden currently at a battlefield?\n   Rule 355.2: \"For Units, choose a valid Location where that Unit will enter upon being Played.\"\n   Rule 355.2.a: \"By default, Valid locations include the controller’s Base or a Battlefield the controller controls.\"\n   Mageseeker Warden: \"While I'm at a battlefield, opponents can only play units to their base.While I'm at a battlefield, spells and abilities can't ready enemy units and gear.\"\n   Rule 002: \"Card text supersedes rules text. Whenever a card fundamentally contradicts the rules, the card's indication is what is true.\"\n   Rule 054.2: \"If a card specifies that an action can “only” be performed under certain circumstances, it cannot be performed under any other circumstances.\""
+          },
+          {
+            "name": "empower definition returns both official meanings",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Official rules. Showing all authoritative rule families named Empower.\n   Rule 441: \"Empower\"\n   Rule 441.1: \"Empowering is the act of rendering one or more Game Objects Empowered.\"\n   Rule 441.1.a: \"Empowered is a binary state. A Game Object is Empowered or it isn’t.\"\n   Rule 441.1.b: \"An Empowered Game Object can not be Empowered.\"\n   Rule 441.1.c: \"If a Game Object is instructed to be Empowered when it is already Empowered, nothing additional happens.\"\n   Rule 441.1.c.1: \"Some effects may grant a Game Object permission to be Empowered multiple times. Such an effect ignores this restriction.\"\n   Rule 441.2: \"“Empowered” is a state for Game Objects on the board that other game effects and abilities can reference.\"\n   Rule 441.2.a: \"When a Game Object becomes Empowered as a result of the Empower game action, that is an event that can similarly be referenced by game effects and abilities.\"\n   Rule 441.3: \"Empowering is a Limited Action.\"\n   Rule 441.3.a: \"Players may only Empower Game Objects when directed to by Game Effects.\"\n   Rule 827: \"Empower\"\n   Rule 827.1: \"Empower is an Activated Ability keyword.\"\n   Rule 827.1.a: \"Empower is normally present on permanents and legends.\"\n   Rule 827.1.b: \"Empower has a cost to activate and Empowers the source of the ability when the cost is paid. See rule 441. Empower (Game Action) for more information.\"\n   Rule 827.1.b.1: \"The source game object is not a target of the Empower ability.\"\n   Rule 827.1.c: \"Empower is formatted as “Empower [Cost]”\"\n   Rule 827.1.c.1: \"Empower is functionally short for “[Cost]: Empower this. Play only if not Empowered.”\"\n   Rule 827.1.c.2: \"Empower costs may include both resource costs and non-resource costs.\"\n   Rule 827.1.c.3: \"Empower abilities may also include text that alters the Empower cost. Such text is taken into account when determining a card’s Empower cost for any reason.\"\n   Rule 827.1.c.4: \"Empower abilities may include text that alters the timing of the Empower ability.\"\n   Rule 827.2: \"When the Empower action completes from this keyword, the source permanent or legend becomes Empowered.\"\n   Rule 827.2.a: \"This is an event other Game Effects and Triggered Abilities can reference.\"\n   Rule 827.3: \"Multiple instances of Empower are equivalent to multiple activated abilities and can each be activated separately by paying the corresponding costs.\"\n   Rule 827.4: \"Empower and whether a permanent or legend has Empower are a characteristic of those Game Objects and may be checked or referenced by other Game Effects.\""
+          },
+          {
+            "name": "numeric full prevention deals zero",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - that damage was not dealt. If all of the damage is prevented, that damage is not considered to have been dealt to the Unit at all.\n   Rule 437.2: \"When damage is Prevented, it is replaced with an event where it deals that much damage reduced by the Prevent Value tracked on the Unit specifically.\"\n   Rule 437.2.a: \"The damage being dealt as a result of Preventing can never be less than 0, but can be 0. This is equivalent to not dealing damage.\"\n   Rule 437.4: \"Damage dealt to a Unit that has that all of that damage Prevented is not considered to have been dealt to it at all.\"\n   Rule 417.1.b: \"To Deal Damage to Units, mark the specified amount of Damage on the Unit.\""
+          },
+          {
+            "name": "moving to controlled battlefield does not apply contested",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. The Unit's arrival does not newly apply Contested because its controller already controls that Battlefield.\n   Rule 190.3.a: \"Contested is a temporary status applied to the battlefield when a Unit controlled by a Player who does not currently Control that Battlefield Moves or otherwise becomes present there.\"\n   Rule 190.3.a.1: \"Units moving to or being played to a battlefield apply Contested status if that battlefield is not already Contested and that Unit’s controller does not already control that battlefield.\""
+          },
+          {
+            "name": "combat blocks cleanup battlefield control loss",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No on that sequence. The Cleanup control-loss condition is false in the stated scenario, so this proof does not establish that the Hidden card is removed for loss of battlefield control at that Cleanup.\n   Rule 323.6: \"4. Players lose control of any controlled Battlefields without their Units occupying them if the turn is in an Open State and there is no Showdown or Combat ongoing there.\"\n   Rule 323.7: \"5. Recall all Unattached non-Unit Gear and non-Unit Runes at Battlefields, and all Permanents and Runes in Bases other than their controller’s. Remove all Hidden cards from all Battlefields that are not controlled by the same player and place them in their owner's Trash.\"\n   Rule 811.1.b: \"It is functionally short for \"While this card is in your hand or in your Champion Zone on your turn during an Open State, you may pay [A] to hide this facedown at a battlefield you control that doesn't already have a facedown card hidden there for as long as you control that battlefield. Beginning on the next turn, this gains [Reaction] and you may play this, ignoring its base cost.\"\""
+          },
+          {
+            "name": "card restriction inactive at base",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes. The card-specific restriction is inactive in the stated location, so the default controlled-Battlefield play permission remains effective.\n   Rule 355.2: \"For Units, choose a valid Location where that Unit will enter upon being Played.\"\n   Rule 355.2.a: \"By default, Valid locations include the controller’s Base or a Battlefield the controller controls.\"\n   Mageseeker Warden: \"While I'm at a battlefield, opponents can only play units to their base.While I'm at a battlefield, spells and abilities can't ready enemy units and gear.\"\n   Rule 002: \"Card text supersedes rules text. Whenever a card fundamentally contradicts the rules, the card's indication is what is true.\"\n   Rule 054.2: \"If a card specifies that an action can “only” be performed under certain circumstances, it cannot be performed under any other circumstances.\""
+          },
+          {
+            "name": "default unit play to base is valid",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes. A Unit may be played directly to its controller's Base as a default valid location.\n   Rule 355.2: \"For Units, choose a valid Location where that Unit will enter upon being Played.\"\n   Rule 355.2.a: \"By default, Valid locations include the controller’s Base or a Battlefield the controller controls.\""
+          },
+          {
+            "name": "game effect can grant normally invalid play location",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes. Although the destination is not a default valid Unit-play location, the stated Game Effect grants permission and makes that location valid for this play.\n   Rule 355.2: \"For Units, choose a valid Location where that Unit will enter upon being Played.\"\n   Rule 355.2.a: \"By default, Valid locations include the controller’s Base or a Battlefield the controller controls.\"\n   Rule 355.2.b: \"Some Game Effects may grant players permission to play Units to locations that are not normally Valid. Such locations become Valid for the purposes of Playing the Unit.\""
+          },
+          {
+            "name": "already contested battlefield is not newly contested",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. The Unit's arrival does not newly apply Contested under 190.3.a.1 because that Battlefield is already Contested.\n   Rule 190.3.a: \"Contested is a temporary status applied to the battlefield when a Unit controlled by a Player who does not currently Control that Battlefield Moves or otherwise becomes present there.\"\n   Rule 190.3.a.1: \"Units moving to or being played to a battlefield apply Contested status if that battlefield is not already Contested and that Unit’s controller does not already control that battlefield.\""
+          },
+          {
+            "name": "replace creates without playing",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. Replacing creates a token in another object's place without playing that token.\n   Rule 438: \"Replace\"\n   Rule 438.1: \"Replacing is the act of Creating a token in the place of another card or token without playing it while inheriting all effects or statuses of the game object it replaced.\""
+          },
+          {
+            "name": "reaction definition",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Official rules. Showing the authoritative rule family for Reaction.\n   Rule 813: \"Reaction\"\n   Rule 813.1: \"Reaction is a Permissive keyword.\"\n   Rule 813.1.a: \"It can be present on Cards, Rune Abilities, Legend Abilities and Permanent Abilities.\"\n   Rule 813.1.b: \"Reaction grants the corresponding card or effect all abilities and permissions of Action.\"\n   Rule 813.1.c: \"Reaction, additionally, is functionally short for the following:\"\n   Rule 813.1.c.1: \"On Cards: \"This can be played during Closed States on any player's turn.\"\"\n   Rule 813.1.c.2: \"On Activated Abilities: \"This can be activated during Closed States on any player's turn.\"\"\n   Rule 813.1.d: \"Reaction is formatted as “[Reaction]” on cards, or “[Reaction][>]” on abilities.\"\n   Rule 813.2: \"The corresponding card or effect with this keyword is not restricted to Closed States or Showdowns. This permission is inclusive of all other timings and options available to the ability as written, Action's permissions, or by default.\"\n   Rule 813.3: \"Reaction does not alter the function of any instruction of the Card, Rune, or Effect it is on. It is only Permission.\"\n   Rule 813.3.a: \"Playing Units with Reaction still has the inherent restrictions of playing Units without Reaction. It can only be played to the controlling player's base or a battlefield they control.\"\n   Rule 813.4: \"Some passive abilities may grant a card or ability Reaction under certain conditions. The card or ability does not have the Reaction keyword unless and until those circumstances are true.\"\n   Rule 813.4.a: \"Those conditions might only be fulfilled while the card or ability is on the chain. In such a case, it can still be played or activated at the appropriate timing as long as doing so could fulfill the conditions.\"\n   Rule 813.4.b: \"If the chain item does not fulfill the conditions by the time step 5: check legality has been reached, the actions taken while playing it are undone and it is returned to the zone it was played from if it is a card.\"\n   Rule 813.5: \"Reaction is a referencable characteristic.\"\n   Rule 813.5.a: \"Whether or not a Game Object has Reaction is a characteristic of that Game Object and may be checked or referenced by other Game Effects.\"\n   Rule 813.5.b: \"Whether or not a Spell has Reaction is a characteristic of that Spell and may be checked or referenced by other Game Effects.\"\n   Rule 813.5.c: \"Whether or not an Ability has Reaction is a characteristic of that Ability and may be checked or referenced by other Game Effects.\""
+          },
+          {
+            "name": "hidden definition",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Official rules. Showing the authoritative rule family for Hidden.\n   Rule 811: \"Hidden\"\n   Rule 811.1: \"Hidden is a keyword that acts as a prerequisite to perform the Hide Discretionary Action.\"\n   Rule 811.1.a: \"It is present on Spells, Units, and Gear.\"\n   Rule 811.1.b: \"It is functionally short for \"While this card is in your hand or in your Champion Zone on your turn during an Open State, you may pay [A] to hide this facedown at a battlefield you control that doesn't already have a facedown card hidden there for as long as you control that battlefield. Beginning on the next turn, this gains [Reaction] and you may play this, ignoring its base cost.\"\"\n   Rule 811.1.c: \"It allows the player to take the Discretionary Action Hide.\"\n   Rule 811.1.c.1: \"Hide is not a subset of Play.\"\n   Rule 811.1.c.2: \"Hiding a card does not open a chain.\"\n   Rule 811.1.c.3: \"Playing a card from facedown (or \"from Hidden\") does open a chain.\"\n   Rule 811.1.d: \"Some choices made while playing a card from Hidden are restricted to the battlefield where it was hidden. A card cannot be played from Hidden if it is a spell with no valid targets under these restrictions. See rule 355.6. Targeting for more information.\"\n   Rule 811.1.d.1: \"A hidden permanent must be played to that battlefield.\"\n   Rule 811.1.d.1.a: \"This includes hidden gear, and overrides the normal restriction that gear have in only being allowed to be played to base.\"\n   Rule 811.1.d.2: \"If a hidden spell or a play effect of a hidden permanent chooses any targets, those targets must be chosen from among options at that battlefield, unless the ability explicitly restricts targeting in a way that makes this impossible.\"\n   Rule 811.1.d.2.a: \"Each target is treated separately and individually when processing this rule.\"\n   Rule 811.1.d.3: \"If a hidden spell or a play effect of a hidden permanent causes you to play a unit, you must choose to play that unit at that battlefield.\"\n   Rule 811.2: \"Abilities and instructions of hidden cards other than the choices listed above function as normal.\"\n   Rule 811.3: \"Instead of being hidden, a card with Hidden may be played for its cost as normal, at its normal timing with no restrictions on targeting.\"\n   Rule 811.4: \"Multiple instances of Hidden are redundant.\"\n   Rule 811.5: \"Hidden, and whether or not a card has Hidden, is a characteristic of the card and may be checked or referenced by other Game Effects.\"\n   Rule 811.5.a: \"This is independent of the state of being facedown.\"\n   Rule 811.6: \"A card that is Hidden gains Reaction while facedown or played from facedown, and may be played any time a card with Reaction may be played as a result.\"\n   Rule 811.6.a: \"The property is granted to the card in its facedown state, and is not publicly known.\""
+          },
+          {
+            "name": "prevent definition",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Official rules. Showing the authoritative rule family for Prevent.\n   Rule 437: \"Prevent\"\n   Rule 437.1: \"Preventing damage is the act of reducing the Damage a set of game objects would take.\"\n   Rule 437.1.a: \"Prevent is an action that interacts with Damage.\"\n   Rule 437.1.a.1: \"Prevent includes any applied Bonus Damage when determining the total damage being prevented.\"\n   Rule 437.1.b: \"Prevent appears in statements that define an amount of damage and the source of the damage it will affect, as well as the timespan it will be relevant for.\"\n   Rule 437.1.b.1: \"Prevent actions are usually formatted as “Prevent the next X [source] damage that would be dealt to a [unit] this turn.”\"\n   Rule 437.1.b.1.a: \"The X is referred to as the Prevent Value.\"\n   Rule 437.1.b.1.b: \"X can be “All,” which specifies an infinite amount of damage.\"\n   Rule 437.1.b.2: \"Prevent will always apply to the next damage that would be dealt to a unit affected by the Prevent action.\"\n   Rule 437.2: \"When damage is Prevented, it is replaced with an event where it deals that much damage reduced by the Prevent Value tracked on the Unit specifically.\"\n   Rule 437.2.a: \"The damage being dealt as a result of Preventing can never be less than 0, but can be 0. This is equivalent to not dealing damage.\"\n   Rule 437.3: \"When damage is dealt this way, reduce the Prevent Value being tracked on the Unit affected by the Prevent action by the prevented amount.\"\n   Rule 437.3.a: \"If the Prevent Value is 0 or less, then Prevent is no longer being tracked on the Unit in question, and the effect expires.\"\n   Rule 437.3.b: \"The reduced value is the newly tracked Prevent Value.\"\n   Rule 437.3.c: \"If the Prevent Value is “All” then it remains “All.”\"\n   Rule 437.4: \"Damage dealt to a Unit that has that all of that damage Prevented is not considered to have been dealt to it at all.\"\n   Rule 437.5: \"Damage can still be assigned to Units in combat that are affected by Prevent. The damage dealt as a result of that assignment will be affected by the Prevent action.\"\n   Rule 437.5.a: \"Damage can be assigned to a Unit up to a value that would be Lethal considering the Prevent Value of all Prevent Actions on a Unit, following the normal rules for damage assignment.\"\n   Rule 437.5.b: \"No amount of damage is ever considered lethal if the Prevent Value is “All.”\"\n   Rule 437.6: \"Prevent is a Limited Action.\"\n   Rule 437.6.a: \"Players may only Prevent Damage when directed to by Game Effects.\"\n   Rule 437.7: \"Prevent is a Delayed Replacement Effect. See rule 367. Replacement Effects for more information. See rule 389. Delayed Abilities for more information.\""
+          },
+          {
+            "name": "replace definition",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Official rules. Showing the authoritative rule family for Replace.\n   Rule 438: \"Replace\"\n   Rule 438.1: \"Replacing is the act of Creating a token in the place of another card or token without playing it while inheriting all effects or statuses of the game object it replaced.\"\n   Rule 438.1.a: \"The replacing token is treated as the same Game Object as the card or token it replaced for the purposes of Game Effects that target or reference that game object.\"\n   Rule 438.2: \"Replacing is a Limited Action.\"\n   Rule 438.2.a: \"The player may Replace cards and tokens when instructed to do so by other game effects.\"\n   Rule 438.3: \"This action, when instructed, is formatted as \"Replace [X] with [Y].\"\"\n   Rule 438.3.a: \"The [X] is the target to be Replaced.\"\n   Rule 438.3.b: \"The [Y] is the object that will Replace the target.\"\n   Rule 438.3.b.1: \"This will always specify a Token to create.\"\n   Rule 438.4: \"Replacing is not a subset of Banishing.\"\n   Rule 438.5: \"The card or token that is Replaced is placed in Banishment.\"\n   Rule 438.5.a: \"While it resides in Banishment, it is considered to have been Replaced and not Banished.\"\n   Rule 438.6: \"If a token is Replaced it will stop existing once it begins its occupancy in Banishment.\"\n   Rule 438.6.a: \"This does not invalidate the token created, or the act of Replacement.\"\n   Rule 438.7: \"Tokens that have been Created through a Replace action can be instructed to be “Swapped back.” This may also appear as “replace [the token] with the [Game Object] it replaced.”\"\n   Rule 438.7.a: \"Swapping Back is an extension of the Replace action.\"\n   Rule 438.7.b: \"To Swap Back, the token stops existing and the original card is returned to the space that the token just occupied, inheriting all current effects and statuses.\"\n   Rule 438.7.b.1: \"Any card that has been Replaced by that token or any tokens it Replaced is eligible to swap back in this way.\"\n   Rule 438.7.c: \"If there is nothing in Banishment to swap back to then this object can never swap back.\""
+          },
+          {
+            "name": "equip definition",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Official rules. Showing the authoritative rule family for Equip.\n   Rule 818: \"Equip\"\n   Rule 818.1: \"Equip is an Activated Ability keyword.\"\n   Rule 818.1.a: \"Equip is present on Gear with the tag Equipment.\"\n   Rule 818.1.b: \"Equip has a cost to activate and Attaches the card with Equip to a chosen Unit when the cost is paid.\"\n   Rule 818.1.b.1: \"Equip’s choice is a Target.\"\n   Rule 818.1.b.2: \"The chosen Unit will become the Top-Most Card for the Attach action.\"\n   Rule 818.1.c: \"Equip is formatted as “Equip [Cost]”\"\n   Rule 818.1.c.1: \"If paying costs or making choices for this ability causes triggered abilities to trigger, they will be placed on the chain above this ability in a Pending state. See rule 376. Activated Abilities for more information.\"\n   Rule 818.1.c.2: \"Equip is functionally short for “[Cost]: Attach this gear to a unit you control.”\"\n   Rule 818.1.c.3: \"Equip costs may include both resource costs and non-resource costs.\"\n   Rule 818.1.c.4: \"Equip abilities may also include text that alters the Equip cost. Such text is taken into account when determining a card’s Equip cost when paying for the ability.\"\n   Rule 818.1.c.5: \"Equip abilities may include text that alters the timing or targeting of the Equip ability.\"\n   Rule 818.2: \"When the Attach action completes from this keyword, the Unit that was chosen is considered to have been Equipped by the Gear with this ability.\"\n   Rule 818.2.a: \"This is an event other Game Effects and Triggered Abilities can reference.\"\n   Rule 818.3: \"Equipped is the state of a Top-Most Card being Attached by one or more cards that are Equipment.\"\n   Rule 818.3.a: \"The state of being Equipped is synchronous with that of the Attached state of the Equipment.\"\n   Rule 818.3.b: \"A Top-Most Card is Equipped as long as one or more of its Attached cards are Equipment.\"\n   Rule 818.3.c: \"The state of being Equipped corresponds to a Top-Most card having a card with Equip that is Attached to it.\"\n   Rule 818.4: \"Multiple instances of Equip are equivalent to multiple Activated Abilities and can each be activated separately by paying the corresponding costs.\"\n   Rule 818.5: \"Equip, and whether or not a Gear has Equip, is a characteristic of the Gear and may be checked or referenced by other Game Effects.\"\n   Rule 818.5.a: \"Whether or not a Gear has Equip may be referenced even if the Rules Text of the Gear is Inactive. See rule 716. Attachment for more information.\""
+          },
+          {
+            "name": "ganking definition",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Official rules. Showing the authoritative rule family for Ganking.\n   Rule 810: \"Ganking\"\n   Rule 810.1: \"Ganking is a Passive Ability keyword.\"\n   Rule 810.1.a: \"It is present on Units.\"\n   Rule 810.1.b: \"It is functionally short for \"I may move to a battlefield from another battlefield with a standard move.\"\"\n   Rule 810.1.c: \"It is a passive ability that adds permissions to the Unit's Standard Move.\"\n   Rule 810.1.c.1: \"It does not restrict or remove options from the Unit's Standard Move.\"\n   Rule 810.1.c.2: \"It does not have an activation cost.\"\n   Rule 810.1.c.3: \"It does not give additional abilities or activations of Movement, only new options for the Standard Move.\"\n   Rule 810.2: \"Multiple instances of Ganking are redundant.\"\n   Rule 810.3: \"Ganking, and whether or not a unit has Ganking, is a characteristic of the Unit and may be checked or referenced by other Game Effects.\""
+          },
+          {
+            "name": "play game action definition",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Official rules. Showing the authoritative rule family for Play.\n   Rule 419: \"Play\"\n   Rule 419.1: \"A player Plays cards by placing them on the chain and queuing them to be finalized. See rule 349. Playing Cards for more information on playing cards. See rule 337. Finalize for more information on finalizing cards.\"\n   Rule 419.1.a: \"By default, a player can only Play cards from their hand or their Chosen Champion zone.\"\n   Rule 419.2: \"This is a Discretionary Action.\"\n   Rule 419.2.a: \"As long as a player has the resources to pay the costs associated with the card and legal choices to make for their cards, they may Play cards.\"\n   Rule 419.3: \"Game effects may result in cards being played as part of their resolution.\"\n   Rule 419.3.a: \"This treats Play as a Limited Action.\"\n   Rule 419.3.b: \"Treat all steps of Play as normal, except as noted by the game effect creating this Limited Play Effect.\"\n   Rule 419.3.c: \"If there are no eligible cards to Play when instructed to Play in this manner, then nothing happens and resolution continues.\"\n   Rule 419.4: \"Some Abilities trigger when cards are played or otherwise check whether cards have been played.\"\n   Rule 419.4.a: \"Any such triggered abilities trigger when the act of playing the card has been completed by the resolution of the card.\"\n   Rule 419.4.a.1: \"If a game effect prevents the resolution of the card—for example, because the card was countered—abilities that trigger on playing cards will not trigger. See rule 425. Counter for more information.\"\n   Rule 419.4.b: \"Non-triggered abilities that check cards being played do so by means of referencing whether said cards have been Finalized.\""
+          },
+          {
+            "name": "deal game action definition",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Official rules. Showing the authoritative rule family for Deal.\n   Rule 417: \"Deal\"\n   Rule 417.1: \"Spells, Units, Abilities, and other game effects may Deal Damage to units.\"\n   Rule 417.1.a: \"Assigning Damage during the Combat Damage Step is not Dealing Damage, but will cause Damage to be Dealt when assignment is complete.\"\n   Rule 417.1.b: \"To Deal Damage to Units, mark the specified amount of Damage on the Unit.\"\n   Rule 417.1.c: \"Damage is marked on each unit separately.\"\n   Rule 417.1.d: \"Damage can be Dealt to more than one Unit at the same time.\"\n   Rule 417.1.e: \"Valid Damage is a positive integer amount, greater than or equal to 1 Damage.\"\n   Rule 417.1.e.1: \"Only Valid Damage is Dealt.\"\n   Rule 417.2: \"Only Damage can be Dealt.\"\n   Rule 417.3: \"Dealing Damage is a Limited Action.\"\n   Rule 417.3.a: \"Assigning Damage causes Damage to be dealt outside of being directed to Deal Damage. See rule 459. Combat for more information.\"\n   Rule 417.4: \"Dealing can have the intrinsic property of Bonus Damage.\"\n   Rule 417.5: \"Bonus Damage is a property granted to the action of Dealing and alters the amount of Damage distributed by this action. See rule 712. Bonus Damage for more information.\"\n   Rule 417.6: \"Deal actions can originate from one or more sources.\"\n   Rule 417.6.a: \"If a game effect does not specify a source, the game effect describing the Deal action is the source.\"\n   Rule 417.6.b: \"If a game effect does specify a source, then that source is what is considered the origin of the Damage for this Deal action.\"\n   Rule 417.6.b.1: \"Units and Spells can be the source of Damage for Deal actions.\"\n   Rule 417.6.b.2: \"Abilities can be the source of Damage for Deal actions.\"\n   Rule 417.6.b.2.a: \"When an Ability is the source of Damage for a Deal action, it is in addition to the Spell or Unit that created that Ability.\"\n   Rule 417.6.b.3: \"When a spell or ability specifies a Unit as the source of the Damage for the Deal action, it is not in addition to the spell or ability that instructed it.\"\n   Rule 417.6.b.4: \"The controller of the source of a Deal action is responsible for that Deal action unless the player performing the Deal action is otherwise specified.\"\n   Rule 417.6.c: \"Damage Dealt as a result of being assigned during Combat has the Units as its source.\"\n   Rule 417.6.c.1: \"The Damage assigned, and subsequently Dealt, to attackers has the defenders as the source and vice versa.\"\n   Rule 417.7: \"Deal actions can distribute Damage as part of combat actions or non-combat actions.\""
+          },
+          {
+            "name": "showdown blocks cleanup battlefield control loss",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No on that sequence. The Cleanup control-loss condition is false in the stated scenario, so this proof does not establish that the Hidden card is removed for loss of battlefield control at that Cleanup.\n   Rule 323.6: \"4. Players lose control of any controlled Battlefields without their Units occupying them if the turn is in an Open State and there is no Showdown or Combat ongoing there.\"\n   Rule 323.7: \"5. Recall all Unattached non-Unit Gear and non-Unit Runes at Battlefields, and all Permanents and Runes in Bases other than their controller’s. Remove all Hidden cards from all Battlefields that are not controlled by the same player and place them in their owner's Trash.\"\n   Rule 811.1.b: \"It is functionally short for \"While this card is in your hand or in your Champion Zone on your turn during an Open State, you may pay [A] to hide this facedown at a battlefield you control that doesn't already have a facedown card hidden there for as long as you control that battlefield. Beginning on the next turn, this gains [Reaction] and you may play this, ignoring its base cost.\"\""
+          },
+          {
+            "name": "already ready unit cannot ready again",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. An already Ready Unit cannot be Readied again; an instruction to Ready it causes nothing additional to happen, so there is no new Ready event from that instruction.\n   Rule 415.1: \"Readying is an action that marks a non-spell Game Object on the board as available for action.\"\n   Rule 415.1.b: \"A Unit that is already Ready cannot be Readied again.\"\n   Rule 415.1.c: \"If a Unit is instructed to be Readied while it is already Ready, nothing additional happens.\""
+          },
+          {
+            "name": "already exhausted object cannot pay exhaust cost",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. An already Exhausted Game Object cannot be Exhausted again, so an Exhaust cost cannot be paid with it because the required action cannot be completed.\n   Rule 414.1: \"Exhausting is an action that marks a non-spell Game Object on the board as \"spent.\"\"\n   Rule 414.1.b: \"A Game Object that is already Exhausted cannot be Exhausted again.\"\n   Rule 414.1.c: \"If a Game Object is instructed to be Exhausted while it is already Exhausted, nothing additional happens.\"\n   Rule 414.4: \"When Exhausting is listed as a Cost, then the Action must be able to be completed for the cost to be paid.\""
+          },
+          {
+            "name": "already exhausted instruction does nothing additional",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. An already Exhausted Game Object cannot be Exhausted again; an instruction to Exhaust it causes nothing additional to happen.\n   Rule 414.1: \"Exhausting is an action that marks a non-spell Game Object on the board as \"spent.\"\"\n   Rule 414.1.b: \"A Game Object that is already Exhausted cannot be Exhausted again.\"\n   Rule 414.1.c: \"If a Game Object is instructed to be Exhausted while it is already Exhausted, nothing additional happens.\""
+          },
+          {
+            "name": "already stunned unit cannot be stunned again",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. Stunned is a binary state, and a Unit that is already Stunned cannot be Stunned again; no new Stun action occurs.\n   Rule 423.1.a: \"Stunned is a binary state. A Unit is Stunned or it isn't.\"\n   Rule 423.1.a.1: \"A Stunned Unit can not be Stunned again.\""
+          },
+          {
+            "name": "countered spell does not satisfy play trigger",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. A Countered card or ability does nothing and is cleared from the chain. A Countered card is not considered played for abilities that trigger on cards being played, and paid costs are not refunded.\n   Rule 425.1: \"Countering is the act of negating the execution, activation, or otherwise playing of a card or ability by a player.\"\n   Rule 425.1.a: \"A card or ability that is Countered does nothing and is cleared from the chain.\"\n   Rule 425.1.a.1: \"Cards that are cleared from the chain in this way are placed in the trash.\"\n   Rule 425.1.b: \"A card that is Countered is not considered to have been played for abilities that trigger on cards being played.\"\n   Rule 425.1.c: \"Countering does not refund any costs paid to play a card, activate an ability, or trigger an ability.\"\n   Rule 419.4.a.1: \"If a game effect prevents the resolution of the card—for example, because the card was countered—abilities that trigger on playing cards will not trigger. See rule 425. Counter for more information.\"\n   Rule 419.4: \"Some Abilities trigger when cards are played or otherwise check whether cards have been played.\"\n   Rule 419.4.a: \"Any such triggered abilities trigger when the act of playing the card has been completed by the resolution of the card.\""
+          },
+          {
+            "name": "countering does not refund costs",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. A Countered card or ability does nothing and is cleared from the chain. A Countered card is not considered played for abilities that trigger on cards being played, and paid costs are not refunded.\n   Rule 425.1: \"Countering is the act of negating the execution, activation, or otherwise playing of a card or ability by a player.\"\n   Rule 425.1.a: \"A card or ability that is Countered does nothing and is cleared from the chain.\"\n   Rule 425.1.a.1: \"Cards that are cleared from the chain in this way are placed in the trash.\"\n   Rule 425.1.b: \"A card that is Countered is not considered to have been played for abilities that trigger on cards being played.\"\n   Rule 425.1.c: \"Countering does not refund any costs paid to play a card, activate an ability, or trigger an ability.\"\n   Rule 419.4.a.1: \"If a game effect prevents the resolution of the card—for example, because the card was countered—abilities that trigger on playing cards will not trigger. See rule 425. Counter for more information.\""
+          },
+          {
+            "name": "all illegal targets spell still resolves",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "It resolves, but that instruction has no effect. The spell still resolves, but an instruction whose entire set of targets is invalid or unavailable does not execute. A spell can therefore resolve with no effect and still count as played.\n   Rule 359.3.e.1: \"The spell resolves even if some or all of its targets are illegal.\"\n   Rule 359.3.e.2: \"A target is illegal as the spell resolves if it no longer meets the targeting requirements of the spell, or if it has changed Zones to or from a Non-Board Zone.\"\n   Rule 359.3.e.7: \"If all of an instruction's Targets become Invalid or Unavailable by the time the spell begins resolving, that instruction will not execute.\"\n   Rule 359.3.e.10: \"It is possible for none of a spell's instructions to be executed as it resolves, due to all of them requiring targets to act on and all of those targets becoming Invalid or Unavailable. In this case, the spell has no effect but is still considered played.\""
+          },
+          {
+            "name": "partial mistarget resolves on legal targets",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "It resolves on the remaining legal targets. The spell still resolves. With some targets invalid and others still valid, the instruction executes only on the targets that remain available and legal.\n   Rule 359.3.e.1: \"The spell resolves even if some or all of its targets are illegal.\"\n   Rule 359.3.e.2: \"A target is illegal as the spell resolves if it no longer meets the targeting requirements of the spell, or if it has changed Zones to or from a Non-Board Zone.\"\n   Rule 359.3.e.8: \"If an instruction has more than one Target and fewer than all of the Targets become Invalid or Unavailable by the time the spell begins resolving, the instruction will execute, with only the Targets available and valid being operated on.\""
+          },
+          {
+            "name": "recall is not move for triggers",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. A Recall relocates a Permanent to its Base, but it is explicitly not a Move. It therefore does not trigger abilities that trigger from Move actions, and movement restrictions do not prevent the Recall.\n   Rule 455: \"A Recall is when a Permanent is relocated from anywhere to its Base without it being a Move.\"\n   Rule 456: \"Recalls are not Moves.\"\n   Rule 456.1: \"They do not cause Triggered Abilities to trigger that are triggered by Move actions.\"\n   Rule 456.3: \"A Recall cannot be prevented by actions and Game Effects that restrict or block Movement.\"\n   Rule 458.1: \"Unless otherwise stated by the source of the Recall, Damage and statuses of a permanent will all remain unaffected by a Recall.\""
+          },
+          {
+            "name": "movement restriction cannot prevent recall",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. A Recall relocates a Permanent to its Base, but it is explicitly not a Move. It therefore does not trigger abilities that trigger from Move actions, and movement restrictions do not prevent the Recall.\n   Rule 455: \"A Recall is when a Permanent is relocated from anywhere to its Base without it being a Move.\"\n   Rule 456: \"Recalls are not Moves.\"\n   Rule 456.1: \"They do not cause Triggered Abilities to trigger that are triggered by Move actions.\"\n   Rule 456.3: \"A Recall cannot be prevented by actions and Game Effects that restrict or block Movement.\"\n   Rule 458.1: \"Unless otherwise stated by the source of the Recall, Damage and statuses of a permanent will all remain unaffected by a Recall.\""
+          },
+          {
+            "name": "gain unscored battlefield control is conquer",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes. Gaining Control of a Battlefield you have not yet Scored this turn is a Conquer. A player can Score that Battlefield only once per turn.\n   Rule 469.1: \"Conquer: A player gains Control of a Battlefield they did not yet Score this turn.\"\n   Rule 470: \"A player may only Score, from either method, once per Battlefield per turn.\"\n   Rule 471.2.a: \"Conquer abilities trigger at a Battlefield that was Conquered.\""
+          },
+          {
+            "name": "already scored battlefield cannot conquer score again",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. Gaining Control of a Battlefield already Scored this turn does not satisfy the Conquer definition for scoring it again; that Battlefield can be Scored only once per turn.\n   Rule 469.1: \"Conquer: A player gains Control of a Battlefield they did not yet Score this turn.\"\n   Rule 470: \"A player may only Score, from either method, once per Battlefield per turn.\""
+          },
+          {
+            "name": "beginning phase maintained control is hold",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes. Maintaining Control of a Battlefield you have not yet Scored this turn during your Beginning Phase is a Hold. A player can Score that Battlefield only once per turn.\n   Rule 469.2: \"Hold: A player maintains Control of a Battlefield they did not yet Score this turn during their Beginning Phase.\"\n   Rule 470: \"A player may only Score, from either method, once per Battlefield per turn.\"\n   Rule 471.2.b: \"Hold abilities trigger at a Battlefield that was Held.\""
+          },
+          {
+            "name": "already scored battlefield cannot hold score again",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. A Battlefield already Scored this turn cannot be Scored again through Hold that turn.\n   Rule 469.2: \"Hold: A player maintains Control of a Battlefield they did not yet Score this turn during their Beginning Phase.\"\n   Rule 470: \"A player may only Score, from either method, once per Battlefield per turn.\""
+          },
+          {
+            "name": "play destination battlefield is not automatically target",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. A Battlefield mentioned only as the destination, restriction, or permission for playing a Unit is not itself a target.\n   Rule 355.10: \"A game object, player, or zone mentioned in the text of a spell, activated ability, or triggered ability is a target UNLESS any of the following are true:\"\n   Rule 355.10.b: \"It is included only as part of a targeting restriction for another choice or only as a restriction or permission for a game action. e.g., “Kill a unit at a battlefield” targets a unit, but not a battlefield, because the units are targets and “at a battlefield” is a restriction. e.g., “Kill all units at a battlefield” targets a battlefield, but not any units. e.g., “Play a unit from your hand to a battlefield” doesn’t target a battlefield.\""
+          },
+          {
+            "name": "untargetable object cannot be chosen initially",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - it is not a legal target. An object that is Untargetable for the indicated spell or ability when targets are chosen is not a legal target, so that choice cannot be used to legally put/finalize the spell or ability on the chain.\n   Rule 355.8: \"In order to put a spell or ability on the chain, valid choices must be made for all targets.\"\n   Rule 355.9: \"A target is a valid choice if it meets all of the following requirements:\"\n   Rule 355.9.b: \"It meets all targeting restrictions. e.g., A unit is a valid target for a spell that refers to a “unit at a battlefield,” “enemy unit,” “unit you control,” or “unit with Might 4 or greater” only if it meets the appropriate criteria. e.g. A unit that reads “I can’t be chosen by enemy spells or abilities.” is not a valid target for any enemy spell or ability, even if it meets other targeting restrictions.\"\n   Rule 757: \"Some Game Effects declare that a Game Object can’t be chosen by a certain set of spells and abilities. Those effects designate the Game Object as Untargetable.\"\n   Rule 758: \"Untargetable Game Objects are not legal targets for the indicated spells and abilities. See rule 355.6. Targeting for more information.\""
+          },
+          {
+            "name": "becoming untargetable after choice causes mistarget",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "It mistargets on resolution. If an object becomes Untargetable after it was legally chosen and before resolution, the spell or ability mistargets that object on resolution and instructions related to it are ignored.\n   Rule 758: \"Untargetable Game Objects are not legal targets for the indicated spells and abilities. See rule 355.6. Targeting for more information.\"\n   Rule 758.1: \"If a Game Object becomes untargetable for a spell or ability after becoming its target and before it resolves, the spell or ability will mistarget on resolution. Any instructions related to that Game Object will be ignored as the spell resolves.\"\n   Rule 359.3.e.5: \"If any of the spell's targets are no longer legal, those game objects, players, or zones are unaffected by the spell as it resolves. Any instructions related to an illegal target can’t be followed.\""
+          },
+          {
+            "name": "linked mistarget ignores later linked instruction",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - the later linked instruction is ignored. A mistargeted earlier linked instruction is ignored; because it did not execute, the later linked instruction is ignored as well.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): If I play Ride the Wind targeting my unit at Vilemaw’s Lair and attempt to move them to base, what happens?\nThey will be readied.\nThis is a rules quirk that players and judges identified as a result of a small additional rule added in the Vendetta rules update. We’re going to give some clarity to this that will resolve this issue, but if you don’t understand the conversation or why it is necessary, don’t worry. This isn’t an actual change to how we’ve been interpreting and ruling cards, but smoothing out a bug.\nIn short, the linked instructions rules are too expansive currently on what qualifies as an “ignored” instruction. To clarify this definition: an ignored instruction is one that wasn’t performed as part of the execution of a spell or ability’s instructions because it mistargeted (i.e. because the targeted object wasn’t a legal target on resolution). This is a case where, for example, you play Hidden Blade choosing an enemy unit and they play Star-Crossed in reaction, returning their unit to hand.\nWhen Hidden Blade resolves, the unit isn’t on the board, so we ignore the “Its controller draws 2.” instruction. Alternatively, if Hidden Blade is given the Repeat keyword by the Academy and both executions target the same unit, this is the reason why the unit’s controller doesn’t draw 4 cards.\nAn instruction is not ignored if an ability, effect, or circumstance of the game prevents it from occurring. This could take the form of a replacement effect that replaces the event of the instruction with something else, it could take the form of an ability like Vilemaw’s Lair that says “Units can’t move from here to base.” or it could take the form of a game action like Buff or Ready being performed on a unit that already has the appropriate state.\nIt could even take the form of a unit, gear, or spell no longer being in an appropriate zone as long as the instruction doesn’t target those objects. The instruction in these cases isn’t ignored, but instead negated. A negated instruction has its effects skipped, replaced, or prevented. A negated instruction will not cause any linked instructions to be ignored unless those instructions refer specifically to the action being performed.\nSome examples:\nIf a unit at a battlefield says “I can’t be killed.” and a player plays Hidden Blade choosing that unit, the unit’s controller will still draw 2 on resolution of Hidden Blade. (The instruction was negated and not ignored, so the linked instruction will still execute.)\nIf a unit at a battlefield is chosen by Hidden Blade and in reaction its controller plays Flash moving it to base, that unit’s controller will not draw 2 on resolution of Hidden Blade. (The instruction was ignored, so any linked instructions will be ignored.)\nIf a unit at a battlefield is chosen by Hidden Blade and in reaction its controller plays Zhonya’s Hourglass, that unit’s controller will draw 2 on resolution of Hidden Blade. (The unit is on the board and can have its information checked, and the instruction was negated and not ignored.)\nIf a unit at a battlefield has been affected by Smite previously this turn and it is chosen by Hidden Blade, that unit’s controller will not draw 2 on resolution of Hidden Blade. (Although the instruction is executed, the unit is not on the board to have its information checked. Additionally, the unit was moved to a non-board zone by an effect other than Hidden Blade and thus no longer has a controller that Hidden Blade can reference.)\n   Rule 359.3.e.14: \"Some instructions may reference Game Objects affected by, or Game Actions performed in, other instructions in a card. The referenced and referencing instructions are called “linked instructions.”\"\n   Rule 359.3.e.14.a: \"In order for a later linked instruction to execute, its earlier linked instruction must have executed. If the earlier linked instruction is ignored for any reason, the later linked instruction will also be ignored.\""
+          },
+          {
+            "name": "linked negated kill still allows independent later instruction",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes - the later linked instruction still executes. The earlier instruction is negated rather than ignored. Negation alone does not suppress a later linked instruction that does not directly depend on the failed Game Action, so the later instruction still executes.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): If I play Ride the Wind targeting my unit at Vilemaw’s Lair and attempt to move them to base, what happens?\nThey will be readied.\nThis is a rules quirk that players and judges identified as a result of a small additional rule added in the Vendetta rules update. We’re going to give some clarity to this that will resolve this issue, but if you don’t understand the conversation or why it is necessary, don’t worry. This isn’t an actual change to how we’ve been interpreting and ruling cards, but smoothing out a bug.\nIn short, the linked instructions rules are too expansive currently on what qualifies as an “ignored” instruction. To clarify this definition: an ignored instruction is one that wasn’t performed as part of the execution of a spell or ability’s instructions because it mistargeted (i.e. because the targeted object wasn’t a legal target on resolution). This is a case where, for example, you play Hidden Blade choosing an enemy unit and they play Star-Crossed in reaction, returning their unit to hand.\nWhen Hidden Blade resolves, the unit isn’t on the board, so we ignore the “Its controller draws 2.” instruction. Alternatively, if Hidden Blade is given the Repeat keyword by the Academy and both executions target the same unit, this is the reason why the unit’s controller doesn’t draw 4 cards.\nAn instruction is not ignored if an ability, effect, or circumstance of the game prevents it from occurring. This could take the form of a replacement effect that replaces the event of the instruction with something else, it could take the form of an ability like Vilemaw’s Lair that says “Units can’t move from here to base.” or it could take the form of a game action like Buff or Ready being performed on a unit that already has the appropriate state.\nIt could even take the form of a unit, gear, or spell no longer being in an appropriate zone as long as the instruction doesn’t target those objects. The instruction in these cases isn’t ignored, but instead negated. A negated instruction has its effects skipped, replaced, or prevented. A negated instruction will not cause any linked instructions to be ignored unless those instructions refer specifically to the action being performed.\nSome examples:\nIf a unit at a battlefield says “I can’t be killed.” and a player plays Hidden Blade choosing that unit, the unit’s controller will still draw 2 on resolution of Hidden Blade. (The instruction was negated and not ignored, so the linked instruction will still execute.)\nIf a unit at a battlefield is chosen by Hidden Blade and in reaction its controller plays Flash moving it to base, that unit’s controller will not draw 2 on resolution of Hidden Blade. (The instruction was ignored, so any linked instructions will be ignored.)\nIf a unit at a battlefield is chosen by Hidden Blade and in reaction its controller plays Zhonya’s Hourglass, that unit’s controller will draw 2 on resolution of Hidden Blade. (The unit is on the board and can have its information checked, and the instruction was negated and not ignored.)\nIf a unit at a battlefield has been affected by Smite previously this turn and it is chosen by Hidden Blade, that unit’s controller will not draw 2 on resolution of Hidden Blade. (Although the instruction is executed, the unit is not on the board to have its information checked. Additionally, the unit was moved to a non-board zone by an effect other than Hidden Blade and thus no longer has a controller that Hidden Blade can reference.)\n   Rule 359.3.e.14: \"Some instructions may reference Game Objects affected by, or Game Actions performed in, other instructions in a card. The referenced and referencing instructions are called “linked instructions.”\"\n   Rule 359.3.e.14.a: \"In order for a later linked instruction to execute, its earlier linked instruction must have executed. If the earlier linked instruction is ignored for any reason, the later linked instruction will also be ignored.\"\n   Rule 359.3.e.14.b: \"If the Game Action performed in an earlier linked instruction is replaced, this will not affect the later linked instruction, unless the later linked instruction directly references the Game Action being performed.\""
+          },
+          {
+            "name": "linked replaced action dependency stops dependent later instruction",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - the dependent linked instruction does not execute. The earlier instruction is negated rather than ignored, but the later linked instruction directly depends on the Game Action that failed, so that later instruction does not execute.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): If I play Ride the Wind targeting my unit at Vilemaw’s Lair and attempt to move them to base, what happens?\nThey will be readied.\nThis is a rules quirk that players and judges identified as a result of a small additional rule added in the Vendetta rules update. We’re going to give some clarity to this that will resolve this issue, but if you don’t understand the conversation or why it is necessary, don’t worry. This isn’t an actual change to how we’ve been interpreting and ruling cards, but smoothing out a bug.\nIn short, the linked instructions rules are too expansive currently on what qualifies as an “ignored” instruction. To clarify this definition: an ignored instruction is one that wasn’t performed as part of the execution of a spell or ability’s instructions because it mistargeted (i.e. because the targeted object wasn’t a legal target on resolution). This is a case where, for example, you play Hidden Blade choosing an enemy unit and they play Star-Crossed in reaction, returning their unit to hand.\nWhen Hidden Blade resolves, the unit isn’t on the board, so we ignore the “Its controller draws 2.” instruction. Alternatively, if Hidden Blade is given the Repeat keyword by the Academy and both executions target the same unit, this is the reason why the unit’s controller doesn’t draw 4 cards.\nAn instruction is not ignored if an ability, effect, or circumstance of the game prevents it from occurring. This could take the form of a replacement effect that replaces the event of the instruction with something else, it could take the form of an ability like Vilemaw’s Lair that says “Units can’t move from here to base.” or it could take the form of a game action like Buff or Ready being performed on a unit that already has the appropriate state.\nIt could even take the form of a unit, gear, or spell no longer being in an appropriate zone as long as the instruction doesn’t target those objects. The instruction in these cases isn’t ignored, but instead negated. A negated instruction has its effects skipped, replaced, or prevented. A negated instruction will not cause any linked instructions to be ignored unless those instructions refer specifically to the action being performed.\nSome examples:\nIf a unit at a battlefield says “I can’t be killed.” and a player plays Hidden Blade choosing that unit, the unit’s controller will still draw 2 on resolution of Hidden Blade. (The instruction was negated and not ignored, so the linked instruction will still execute.)\nIf a unit at a battlefield is chosen by Hidden Blade and in reaction its controller plays Flash moving it to base, that unit’s controller will not draw 2 on resolution of Hidden Blade. (The instruction was ignored, so any linked instructions will be ignored.)\nIf a unit at a battlefield is chosen by Hidden Blade and in reaction its controller plays Zhonya’s Hourglass, that unit’s controller will draw 2 on resolution of Hidden Blade. (The unit is on the board and can have its information checked, and the instruction was negated and not ignored.)\nIf a unit at a battlefield has been affected by Smite previously this turn and it is chosen by Hidden Blade, that unit’s controller will not draw 2 on resolution of Hidden Blade. (Although the instruction is executed, the unit is not on the board to have its information checked. Additionally, the unit was moved to a non-board zone by an effect other than Hidden Blade and thus no longer has a controller that Hidden Blade can reference.)\n   Rule 359.3.e.14: \"Some instructions may reference Game Objects affected by, or Game Actions performed in, other instructions in a card. The referenced and referencing instructions are called “linked instructions.”\"\n   Rule 359.3.e.14.b: \"If the Game Action performed in an earlier linked instruction is replaced, this will not affect the later linked instruction, unless the later linked instruction directly references the Game Action being performed.\""
+          },
+          {
+            "name": "linked failure type unknown remains conditional",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "It depends. The linked-instruction outcome depends on whether the earlier instruction mistargeted (ignored) or was instead prevented, replaced, or impossible (negated), and whether the later instruction directly references the failed Game Action.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): If I play Ride the Wind targeting my unit at Vilemaw’s Lair and attempt to move them to base, what happens?\nThey will be readied.\nThis is a rules quirk that players and judges identified as a result of a small additional rule added in the Vendetta rules update. We’re going to give some clarity to this that will resolve this issue, but if you don’t understand the conversation or why it is necessary, don’t worry. This isn’t an actual change to how we’ve been interpreting and ruling cards, but smoothing out a bug.\nIn short, the linked instructions rules are too expansive currently on what qualifies as an “ignored” instruction. To clarify this definition: an ignored instruction is one that wasn’t performed as part of the execution of a spell or ability’s instructions because it mistargeted (i.e. because the targeted object wasn’t a legal target on resolution). This is a case where, for example, you play Hidden Blade choosing an enemy unit and they play Star-Crossed in reaction, returning their unit to hand.\nWhen Hidden Blade resolves, the unit isn’t on the board, so we ignore the “Its controller draws 2.” instruction. Alternatively, if Hidden Blade is given the Repeat keyword by the Academy and both executions target the same unit, this is the reason why the unit’s controller doesn’t draw 4 cards.\nAn instruction is not ignored if an ability, effect, or circumstance of the game prevents it from occurring. This could take the form of a replacement effect that replaces the event of the instruction with something else, it could take the form of an ability like Vilemaw’s Lair that says “Units can’t move from here to base.” or it could take the form of a game action like Buff or Ready being performed on a unit that already has the appropriate state.\nIt could even take the form of a unit, gear, or spell no longer being in an appropriate zone as long as the instruction doesn’t target those objects. The instruction in these cases isn’t ignored, but instead negated. A negated instruction has its effects skipped, replaced, or prevented. A negated instruction will not cause any linked instructions to be ignored unless those instructions refer specifically to the action being performed.\nSome examples:\nIf a unit at a battlefield says “I can’t be killed.” and a player plays Hidden Blade choosing that unit, the unit’s controller will still draw 2 on resolution of Hidden Blade. (The instruction was negated and not ignored, so the linked instruction will still execute.)\nIf a unit at a battlefield is chosen by Hidden Blade and in reaction its controller plays Flash moving it to base, that unit’s controller will not draw 2 on resolution of Hidden Blade. (The instruction was ignored, so any linked instructions will be ignored.)\nIf a unit at a battlefield is chosen by Hidden Blade and in reaction its controller plays Zhonya’s Hourglass, that unit’s controller will draw 2 on resolution of Hidden Blade. (The unit is on the board and can have its information checked, and the instruction was negated and not ignored.)\nIf a unit at a battlefield has been affected by Smite previously this turn and it is chosen by Hidden Blade, that unit’s controller will not draw 2 on resolution of Hidden Blade. (Although the instruction is executed, the unit is not on the board to have its information checked. Additionally, the unit was moved to a non-board zone by an effect other than Hidden Blade and thus no longer has a controller that Hidden Blade can reference.)\n   Rule 359.3.e.14: \"Some instructions may reference Game Objects affected by, or Game Actions performed in, other instructions in a card. The referenced and referencing instructions are called “linked instructions.”\"\n   Rule 359.3.e.14.a: \"In order for a later linked instruction to execute, its earlier linked instruction must have executed. If the earlier linked instruction is ignored for any reason, the later linked instruction will also be ignored.\"\n   Rule 359.3.e.14.b: \"If the Game Action performed in an earlier linked instruction is replaced, this will not affect the later linked instruction, unless the later linked instruction directly references the Game Action being performed.\""
+          },
+          {
+            "name": "controller orders replacements on controlled object",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "The affected object's controller chooses the order. When multiple Replacement Effects apply to the same event acting on a controlled object, that object's controller determines the order in which those Replacement Effects apply.\n   Rule 370.1: \"Replacement Effects apply to any event or instruction that qualifies for their application. A Replacement Effect will specify the circumstances by which an event or instruction will qualify to be replaced.\"\n   Rule 372: \"If more than one Replacement Effect applies to the same event being executed, then the controller of the object being acted on determines the order the Replacement Effects will apply.\""
+          },
+          {
+            "name": "affected player orders replacements",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "The affected player chooses the order. When multiple Replacement Effects apply to the same event acting on a player, that player determines their order.\n   Rule 370.1: \"Replacement Effects apply to any event or instruction that qualifies for their application. A Replacement Effect will specify the circumstances by which an event or instruction will qualify to be replaced.\"\n   Rule 372: \"If more than one Replacement Effect applies to the same event being executed, then the controller of the object being acted on determines the order the Replacement Effects will apply.\"\n   Rule 372.1: \"If it is a player being acted on, that player decides the order the Replacement Effects will apply.\""
+          },
+          {
+            "name": "current turn player orders replacements on uncontrolled battlefield",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "The Current Turn Player chooses the order. When multiple Replacement Effects apply to the same event acting on an Uncontrolled Battlefield, the Current Turn Player determines their order.\n   Rule 370.1: \"Replacement Effects apply to any event or instruction that qualifies for their application. A Replacement Effect will specify the circumstances by which an event or instruction will qualify to be replaced.\"\n   Rule 372: \"If more than one Replacement Effect applies to the same event being executed, then the controller of the object being acted on determines the order the Replacement Effects will apply.\"\n   Rule 372.2: \"If the affected object is an Uncontrolled Battlefield then the Current Turn Player decides the order the Replacement Effects will apply.\""
+          },
+          {
+            "name": "simultaneous replaceable events are separate",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "They are treated as separate events. Simultaneous replaceable events are treated separately for Replacement Effects. Applied Replacement Effects are still ordered; effects with the same controller are ordered by that controller, and simultaneous effects with different controllers execute in turn order.\n   Rule 373: \"If more than one event occurs simultaneously that Replacement Effects could apply to, each event is treated separately and individually for the purposes of Replacement Effects, and Replacement Effects with the same controller are applied in the order of their controller’s choosing.\"\n   Rule 373.1: \"Although these events are simultaneous, the applied Replacement Effects are ordered. If multiple applied Replacement Effects with different controllers would execute simultaneously, they execute in turn order.\"\n   Rule 373.1.a: \"When executing Replacement Effects, the Game Actions that comprise their instructions are performed before any simultaneous unmodified events.\""
+          },
+          {
+            "name": "replacement order unknown affected entity remains conditional",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "It depends. The order of multiple Replacement Effects on one event depends on what entity is being acted on: a controlled object, a player, or an Uncontrolled Battlefield.\n   Rule 372: \"If more than one Replacement Effect applies to the same event being executed, then the controller of the object being acted on determines the order the Replacement Effects will apply.\"\n   Rule 372.1: \"If it is a player being acted on, that player decides the order the Replacement Effects will apply.\"\n   Rule 372.2: \"If the affected object is an Uncontrolled Battlefield then the Current Turn Player decides the order the Replacement Effects will apply.\""
+          },
+          {
+            "name": "combat damage replacements apply during assignment",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Apply it during combat damage assignment. During combat damage assignment, Replacement Effects that would apply to the resulting combat damage are considered to apply to the assignment instead. Assignment itself is not Dealing Damage.\n   Rule 465.2.c.1: \"Assigning Damage is not Dealing Damage.\"\n   Rule 465.2.c.5: \"When assigning damage in this way, replacement effects that would apply to the resulting damage are considered to apply to the assignment instead.\""
+          },
+          {
+            "name": "finalized countered card counts for nontriggered played check",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes - it counts for the non-triggered check. A non-triggered ability that checks whether cards have been played checks whether the card was Finalized, so a Finalized card can satisfy that check even if it is later Countered.\n   Rule 419.1: \"A player Plays cards by placing them on the chain and queuing them to be finalized. See rule 349. Playing Cards for more information on playing cards. See rule 337. Finalize for more information on finalizing cards.\"\n   Rule 419.4: \"Some Abilities trigger when cards are played or otherwise check whether cards have been played.\"\n   Rule 419.4.b: \"Non-triggered abilities that check cards being played do so by means of referencing whether said cards have been Finalized.\"\n   Rule 425.1: \"Countering is the act of negating the execution, activation, or otherwise playing of a card or ability by a player.\""
+          },
+          {
+            "name": "resolved card satisfies triggered played check",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes - the played-card trigger condition is satisfied. For a triggered ability that triggers when a card is played, the act of playing is completed by resolution; the trigger condition is therefore satisfied when that resolution completes.\n   Rule 419.4: \"Some Abilities trigger when cards are played or otherwise check whether cards have been played.\"\n   Rule 419.4.a: \"Any such triggered abilities trigger when the act of playing the card has been completed by the resolution of the card.\""
+          },
+          {
+            "name": "generic finalized meaning remains conditional without check type",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "It depends. Riftbound distinguishes triggered 'when played' checks from non-triggered checks: triggered checks depend on resolution, while non-triggered checks reference Finalization. The question does not establish enough of those facts to choose one result.\n   Rule 419.1: \"A player Plays cards by placing them on the chain and queuing them to be finalized. See rule 349. Playing Cards for more information on playing cards. See rule 337. Finalize for more information on finalizing cards.\"\n   Rule 419.4: \"Some Abilities trigger when cards are played or otherwise check whether cards have been played.\"\n   Rule 419.4.a: \"Any such triggered abilities trigger when the act of playing the card has been completed by the resolution of the card.\"\n   Rule 419.4.a.1: \"If a game effect prevents the resolution of the card—for example, because the card was countered—abilities that trigger on playing cards will not trigger. See rule 425. Counter for more information.\"\n   Rule 419.4.b: \"Non-triggered abilities that check cards being played do so by means of referencing whether said cards have been Finalized.\"\n   Rule 425.1: \"Countering is the act of negating the execution, activation, or otherwise playing of a card or ability by a player.\""
+          },
+          {
+            "name": "trigger condition information snapshots when fulfilled",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Use the information from when the trigger condition was fulfilled. Information referenced from a triggered ability's trigger condition is checked when that trigger condition is fulfilled; later changes do not cause that referenced information to be re-read on resolution unless another rule or instruction requires it.\n   Rule 359.3.f.3: \"Some information used by triggered abilities is referenced from the trigger condition of the ability. This information is checked when the trigger condition is fulfilled.\"\n   Rule 383.2: \"Triggered Abilities have a Condition and an Effect.\"\n   Rule 383.2.c: \"The Condition of a Trigger is evaluated after a potentially inciting event has been processed.\""
+          },
+          {
+            "name": "copy does not copy empowered temporary status",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - temporary status/modifications are not copied. A copy effect copies the source object's copyable traits, not temporary statuses or modifications such as Empowered, Buff, attacker/defender designations, or temporary Might changes.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens if I choose to copy an empowered unit when I equip an unempowered unit with Shady Spectacles?\nBeing empowered is a status and is not copyable, thus the equipped unit will remain unempowered.\nShady Spectacles applies a copy effect to the equipped unit. Copy effects copy the printed (or copied, if another copy effect has already been applied) traits of the unit being copied. empowered is a status, a temporary modification, and not part of the printed traits of the card, so it will not be copied by Shady Spectacles. Whatever temporary modifications are applied to the unit as the copy effect is executed on that unit will be unaffected by the copy effect.\nIf the unit has Might increases or decreases, a buff, the empowered status, Temporary, attacker, defender, etc those will remain in place.\nRelevant Rules: 477.1.b.1.b.\n   Rule 477: \"Layers are applied in the following order:\"\n   Rule 477.1: \"1. Trait-Altering Effects\"\n   Rule 477.1.b: \"Copy effects are applied in this layer.\"\n   Rule 477.1.b.1: \"When one Game Object becomes a copy of another, all copyable traits replace or are added to those of the original Game Object as specified by the Game Effect directing the Copy. This is applied in this layer.\"\n   Rule 477.1.b.1.a: \"Copyable traits are: Name​ Super Type​ Type​ Tags​ Cost​ Domain​ Rules Text\"\n   Rule 477.1.b.1.b: \"Copy effects will copy the copyable traits of a Game Object. By default, those are the printed traits of the Game Object. When a Game Object becomes a copy of something, its copyable traits are updated to the new traits it has received.\""
+          },
+          {
+            "name": "copy does not copy temporary buff",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - temporary status/modifications are not copied. A copy effect copies the source object's copyable traits, not temporary statuses or modifications such as Empowered, Buff, attacker/defender designations, or temporary Might changes.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens if I choose to copy an empowered unit when I equip an unempowered unit with Shady Spectacles?\nBeing empowered is a status and is not copyable, thus the equipped unit will remain unempowered.\nShady Spectacles applies a copy effect to the equipped unit. Copy effects copy the printed (or copied, if another copy effect has already been applied) traits of the unit being copied. empowered is a status, a temporary modification, and not part of the printed traits of the card, so it will not be copied by Shady Spectacles. Whatever temporary modifications are applied to the unit as the copy effect is executed on that unit will be unaffected by the copy effect.\nIf the unit has Might increases or decreases, a buff, the empowered status, Temporary, attacker, defender, etc those will remain in place.\nRelevant Rules: 477.1.b.1.b.\n   Rule 477: \"Layers are applied in the following order:\"\n   Rule 477.1: \"1. Trait-Altering Effects\"\n   Rule 477.1.b: \"Copy effects are applied in this layer.\"\n   Rule 477.1.b.1: \"When one Game Object becomes a copy of another, all copyable traits replace or are added to those of the original Game Object as specified by the Game Effect directing the Copy. This is applied in this layer.\"\n   Rule 477.1.b.1.a: \"Copyable traits are: Name​ Super Type​ Type​ Tags​ Cost​ Domain​ Rules Text\"\n   Rule 477.1.b.1.b: \"Copy effects will copy the copyable traits of a Game Object. By default, those are the printed traits of the Game Object. When a Game Object becomes a copy of something, its copyable traits are updated to the new traits it has received.\""
+          },
+          {
+            "name": "copy receiver keeps existing temporary might modification",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes - the receiving object's existing temporary modification remains. A copy effect replaces/adds the receiving object's copyable traits, while temporary modifications already applied to the receiving object remain in place.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens if I choose to copy an empowered unit when I equip an unempowered unit with Shady Spectacles?\nBeing empowered is a status and is not copyable, thus the equipped unit will remain unempowered.\nShady Spectacles applies a copy effect to the equipped unit. Copy effects copy the printed (or copied, if another copy effect has already been applied) traits of the unit being copied. empowered is a status, a temporary modification, and not part of the printed traits of the card, so it will not be copied by Shady Spectacles. Whatever temporary modifications are applied to the unit as the copy effect is executed on that unit will be unaffected by the copy effect.\nIf the unit has Might increases or decreases, a buff, the empowered status, Temporary, attacker, defender, etc those will remain in place.\nRelevant Rules: 477.1.b.1.b.\n   Rule 477: \"Layers are applied in the following order:\"\n   Rule 477.1: \"1. Trait-Altering Effects\"\n   Rule 477.1.b: \"Copy effects are applied in this layer.\"\n   Rule 477.1.b.1: \"When one Game Object becomes a copy of another, all copyable traits replace or are added to those of the original Game Object as specified by the Game Effect directing the Copy. This is applied in this layer.\"\n   Rule 477.1.b.1.a: \"Copyable traits are: Name​ Super Type​ Type​ Tags​ Cost​ Domain​ Rules Text\"\n   Rule 477.1.b.1.b: \"Copy effects will copy the copyable traits of a Game Object. By default, those are the printed traits of the Game Object. When a Game Object becomes a copy of something, its copyable traits are updated to the new traits it has received.\""
+          },
+          {
+            "name": "generic copy trait question remains conditional",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "It depends. Copy effects replace/add only copyable traits as specified by the copy effect. Whether a particular changed property is copied depends on whether it is a copyable trait or merely a temporary modification/status.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens if I choose to copy an empowered unit when I equip an unempowered unit with Shady Spectacles?\nBeing empowered is a status and is not copyable, thus the equipped unit will remain unempowered.\nShady Spectacles applies a copy effect to the equipped unit. Copy effects copy the printed (or copied, if another copy effect has already been applied) traits of the unit being copied. empowered is a status, a temporary modification, and not part of the printed traits of the card, so it will not be copied by Shady Spectacles. Whatever temporary modifications are applied to the unit as the copy effect is executed on that unit will be unaffected by the copy effect.\nIf the unit has Might increases or decreases, a buff, the empowered status, Temporary, attacker, defender, etc those will remain in place.\nRelevant Rules: 477.1.b.1.b.\n   Rule 477: \"Layers are applied in the following order:\"\n   Rule 477.1: \"1. Trait-Altering Effects\"\n   Rule 477.1.b: \"Copy effects are applied in this layer.\"\n   Rule 477.1.b.1: \"When one Game Object becomes a copy of another, all copyable traits replace or are added to those of the original Game Object as specified by the Game Effect directing the Copy. This is applied in this layer.\"\n   Rule 477.1.b.1.a: \"Copyable traits are: Name​ Super Type​ Type​ Tags​ Cost​ Domain​ Rules Text\"\n   Rule 477.1.b.1.b: \"Copy effects will copy the copyable traits of a Game Object. By default, those are the printed traits of the Game Object. When a Game Object becomes a copy of something, its copyable traits are updated to the new traits it has received.\""
+          },
+          {
+            "name": "layers have no intermediate trigger window",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - there is no intermediate trigger window. Layer evaluation does not create an intermediate trigger window between trait-altering and arithmetic results, so a Might value that exists only as an intermediate conceptual layer step does not become a separately triggerable game state.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens if I play Dragon Form on a unit that has -1 [M] from Stupefy applied to it? Will my Fiora, Grand Duelist trigger? Is there a moment where my unit becomes 5 [M] before the -1 [M] from Stupefy brings it down to 4 [M]?\nShe will not trigger.\nAlthough Dragon Form sets the base Might of a unit to 5 [M], it does so via layers. Layers are evaluated when the effect is applied and their evaluation includes all existing applied layer alterations.\nWe process layers in order, starting from the Trait-Altering layer (where this base Might setting effect is applied), proceeding to the Ability-Altering layer (not part of this example), and proceeding to the Arithmetic layer (where Stupefy’s -1 [M] is applied), but this process happens instantaneously; there is no window while evaluating layers for the unit to see itself become 5 [M] and then go down to 4 [M]. As soon as the effect of Dragon Form is applied, the unit is 4 [M].\nAs a side note, Might is one of the traits that is managed in the Trait-Altering layer, and it is one of the copyable traits that copy effects can replace or add to.\n   Rule 477: \"Layers are applied in the following order:\"\n   Rule 477.1: \"1. Trait-Altering Effects\"\n   Rule 477.3: \"3. Arithmetic\""
+          },
+          {
+            "name": "flow spell countered by Abandon is banished",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "It is banished. A spell played for its Flow cost is banished if it leaves the Chain after becoming Finalized for a reason other than its own execution. Countering it with Abandon and attempting to return it to hand still causes Flow's delayed replacement to banish it.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens when you play Abandon on a spell that was played for its Flow cost?\nIt will be banished when it attempts to leave the chain.\n“[T]hen banish it” in flow’s text is short for “if it would leave the chain after becoming a finalized chain item, and leaving the chain wasn’t instructed by its own execution, banish it instead.” Abandon returns the countered card to hand after countering it, but for the purposes of flow’s “then banish it”, this is also leaving the chain. No matter how it happens, as long as the flow spell leaving the chain wasn’t instructed by the execution of the spell itself, it will be banished.\nThis also applies to effects like Kai’Sa, Evolutionary from Origins, or Fizz, Trickster from Spiritforged.\n   Rule 829: \"Flow\"\n   Rule 829.1.b: \"It is functionally short for “You may play this from your trash for its flow cost. Then banish it.”\"\n   Rule 829.1.b.1: \"Banishing the spell in this way is a delayed replacement effect. If the spell would leave the chain after becoming a finalized chain item, and leaving the chain wasn’t instructed by its own execution, banish it instead. See rule 367. Replacement Effects for more information. See rule 389. Delayed Abilities for more information.\""
+          },
+          {
+            "name": "replacement applies only to qualifying chosen event",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Only the qualifying chosen-object event is replaced. A Replacement Effect whose qualifying event is defined around the object a spell or ability chooses applies only to the qualifying chosen-object event; similar effects on other unchosen objects are separate events and are not replaced by that effect.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens when I play Moonfall choosing an enemy unit while I control an empowered Mel, Newly Awakened?\nThe chosen unit will be given -3 [M]. All other enemy units at the chosen battlefield will be given -2 [M].\nMel, Newly Awakened’s empowered ability is a replacement effect. It replaces the event of a spell or ability you control giving a unit it chooses -[M]. The event it replaces that with is the spell or ability giving an additional -1 [M].\nAlthough Moonfall gives -[M] to multiple units, only one of them is chosen, and thus the only event that is eligible to be replaced is the chosen unit being given -2 [M]. It will be replaced with that unit being given -3 [M]. The events of the other units being given -[M] will not be affected by this replacement effect.\nRelevant Rules: 370.1., 370.1.b.\n   Rule 370.1: \"Replacement Effects apply to any event or instruction that qualifies for their application. A Replacement Effect will specify the circumstances by which an event or instruction will qualify to be replaced.\"\n   Rule 370.1.b: \"When a Replacement Effect applies, it replaces the qualifying event with one or more Game Actions or events, or the qualifying instruction with another instruction.\""
+          },
+          {
+            "name": "replacement inherits generating-event minimum",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes - the replacement inherits the modification. When a Replacement Effect replaces an event that the generating Game Effect modified, the replacement event inherits those modifications. A limitation such as 'to a minimum of 1' therefore remains attached to the replaced event.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What about casting Stupefy while I have an empowered Mel, Newly Awakened?\nThe chosen unit will be given -2 [M], to a minimum of 1 [M]. If it was 2 [M], it will become 1 [M].\nIn the case of Stupefy, Mel, Newly Awakened replaces the event of Stupefy giving -1 [M] with it giving -2 [M] instead. However, a replacement effect that replaces an event modified by the game effect that generated that event will inherit any of those modifications. In this case, Stupefy modifies the “give -1 [M]” game action and thus event with “to a minimum of 1 [M].” The replaced event will inherit the same modification.\nRelevant Rules: 375.\n   Rule 375: \"If an event that a Replacement Effect applies to would be modified by the Game Effect that generated that event, or the results of that event would be modified by a Game Action from a linked ability that references the replaced event, the Replacement Effect will inherit those modifications.\""
+          },
+          {
+            "name": "failed counter provides no event for replacement",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - there is no qualifying event to replace. A Replacement Effect cannot replace a qualifying event that never occurs. If a spell cannot be Countered, an attempted Counter fails; an effect that depended on the resulting counter/removal event has no event to replace.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): Speaking of Mel, can my opponent play Abandon on my spell while I control an empowered Mel, Newly Awakened? What happens?\nThey can play Abandon targeting your spell. On resolution, they will Predict, but nothing else will happen.\nMel, Newly Awakened says “your spells and abilities can’t be countered.” If the spell can’t be countered, Abandon will attempt to counter it and fail, and then it will replace the event of it being put in the Trash with it being returned to its owner’s hand. However, that event never occurred, so there is nothing for the replacement effect to replace. Thus, Abandon will resolve to no effect.\nThe replacement effect only functions within the limit of the resolution of the ability (it’s not a delayed replacement effect that specifies a duration), so even if the spell resolves later, it will go to the Trash as normal.\n   Rule 370.1: \"Replacement Effects apply to any event or instruction that qualifies for their application. A Replacement Effect will specify the circumstances by which an event or instruction will qualify to be replaced.\"\n   Rule 370.1.c: \"Replacement Effects are applied before any qualifying event has actually occurred.\"\n   Rule 425.1: \"Countering is the act of negating the execution, activation, or otherwise playing of a card or ability by a player.\""
+          },
+          {
+            "name": "Rebuttal unchanged choices must remain legal when remaking",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - unchanged choices must be legal when choices are remade. If Rebuttal's controller chooses to remake any choices, every choice they do not remake must still be legal. They cannot remake some choices while deliberately leaving another unchanged illegal choice.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What new choices can I make when I play Rebuttal and pay [A]?\nYou can choose any number of targets or modes to make new choices for. The rest remain the same.\nIf you are remaking choices in this way, any choices you choose not to remake must be legal choices. You can’t choose to have some but not all choices be legal choices. Of course, you can always choose not to make new choices. In that case, any of the current choices will remain in their current state, whether that state is illegal or not.\nIf a spell has some rules or requirements about the choices made for it, those apply regardless of who controls that spell. For example, if a player plays a spell from face down, they must target game objects located at the battlefield the spell was played from unless the instructions of that spell indicate that a target must be chosen from some other location. Gaining control of such a spell doesn’t change this requirement when making new choices for the spell.\nWe’ll look at shaping up this section in a future rules update.\n   Rule 355.15: \"These choices cannot be changed after this step unless instructed to by a spell or ability. See rule 750. Making New Choices for more information.\""
+          },
+          {
+            "name": "Rebuttal may keep all existing choices when remaking none",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes - if no new choices are made. Rebuttal's controller may choose not to make any new choices. In that case, the existing choices remain in their current state, including an already-illegal choice.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What new choices can I make when I play Rebuttal and pay [A]?\nYou can choose any number of targets or modes to make new choices for. The rest remain the same.\nIf you are remaking choices in this way, any choices you choose not to remake must be legal choices. You can’t choose to have some but not all choices be legal choices. Of course, you can always choose not to make new choices. In that case, any of the current choices will remain in their current state, whether that state is illegal or not.\nIf a spell has some rules or requirements about the choices made for it, those apply regardless of who controls that spell. For example, if a player plays a spell from face down, they must target game objects located at the battlefield the spell was played from unless the instructions of that spell indicate that a target must be chosen from some other location. Gaining control of such a spell doesn’t change this requirement when making new choices for the spell.\nWe’ll look at shaping up this section in a future rules update.\n   Rule 355.15: \"These choices cannot be changed after this step unless instructed to by a spell or ability. See rule 750. Making New Choices for more information.\""
+          },
+          {
+            "name": "Attach completes before replacement copy event",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Attach happens first, then the copy/text event. For Shady Spectacles/Svellsongur-style replacement effects, the Attach event executes first and the copy/text event instructed by the replacement executes afterward; the two events are not simultaneous. A triggered ability gained only by the later copy therefore cannot see the already-completed Attach event.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens when my opponent’s Akshan, Mischievous steals my equipped Shady Spectacles? What happens if they want to copy Aphelios?\nIf it was attached to a unit, the equipped unit loses its copy effect. Akshan will then become a copy of a friendly unit of his controller’s choice. If he becomes a copy of Aphelios, his ability will not trigger.\nThis question deserves a bit more depth. As of the Vendetta rules update, we have clarified how effects like Shady Spectacles and Svellsongur work; they are replacement effects that replace the event of the equipment being attached to a unit with that event plus whatever their effect specifies.\nIn the case of Svellsongur, the resulting series of events will be:\nAttach → Copy the equipped unit’s text to Svellsongur’s effect text for as long as Svellsongur is attached\nFor Shady Spectacles, the resulting series of events will be:\nAttach → Choose a friendly unit and make the equipped unit a copy of that unit for as long as Shady Spectacles is attached\nThese events are not simultaneous. The attach event executes first, and then whatever event is instructed by the replacement effect is executed. Thus, the answer in the Spiritforged FAQ is no longer true: if you attach Svellsongur to Aphelios, he will not trigger twice. Svellsongur doesn’t have the copied effect text when the attach event executes.\nSimilarly here, if Akshan nabs Shady Spectacles from an opponent, it will attach and then make him a copy. If his controller chooses to make him a copy of Aphelios, it’s too late by that point for his new triggered ability to see the attachment event; it’s already been completed.\nRelevant Rules: 369.1., 370.1.b.1., 370.1.a.2.\n   Rule 369.1: \"A Replacement Effect can usually be identified by the presence of the terms “as,” “would,” or \"instead.\"\"\n   Rule 370.1.a.2: \"An event can occur simultaneously with other events only when those events are all the result of the same Game Action or change in state occurring.\"\n   Rule 370.1.b.1: \"In the case of Replacement Effects that describe a game action to occur “as” an event occurs, the described event is replaced by that same event plus the game action being performed.\"\n   Rule 434: \"Attach\""
+          },
+          {
+            "name": "reapplied copy creates new copied ability instance",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes - the copied ability is a new instance. Reapplying a copy effect can create a new instance of copied rules text/abilities while the underlying Game Object remains the same. Temporary modifications on that object remain, but the newly copied ability is a distinct ability instance.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): My Sand Soldier has Shady Spectacles equipped and is a copy of Azir, Ascendent. What happens if I activate the copied Azir’s activated ability before detaching the Shady Spectacles and then attach them to the same Sand Soldier as a copy of the same Azir, Ascendent? Can I use the activated ability again?\nYou can.\nEach instance of the copied ability is a different ability. The game object remains the same throughout this whole process, so any temporary modifications will remain on the Sand Soldier as it transforms, but the copied rules text is an entirely new instance of the ability. It is the same idea as Svellsongur’s copy of an ability being “refreshed” if Svellsongur is detached and then reattached to the same unit.\n   Rule 477.1.b: \"Copy effects are applied in this layer.\"\n   Rule 477.1.b.1: \"When one Game Object becomes a copy of another, all copyable traits replace or are added to those of the original Game Object as specified by the Game Effect directing the Copy. This is applied in this layer.\""
+          },
+          {
+            "name": "multi-type Do-the-following creates all applicable reflexives",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Create every applicable Reflexive Trigger. A 'Do the following' reflexive-trigger template creates each corresponding Reflexive Trigger whose listed condition/type is satisfied. A card with multiple applicable types can therefore create multiple triggers, rather than choosing only one unless the ability says 'Do one of the following.'\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens when I discard a Patched Porobot with Hwei, Brooding Painter’s move trigger?\nTwo triggers will go on the chain, in the order of your choosing. One says “Give me +3 [M] this turn.” while the other says “Ready up to 2 runes.”\nHwei, Brooding Painter says “do the following based on the discarded card's type …” Unlike our previous reflexive triggers printed on cards that use a similar template (cf Twisted Fate, Gambler), Hwei doesn’t say “do one of the following …” As long as the card has the appropriate type, you will put the corresponding reflexive trigger on the chain. If somehow there existed a card that was a spell unit gear, you would put three reflexive triggers on the chain when you discard it to Hwei.\nRelevant Rules: 387.1.b.\n   Rule 387.1.b: \"“Do one of the following” can instead be “Do X of the following” or “Do the following”. The effect will specify which of the related Reflexive Triggers will go on the chain when the condition is met.\""
+          },
+          {
+            "name": "card may be named by unique description",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes - an unambiguous unique description is allowed. You may name a card by a combination of traits/characteristics that uniquely identifies it; stating the exact printed name is not required if the identification is unambiguous.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): When can I react to my opponent playing Fallen Feline to a battlefield? And how does naming a card work?\nYou can react to the play effect of Fallen Feline, before they’ve named a spell.\nFallen Feline’s play effect instructs its controller to name a spell. This occurs on resolution of the triggered ability. If Fallen Feline is played to a battlefield, as soon as the ability resolves, opponents cannot play spells with that name. Meaning spells by that name can not be put onto a chain. Any spells already on the chain when Fallen Feline’s ability resolves will be unaffected. However, by the time you know the chosen spell it’s too late to play that spell.\nNaming a card or tag has new rules with the Vendetta rules update. When naming something in this way, the overarching rule that applies to all naming is that you can’t name something that doesn’t exist in Riftbound. You can’t name the “Locke” tag, the “totem” type, nor a card named “Lingering Tentacles,” because none of those has been printed on cards or tokens in Riftbound.\nHowever, you can name a card using information that uniquely identifies it. That information could be its name, but it could just as well be something like “the [3] spell with Flow that makes tentacles” or “the red Kai’Sa” or “Illaoi.” As long as there is no ambiguity as to what card is being named, a player can use whatever method is clear to their opponents and teammates.\nYou can’t name a card by saying just “Kai’Sa” if there are two or more cards that could be identified in that way—you won’t have named a card if that’s all you say.\nRelevant Rules: 761., 761.1., 761.2., 762., 762.1., 762.2.\n   Rule 761: \"The act of naming a card in this way may be accomplished in one of two ways:\"\n   Rule 761.1: \"1. Stating the exact name of the card.\"\n   Rule 761.2: \"2. Identifying a combination of traits and characteristics that can identify that card uniquely.\"\n   Rule 762: \"When instructed to name a card, a player must name a card that is legal in the Format being played.\"\n   Rule 762.1: \"They cannot name a card that doesn’t exist.\"\n   Rule 762.2: \"A player cannot choose the name of a token when instructed to name a card.\"\n   Rule 763: \"When instructed to name a tag, a player cannot choose to name a tag that does not exist on cards or tokens in Riftbound.\""
+          },
+          {
+            "name": "nonexistent card cannot be named",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - that object cannot be named. You cannot name a card or tag that does not exist in Riftbound; a card named for this purpose must also be legal in the Format being played.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): When can I react to my opponent playing Fallen Feline to a battlefield? And how does naming a card work?\nYou can react to the play effect of Fallen Feline, before they’ve named a spell.\nFallen Feline’s play effect instructs its controller to name a spell. This occurs on resolution of the triggered ability. If Fallen Feline is played to a battlefield, as soon as the ability resolves, opponents cannot play spells with that name. Meaning spells by that name can not be put onto a chain. Any spells already on the chain when Fallen Feline’s ability resolves will be unaffected. However, by the time you know the chosen spell it’s too late to play that spell.\nNaming a card or tag has new rules with the Vendetta rules update. When naming something in this way, the overarching rule that applies to all naming is that you can’t name something that doesn’t exist in Riftbound. You can’t name the “Locke” tag, the “totem” type, nor a card named “Lingering Tentacles,” because none of those has been printed on cards or tokens in Riftbound.\nHowever, you can name a card using information that uniquely identifies it. That information could be its name, but it could just as well be something like “the [3] spell with Flow that makes tentacles” or “the red Kai’Sa” or “Illaoi.” As long as there is no ambiguity as to what card is being named, a player can use whatever method is clear to their opponents and teammates.\nYou can’t name a card by saying just “Kai’Sa” if there are two or more cards that could be identified in that way—you won’t have named a card if that’s all you say.\nRelevant Rules: 761., 761.1., 761.2., 762., 762.1., 762.2.\n   Rule 761: \"The act of naming a card in this way may be accomplished in one of two ways:\"\n   Rule 761.1: \"1. Stating the exact name of the card.\"\n   Rule 761.2: \"2. Identifying a combination of traits and characteristics that can identify that card uniquely.\"\n   Rule 762: \"When instructed to name a card, a player must name a card that is legal in the Format being played.\"\n   Rule 762.1: \"They cannot name a card that doesn’t exist.\"\n   Rule 762.2: \"A player cannot choose the name of a token when instructed to name a card.\"\n   Rule 763: \"When instructed to name a tag, a player cannot choose to name a tag that does not exist on cards or tokens in Riftbound.\""
+          },
+          {
+            "name": "ambiguous description does not name a card",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - the description is ambiguous. An ambiguous description does not successfully name a card; the information supplied must uniquely identify one card.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): When can I react to my opponent playing Fallen Feline to a battlefield? And how does naming a card work?\nYou can react to the play effect of Fallen Feline, before they’ve named a spell.\nFallen Feline’s play effect instructs its controller to name a spell. This occurs on resolution of the triggered ability. If Fallen Feline is played to a battlefield, as soon as the ability resolves, opponents cannot play spells with that name. Meaning spells by that name can not be put onto a chain. Any spells already on the chain when Fallen Feline’s ability resolves will be unaffected. However, by the time you know the chosen spell it’s too late to play that spell.\nNaming a card or tag has new rules with the Vendetta rules update. When naming something in this way, the overarching rule that applies to all naming is that you can’t name something that doesn’t exist in Riftbound. You can’t name the “Locke” tag, the “totem” type, nor a card named “Lingering Tentacles,” because none of those has been printed on cards or tokens in Riftbound.\nHowever, you can name a card using information that uniquely identifies it. That information could be its name, but it could just as well be something like “the [3] spell with Flow that makes tentacles” or “the red Kai’Sa” or “Illaoi.” As long as there is no ambiguity as to what card is being named, a player can use whatever method is clear to their opponents and teammates.\nYou can’t name a card by saying just “Kai’Sa” if there are two or more cards that could be identified in that way—you won’t have named a card if that’s all you say.\nRelevant Rules: 761., 761.1., 761.2., 762., 762.1., 762.2.\n   Rule 761: \"The act of naming a card in this way may be accomplished in one of two ways:\"\n   Rule 761.1: \"1. Stating the exact name of the card.\"\n   Rule 761.2: \"2. Identifying a combination of traits and characteristics that can identify that card uniquely.\"\n   Rule 762: \"When instructed to name a card, a player must name a card that is legal in the Format being played.\"\n   Rule 762.1: \"They cannot name a card that doesn’t exist.\"\n   Rule 762.2: \"A player cannot choose the name of a token when instructed to name a card.\"\n   Rule 763: \"When instructed to name a tag, a player cannot choose to name a tag that does not exist on cards or tokens in Riftbound.\""
+          },
+          {
+            "name": "Kayle disempower removes one stack",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Remove one Empowered status. Kayle, Justified uses the Golden Rule to have a stacking Empowered status. Disempowering her removes one Empowered status, not all of her stacks.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): If I disempower a Kayle, Justified who has been empowered 3 times, does she lose all of her empowered statuses?\nNo. She will lose one of her empowered statuses.\nFor every Riftbound card other than Kayle, empowered is a binary status. They are either empowered or not. Kayle utilizes the golden rule “Card text supersedes rules text” to overcome this and be able to escape the normal bounds of what the empowered status means. On Kayle, empowered isn’t a binary status but a stacking status; she can have up to 3 empowered statuses. When Kayle is disempowered, the disempower action attempts to remove the empowered status.\nIf she only has one empowered status, great, it’s gone. If she has more than one empowered status, the disempower action will remove one of the empowered statuses from Kayle.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): But can I activate Kayle’s empower ability even if she’s already empowered?\nYes.\nKayle’s empower ability can be activated any number of times. If she has less than 3 empowered statuses, she will become empowered. If she has 3 empowered statuses, the ability can still be activated but nothing will happen when the ability resolves.\n   Rule 002: \"Card text supersedes rules text. Whenever a card fundamentally contradicts the rules, the card's indication is what is true.\"\n   Rule 441.1: \"Empowering is the act of rendering one or more Game Objects Empowered.\"\n   Rule 441.1.b: \"An Empowered Game Object can not be Empowered.\"\n   Rule 441.1.c: \"If a Game Object is instructed to be Empowered when it is already Empowered, nothing additional happens.\"\n   Rule 441.1.c.1: \"Some effects may grant a Game Object permission to be Empowered multiple times. Such an effect ignores this restriction.\""
+          },
+          {
+            "name": "Kayle can activate Empower at three stacks without fourth event",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes - it may be activated, but no additional Empower happens. Kayle's Empower ability may be activated even when she already has three Empowered statuses. At three stacks the ability can resolve, but no additional Empower event/status is produced.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): If I disempower a Kayle, Justified who has been empowered 3 times, does she lose all of her empowered statuses?\nNo. She will lose one of her empowered statuses.\nFor every Riftbound card other than Kayle, empowered is a binary status. They are either empowered or not. Kayle utilizes the golden rule “Card text supersedes rules text” to overcome this and be able to escape the normal bounds of what the empowered status means. On Kayle, empowered isn’t a binary status but a stacking status; she can have up to 3 empowered statuses. When Kayle is disempowered, the disempower action attempts to remove the empowered status.\nIf she only has one empowered status, great, it’s gone. If she has more than one empowered status, the disempower action will remove one of the empowered statuses from Kayle.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): But can I activate Kayle’s empower ability even if she’s already empowered?\nYes.\nKayle’s empower ability can be activated any number of times. If she has less than 3 empowered statuses, she will become empowered. If she has 3 empowered statuses, the ability can still be activated but nothing will happen when the ability resolves.\n   Rule 002: \"Card text supersedes rules text. Whenever a card fundamentally contradicts the rules, the card's indication is what is true.\"\n   Rule 441.1: \"Empowering is the act of rendering one or more Game Objects Empowered.\"\n   Rule 441.1.b: \"An Empowered Game Object can not be Empowered.\"\n   Rule 441.1.c: \"If a Game Object is instructed to be Empowered when it is already Empowered, nothing additional happens.\"\n   Rule 441.1.c.1: \"Some effects may grant a Game Object permission to be Empowered multiple times. Such an effect ignores this restriction.\""
+          },
+          {
+            "name": "control change does not change Finalizer",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Resolution control and Finalization ownership are checked separately. Changing control of a spell after Finalization does not change who Finalized it. Triggered checks that care about a spell you control resolving use the controller at resolution, while non-triggered checks of whether a player played/Finalized a card remain tied to who Finalized it.\n   Rule 419.1: \"A player Plays cards by placing them on the chain and queuing them to be finalized. See rule 349. Playing Cards for more information on playing cards. See rule 337. Finalize for more information on finalizing cards.\"\n   Rule 419.4: \"Some Abilities trigger when cards are played or otherwise check whether cards have been played.\"\n   Rule 419.4.b: \"Non-triggered abilities that check cards being played do so by means of referencing whether said cards have been Finalized.\"\n   Rule 425.1: \"Countering is the act of negating the execution, activation, or otherwise playing of a card or ability by a player.\"\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): I have a Ravenbloom Student on the board and I haven’t played any spells this turn. What happens when I play Rebuttal targeting my opponent’s Stupefy and pay [A] on resolution? After everything resolves, how much will Battering Ram cost? Will my opponent’s Legion abilities be active?\nRavenbloom Student will trigger twice, Battering Ram will cost [4], and your opponent’s Legion abilities will be active.\nRavenbloom Student’s triggered ability checks whether a spell that you control resolves. You gained control of the Stupefy, and it resolved, so you will have triggered Ravenbloom Student’s ability. Battering Ram and Legion, on the other hand, check whether cards were finalized. Although you gained control of Stupefy, you did not finalize it; you got it after it was already finalized by your opponent.\nThus, your opponent’s Legion abilities will be active, and Battering Ram will only receive a [1] Energy discount.\nRelevant Rules: 419.4., 419.4.a., 419.4.b.\n   Rule 419.4.a: \"Any such triggered abilities trigger when the act of playing the card has been completed by the resolution of the card.\""
+          },
+          {
+            "name": "Swap increase survives replacement of separate decrease",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Swap creates separate increase and decrease effects. Swap first calculates the difference and creates two distinct effects: an increase and a decrease. A Replacement Effect that qualifies for the decrease can replace that decrease independently without undoing the separately generated increase.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens when my opponent plays Switcheroo on their 2 [M] unit and my empowered Gangplank, Naval?\nGangplank, Naval will replace his Might being lowered with him being given +3 [M] this turn.\nSwap calculates the difference in Might and generates two effects: an increase, and a decrease. When a swap effect is applied to two units’ Mights, it gives those units +[M] and -[M] respective to who has the higher Might.\nUnder the hood, Gangplank’s replacement effect sees the event of him being given -[M] and replaces it with him being given +3 [M] this turn instead. The event of the other unit being given +[M] is unaffected by Gangplank’s replacement effect. By the time we apply the replacement effect, the difference between the two units has been calculated. In the example with the 2 [M] unit, the final Mights of the two units will be 2 [M] → 6 [M], and 6 [M] → 9 [M].\nThe way this works is not immediately obvious based on how the swap game action rules are written. We will clarify this in a future rules update.\nNote that this logic also applies to Mel, Newly Awakened and Switcheroo.\n   Rule 370.1: \"Replacement Effects apply to any event or instruction that qualifies for their application. A Replacement Effect will specify the circumstances by which an event or instruction will qualify to be replaced.\"\n   Rule 433: \"Swap\"\n   Rule 433.1: \"Swapping is the act of increasing one numeric value and decreasing another numeric value on some number of Game Objects such that their values are reversed.\"\n   Rule 433.1.a: \"Swapping creates two different effects that apply to each attribute. One that Increases one value and one that Decreases the other. These effects last for the duration specified by the effect that instructed the Swap.\""
+          },
+          {
+            "name": "already Stunned creates no new Stun event for replacement",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - no Stun event was created to replace. A Stun instruction that cannot actually perform the Stun Game Action (for example because the unit is already Stunned or cannot be Stunned) produces no Stun event for a Replacement Effect to replace.\n   Rule 423.1.a: \"Stunned is a binary state. A Unit is Stunned or it isn't.\"\n   Rule 423.1.a.1: \"A Stunned Unit can not be Stunned again.\"\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens when my empowered Gangplank, Naval is moved by my opponent’s Blast Cone’s play effect and they exhaust Blast Cone to stun Gangplank? Will he be stunned? What happens if I then play Back Off choosing my Gangplank? Will he get +3 [M] this turn?\nBlast Cone will stun Gangplank. If you play Back Off choosing your stunned Gangplank, he will not receive +3 [M] this turn.\nBlast Cone’s triggered ability that stuns units doesn’t choose them, so Gangplank’s replacement effect can’t apply to that event. Back Off played on a stunned Gangplank does not actually perform the stun game action, because Gangplank is already stunned. It’s legal to play Back Off, but the instruction will be negated. In order for Gangplank’s replacement effect to replace an event of him being stunned, the stun game action must actually be performed.\nSimilarly, if an effect that said “Friendly units can’t be stunned” were active with a friendly empowered Gangplank, Naval is on the board, a stun effect that is played choosing Gangplank wouldn’t generate an event that Gangplank could replace, because no stun game action is performed.\nRelevant Rules: 423.1.a.1.\n   Rule 370.1: \"Replacement Effects apply to any event or instruction that qualifies for their application. A Replacement Effect will specify the circumstances by which an event or instruction will qualify to be replaced.\""
+          },
+          {
+            "name": "zero Might decrease creates no replacement event",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - no Might-decrease event was created to replace. If an arithmetic limitation snapshots a Might decrease to -0, no Might-decrease event occurs. A Replacement Effect that requires a -M event therefore has no qualifying event to replace.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What about casting Stupefy while I have an empowered Mel, Newly Awakened?\nThe chosen unit will be given -2 [M], to a minimum of 1 [M]. If it was 2 [M], it will become 1 [M].\nIn the case of Stupefy, Mel, Newly Awakened replaces the event of Stupefy giving -1 [M] with it giving -2 [M] instead. However, a replacement effect that replaces an event modified by the game effect that generated that event will inherit any of those modifications. In this case, Stupefy modifies the “give -1 [M]” game action and thus event with “to a minimum of 1 [M].” The replaced event will inherit the same modification.\nRelevant Rules: 375.\n   Rule 375: \"If an event that a Replacement Effect applies to would be modified by the Game Effect that generated that event, or the results of that event would be modified by a Game Action from a linked ability that references the replaced event, the Replacement Effect will inherit those modifications.\"\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens if I play Stupefy on my 1 [M] empowered Gangplank, Naval? Will he get +3 [M] this turn?\nHe will not.\nIn order for his replacement effect to apply, the event of him being given -[M] must occur. In the case of Stupefy played on a 1 [M] unit, no -[M] is given; it is snapshot to -0 [M]. Thus, there is no suitable event for Gangplank’s replacement effect to replace.\nRelevant Rules: 477.3.b.\n   Rule 370.1: \"Replacement Effects apply to any event or instruction that qualifies for their application. A Replacement Effect will specify the circumstances by which an event or instruction will qualify to be replaced.\"\n   Rule 477.3.b: \"When an arithmetic effect from a source that is not a passive ability has a limitation that applies, it is limited at the time of its application, and is “remembered” at that limited level for the duration of its effect. This process is called “snapshotting.”\""
+          },
+          {
+            "name": "inactive Dependent Ability remains referenceable",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes - the inactive Dependent Ability can still be referenced. A Dependent Ability remains present for reference/evaluation even while its Dependent Keyword condition is unmet and the ability is Inactive. Other effects can therefore identify or gain that ability before its condition is true.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): Can I activate an empowered Heimerdinger, Inventor to ready 2 gear if my Jayce, Defender of Tomorrow legend isn’t empowered? What about if my Heimerdinger isn’t empowered?\nYou can activate Heimerdinger’s ability if he is empowered, regardless of the empowered status of Jayce, Defender of Tomorrow.\nThere is a bit of a trick here, in that there are two important details to this question relating to dependent keywords:\nFirst is that a dependent keyword (the kind of ability that [Level][>] or [Empowered][>] are when they appear with the arrow) includes the whole of the ability, including the dependent ability. They’re all one object, so to speak.\nSecond is that a dependent keyword’s dependent ability still exists and can be referenced while it is inactive—that is, if its condition isn’t met. In this case, the condition is that the source of the ability is empowered.\nHeimerdinger gains all activated abilities that have the [E] symbol in their cost, and he gains the entire ability, restrictions, costs, dependent keywords and all. In effect, Defender of Tomorrow’s ability that Heimerdinger is gaining is the whole line that says:\n[Empowered][>] [1], [E]: Ready 2 gear.\nHeimerdinger can gain this ability even if Defender of Tomorrow isn’t empowered because of that second point we made previously.\nThe key rule for this case is 727.1.b.1., which reads:\nThe Dependent Ability is present on the card for the sake of reference or evaluation until the Condition is met.\nThis means that the ability isn’t active and its text isn’t being processed yet, but other effects can reference or evaluate its text before the condition is met. Heimerdinger, Inventor is exactly one such effect.\nRelevant Rules: 727.1., 727.1.b., 727.1.b.1.\n   Rule 727.1: \"A Dependent Keyword is comprised of both a Condition that it is short for, and an ability of some format immediately after the Keyword itself.\"\n   Rule 727.1.b: \"The Dependent Ability associated with the Dependent Keyword is Inactive on the card with the Dependent Keyword until the Condition is met, when it becomes Active\"\n   Rule 727.1.b.1: \"The Dependent Ability is present on the card for the sake of reference or evaluation until the Condition is met See rule 720. Inactive for more information\""
+          },
+          {
+            "name": "choose one of competing positive play requirements",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Choose one mandatory positive play requirement. When multiple mandatory positive requirements instruct the same Unit to be played to different locations and none is a restriction/prohibition, the current official ruling lets the player choose one requirement and ignore the others. This does not override 'can't' or 'only' restrictions.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens when I play Temporal Breach targeting my Elder Dragon in base and pay [A][A] for Dragon Roost while playing Elder Dragon? Will it be played to base or to Dragon Roost?\nYou can choose which of those two locations you want to play it to.\nIn general, there are not many cases where we have this kind of competing instruction: one effect that tells you to play a unit to one location, and one that tells you to play it to another. That being said, when they do arise with contradictory requirements, the precedent from other areas of the rules is that the player chooses one of those requirements and ignores all others.\nNote that this only applies to mandatory positive requirements, ones that specify a location or method without also preventing the action from being performed to other locations or with other methods and that aren’t optional. For example, an effect like Perched Grimwyrm’s passive ability is a restriction on playing that unit to any location other than a battlefield you’ve conquered this turn. Rockfall Path’s passive ability is a restriction on playing units to Rockfall Path.\nIf you’ve conquered only Rockfall Path this turn, you can’t play Perched Grimwyrm at all, because those two restrictions are contradictory.\nIn this case, the contradictory requirements don’t directly prohibit the playing of these units to other locations, so we can choose one of the contradictory requirements and ignore the rest.\n   Rule 355.2: \"For Units, choose a valid Location where that Unit will enter upon being Played.\"\n   Rule 355.2.a: \"By default, Valid locations include the controller’s Base or a Battlefield the controller controls.\"\n   Rule 355.2.b: \"Some Game Effects may grant players permission to play Units to locations that are not normally Valid. Such locations become Valid for the purposes of Playing the Unit.\""
+          },
+          {
+            "name": "play restriction beats conflicting location permission",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - the restriction beats the permission. A play-location permission cannot overcome a contradictory 'can't'/'only' restriction. If no legal location remains during finalization, the play cannot finalize and the actions taken as part of playing the card are undone. A separate enters-the-board Replacement Effect can operate differently because it changes the entry event rather than granting play permission.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens when I play Perched Grimwyrm while I haven’t conquered Dragon Roost this turn? Can I pay [A][A] and play it to Dragon Roost? What if I’ve conquered another battlefield this turn?\nYou cannot.\nIn Riftbound, “can’t” beats “can.” Perched Grimwyrm’s effect is a “can’t,” as in it can’t be played to any location but to a battlefield you’ve conquered this turn. Dragon Roost’s ability tries to give the Grimwyrm permission to be played to the Roost, but that can’t overcome Perched Grimwyrm’s own restriction. If you have no ability to play Perched Grimwyrm to Dragon Roost after paying for it, you will not be able to finalize Perched Grimwyrm at all.\nThe actions taken as part of playing Perched Grimwyrm will be undone and it will be returned to the zone it was played from.\nThis is true even if you’ve conquered another battlefield this turn. If you have the ability, you can play Perched Grimwyrm to that battlefield without paying the additional cost of Dragon Roost, but you can’t play it to Dragon Roost itself unless you’ve conquered it.\nSharp eyed readers may remember that Baron Nashor doesn’t work this way. He enters at the Baron Pit regardless of effects preventing him from being played to battlefields. The reason for this is that Baron Nashor’s passive ability generates a delayed replacement effect, the one that reads “I enter there.” This replacement effect replaces the event of him entering to any other location with him entering to the Baron Pit.\nThe replacement effect gets around effects like Mageseeker Warden which limit where you can play units. However, Dragon Roost is not written as a replacement effect. It tells you where to play the dragon you’ve paid the additional cost for, but it doesn’t specify how that dragon enters the board. Therefore it is a permission on play location, but not a replacement effect.\nRelevant Rules: 054.2., 369.3.\n   Rule 054: \"“Can’t beats Can”\"\n   Rule 054.1: \"Cards that forbid actions or effects, as a broad method of determination, supersede cards that allow or permit that same action or effect.\"\n   Rule 054.2: \"If a card specifies that an action can “only” be performed under certain circumstances, it cannot be performed under any other circumstances.\"\n   Rule 355.2.b: \"Some Game Effects may grant players permission to play Units to locations that are not normally Valid. Such locations become Valid for the purposes of Playing the Unit.\"\n   Rule 369.3: \"Replacement Effects that apply to a unit as it enters the Board can be identified by describing how the unit enters, or by describing a game action that occurs “as” a unit enters.\""
+          },
+          {
+            "name": "player controls own Legend",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes - you control your own Legend. A player controls their own Legend. Legend control normally cannot change, but the Legend is still a controlled Game Object for effects that ask whether you control it.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): Can I disempower my Ambessa, Matriarch of War with Profiteer to empower my Kayle? Do I control my own legend?\nYes, you can disempower Ambessa, Matriarch of War with Profiteer. And yes, you control your own legend.\nWe don’t typically consider the possibility that any player controls a legend, because control of legends cannot change, but you do indeed control your own legend.\n   Rule 188: \"Control\"\n   Rule 189: \"Control is the concept of a player having influence of a Game Object and applies differently to different card types.\""
+          },
+          {
+            "name": "unit cannot be played to opponent Base",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - a Unit cannot be played to another player's Base. A Unit cannot be played to another player's Base. If an effect instructs an owner to play a Unit to a Base other than that player's own, the play is illegal at the final legality check; the item returns to its prior zone and actions taken for the attempted play are undone.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens when I play Hostile Takeover gaining control of my opponent’s ready unit, move it to base, and then play Temporal Breach choosing it? Where will the unit go?\nThe unit will remain in Banishment.\nUnits cannot be played to a base of a player other than their own controller under any circumstances. Because the owner of the unit is the one being instructed to play the unit, and the location they are being instructed to play it to is a base other than their own, it isn’t possible to play the unit. During the check legality step of finalization, the unit will be returned to banishment from the chain and all actions taken will be undone.\n   Rule 355.2: \"For Units, choose a valid Location where that Unit will enter upon being Played.\"\n   Rule 355.2.a: \"By default, Valid locations include the controller’s Base or a Battlefield the controller controls.\"\n   Rule 359.2: \"A Permanent leaves the Chain and becomes a Game Object.\""
+          },
+          {
+            "name": "become trigger requires transition into state",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "It must transition into that state. A trigger that checks whether an object 'becomes' a state requires a transition into that state. Remaining within the state while its numeric value changes does not create another 'becomes' event.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): My 11 Might Renekton, Brute is disempowered by my own Profiteer. What happens when my opponent plays Stupefy choosing him? Will his ability trigger? What happens if instead I activated his ability?\nRenekton’s ability will not trigger in either scenario.\nIn order to “become 10 or more,” his Might would have to have previously been less than 10. “10 or more” is a state, and Renekton’s triggered ability checks for the event of him achieving that state. If he maintains that state, regardless of how his Might changes, he will not “become” that state.\n   Rule 124: \"A Game Object that changes zones to or from a Non-Board Zone becomes a new object for the purposes of tracking that object.\""
+          },
+          {
+            "name": "ignore Deflect is scoped to specified action",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Deflect is ignored only for the specified action. When an effect instructs you to ignore Deflect for a specified spell/action, those Deflect abilities are treated as Inactive only for that specified action/procedure. The permission does not carry over to a different spell or action.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens when I play Icathian Rain choosing a Recruit at Heisho, Shell of the World once and Irelia, Fervent in base five times? How many times do I pay for deflect?\nYou will not pay for deflect.\nWhile your spell or ability chooses a unit at Heisho, Shell of the World, you ignore deflect while paying for the spell. Ignore, in this context, means you treat deflect on the specified units as being inactive, like it’s turned off temporarily. In the case of Heisho, it doesn’t specify any units whose deflect to ignore, so you ignore all instances of deflect on units.\nThis only applies to the specified spell or ability. You can’t play a spell or ability choosing a unit at Heisho, and then play another one choosing a unit at another location and not at Heisho and still ignore deflect. Only while at least one target of the spell or ability is a unit located at Heisho do you ignore deflect while paying costs for that spell or ability.\nRelevant Rules: 766., 767.\n   Rule 766: \"Any abilities ignored in this way are treated as inactive for the purposes of the game action or procedure.\"\n   Rule 767: \"Ignored abilities are only treated as inactive for the specific game action or procedure described, and only by the players directed by the ability.\""
+          },
+          {
+            "name": "delayed trigger Kill attribution propagates to generating spell",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes - the Kill attribution can propagate to the generating spell. A delayed triggered ability generated by a spell can be attributed the Kill action it performs, and that Kill can also be attributed back to the spell that generated the ability. Responsibility remains with the controller of the resolving ability as defined by the Game Action responsibility rules.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens when I play Hextech Ray on an Elder Dragon while Imperial Decree’s delayed trigger is active and I have an Immortal Phoenix in the Trash? Can I play Immortal Phoenix from the Trash?\nYou can.\nPer the current rules, there is nothing that would stop Imperial Decree’s delayed trigger from triggering Immortal Phoenix. It is a triggered ability generated by a spell; it is attributed a kill action, and thus the spell that generated it will also be attributed the same kill action.\nThe owner of Imperial Decree is the controller of the delayed triggered ability; the player responsible for the kill action is the one who controls the ability; and that same player is the owner of Immortal Phoenix in the Trash. Thus all three conditions for Immortal Phoenix triggering are complete, and it will trigger.\n   Rule 411.4: \"If an ability triggers when “you” do something, it triggers when a Game Action that you are responsible for occurs.\"\n   Rule 411.5: \"Note that certain Game Actions, specifically Kill, can be attributed to spells and abilities. This attribution is not the same as the responsibility a given player has for the kill game action.\"\n   Rule 411.6: \"Some Game Effects may check if a player has performed a Game Action “with” a Game Object. In order to do so, the Game Action must be attributed to the spell or ability of that Game Object if necessary, the player must control that spell or the ability of that Game Object, and the player must be responsible for the Game Action.\"\n   Rule 428.5: \"Killing can be attributed to one or more Game Objects.\"\n   Rule 428.5.d: \"Abilities originating from Game Objects that are attributed Kill Actions are attributed in addition to the Game Object that created them.\""
+          },
+          {
+            "name": "current FAQ makes Might copyable",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes - Might is currently a copyable trait. Under the current Vendetta FAQ, Might is a copyable trait. A copy effect can therefore replace or add the copied object's Might, even though temporary Might increases/decreases remain temporary modifications rather than source traits to copy.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens if I play Dragon Form on a unit that has -1 [M] from Stupefy applied to it? Will my Fiora, Grand Duelist trigger? Is there a moment where my unit becomes 5 [M] before the -1 [M] from Stupefy brings it down to 4 [M]?\nShe will not trigger.\nAlthough Dragon Form sets the base Might of a unit to 5 [M], it does so via layers. Layers are evaluated when the effect is applied and their evaluation includes all existing applied layer alterations.\nWe process layers in order, starting from the Trait-Altering layer (where this base Might setting effect is applied), proceeding to the Ability-Altering layer (not part of this example), and proceeding to the Arithmetic layer (where Stupefy’s -1 [M] is applied), but this process happens instantaneously; there is no window while evaluating layers for the unit to see itself become 5 [M] and then go down to 4 [M]. As soon as the effect of Dragon Form is applied, the unit is 4 [M].\nAs a side note, Might is one of the traits that is managed in the Trait-Altering layer, and it is one of the copyable traits that copy effects can replace or add to.\n   Rule 477: \"Layers are applied in the following order:\"\n   Rule 477.1: \"1. Trait-Altering Effects\"\n   Rule 477.1.a.1: \"Assignment of Might is dealt with in this layer.\"\n   Rule 477.1.b: \"Copy effects are applied in this layer.\"\n   Rule 477.1.b.1: \"When one Game Object becomes a copy of another, all copyable traits replace or are added to those of the original Game Object as specified by the Game Effect directing the Copy. This is applied in this layer.\"\n   Rule 477.1.b.1.a: \"Copyable traits are: Name​ Super Type​ Type​ Tags​ Cost​ Domain​ Rules Text\"\n   Rule 477.1.b.1.b: \"Copy effects will copy the copyable traits of a Game Object. By default, those are the printed traits of the Game Object. When a Game Object becomes a copy of something, its copyable traits are updated to the new traits it has received.\""
+          },
+          {
+            "name": "current Might override does not copy temporary plus-Might from source",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No - temporary status/modifications are not copied. A copy effect copies the source object's copyable traits, not temporary statuses or modifications such as Empowered, Buff, attacker/defender designations, or temporary Might changes.\n   Vendetta Rules FAQ and Clarifications — Vendetta Rules FAQ and Clarifications (2026-08-14): What happens if I choose to copy an empowered unit when I equip an unempowered unit with Shady Spectacles?\nBeing empowered is a status and is not copyable, thus the equipped unit will remain unempowered.\nShady Spectacles applies a copy effect to the equipped unit. Copy effects copy the printed (or copied, if another copy effect has already been applied) traits of the unit being copied. empowered is a status, a temporary modification, and not part of the printed traits of the card, so it will not be copied by Shady Spectacles. Whatever temporary modifications are applied to the unit as the copy effect is executed on that unit will be unaffected by the copy effect.\nIf the unit has Might increases or decreases, a buff, the empowered status, Temporary, attacker, defender, etc those will remain in place.\nRelevant Rules: 477.1.b.1.b.\n   Rule 477: \"Layers are applied in the following order:\"\n   Rule 477.1: \"1. Trait-Altering Effects\"\n   Rule 477.1.b: \"Copy effects are applied in this layer.\"\n   Rule 477.1.b.1: \"When one Game Object becomes a copy of another, all copyable traits replace or are added to those of the original Game Object as specified by the Game Effect directing the Copy. This is applied in this layer.\"\n   Rule 477.1.b.1.a: \"Copyable traits are: Name​ Super Type​ Type​ Tags​ Cost​ Domain​ Rules Text\"\n   Rule 477.1.b.1.b: \"Copy effects will copy the copyable traits of a Game Object. By default, those are the printed traits of the Game Object. When a Game Object becomes a copy of something, its copyable traits are updated to the new traits it has received.\""
+          },
+          {
+            "name": "colloquial tapped Exhaust cost",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. An already Exhausted Game Object cannot be Exhausted again, so an Exhaust cost cannot be paid with it because the required action cannot be completed.\n   Rule 414.1: \"Exhausting is an action that marks a non-spell Game Object on the board as \"spent.\"\"\n   Rule 414.1.b: \"A Game Object that is already Exhausted cannot be Exhausted again.\"\n   Rule 414.1.c: \"If a Game Object is instructed to be Exhausted while it is already Exhausted, nothing additional happens.\"\n   Rule 414.4: \"When Exhausting is listed as a Cost, then the Action must be able to be completed for the cost to be paid.\""
+          },
+          {
+            "name": "colloquial untapped Ready action",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "No. An already Ready Unit cannot be Readied again; an instruction to Ready it causes nothing additional to happen, so there is no new Ready event from that instruction.\n   Rule 415.1: \"Readying is an action that marks a non-spell Game Object on the board as available for action.\"\n   Rule 415.1.b: \"A Unit that is already Ready cannot be Readied again.\"\n   Rule 415.1.c: \"If a Unit is instructed to be Readied while it is already Ready, nothing additional happens.\""
+          },
+          {
+            "name": "colloquial summon Unit to Base",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes. A Unit may be played directly to its controller's Base as a default valid location.\n   Rule 355.2: \"For Units, choose a valid Location where that Unit will enter upon being Played.\"\n   Rule 355.2.a: \"By default, Valid locations include the controller’s Base or a Battlefield the controller controls.\""
+          },
+          {
+            "name": "colloquial cast Unit to controlled Battlefield",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes. A Unit may be played directly to its controller's Battlefield its controller controls as a default valid location.\n   Rule 355.2: \"For Units, choose a valid Location where that Unit will enter upon being Played.\"\n   Rule 355.2.a: \"By default, Valid locations include the controller’s Base or a Battlefield the controller controls.\""
+          },
+          {
+            "name": "multipart summon to controlled Battlefield and Contested",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              },
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "1. Yes. A Unit may be played directly to its controller's Battlefield its controller controls as a default valid location.\n   Rule 355.2: \"For Units, choose a valid Location where that Unit will enter upon being Played.\"\n   Rule 355.2.a: \"By default, Valid locations include the controller’s Base or a Battlefield the controller controls.\"\n\n2. No. The Unit's arrival does not newly apply Contested because its controller already controls that Battlefield.\n   Rule 190.3.a: \"Contested is a temporary status applied to the battlefield when a Unit controlled by a Player who does not currently Control that Battlefield Moves or otherwise becomes present there.\"\n   Rule 190.3.a.1: \"Units moving to or being played to a battlefield apply Contested status if that battlefield is not already Contested and that Unit’s controller does not already control that battlefield.\""
+          },
+          {
+            "name": "colloquial graveyard means Trash for Discard",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "Yes. Discarding a card moves it directly from its player's hand to that player's Trash without executing the card's normal rules text.\n   Rule 422: \"Discard\"\n   Rule 422.1: \"Discarding a card is moving it from a player's hand directly into their trash without activating or executing its normal rules text.\"\n   Rule 422.1.a: \"The player who is performing the action chooses which cards to send to their Trash, and may use Private Information to do so.\"\n   Rule 422.1.b: \"“When I am discarded” abilities or other Triggered Abilities that trigger on discarding are executed after discarding has occurred.\""
+          },
+          {
+            "name": "ambiguous battle is not guessed",
+            "checks": [
+              {
+                "passed": true,
+                "reasons": []
+              }
+            ],
+            "answer": "I can't determine this from the currently compiled deterministic rules. No deterministic adjudication template can yet prove a verdict for the detected obligations. Evidence remains available for later compilation or LLM-assisted interpretation."
+          }
+        ]
+      },
+      "freshForCurrentBuild": true
+    },
+    "language": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/language_test_report.json",
+      "modifiedAt": "2026-08-22T15:24:24.487953+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 42,
+        "failureCount": 0,
+        "failures": []
+      },
+      "freshForCurrentBuild": true
+    },
+    "scenarioLanguage": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/scenario_language_test_report.json",
+      "modifiedAt": "2026-08-22T15:24:25.660765+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 43,
+        "failureCount": 0,
+        "failures": []
+      },
+      "freshForCurrentBuild": true
+    },
+    "scenarioModel": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/scenario_model_test_report.json",
+      "modifiedAt": "2026-08-22T15:24:27.555010+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 58,
+        "failureCount": 0,
+        "failures": []
+      },
+      "freshForCurrentBuild": true
+    },
+    "compiler": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/compiler_test_report.json",
+      "modifiedAt": "2026-08-22T15:24:29.930711+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 42,
+        "failureCount": 0,
+        "failures": []
+      },
+      "freshForCurrentBuild": true
+    },
+    "proofEngine": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/proof_engine_test_report.json",
+      "modifiedAt": "2026-08-22T15:24:38.262850+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 72,
+        "failureCount": 0,
+        "failures": []
+      },
+      "freshForCurrentBuild": true
+    },
+    "llmInterpretation": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/llm_interpretation_test_report.json",
+      "modifiedAt": "2026-08-22T15:24:41.588185+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 84,
+        "failureCount": 0,
+        "failures": []
+      },
+      "freshForCurrentBuild": true
+    },
+    "llmExplanation": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/llm_explanation_test_report.json",
+      "modifiedAt": "2026-08-22T15:24:45.040412+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 80,
+        "failureCount": 0,
+        "failures": []
+      },
+      "freshForCurrentBuild": true
+    },
+    "goldCorpus": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/gold_corpus_report.json",
+      "modifiedAt": "2026-08-22T15:25:02.988006+00:00",
+      "report": {
+        "schemaVersion": 1,
+        "passed": true,
+        "checkCount": 34,
+        "caseCount": 1846,
+        "failureCount": 0,
+        "failures": [],
+        "metrics": {
+          "schemaVersion": 1,
+          "passed": true,
+          "totalCases": 1846,
+          "tierCounts": {
+            "A": 396,
+            "B": 1416,
+            "C": 34
+          },
+          "categoryCounts": {
+            "adjudication": 396,
+            "card_record": 1304,
+            "current_faq_section": 35,
+            "official_errata_event": 63,
+            "rule_version_record": 2,
+            "update_diff_fixture": 12,
+            "future_card_interaction": 34
+          },
+          "goldASemanticGroups": 99,
+          "goldAFullAdjudications": 99,
+          "distinctRequiredRuleIds": 125,
+          "requiredRuleIds": [
+            "002",
+            "054",
+            "054.1",
+            "054.2",
+            "124",
+            "188",
+            "189",
+            "190.3.a",
+            "190.3.a.1",
+            "190.4.c",
+            "323.6",
+            "323.7",
+            "355.10",
+            "355.10.b",
+            "355.15",
+            "355.2",
+            "355.2.a",
+            "355.2.b",
+            "355.8",
+            "355.9.b",
+            "359.2",
+            "359.3.e.1",
+            "359.3.e.10",
+            "359.3.e.14",
+            "359.3.e.14.a",
+            "359.3.e.14.b",
+            "359.3.e.5",
+            "359.3.e.7",
+            "359.3.e.8",
+            "359.3.f.3",
+            "369.1",
+            "369.3",
+            "370.1",
+            "370.1.b",
+            "372",
+            "372.1",
+            "372.2",
+            "373",
+            "373.1",
+            "373.1.a",
+            "375",
+            "383.2",
+            "383.2.c",
+            "387.1.b",
+            "411.4",
+            "411.5",
+            "411.6",
+            "414.1",
+            "414.1.b",
+            "414.1.c",
+            "414.4",
+            "415.1",
+            "415.1.b",
+            "415.1.c",
+            "417",
+            "417.1.b",
+            "419",
+            "419.1",
+            "419.4",
+            "419.4.a",
+            "419.4.a.1",
+            "419.4.b",
+            "422",
+            "422.1",
+            "422.1.a",
+            "422.1.b",
+            "423.1.a",
+            "423.1.a.1",
+            "425.1",
+            "425.1.a",
+            "425.1.b",
+            "425.1.c",
+            "428.5",
+            "428.5.d",
+            "433",
+            "433.1.a",
+            "434",
+            "437",
+            "437.2",
+            "437.2.a",
+            "437.4",
+            "438",
+            "438.1",
+            "441",
+            "441.1",
+            "441.1.c.1",
+            "455",
+            "456",
+            "456.1",
+            "456.3",
+            "465.2.c.1",
+            "465.2.c.5",
+            "469.1",
+            "469.2",
+            "470",
+            "471.2.b",
+            "477",
+            "477.1",
+            "477.1.b",
+            "477.1.b.1",
+            "477.1.b.1.a",
+            "477.1.b.1.b",
+            "477.3",
+            "477.3.b",
+            "727.1",
+            "727.1.b",
+            "727.1.b.1",
+            "758",
+            "758.1",
+            "761",
+            "761.1",
+            "761.2",
+            "762",
+            "763",
+            "766",
+            "767",
+            "810",
+            "811",
+            "811.1.b",
+            "813",
+            "818",
+            "827",
+            "829",
+            "829.1.b",
+            "829.1.b.1"
+          ],
+          "distinctOfficialEvidenceIds": 26,
+          "officialEvidenceIds": [
+            "O:vendetta-faq-2026-08-14:0002",
+            "O:vendetta-faq-2026-08-14:0004",
+            "O:vendetta-faq-2026-08-14:0005",
+            "O:vendetta-faq-2026-08-14:0006",
+            "O:vendetta-faq-2026-08-14:0008",
+            "O:vendetta-faq-2026-08-14:0009",
+            "O:vendetta-faq-2026-08-14:0010",
+            "O:vendetta-faq-2026-08-14:0011",
+            "O:vendetta-faq-2026-08-14:0013",
+            "O:vendetta-faq-2026-08-14:0015",
+            "O:vendetta-faq-2026-08-14:0016",
+            "O:vendetta-faq-2026-08-14:0017",
+            "O:vendetta-faq-2026-08-14:0019",
+            "O:vendetta-faq-2026-08-14:0021",
+            "O:vendetta-faq-2026-08-14:0022",
+            "O:vendetta-faq-2026-08-14:0023",
+            "O:vendetta-faq-2026-08-14:0025",
+            "O:vendetta-faq-2026-08-14:0027",
+            "O:vendetta-faq-2026-08-14:0028",
+            "O:vendetta-faq-2026-08-14:0029",
+            "O:vendetta-faq-2026-08-14:0030",
+            "O:vendetta-faq-2026-08-14:0031",
+            "O:vendetta-faq-2026-08-14:0032",
+            "O:vendetta-faq-2026-08-14:0033",
+            "O:vendetta-faq-2026-08-14:0034",
+            "O:vendetta-faq-2026-08-14:0035"
+          ],
+          "conditionalOrInsufficientSemanticGroups": 7,
+          "explicitNoSemanticGroups": 19,
+          "nonAffirmativeSemanticGroups": 26,
+          "realCardRecordsCovered": 1304,
+          "currentFaqSectionsCovered": 35,
+          "officialErrataEventsCovered": 63,
+          "ruleVersionRecordsCovered": 2,
+          "updateDiffFixturesCovered": 12,
+          "forwardCardInteractionFixtures": 34,
+          "goldCPromotedReleaseGating": 16,
+          "goldCRemainingReportOnly": 18,
+          "goldCReleaseGating": true
+        }
+      },
+      "freshForCurrentBuild": true
+    },
+    "cardInteractions": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/card_interaction_test_report.json",
+      "modifiedAt": "2026-08-22T15:25:23.541423+00:00",
+      "report": {
+        "schemaVersion": 1,
+        "passed": true,
+        "checkCount": 74,
+        "failureCount": 0,
+        "failures": [],
+        "metrics": {
+          "schemaVersion": 2,
+          "printingCount": 1304,
+          "identityCount": 937,
+          "clauseCount": 1795,
+          "faqProgramCount": 34,
+          "errataAffectedPrintings": 91,
+          "goldCFixtureCount": 34,
+          "goldCPromotedExecutable": 16,
+          "goldCRemainingReportOnly": 18,
+          "executableProgramCount": 16,
+          "validExecutableProgramCount": 16,
+          "structuralContextAloneAppliesGameRules": false,
+          "guardedExecutorCanApplyGameRules": true,
+          "abilityKindCounts": {
+            "activated": 641,
+            "continuous": 60,
+            "instruction_or_static": 535,
+            "replacement": 49,
+            "triggered": 510
+          },
+          "effectTagCounts": {
+            "add_resource": 58,
+            "attach": 99,
+            "banish": 55,
+            "choose": 188,
+            "control": 161,
+            "copy": 10,
+            "counter": 14,
+            "damage": 194,
+            "detach": 6,
+            "discard": 49,
+            "draw": 173,
+            "empower": 129,
+            "exhaust": 255,
+            "heal": 14,
+            "kill": 160,
+            "might": 481,
+            "move": 176,
+            "play": 662,
+            "ready": 188,
+            "recall": 18,
+            "recycle": 73,
+            "replace": 52,
+            "return_to_hand": 44,
+            "stun": 42,
+            "trigger": 637
+          }
+        }
+      },
+      "freshForCurrentBuild": true
+    },
+    "productApi": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/product_api_test_report.json",
+      "modifiedAt": "2026-08-22T15:25:26.890200+00:00",
+      "report": {
+        "schemaVersion": 1,
+        "passed": true,
+        "checkCount": 132,
+        "failureCount": 0,
+        "failures": [],
+        "metrics": {
+          "schemaVersion": 1,
+          "apiVersion": "v1",
+          "serviceMethods": [
+            "ask",
+            "changes",
+            "getCard",
+            "getEvidence",
+            "getRule",
+            "search",
+            "sources",
+            "status"
+          ],
+          "httpRouteCount": 8,
+          "searchKinds": [
+            "rule",
+            "card",
+            "official_ruling",
+            "official_ruling_history",
+            "errata",
+            "official_source",
+            "patch_note_history"
+          ],
+          "currentAuthorityComplete": true,
+          "loopbackDefault": true,
+          "maxBodyBytes": 65536,
+          "filesystemPathsExposed": false
+        }
+      },
+      "freshForCurrentBuild": true
+    },
+    "uiIntegration": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/ui_integration_test_report.json",
+      "modifiedAt": "2026-08-22T15:25:29.011468+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 148,
+        "failureCount": 0,
+        "failures": [],
+        "metrics": {
+          "schemaVersion": 1,
+          "checkCount": 148,
+          "staticRouteCount": 4,
+          "externalRuntimeDependencies": 0,
+          "sameOriginApiOnly": true,
+          "dynamicHtmlInjection": false,
+          "browserAdjudicationLogic": false,
+          "browserEvidenceSelectionLogic": false,
+          "accessibilityLandmarks": true,
+          "responsive": true,
+          "securityHeaders": [
+            "Content-Security-Policy",
+            "Permissions-Policy",
+            "Referrer-Policy",
+            "X-Content-Type-Options",
+            "X-Frame-Options"
+          ]
+        }
+      },
+      "freshForCurrentBuild": true
+    },
+    "updateAutomation": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/update_automation_test_report.json",
+      "modifiedAt": "2026-08-22T15:26:25.034768+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 70,
+        "failureCount": 0,
+        "failures": [],
+        "metrics": {
+          "schemaVersion": 1,
+          "supportedCandidateKinds": [
+            "core_rules_pdf",
+            "official_snapshot",
+            "reviewed_file",
+            "tournament_rules_pdf"
+          ],
+          "explicitHumanReviewForMaterialChanges": true,
+          "isolatedRehearsal": true,
+          "hashBoundPublishBundle": true,
+          "staleBaselineProtection": true,
+          "postPublishReleaseGate": true,
+          "rollbackOnGateFailure": true,
+          "registeredOfficialHostAllowlist": true,
+          "sealedTransactionDocuments": true,
+          "certifiedReleaseTestCount": 19
+        }
+      },
+      "freshForCurrentBuild": true
+    },
+    "productionHardening": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/production_hardening_test_report.json",
+      "modifiedAt": "2026-08-22T15:26:35.892192+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 74,
+        "failureCount": 0,
+        "failures": [],
+        "metrics": {
+          "schemaVersion": 1,
+          "checkCount": 74,
+          "runtimeArtifactCount": 18,
+          "indexSchemaVersion": 1,
+          "startupValidationSeconds": 0.2691,
+          "searchCache": {
+            "maxEntries": 256,
+            "entries": 3,
+            "hits": 57,
+            "misses": 3,
+            "evictions": 0
+          },
+          "httpMetrics": {
+            "requests": 21,
+            "errors": 1,
+            "active": 0,
+            "maxConcurrent": 10,
+            "statusCounts": {
+              "200": 20,
+              "404": 1
+            },
+            "storesRequestContent": false
+          },
+          "networkRequiredForServing": false,
+          "adjudicationCached": false,
+          "atomicIndexReplacement": true,
+          "runtimeDriftFailClosed": true,
+          "startupCorruptionFailClosed": true
+        }
+      },
+      "freshForCurrentBuild": true
+    },
+    "releaseCandidateAudit": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/release_candidate_audit_test_report.json",
+      "modifiedAt": "2026-08-22T15:26:43.748904+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 48,
+        "failureCount": 0,
+        "failures": [],
+        "metrics": {
+          "schemaVersion": 1,
+          "checkCount": 48,
+          "baselineBlockingFindings": 0,
+          "baselineMediumFindings": 1,
+          "definitionChecks": 120,
+          "recoveredBaselineSuiteCount": 17,
+          "retentionHashesVerified": true,
+          "cleanInstallPassed": true,
+          "updateLifecyclePassed": true,
+          "productParityPassed": true
+        }
+      },
+      "freshForCurrentBuild": true
+    },
+    "stableRelease": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/stable_release_test_report.json",
+      "modifiedAt": "2026-08-22T15:26:48.186447+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 191,
+        "failureCount": 0,
+        "failures": [],
+        "metrics": {
+          "schemaVersion": 1,
+          "checkCount": 191,
+          "productVersion": "1.0.0",
+          "productApiVersion": "v1",
+          "criticalArtifactCount": 44,
+          "certifiedReleaseSuiteCount": 19,
+          "manifestPassed": true,
+          "currentAuthorityComplete": true,
+          "networkRequiredForServing": false,
+          "m18CriticalHighBlockers": 0
+        }
+      },
+      "freshForCurrentBuild": true
+    },
+    "updates": {
+      "exists": true,
+      "passed": true,
+      "path": "data/validation/update_test_report.json",
+      "modifiedAt": "2026-08-22T15:26:02.726052+00:00",
+      "report": {
+        "passed": true,
+        "checkCount": 29,
+        "failureCount": 0,
+        "failures": []
+      },
+      "freshForCurrentBuild": true
+    }
+  },
+  "sourceIntegrity": {
+    "coreRulesPdf": {
+      "path": "data/source/core_rules.pdf",
+      "exists": true,
+      "bytes": 42947831,
+      "sha256": "9c5fb8b8638f2cd19ceda237929fa2c37aac23c797cc7410294993470ba5a30b"
+    },
+    "tournamentRulesPdf": {
+      "path": "data/source/tournament_rules.pdf",
+      "exists": true,
+      "bytes": 16697889,
+      "sha256": "6a5be5501c494ecc841fb2572e715d9006f611ff2e5c97023a5be1b5c884e61f"
+    },
+    "cardsJson": {
+      "path": "data/source/riftbound_cards.json",
+      "exists": true,
+      "bytes": 1104153,
+      "sha256": "9c1c5f762a999ecb96d033dca5c1b2b782b8eb2b57960acaad170b337feaed83"
+    },
+    "officialSourceManifest": {
+      "path": "data/source/official_source_manifest.json",
+      "exists": true,
+      "bytes": 9919,
+      "sha256": "fc97de5da7d06018e365ddc988d9abaecd3aca2c22dc2203c920ccb40efcd7ba"
+    }
+  },
+  "canonicalArtifactsPresent": {
+    "data/canonical/core_rules.json": true,
+    "data/canonical/tournament_rules.json": true,
+    "data/canonical/cards.json": true,
+    "data/canonical/official_errata_history.json": true,
+    "data/canonical/knowledge_graph.json": true,
+    "data/canonical/effective_rule_overrides.json": true,
+    "data/canonical/compiled_rule_catalog.json": true,
+    "data/canonical/rule_programs.json": true,
+    "data/canonical/card_interaction_catalog.json": true,
+    "data/canonical/card_interaction_programs.json": true,
+    "contracts/card_interaction_catalog.schema.json": true,
+    "contracts/card_interaction_programs.schema.json": true,
+    "src/riftkeep_rules/card_interactions.py": true,
+    "src/riftkeep_rules/card_interaction_executor.py": true,
+    "contracts/product_api_contract.json": true,
+    "src/riftkeep_rules/product_api.py": true,
+    "src/riftkeep_rules/api_http.py": true,
+    "serve_api.py": true,
+    "contracts/ui_contract.json": true,
+    "web/index.html": true,
+    "web/styles.css": true,
+    "web/app.js": true,
+    "tests/run_ui_integration_tests.py": true,
+    "tests/run_definition_lookup_tests.py": true,
+    "contracts/update_automation.schema.json": true,
+    "src/riftkeep_rules/release_gate.py": true,
+    "src/riftkeep_rules/update_automation.py": true,
+    "update_automation.py": true,
+    "tests/run_update_automation_tests.py": true,
+    "contracts/runtime_hardening.schema.json": true,
+    "data/canonical/runtime_hardening_contract.json": true,
+    "src/riftkeep_rules/runtime_hardening.py": true,
+    "tests/run_production_hardening_tests.py": true,
+    "contracts/release_candidate_audit.schema.json": true,
+    "data/canonical/release_candidate_audit_contract.json": true,
+    "src/riftkeep_rules/release_candidate_audit.py": true,
+    "tests/run_release_candidate_audit_tests.py": true,
+    "contracts/stable_release_contract.schema.json": true,
+    "contracts/stable_release_manifest.schema.json": true,
+    "data/canonical/stable_release_contract.json": true,
+    "src/riftkeep_rules/release_identity.py": true,
+    "build_stable_release_manifest.py": true,
+    "stable_clean_install.py": true,
+    "riftkeep.py": true,
+    "tests/run_stable_release_tests.py": true,
+    "RELEASE_NOTES_1.0.md": true,
+    "KNOWN_LIMITATIONS_1.0.md": true,
+    "data/validation/runtime_hardening_integrity.json": true,
+    "data/validation/rule_compiler_metrics.json": true,
+    "contracts/llm_interpretation.schema.json": true,
+    "src/riftkeep_rules/llm_interpretation.py": true,
+    "contracts/llm_explanation.schema.json": true,
+    "src/riftkeep_rules/llm_explanation.py": true,
+    "contracts/gold_case.schema.json": true,
+    "data/gold/gold_corpus.json": true,
+    "data/gold/gold_manifest.json": true,
+    "data/gold/gold_c_promotions.json": true,
+    "data/validation/current_overlay_integrity.json": true,
+    "data/validation/rule_version_integrity.json": true,
+    "data/source/rule_versions/core/history.json": true,
+    "data/source/rule_versions/tournament/history.json": true,
+    "data/index/rules.sqlite": true
+  },
+  "stableGeneratedArtifactsPresent": {
+    "data/canonical/stable_release_manifest.json": true,
+    "data/validation/stable_clean_install_audit.json": true
+  },
+  "authorityStatus": {
+    "status": "complete",
+    "currentRulesComplete": true,
+    "activeOverlays": [
+      "vendetta-faq-2026-08-14"
+    ],
+    "ingestedOverlays": [
+      "vendetta-faq-2026-08-14"
+    ],
+    "missing": [],
+    "coverage": {
+      "gameplayRulesCurrent": {
+        "status": "complete",
+        "complete": true,
+        "missing": [],
+        "note": "Current Core Rules plus every active official FAQ/rulings overlay."
+      },
+      "tournamentProcedureCurrent": {
+        "status": "complete",
+        "complete": true,
+        "missing": [],
+        "note": "Current Tournament Rules PDF."
+      },
+      "sanctionedFormatLegalityCurrent": {
+        "status": "complete",
+        "complete": true,
+        "missing": [],
+        "note": "Current structured snapshot from the official Rules Hub."
+      },
+      "cardDatabaseCurrentSnapshot": {
+        "status": "available",
+        "complete": true,
+        "missing": [],
+        "note": "User-supplied card database snapshot; current card text is kept separate from proven printed-history text."
+      },
+      "officialCardErrataHistory": {
+        "status": "complete",
+        "complete": true,
+        "missing": [],
+        "note": "All registered official errata pages mirrored and versioned."
+      },
+      "officialPatchNoteHistory": {
+        "status": "partial",
+        "complete": false,
+        "missing": [
+          {
+            "sourceId": "origins-core-patch",
+            "reason": "patch-note body not locally ingested"
+          },
+          {
+            "sourceId": "spiritforged-core-patch",
+            "reason": "patch-note body not locally ingested"
+          },
+          {
+            "sourceId": "unleashed-core-patch",
+            "reason": "patch-note body not locally ingested"
+          },
+          {
+            "sourceId": "vendetta-core-patch",
+            "reason": "patch-note body not locally ingested"
+          }
+        ],
+        "note": "Patch notes are non-exhaustive change context; PDF-to-PDF diff remains authoritative for actual Core Rules changes."
+      },
+      "historicalFaqArchive": {
+        "status": "partial",
+        "complete": false,
+        "missing": [
+          {
+            "sourceId": "unleashed-faq-2026-04-29",
+            "reason": "historical FAQ body not locally ingested"
+          },
+          {
+            "sourceId": "spiritforged-faq-2026-01-14",
+            "reason": "historical FAQ body not locally ingested"
+          },
+          {
+            "sourceId": "origins-faq-2025-10-16",
+            "reason": "historical FAQ body not locally ingested"
+          }
+        ],
+        "note": "Superseded FAQs are historical evidence only and must not override current rules."
+      }
+    },
+    "policy": "Current gameplay adjudication requires the current Core Rules and every active official overlay. Other source families report coverage independently rather than being collapsed into one boolean."
+  },
+  "operationalReadiness": {
+    "engineValidated": true,
+    "currentGameplayAuthorityComplete": true,
+    "currentGameplayBlockers": [],
+    "note": "Engine validation and current-authority completeness are independent. Default gameplay adjudication fails closed when an active official override source is not locally mirrored."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://riftkeep.local/contracts/gold_case.schema.json",
+  "title": "RiftKeep Frozen Gold Case",
+  "type": "object",
+  "required": ["caseId", "tier", "category", "derivedFromEngine", "verificationMethod", "expectationSource"],
+  "properties": {
+    "caseId": {"type": "string", "minLength": 1},
+    "tier": {"enum": ["A", "B", "C"]},
+    "category": {"type": "string", "minLength": 1},
+    "derivedFromEngine": {"const": false},
+    "verificationMethod": {"type": "string", "minLength": 1},
+    "expectationSource": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": true
+}

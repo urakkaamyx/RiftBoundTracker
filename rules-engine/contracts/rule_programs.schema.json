@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "riftkeep://contracts/rule_programs.schema.json",
+  "title": "RiftKeep Executable Rule Programs",
+  "type": "object",
+  "required": ["schemaVersion", "programCount", "validProgramCount", "programs", "policy"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "programCount": {"type": "integer"},
+    "validProgramCount": {"type": "integer"},
+    "programs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["programId", "obligation", "evidenceRuleIds", "sourceTextGuards", "cases", "fallback", "valid", "executable"],
+        "properties": {
+          "programId": {"type": "string"},
+          "obligation": {"type": "string"},
+          "evidenceRuleIds": {"type": "array", "items": {"type": "string"}},
+          "sourceTextGuards": {"type": "object"},
+          "cases": {"type": "array"},
+          "fallback": {"type": ["object", "null"]},
+          "valid": {"type": "boolean"},
+          "executable": {"type": "boolean"}
+        }
+      }
+    },
+    "policy": {"type": "string"}
+  }
+}

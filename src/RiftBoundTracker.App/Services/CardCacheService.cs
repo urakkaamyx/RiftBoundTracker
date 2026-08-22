@@ -292,26 +292,15 @@ public partial class CardCacheService(
             .OrderBy(c => c.SetId).ThenBy(c => c.CollectorNumber)
             .ToListAsync(ct);
 
-    // Internal (not private): RulesEvidenceService reuses this exact swap when checking whether a
-    // free-text question mentions a card by name, so a question phrased with the "other" style
-    // separator than the catalog happens to use still resolves — same reasoning as above.
-    internal static string SwapNameSeparator(string name)
+    // A card's own catalog Name isn't internally consistent about comma vs dash separators
+    // ("Draven - Vanquisher" vs "Champion, Title" elsewhere) — trying the swapped style too lets
+    // matching succeed regardless of which punctuation style a query happens to use.
+    private static string SwapNameSeparator(string name)
     {
         var commaIdx = name.IndexOf(", ", StringComparison.Ordinal);
         if (commaIdx > 0) return string.Concat(name.AsSpan(0, commaIdx), " - ", name.AsSpan(commaIdx + 2));
         var dashIdx = name.IndexOf(" - ", StringComparison.Ordinal);
         return dashIdx > 0 ? string.Concat(name.AsSpan(0, dashIdx), ", ", name.AsSpan(dashIdx + 3)) : name;
-    }
-
-    // A casual question drops the separator entirely — "Darius Trifarian's buff" for the card
-    // "Darius - Trifarian" — rather than picking either punctuated style. Also used by
-    // RulesEvidenceService's free-text card-name matching, same reasoning as SwapNameSeparator.
-    internal static string StripNameSeparator(string name)
-    {
-        var commaIdx = name.IndexOf(", ", StringComparison.Ordinal);
-        if (commaIdx > 0) return string.Concat(name.AsSpan(0, commaIdx), " ", name.AsSpan(commaIdx + 2));
-        var dashIdx = name.IndexOf(" - ", StringComparison.Ordinal);
-        return dashIdx > 0 ? string.Concat(name.AsSpan(0, dashIdx), " ", name.AsSpan(dashIdx + 3)) : name;
     }
 
     public record SetSummary(string SetId, string SetLabel, int Total, int Owned);

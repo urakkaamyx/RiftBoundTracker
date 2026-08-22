@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "uiVersion": "m15-v1",
+  "policy": {
+    "productApiIsOnlyDataAuthority": true,
+    "browserAdjudicationLogic": false,
+    "browserEvidenceSelectionLogic": false,
+    "browserCardIdentityInference": false,
+    "browserRuleSemantics": false,
+    "sameOriginApiOnly": true,
+    "externalRuntimeDependencies": false,
+    "dynamicHtmlInjection": false,
+    "filesystemPathsExposed": false
+  },
+  "surfaces": [
+    "ask_rules",
+    "search",
+    "card_rule_detail",
+    "evidence",
+    "sources_history",
+    "changes"
+  ],
+  "apiRoutesConsumed": [
+    "/v1/status",
+    "/v1/search",
+    "/v1/rules/{family}/{ruleId}",
+    "/v1/cards/{identifier}",
+    "/v1/ask",
+    "/v1/evidence/{evidenceId}",
+    "/v1/sources",
+    "/v1/changes"
+  ],
+  "staticRoutes": ["/", "/index.html", "/styles.css", "/app.js"],
+  "accessibility": {
+    "semanticLandmarks": true,
+    "formLabels": true,
+    "liveStatusRegion": true,
+    "keyboardNavigation": true,
+    "visibleFocus": true,
+    "reducedMotion": true
+  }
+}

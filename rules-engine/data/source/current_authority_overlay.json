@@ -1,0 +1,17 @@
+{
+  "captured": "2026-08-21",
+  "source": "https://playriftbound.com/en-us/news/rules-and-releases/vendetta-rules-faq-and-clarifications/",
+  "sourceId": "vendetta-faq-2026-08-14",
+  "authorityStatement": {
+    "isOfficialRulings": true,
+    "takesPrecedenceOverCurrentCoreRulesWhereDifferent": true,
+    "supersededByNextCoreRulesDocument": true
+  },
+  "localSnapshot": {
+    "status": "complete_normalized_snapshot",
+    "sectionCount": 35,
+    "sha256": "a68712057b00b3590e779ffdea024b1d5201891f12e94dfde3de49e09d323891",
+    "captureMode": "normalized_official_web_crawl_transcription",
+    "note": "Substantive official article text is preserved and sectionized; navigation/image chrome is omitted. This is not a byte-for-byte HTML mirror."
+  }
+}

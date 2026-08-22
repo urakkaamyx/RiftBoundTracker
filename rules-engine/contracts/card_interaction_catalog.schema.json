@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://riftkeep.local/contracts/card_interaction_catalog.schema.json",
+  "title": "RiftKeep Card Interaction Catalog",
+  "type": "object",
+  "required": ["schemaVersion", "printingCount", "identityCount", "faqProgramCount", "clauseCount", "policy", "printings", "identities", "faqPrograms"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "printingCount": {"type": "integer", "minimum": 1},
+    "identityCount": {"type": "integer", "minimum": 1},
+    "faqProgramCount": {"type": "integer", "minimum": 0},
+    "clauseCount": {"type": "integer", "minimum": 0},
+    "abilityKindCounts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+    "effectTagCounts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+    "policy": {
+      "type": "object",
+      "required": ["effectiveTextIsAuthoritativeInput", "clauseClassificationIsStructuralNotAdjudicative", "unresolvedReferencesAreNotGuessed", "faqProgramsRequireAuthorityAndIdentityMatching"]
+    },
+    "printings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["cardId", "name", "canonicalName", "identityKey", "effectiveText", "effectiveTextSha256", "officialErrataEventIds", "clauses"],
+        "properties": {
+          "cardId": {"type": "string", "minLength": 1},
+          "name": {"type": "string", "minLength": 1},
+          "canonicalName": {"type": "string", "minLength": 1},
+          "identityKey": {"type": "string", "minLength": 1},
+          "effectiveText": {"type": "string"},
+          "effectiveTextSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "officialErrataEventIds": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "clauses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["clauseId", "index", "span", "text", "textSha256", "abilityKind", "effectTags", "gameActionRefs", "keywordRefs", "unresolvedReferenceTerms"],
+              "properties": {
+                "clauseId": {"type": "string", "minLength": 1},
+                "index": {"type": "integer", "minimum": 1},
+                "span": {"type": "array", "prefixItems": [{"type": "integer", "minimum": 0}, {"type": "integer", "minimum": 0}], "minItems": 2, "maxItems": 2},
+                "text": {"type": "string"},
+                "textSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+                "abilityKind": {"enum": ["replacement", "triggered", "activated", "continuous", "instruction_or_static"]},
+                "effectTags": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+                "gameActionRefs": {"type": "array"},
+                "keywordRefs": {"type": "array"},
+                "unresolvedReferenceTerms": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+              }
+            }
+          }
+        }
+      }
+    },
+    "identities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["identityKey", "canonicalName", "printingIds", "printingCount", "effectiveTextHashes", "distinctEffectiveTextCount"]
+      }
+    },
+    "faqPrograms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["programId", "evidenceId", "sourceId", "question", "questionNormalized", "questionTokens", "requiredCardIdentityKeys", "officialAnswerText", "officialAnswerSha256", "authority"],
+        "properties": {
+          "programId": {"type": "string", "pattern": "^FAQI:"},
+          "evidenceId": {"type": "string", "minLength": 1},
+          "sourceId": {"type": "string", "minLength": 1},
+          "question": {"type": "string", "minLength": 1},
+          "requiredCardIdentityKeys": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "officialAnswerSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "checkCount": 74,
+  "runtimeArtifactCount": 18,
+  "indexSchemaVersion": 1,
+  "startupValidationSeconds": 0.2365,
+  "searchCache": {
+    "maxEntries": 256,
+    "entries": 3,
+    "hits": 57,
+    "misses": 3,
+    "evictions": 0
+  },
+  "httpMetrics": {
+    "requests": 21,
+    "errors": 1,
+    "active": 0,
+    "maxConcurrent": 10,
+    "statusCounts": {
+      "200": 20,
+      "404": 1
+    },
+    "storesRequestContent": false
+  },
+  "networkRequiredForServing": false,
+  "adjudicationCached": false,
+  "atomicIndexReplacement": true,
+  "runtimeDriftFailClosed": true,
+  "startupCorruptionFailClosed": true
+}

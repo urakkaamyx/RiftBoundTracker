@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "errors": [],
+  "families": {
+    "core": {
+      "passed": true,
+      "checks": {
+        "historyExists": true,
+        "exactlyOneCurrentVersion": true,
+        "historyCurrentPointerMatches": true,
+        "manifestCurrentMatchesLedger": true,
+        "livePdfExists": true,
+        "parsedSnapshotExists": true,
+        "versionMetadataExists": true,
+        "livePdfHashMatchesLedger": true,
+        "parsedSourceIdMatchesLedger": true,
+        "parsedSourceHashMatchesLedger": true,
+        "ruleCountMatchesLedger": true,
+        "internalRuleIdsUnique": true
+      },
+      "errors": [],
+      "versionCount": 1,
+      "currentSourceId": "core-rules-2026-07-16"
+    },
+    "tournament": {
+      "passed": true,
+      "checks": {
+        "historyExists": true,
+        "exactlyOneCurrentVersion": true,
+        "historyCurrentPointerMatches": true,
+        "manifestCurrentMatchesLedger": true,
+        "livePdfExists": true,
+        "parsedSnapshotExists": true,
+        "versionMetadataExists": true,
+        "livePdfHashMatchesLedger": true,
+        "parsedSourceIdMatchesLedger": true,
+        "parsedSourceHashMatchesLedger": true,
+        "ruleCountMatchesLedger": true,
+        "internalRuleIdsUnique": true
+      },
+      "errors": [],
+      "versionCount": 1,
+      "currentSourceId": "tournament-rules-2026-07-16"
+    }
+  }
+}

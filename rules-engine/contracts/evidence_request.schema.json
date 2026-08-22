@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RiftKeep Evidence Completion Request",
+  "type": "object",
+  "required": ["complete", "requests"],
+  "properties": {
+    "complete": {"type": "boolean"},
+    "requests": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["issueId", "query", "whyNeeded"],
+        "properties": {
+          "issueId": {"type": "string"},
+          "query": {"type": "string", "description": "Natural-language concept/search query. Must not guess a rule number."},
+          "whyNeeded": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "sourceRelease": "RiftKeepRules_Engine_Milestone17.zip",
+  "cleanExtraction": true,
+  "preexistingCachesRequired": false,
+  "rebuildPassed": true,
+  "definitionLookup": 120,
+  "productApi": 132,
+  "uiIntegration": 148,
+  "productionHardening": 74,
+  "networkRequiredForServing": false,
+  "indexSchemaVersion": 1,
+  "runtimeDriftFailClosed": true,
+  "startupCorruptionFailClosed": true
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "checkCount": 132,
+  "failureCount": 0,
+  "failures": [],
+  "metrics": {
+    "schemaVersion": 1,
+    "apiVersion": "v1",
+    "serviceMethods": [
+      "ask",
+      "changes",
+      "getCard",
+      "getEvidence",
+      "getRule",
+      "search",
+      "sources",
+      "status"
+    ],
+    "httpRouteCount": 8,
+    "searchKinds": [
+      "rule",
+      "card",
+      "official_ruling",
+      "official_ruling_history",
+      "errata",
+      "official_source",
+      "patch_note_history"
+    ],
+    "currentAuthorityComplete": true,
+    "loopbackDefault": true,
+    "maxBodyBytes": 65536,
+    "filesystemPathsExposed": false
+  }
+}

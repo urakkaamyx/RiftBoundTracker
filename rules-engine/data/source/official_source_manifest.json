@@ -1,0 +1,279 @@
+{
+  "schemaVersion": 1,
+  "discoveryRoots": [
+    {
+      "id": "rules-hub",
+      "url": "https://playriftbound.com/en-us/rules-hub/",
+      "purpose": [
+        "current_core_rules",
+        "current_tournament_rules",
+        "legality",
+        "patch_notes",
+        "errata"
+      ]
+    },
+    {
+      "id": "rules-and-releases",
+      "url": "https://playriftbound.com/en-us/news/rules-and-releases/",
+      "purpose": [
+        "official_faq",
+        "clarifications",
+        "rules_release_history"
+      ],
+      "reason": "Current FAQs can contain official rulings that are not listed as first-class links in the Rules Hub."
+    }
+  ],
+  "sources": [
+    {
+      "id": "rules-hub-current",
+      "type": "rules_hub",
+      "url": "https://playriftbound.com/en-us/rules-hub/",
+      "status": "current_index",
+      "localStructuredSnapshot": "rules_hub_metadata.json",
+      "authorityScope": [
+        "format_legality",
+        "current_document_index"
+      ]
+    },
+    {
+      "id": "core-rules-2026-07-16",
+      "type": "core_rules_pdf",
+      "status": "current",
+      "localSnapshot": "core_rules.pdf",
+      "authorityScope": [
+        "game_rules"
+      ]
+    },
+    {
+      "id": "tournament-rules-2026-07-16",
+      "type": "tournament_rules_pdf",
+      "status": "current",
+      "localSnapshot": "tournament_rules.pdf",
+      "authorityScope": [
+        "tournament_policy",
+        "competition_procedure"
+      ]
+    },
+    {
+      "id": "unleashed-faq-2026-04-29",
+      "type": "official_faq",
+      "url": "https://playriftbound.com/en-us/news/rules-and-releases/unleashed-rules-faq-and-clarifications/",
+      "status": "superseded_history",
+      "published": "2026-04-29",
+      "effectiveFrom": "2026-04-29",
+      "effectiveUntil": "2026-07-24",
+      "authorityScope": [
+        "official_rulings"
+      ],
+      "precedence": {
+        "over": [
+          "core-rules-unleashed"
+        ],
+        "onlyWhereDifferent": true,
+        "expiresWhen": "next_rules_update_published"
+      },
+      "supersededReason": "The FAQ states it becomes obsolete with the next rules update; Vendetta rules became effective July 24, 2026."
+    },
+    {
+      "id": "spiritforged-faq-2026-01-14",
+      "type": "official_faq",
+      "url": "https://playriftbound.com/en-us/news/rules-and-releases/riftbound-spiritforged-faq/",
+      "status": "superseded_history",
+      "published": "2026-01-14",
+      "effectiveFrom": "2026-01-14",
+      "authorityScope": [
+        "official_rulings",
+        "clarifications",
+        "card_errata_context"
+      ],
+      "supersededReason": "Its clarifications were intended to be incorporated into the next Core Rules iteration; retained only as historical context once later rules documents supersede it."
+    },
+    {
+      "id": "origins-faq-2025-10-16",
+      "type": "official_faq",
+      "url": "https://playriftbound.com/en-us/news/rules-and-releases/riftbound-origins-faq/",
+      "status": "superseded_history",
+      "published": "2025-10-16",
+      "effectiveFrom": "2025-10-16",
+      "effectiveUntil": "2025-11-04",
+      "authorityScope": [
+        "official_rulings"
+      ],
+      "supersededReason": "Official Origins errata states the Core Rules FAQ became obsolete after the Core Rules update/errata rollout."
+    },
+    {
+      "id": "vendetta-faq-2026-08-14",
+      "type": "official_faq",
+      "url": "https://playriftbound.com/en-us/news/rules-and-releases/vendetta-rules-faq-and-clarifications/",
+      "status": "current_overlay",
+      "published": "2026-08-14",
+      "authorityScope": [
+        "official_rulings"
+      ],
+      "precedence": {
+        "over": [
+          "core-rules-2026-07-16"
+        ],
+        "onlyWhereDifferent": true,
+        "expiresWhen": "next_core_rules_document_released"
+      },
+      "localSnapshotStatus": "complete_normalized_snapshot",
+      "effectiveFrom": "2026-08-14",
+      "localNormalizedSnapshot": "official_text/vendetta_faq_2026-08-14.txt",
+      "captureMode": "normalized_official_web_crawl_transcription",
+      "captureNote": "Substantive article text normalized from the official 338-line web crawl; navigation/image chrome omitted. Exact ruling wording is retained in searchable sections.",
+      "validationProfile": {
+        "minSectionCount": 35,
+        "requiredTextFragments": [
+          "The FAQ is a collection of official rulings.",
+          "the FAQ takes precedence",
+          "When a new Core Rules Document is released",
+          "What happens when you play Abandon on a spell that was played for its Flow cost?",
+          "What happens if I choose to copy an empowered unit",
+          "Might is one of the traits that is managed in the Trait-Altering layer",
+          "If I play Ride the Wind targeting my unit at Vilemaw’s Lair",
+          "A negated instruction will not cause any linked instructions to be ignored"
+        ],
+        "requiredQuestionFragments": [
+          "Abandon on a spell that was played for its Flow cost",
+          "Iascylla and Azir",
+          "Moonfall choosing an enemy unit",
+          "Rebuttal and pay [A]",
+          "copy an empowered unit",
+          "Ki Barrier and Lotus Trap",
+          "Patched Porobot with Hwei",
+          "Crumbling Sands",
+          "naming a card",
+          "Kayle, Justified",
+          "Akali, Silent",
+          "Ravenbloom Student",
+          "Switcheroo",
+          "Gangplank, Naval",
+          "Heimerdinger, Inventor",
+          "Temporal Breach",
+          "Perched Grimwyrm",
+          "Dragon Form",
+          "Renekton, Brute",
+          "deflect",
+          "Imperial Decree",
+          "Ride the Wind"
+        ]
+      }
+    },
+    {
+      "id": "origins-core-patch",
+      "type": "patch_notes",
+      "url": "https://playriftbound.com/en-us/news/rules-and-releases/riftbound-core-rules-patch-notes/",
+      "status": "history",
+      "authorityScope": [
+        "change_context",
+        "intent"
+      ],
+      "exhaustive": false,
+      "published": "2025-10-24",
+      "effectiveFrom": "2025-10-24"
+    },
+    {
+      "id": "spiritforged-core-patch",
+      "type": "patch_notes",
+      "url": "https://playriftbound.com/en-us/news/rules-and-releases/riftbound-core-rules-spiritforged-patch-notes/",
+      "status": "history",
+      "authorityScope": [
+        "change_context",
+        "intent"
+      ],
+      "exhaustive": false,
+      "published": "2025-12-05",
+      "effectiveFrom": "2025-12-12"
+    },
+    {
+      "id": "unleashed-core-patch",
+      "type": "patch_notes",
+      "url": "https://playriftbound.com/en-us/news/rules-and-releases/riftbound-core-rules-unleashed-patch-notes/",
+      "status": "history",
+      "authorityScope": [
+        "change_context",
+        "intent"
+      ],
+      "exhaustive": false,
+      "published": "2026-03-30",
+      "effectiveFrom": "2026-04-08"
+    },
+    {
+      "id": "vendetta-core-patch",
+      "type": "patch_notes",
+      "url": "https://playriftbound.com/en-us/news/announcements/core-rules-vendetta-patch-notes/",
+      "status": "current_change_record",
+      "authorityScope": [
+        "change_context",
+        "intent"
+      ],
+      "exhaustive": false,
+      "published": "2026-07-17",
+      "effectiveFrom": "2026-07-24"
+    },
+    {
+      "id": "origins-errata",
+      "type": "card_errata",
+      "url": "https://playriftbound.com/en-us/news/rules-and-releases/riftbound-origins-card-errata/",
+      "status": "active_history",
+      "published": "2025-10-28",
+      "effectiveFrom": "2025-10-28",
+      "release": "Origins",
+      "localSnapshot": "official_pdfs/origins_errata_2025-10-28.pdf",
+      "authorityScope": [
+        "card_rules_text_history",
+        "effective_card_text"
+      ]
+    },
+    {
+      "id": "spiritforged-errata",
+      "type": "card_errata",
+      "url": "https://playriftbound.com/en-us/news/rules-and-releases/riftbound-spiritforged-errata/",
+      "status": "active_history",
+      "published": "2026-01-14",
+      "effectiveFrom": "2026-01-14",
+      "release": "Spiritforged",
+      "localSnapshot": "official_pdfs/spiritforged_errata_2026-01-14.pdf",
+      "authorityScope": [
+        "card_rules_text_history",
+        "effective_card_text"
+      ]
+    },
+    {
+      "id": "unleashed-errata",
+      "type": "card_errata",
+      "url": "https://playriftbound.com/en-us/news/rules-and-releases/unleashed-errata-updates/",
+      "status": "active_history",
+      "published": "2026-04-03",
+      "effectiveFrom": "2026-04-03",
+      "release": "Unleashed",
+      "localStructuredSnapshot": "official_structured/unleashed_errata_2026-04-03.json",
+      "authorityScope": [
+        "card_rules_text_history",
+        "effective_card_text"
+      ]
+    },
+    {
+      "id": "vendetta-errata",
+      "type": "card_errata",
+      "url": "https://playriftbound.com/en-us/news/announcements/vendetta-errata-updates/",
+      "status": "active_history",
+      "published": "2026-07-23",
+      "effectiveFrom": "2026-07-23",
+      "release": "Vendetta",
+      "localStructuredSnapshot": "official_structured/vendetta_errata_2026-07-23.json",
+      "authorityScope": [
+        "card_rules_text_history",
+        "effective_card_text"
+      ]
+    }
+  ],
+  "rules": [
+    "Patch notes are change context and are explicitly non-exhaustive; PDF-to-PDF diffing determines actual Core Rules changes.",
+    "Current FAQ overlays must be checked before final current-rules adjudication because they may explicitly take precedence over the current Core Rules.",
+    "Superseded FAQ text remains historical evidence only.",
+    "No web article body is silently treated as mirrored when only metadata has been captured.",
+    "Official FAQ/clarification pages are versioned authority overlays. Current overlays can override the Core Rules where the official source explicitly says so; superseded FAQs remain searchable historical context but are excluded from current rulings."
+  ]
+}

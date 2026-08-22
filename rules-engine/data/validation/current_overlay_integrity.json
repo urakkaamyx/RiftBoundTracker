@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "activeOverlayCount": 1,
+  "errors": [],
+  "checks": [
+    {
+      "sourceId": "vendetta-faq-2026-08-14",
+      "passed": true
+    }
+  ],
+  "sources": [
+    {
+      "sourceId": "vendetta-faq-2026-08-14",
+      "passed": true,
+      "errors": [],
+      "checks": {
+        "latestPointerExists": true,
+        "snapshotRecordExists": true,
+        "archiveExists": true,
+        "archiveHashMatchesSnapshot": true,
+        "pointerHashMatchesSnapshot": true,
+        "sourceIdMatches": true,
+        "sourceUrlMatchesManifest": true,
+        "authorityStatusCurrentOverlay": true,
+        "precedenceDeclared": true,
+        "snapshotValidationPassed": true,
+        "sectionCountMatches": true,
+        "sectionCountMeetsProfile": true,
+        "evidenceIdsUnique": true,
+        "evidenceIdsContiguous": true,
+        "catalogCoversEverySection": true,
+        "catalogRolesPresent": true
+      },
+      "sectionCount": 35,
+      "sha256": "a68712057b00b3590e779ffdea024b1d5201891f12e94dfde3de49e09d323891",
+      "captureMode": "normalized_official_web_crawl_transcription",
+      "validation": {
+        "passed": true,
+        "errors": [],
+        "warnings": []
+      }
+    }
+  ]
+}

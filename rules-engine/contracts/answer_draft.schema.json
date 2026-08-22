@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RiftKeep Answer Draft",
+  "type": "object",
+  "required": ["parts"],
+  "properties": {
+    "parts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["issueId", "declaredVerdict", "prose", "citationIds"],
+        "properties": {
+          "issueId": {"type": "string"},
+          "declaredVerdict": {"type": ["string", "null"]},
+          "prose": {"type": "string"},
+          "citationIds": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

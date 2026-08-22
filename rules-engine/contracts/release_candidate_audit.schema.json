@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RiftKeep M18 Release Candidate Audit Contract",
+  "type": "object",
+  "required": ["schemaVersion", "milestones", "expectedReports", "sourceAuthority", "releasePolicy"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "milestones": {"type": "array", "minItems": 18},
+    "expectedReports": {"type": "object"},
+    "sourceAuthority": {"type": "object"},
+    "releasePolicy": {"type": "object"}
+  }
+}

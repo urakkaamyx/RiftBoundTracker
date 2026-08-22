@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "updateAutomationChecks": 70,
+  "updateChecks": 29,
+  "matrix": {
+    "no_op": {
+      "passed": true,
+      "requiredEvidence": [
+        "identical current FAQ stages as no changes"
+      ],
+      "foundEvidence": [
+        "identical current FAQ stages as no changes"
+      ]
+    },
+    "invalid_source": {
+      "passed": true,
+      "requiredEvidence": [
+        "invalid current FAQ blocks transaction"
+      ],
+      "foundEvidence": [
+        "invalid current FAQ blocks transaction"
+      ]
+    },
+    "material_change_review": {
+      "passed": true,
+      "requiredEvidence": [
+        "changed FAQ requires review",
+        "rehearsal refuses missing approval"
+      ],
+      "foundEvidence": [
+        "changed FAQ requires review",
+        "rehearsal refuses missing approval"
+      ]
+    },
+    "successful_publish": {
+      "passed": true,
+      "requiredEvidence": [
+        "successful publish status",
+        "publish advances live snapshot"
+      ],
+      "foundEvidence": [
+        "successful publish status",
+        "publish advances live snapshot"
+      ]
+    },
+    "forced_rollback": {
+      "passed": true,
+      "requiredEvidence": [
+        "failed post-publish gate raises after rollback",
+        "failed publish restores previous latest pointer byte-for-byte"
+      ],
+      "foundEvidence": [
+        "failed post-publish gate raises after rollback",
+        "failed publish restores previous latest pointer byte-for-byte"
+      ]
+    },
+    "stale_baseline": {
+      "passed": true,
+      "requiredEvidence": [
+        "stale project baseline blocks publish"
+      ],
+      "foundEvidence": [
+        "stale project baseline blocks publish"
+      ]
+    },
+    "core_rules": {
+      "passed": true,
+      "requiredEvidence": [
+        "Core PDF synthetic route publishes exact rehearsed marker"
+      ],
+      "foundEvidence": [
+        "Core PDF synthetic route publishes exact rehearsed marker"
+      ]
+    },
+    "tournament_rules": {
+      "passed": true,
+      "requiredEvidence": [
+        "Tournament stage/promote workflow preserves version integrity"
+      ],
+      "foundEvidence": [
+        "Tournament stage/promote workflow preserves version integrity"
+      ]
+    },
+    "reviewed_metadata": {
+      "passed": true,
+      "requiredEvidence": [
+        "reviewed companion file can publish only after review"
+      ],
+      "foundEvidence": [
+        "reviewed companion file can publish only after review"
+      ]
+    },
+    "new_source_registration": {
+      "passed": true,
+      "requiredEvidence": [
+        "new official source registration always requires review"
+      ],
+      "foundEvidence": [
+        "new official source registration always requires review"
+      ]
+    },
+    "overlay_precedence": {
+      "passed": true,
+      "requiredEvidence": [
+        "new current overlay without precedence is rejected"
+      ],
+      "foundEvidence": [
+        "new current overlay without precedence is rejected"
+      ]
+    },
+    "transaction_tamper": {
+      "passed": true,
+      "requiredEvidence": [
+        "tampered sealed request blocks staging",
+        "tampered sealed plan blocks approval",
+        "tampered sealed review blocks rehearsal",
+        "tampered sealed rehearsal blocks publish"
+      ],
+      "foundEvidence": [
+        "tampered sealed request blocks staging",
+        "tampered sealed plan blocks approval",
+        "tampered sealed review blocks rehearsal",
+        "tampered sealed rehearsal blocks publish"
+      ]
+    },
+    "official_host_restriction": {
+      "passed": true,
+      "requiredEvidence": [
+        "poll rejects non-official host before network call"
+      ],
+      "foundEvidence": [
+        "poll rejects non-official host before network call"
+      ]
+    }
+  }
+}

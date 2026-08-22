@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "cleanExtractionSource": "RiftKeepRules_Engine_Milestone17.zip",
+  "baselineArtifactCount": 18,
+  "byteStableArtifactCount": 16,
+  "byteUnstableArtifactCount": 2,
+  "byteUnstableArtifacts": [
+    {
+      "path": "data/canonical/effective_rule_overrides.json",
+      "beforeSha256": "0cd2c56a45ca8966d5acca6070846e0587dc7534318c2759a06740c47b8dacb5",
+      "afterSha256": "8b0bead6288a3fb02d1c7ef7b7cebb52e3c5e12f13014e5e9b583514eae2bba9",
+      "onlyChangedFields": [
+        "generatedAt"
+      ],
+      "substantive": false
+    },
+    {
+      "path": "data/canonical/supplemental_sources.json",
+      "beforeSha256": "39688b12564c898e5d312f4e0ef640cb713d2e1c036cf938280ca02a1e95f80e",
+      "afterSha256": "936ccbcae166919ae246c1398955c08f30bcd007d6a8c2600dd6f71ce17f875a",
+      "onlyChangedFields": [
+        "generatedAt"
+      ],
+      "substantive": false
+    }
+  ],
+  "substantiveCanonicalDrift": false,
+  "allowedNonDeterminism": {
+    "data/canonical/effective_rule_overrides.json": [
+      "generatedAt"
+    ],
+    "data/canonical/supplemental_sources.json": [
+      "generatedAt"
+    ]
+  },
+  "sqlite": {
+    "quickCheck": "ok",
+    "userVersion": 1,
+    "docsMeta": 3720,
+    "docsFts": 3720
+  }
+}

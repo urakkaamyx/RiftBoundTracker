@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "riftkeep://contracts/stable_release_manifest.schema.json",
+  "title": "RiftKeep Rules Engine Stable 1.0 Distribution Manifest",
+  "type": "object",
+  "required": ["schemaVersion", "product", "compatibility", "authority", "corpus", "artifactHashes", "certifiedReleaseSuiteCount"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "product": {"type": "object"},
+    "compatibility": {"type": "object"},
+    "authority": {"type": "object"},
+    "corpus": {"type": "object"},
+    "artifactHashes": {"type": "object"},
+    "certifiedReleaseSuiteCount": {"const": 19}
+  }
+}

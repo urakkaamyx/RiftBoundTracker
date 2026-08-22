@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "policy": "Historical source bodies remain explicit missing-archive warnings until successfully mirrored. They never become current authority merely because they are fetched.",
+  "sources": [
+    {"sourceId": "origins-core-patch", "family": "patch_notes", "status": "missing_full_body"},
+    {"sourceId": "spiritforged-core-patch", "family": "patch_notes", "status": "missing_full_body"},
+    {"sourceId": "unleashed-core-patch", "family": "patch_notes", "status": "missing_full_body"},
+    {"sourceId": "vendetta-core-patch", "family": "patch_notes", "status": "missing_full_body"},
+    {"sourceId": "origins-faq-2025-10-16", "family": "historical_faq", "status": "missing_full_body"},
+    {"sourceId": "spiritforged-faq-2026-01-14", "family": "historical_faq", "status": "missing_full_body"},
+    {"sourceId": "unleashed-faq-2026-04-29", "family": "historical_faq", "status": "missing_full_body"}
+  ],
+  "command": "python sync_official_sources.py fetch-missing-history"
+}

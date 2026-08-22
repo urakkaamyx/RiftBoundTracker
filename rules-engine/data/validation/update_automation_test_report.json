@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "checkCount": 70,
+  "failureCount": 0,
+  "failures": [],
+  "metrics": {
+    "schemaVersion": 1,
+    "supportedCandidateKinds": [
+      "core_rules_pdf",
+      "official_snapshot",
+      "reviewed_file",
+      "tournament_rules_pdf"
+    ],
+    "explicitHumanReviewForMaterialChanges": true,
+    "isolatedRehearsal": true,
+    "hashBoundPublishBundle": true,
+    "staleBaselineProtection": true,
+    "postPublishReleaseGate": true,
+    "rollbackOnGateFailure": true,
+    "registeredOfficialHostAllowlist": true,
+    "sealedTransactionDocuments": true,
+    "certifiedReleaseTestCount": 19
+  }
+}

@@ -195,30 +195,13 @@ internal static class Program
         builder.Services.AddScoped<CommunityDeckSyncService>();
         builder.Services.AddScoped<CommunityRecommendationService>();
         builder.Services.AddScoped<NextJsArticlePageFetcher>();
-        builder.Services.AddScoped<RulesSourceDiscoveryService>();
-        builder.Services.AddScoped<RulesImportService>();
-        builder.Services.AddScoped<RulesKeywordCatalogService>();
-        builder.Services.AddScoped<RulesConceptCatalogService>();
-        builder.Services.AddScoped<RulesKeywordLinkerService>();
-        builder.Services.AddScoped<RulesSyncService>();
-        builder.Services.AddScoped<RulesSearchService>();
         builder.Services.AddScoped<RulesService>();
         builder.Services.AddSingleton<RulesLocalAiSettingsService>();
-        // Singleton: tracks download progress across requests the same way UpdateService does for
-        // app updates, and the model file itself needs to be found consistently by both the
-        // question-answering path and the status/progress endpoints.
-        builder.Services.AddSingleton<LocalAiModelService>();
-        // Singleton (not Scoped): holds the loaded model + context so it's loaded once and kept
-        // resident across requests instead of reloading a ~1GB model on every question.
-        builder.Services.AddSingleton<LocalLlmExplanationProvider>();
-        builder.Services.AddSingleton<IRulesExplanationProvider>(sp => sp.GetRequiredService<LocalLlmExplanationProvider>());
-        builder.Services.AddSingleton<RulesToolAgentProvider>();
-        builder.Services.AddScoped<RulesQuestionService>();
-        builder.Services.AddScoped<RulesEvidenceService>();
-        // Singleton, not scoped — CuratedRulings.json is loaded once and never changes at runtime,
-        // same reasoning as LocalLlmExplanationProvider owning its model weights for the process
-        // lifetime rather than reloading per request.
-        builder.Services.AddSingleton<RulesCuratedRulingService>();
+        // Singleton: owns the sidecar child process and must track it consistently across every
+        // request that touches Ask Rules, same reasoning UpdateService/LocalAiModelService (its
+        // predecessor) used for tracking download/process state process-wide rather than per-request.
+        builder.Services.AddSingleton<RulesEngineSidecarService>();
+        builder.Services.AddScoped<RulesEngineClient>();
         builder.Services.AddScoped<RulesAnswerService>();
 
         var app = builder.Build();
@@ -588,57 +571,24 @@ internal static class Program
             }
         });
 
-        app.MapGet("/api/rules/search", async (
-            string q, bool? currentOnly, int? limit, RulesService rules, CancellationToken ct) =>
-            Results.Ok(await rules.SearchAsync(q, currentOnly ?? true, limit ?? 30, ct)));
-
-        app.MapGet("/api/rules/status", async (RulesSyncService sync, CancellationToken ct) =>
-            Results.Ok(await sync.GetStatusAsync(ct)));
-
-        app.MapPost("/api/rules/sync", async (RulesSyncService sync, CancellationToken ct) =>
-        {
-            try
-            {
-                return Results.Ok(await sync.SyncAsync(ct));
-            }
-            catch (Exception ex)
-            {
-                return Results.Problem(ex.Message, statusCode: 502);
-            }
-        });
-
-        app.MapGet("/api/rules/keywords", async (RulesService rules, CancellationToken ct) =>
-            Results.Ok(await rules.GetKeywordsAsync(ct)));
-
-        app.MapGet("/api/rules/keywords/{id:int}", async (int id, RulesService rules, CancellationToken ct) =>
-        {
-            var detail = await rules.GetKeywordDetailAsync(id, ct);
-            return detail is null ? Results.NotFound() : Results.Ok(detail);
-        });
-
-        app.MapGet("/api/rules/documents", async (RulesService rules, CancellationToken ct) =>
-            Results.Ok(await rules.GetDocumentsAsync(ct)));
-
-        app.MapGet("/api/rules/documents/{id:int}", async (int id, RulesService rules, CancellationToken ct) =>
-        {
-            var detail = await rules.GetDocumentDetailAsync(id, ct);
-            return detail is null ? Results.NotFound() : Results.Ok(detail);
-        });
-
-        app.MapGet("/api/rules/errata", async (RulesService rules, CancellationToken ct) =>
-            Results.Ok(await rules.GetErrataAsync(ct)));
-
-        app.MapGet("/api/rules/errata/cards/{cardId}", async (string cardId, RulesService rules, CancellationToken ct) =>
-            Results.Ok(await rules.GetErrataForCardAsync(cardId, ct)));
-
-        app.MapGet("/api/rules/legality", async (RulesService rules, CancellationToken ct) =>
-            Results.Ok(await rules.GetLegalityAsync(ct)));
-
-        app.MapGet("/api/rules/legality/cards/{cardId}", async (string cardId, RulesService rules, CancellationToken ct) =>
-            Results.Ok(await rules.GetLegalityForCardAsync(cardId, ct)));
-
+        // Rules Browser (search/keyword-glossary/document-list/rule-detail-by-int-id) is not wired
+        // to the sidecar yet — those pages are built around internal integer RuleEntry/Keyword IDs
+        // with parent/child navigation baked into the frontend, while the engine's rule IDs are
+        // strings that are the actual rule numbers ("815", "815.1"). Re-pointing them needs
+        // frontend routing changes, not just a backend swap — deliberately left as a separate
+        // follow-up rather than rushed through here. Card-side lookups (errata for a specific
+        // card) map cleanly since card IDs already match and are wired below.
         app.MapGet("/api/rules/cards/{cardId}", async (string cardId, RulesService rules, CancellationToken ct) =>
             Results.Ok(await rules.GetCardRulesAsync(cardId, ct)));
+
+        // Backs the Ask Rules "Why?" citation popup — a thin passthrough to the sidecar's own
+        // rule lookup, not a database query, so it stays correct without needing the same
+        // ID-scheme migration the rest of Rules Browser is waiting on.
+        app.MapGet("/api/rules/detail/{family}/{ruleId}", async (string family, string ruleId, RulesEngineClient engine, CancellationToken ct) =>
+        {
+            var result = await engine.GetRuleAsync(family, ruleId, ct);
+            return result.Rule is null ? Results.NotFound() : Results.Ok(result.Rule);
+        });
 
         app.MapPost("/api/rules/ask", async (AskRuleQuestionRequest body, RulesAnswerService answers, CancellationToken ct) =>
         {
@@ -647,64 +597,26 @@ internal static class Program
             return Results.Ok(await answers.AskAsync(body.Question, body.CardId, ct));
         });
 
-        app.MapPost("/api/rules/analyze-question", async (AskRuleQuestionRequest body, RulesQuestionService questions, CancellationToken ct) =>
-        {
-            if (string.IsNullOrWhiteSpace(body.Question))
-                return Results.BadRequest(new { error = "Ask a question." });
-            return Results.Ok(await questions.AnalyzeAsync(body.Question, body.CardId, ct));
-        });
+        app.MapGet("/api/rules/engine/status", async (RulesEngineSidecarService sidecar, RulesLocalAiSettingsService settings, CancellationToken ct) =>
+            Results.Ok(new { enabled = settings.IsEnabled(), engine = sidecar.GetStatus() }));
 
-        app.MapGet("/api/rules/local-ai/models", (RulesLocalAiSettingsService settings, LocalAiModelService modelService) =>
+        app.MapPost("/api/rules/engine/download", (RulesEngineSidecarService sidecar, ILogger<RulesEngineSidecarService> logger) =>
         {
-            var selectedId = settings.GetSelectedModelId();
-            var models = LocalAiModelCatalog.Options.Select(o =>
-            {
-                var status = modelService.GetStatus(o.Id);
-                return new
-                {
-                    o.Id, o.DisplayName, o.Description, o.ApproxBytes,
-                    present = status.Present, bytes = status.Bytes, selected = o.Id == selectedId,
-                };
-            });
-            return Results.Ok(new { enabled = settings.IsEnabled(), models });
-        });
-
-        app.MapGet("/api/rules/local-ai/model-progress", (string modelId, LocalAiModelService modelService) =>
-            Results.Ok(modelService.GetStatus(modelId)));
-
-        app.MapPost("/api/rules/local-ai/download-model", (RulesLocalAiModelRequest body, LocalAiModelService modelService, ILogger<LocalAiModelService> logger) =>
-        {
-            var modelId = LocalAiModelCatalog.Resolve(body.ModelId).Id;
-            // Detached, same reasoning as the app self-update: the download can take a while, so
-            // this request returns immediately and the client polls model-progress instead of
-            // holding one connection open for the whole ~1GB+ transfer.
+            // Detached, same reasoning the old model download used: this can take a while (the
+            // sidecar bundle is tens of MB), so the request returns immediately and the client
+            // polls engine/status instead of holding one connection open for the whole transfer.
             _ = Task.Run(async () =>
             {
-                try { await modelService.DownloadAsync(modelId, CancellationToken.None); }
-                catch (Exception ex) { logger.LogError(ex, "Local AI model download failed"); }
+                try { await sidecar.DownloadAsync(CancellationToken.None); }
+                catch (Exception ex) { logger.LogError(ex, "Rules engine download failed"); }
             });
-            return Results.Ok(new { started = true, modelId });
-        });
-
-        app.MapPost("/api/rules/local-ai/select-model", (RulesLocalAiModelRequest body, RulesLocalAiSettingsService settings) =>
-        {
-            settings.SetSelectedModelId(body.ModelId ?? LocalAiModelCatalog.DefaultModelId);
-            return Results.Ok(new { selectedModelId = settings.GetSelectedModelId() });
+            return Results.Ok(new { started = true });
         });
 
         app.MapPost("/api/rules/local-ai/configure", (RulesLocalAiToggleRequest body, RulesLocalAiSettingsService settings) =>
         {
             settings.SetEnabled(body.Enabled);
             return Results.Ok(new { enabled = settings.IsEnabled() });
-        });
-
-        // Registered after the more specific /api/rules/* routes above — ASP.NET Core's endpoint
-        // routing prefers literal segment matches ("search", "keywords", ...) over this
-        // parameterized one regardless of registration order, but keeping it last mirrors that.
-        app.MapGet("/api/rules/{id:int}", async (int id, RulesService rules, CancellationToken ct) =>
-        {
-            var detail = await rules.GetRuleDetailAsync(id, ct);
-            return detail is null ? Results.NotFound() : Results.Ok(detail);
         });
 
         app.MapGet("/api/pricing/status", (PricingSettingsService settings) => Results.Ok(settings.GetStatus()));
@@ -875,6 +787,5 @@ public record TopDeckKeyRequest(string ApiKey);
 public record CommunitySyncRequest(int? Days);
 public record AskRuleQuestionRequest(string Question, string? CardId);
 public record RulesLocalAiToggleRequest(bool Enabled);
-public record RulesLocalAiModelRequest(string? ModelId);
 public record PriceRefreshRequest(bool IncludeAllCards);
 public record PriceQueueRequest(bool Queued);

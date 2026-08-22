@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 1,
+  "product": {
+    "name": "RiftKeep Rules Engine",
+    "version": "1.0.1",
+    "releaseLine": "stable"
+  },
+  "compatibility": {
+    "productApi": "v1",
+    "sqliteIndexSchema": 1,
+    "updateTransactionSchema": 1,
+    "runtimeHardeningSchema": 1,
+    "releaseCandidateAuditSchema": 1,
+    "uiContractSchema": 1,
+    "uiVersion": "m15-v1",
+    "pythonMinimum": "3.11"
+  },
+  "policies": {
+    "currentAuthorityRequiredForAsk": true,
+    "normalServingRequiresNetwork": false,
+    "llmOptionalForCorrectness": true,
+    "browserContainsAdjudicationLogic": false,
+    "adjudicationCached": false,
+    "runtimeDriftFailsClosed": true,
+    "sourceUpdatesRequireTransactionalGate": true,
+    "latestTwoMilestoneRetention": true
+  },
+  "knownLimitations": [
+    {
+      "code": "gold_c_report_only_remaining",
+      "severity": "known_non_blocking",
+      "count": 18,
+      "scope": "forward card-interaction fixtures",
+      "currentAuthorityImpact": false
+    },
+    {
+      "code": "historical_patch_note_bodies_incomplete",
+      "severity": "known_non_blocking",
+      "count": 4,
+      "scope": "superseded historical change context",
+      "currentAuthorityImpact": false
+    },
+    {
+      "code": "historical_faq_bodies_incomplete",
+      "severity": "known_non_blocking",
+      "count": 3,
+      "scope": "superseded historical FAQ archive",
+      "currentAuthorityImpact": false
+    }
+  ],
+  "semanticVersioning": {
+    "major": "Breaking Product API contract, proof/verdict semantics, stable source identity, or persisted schema compatibility.",
+    "minor": "Backward-compatible capabilities, new authoritative source families, or new proven adjudication coverage.",
+    "patch": "Backward-compatible correctness, data, security, documentation, or performance fixes.",
+    "authorityUpdates": "Official rules/card/FAQ updates use M16 transactional update automation and do not imply a software major version by themselves."
+  },
+  "authority": {
+    "coreSourceId": "core-rules-2026-07-16",
+    "coreSourceSha256": "9c5fb8b8638f2cd19ceda237929fa2c37aac23c797cc7410294993470ba5a30b",
+    "tournamentSourceId": "tournament-rules-2026-07-16",
+    "tournamentSourceSha256": "6a5be5501c494ecc841fb2572e715d9006f611ff2e5c97023a5be1b5c884e61f",
+    "currentFaqSourceId": "vendetta-faq-2026-08-14",
+    "currentFaqSha256": "a68712057b00b3590e779ffdea024b1d5201891f12e94dfde3de49e09d323891",
+    "cardSourceSha256": "9c1c5f762a999ecb96d033dca5c1b2b782b8eb2b57960acaad170b337feaed83"
+  },
+  "corpus": {
+    "coreRules": 2381,
+    "tournamentRules": 935,
+    "cards": 1304,
+    "currentFaqSections": 35,
+    "officialErrataEvents": 63,
+    "errataAffectedPrintings": 91
+  },
+  "certifiedReleaseSuiteCount": 19,
+  "artifactHashes": {
+    "pyproject.toml": {
+      "sha256": "9f37921d4e9cf1a8586f0b1eacc6c4c81bdcedeffdaa0f8f95b358fa4cad0fd9",
+      "bytes": 289
+    },
+    "src/riftkeep_rules/__init__.py": {
+      "sha256": "83a902af0d7bf164fc08187152d6ccb239f1ce3252e4b2e10610e189f8e3442e",
+      "bytes": 142
+    },
+    "src/riftkeep_rules/release_identity.py": {
+      "sha256": "6b17cd664b1009de1ffdbd7b1b77bd0c51fc9fbc0762fdb15d5cc8cad1726abf",
+      "bytes": 7151
+    },
+    "src/riftkeep_rules/product_api.py": {
+      "sha256": "0db7ab12a10a91b8c4f3bbcdbca130d090d35feae87e282823e80f032bf95925",
+      "bytes": 27126
+    },
+    "src/riftkeep_rules/api_http.py": {
+      "sha256": "4537521e5f941929f48b7f28230e38512c53b02120bc24f26ca17dde284b3ab0",
+      "bytes": 15000
+    },
+    "src/riftkeep_rules/runtime_hardening.py": {
+      "sha256": "1b7514bd32c562696d013f9529fa9ba17504c94d78cb9a058b92cf2dcafe34e7",
+      "bytes": 13296
+    },
+    "src/riftkeep_rules/update_automation.py": {
+      "sha256": "035b4dfaf01fb415b3277586f44bcef23dfb15eb1d9ec4f6aac3419700b77db5",
+      "bytes": 39053
+    },
+    "src/riftkeep_rules/release_candidate_audit.py": {
+      "sha256": "00483b85a0cc7a52545540a6a673995f06efcb2d3d2021c41746b1864b3a8a39",
+      "bytes": 12177
+    },
+    "src/riftkeep_rules/release_gate.py": {
+      "sha256": "0a51cee6497d6e9b87c4f6b8e115ef68b513251d595c2a28281b1863fcd2a09d",
+      "bytes": 4227
+    },
+    "src/riftkeep_rules/audit.py": {
+      "sha256": "77f616308c74dffb6dc690b8d2f2320f5aa446d4c714f5918419c4b3df16d611",
+      "bytes": 25895
+    },
+    "validate_all.py": {
+      "sha256": "0b910266bdd0cf5538e56b8674f7ed6eba14966ac25974051748ed683d8e5d00",
+      "bytes": 11098
+    },
+    "audit_project.py": {
+      "sha256": "08d7d3571710ce2985acbc8730a4c07fd3c1a7dbd485eab2aaab326ee9ba26fa",
+      "bytes": 705
+    },
+    "build_stable_release_manifest.py": {
+      "sha256": "cad903c7e52764a8067f08b7d4e4bc2cb497a692f7a766618dd2f741b3c08f6a",
+      "bytes": 575
+    },
+    "stable_clean_install.py": {
+      "sha256": "9232d53103c7592e3029ca85e9f011b3d36d84da2b55ebcf6a967d627d9d81a6",
+      "bytes": 7927
+    },
+    "riftkeep.py": {
+      "sha256": "f09f888c374ad16cd8513589028b205e1a59eed99776a987c069bae871852aff",
+      "bytes": 2746
+    },
+    "serve_api.py": {
+      "sha256": "b9ebdc09646fd890e9cd1ee1fe7afce8604562a36ed7513fdafd8ab4e0e1eb5e",
+      "bytes": 862
+    },
+    "web/index.html": {
+      "sha256": "5187b9b8175031470a78d0a9c005fb9788b601a724819e5eca00bde072840b06",
+      "bytes": 7714
+    },
+    "web/styles.css": {
+      "sha256": "2dda9390111168c858bb5295c884309d7ae5208b5e1965c86c6680051833446c",
+      "bytes": 13683
+    },
+    "web/app.js": {
+      "sha256": "68e9f9cf83f507ab73eb4a3b0a7f2e30c4fd15713a50df4cb8a4cea4497de7b8",
+      "bytes": 23741
+    },
+    "contracts/product_api_contract.json": {
+      "sha256": "9f4bd8b584f668a76ec50c2d44297a6c625dba79f2cc86a769158a69e09ddc79",
+      "bytes": 1851
+    },
+    "contracts/ui_contract.json": {
+      "sha256": "55668391c43b43827ec6dcc453cb9172b6c81be24e02c49a335e08e3130fee4c",
+      "bytes": 1023
+    },
+    "contracts/update_automation.schema.json": {
+      "sha256": "51eb9753b77ad34ce497490050323b61d8b8580ae9b813dd7d626ed6c08be966",
+      "bytes": 2229
+    },
+    "contracts/runtime_hardening.schema.json": {
+      "sha256": "5181c8a7ee747e6b1b93d48f8464973826658f25223361c07a12da5f81278970",
+      "bytes": 1461
+    },
+    "contracts/release_candidate_audit.schema.json": {
+      "sha256": "f7afaf44fa94de4a122b3f9548a016916e4a674243a36db836d14134729a016f",
+      "bytes": 483
+    },
+    "contracts/stable_release_contract.schema.json": {
+      "sha256": "49bdd162c5e2b039a0f200d4c89053a3668f60a829c8504289c6a47ea25e4b88",
+      "bytes": 813
+    },
+    "contracts/stable_release_manifest.schema.json": {
+      "sha256": "809ba0233ff2baf99ed1d5a46d886c23413fc83dde30e6807ec98f7c776d041b",
+      "bytes": 649
+    },
+    "data/canonical/stable_release_contract.json": {
+      "sha256": "89d5226374984912e775fdcbbbace0194445e2bf96d67fbef40dd33f7234205f",
+      "bytes": 1963
+    },
+    "data/canonical/release_candidate_audit_contract.json": {
+      "sha256": "14eb52608404b2ec455d5ed46b9063eee6ab602c39530bfcc32abcd39c6f7d5c",
+      "bytes": 7231
+    },
+    "data/canonical/core_rules.json": {
+      "sha256": "5362dccbb17e3ac689541fd77c2ef7e20b09f6005d1f16a58cc394c16786de60",
+      "bytes": 5642304
+    },
+    "data/canonical/tournament_rules.json": {
+      "sha256": "24df9bc494086b573496f2f3aab9f531e318176cc4d8ce57563ccd820e8f1867",
+      "bytes": 1326868
+    },
+    "data/canonical/cards.json": {
+      "sha256": "27973a6dce9ba580bdf814e213f9444e6a13e4ac0f62150652c055e07aa60b0e",
+      "bytes": 3079282
+    },
+    "data/canonical/official_errata_history.json": {
+      "sha256": "e4819fd925893cbceb8be4597031a2e5102632dfb0f84f3b2222abced947b18e",
+      "bytes": 102837
+    },
+    "data/canonical/compiled_rule_catalog.json": {
+      "sha256": "bb27fa56f8d73745a5eec03bb3d999d39900998b34d1146d4fc1a6086a3d3ecc",
+      "bytes": 2118284
+    },
+    "data/canonical/rule_programs.json": {
+      "sha256": "36ff52e70565e113edf3515b511dfc52df9d42545324c9b6518cfea705bbaab3",
+      "bytes": 36832
+    },
+    "data/canonical/card_interaction_programs.json": {
+      "sha256": "98f5191f9f78c95dada09bf58692f0ac286f45519c49c50ea2206c1aa757b280",
+      "bytes": 23393
+    },
+    "data/source/current_authority_overlay.json": {
+      "sha256": "8bc5db1e862b4caa159cfd88f8e42622bee7f94a23017e8ed8c28161e6a18e72",
+      "bytes": 751
+    },
+    "data/source/rule_versions/core/history.json": {
+      "sha256": "814b8457c6ed178c3ae104c6b2ceaafe5e87a2a21e4cd276a47ec889c1bbd26d",
+      "bytes": 541
+    },
+    "data/source/rule_versions/tournament/history.json": {
+      "sha256": "f9834758ba2747ea78970163e1e7478b14b996b8514fbcf8f102a3bfe9abcd23",
+      "bytes": 576
+    },
+    "tests/run_update_automation_tests.py": {
+      "sha256": "03c7c9a62e6358b7d198cfbd8d04b2afc49f1493a4f44c84924927f456c3c90e",
+      "bytes": 26781
+    },
+    "tests/run_production_hardening_tests.py": {
+      "sha256": "a240583203d0bb09467d22f08752d3badef0ea20ea9eedcae74720f8675822c7",
+      "bytes": 17514
+    },
+    "tests/run_release_candidate_audit_tests.py": {
+      "sha256": "42bd29e2a5ebb36a66d04135dc54349259c78135597d2c5f2052b3f40e8cd9d5",
+      "bytes": 11468
+    },
+    "tests/run_stable_release_tests.py": {
+      "sha256": "36329711715002eedc83ef21616538e0b48c20536095bc014d5c801a720222ea",
+      "bytes": 15258
+    },
+    "RELEASE_NOTES_1.0.md": {
+      "sha256": "56b64d28d4ef9993e37c2d142970555de98425c1d2d5c6ebc6fdc2600f229bff",
+      "bytes": 1837
+    },
+    "KNOWN_LIMITATIONS_1.0.md": {
+      "sha256": "9261f1fed6858b8cf7de756d62e324bab2c463c46e4e96436380c52012fbfd1d",
+      "bytes": 1442
+    }
+  }
+}

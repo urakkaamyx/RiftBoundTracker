@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "riftkeep://contracts/stable_release_contract.schema.json",
+  "title": "RiftKeep Rules Engine Stable 1.0 Contract",
+  "type": "object",
+  "required": ["schemaVersion", "product", "compatibility", "policies", "knownLimitations", "semanticVersioning"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "product": {
+      "type": "object",
+      "required": ["name", "version", "releaseLine"],
+      "properties": {
+        "name": {"const": "RiftKeep Rules Engine"},
+        "version": {"const": "1.0.0"},
+        "releaseLine": {"const": "stable"}
+      }
+    },
+    "compatibility": {"type": "object"},
+    "policies": {"type": "object"},
+    "knownLimitations": {"type": "array"},
+    "semanticVersioning": {"type": "object"}
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RiftKeep Question Analysis",
+  "type": "object",
+  "required": ["issues", "mentionedCards", "facts", "unknowns", "searchConcepts"],
+  "properties": {
+    "issues": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["issueId", "question"],
+        "properties": {
+          "issueId": {"type": "string"},
+          "question": {"type": "string"},
+          "dependsOn": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "mentionedCards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["cardId"],
+        "properties": {
+          "cardId": {"type": "string"},
+          "confidence": {"type": "string", "enum": ["exact", "fuzzy", "ambiguous"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "facts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "value", "basis"],
+        "properties": {
+          "name": {"type": "string"},
+          "value": {"enum": [true, false, "unknown"]},
+          "basis": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "unknowns": {"type": "array", "items": {"type": "string"}},
+    "searchConcepts": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": false
+}

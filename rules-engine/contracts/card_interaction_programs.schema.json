@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RiftKeep Card Interaction Programs",
+  "type": "object",
+  "required": ["schemaVersion", "programCount", "validProgramCount", "programs", "policy"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "programCount": {"type": "integer", "minimum": 0},
+    "validProgramCount": {"type": "integer", "minimum": 0},
+    "programs": {"type": "array", "items": {"type": "object", "required": ["programId", "evidenceId", "valid", "executable", "validationErrors"]}},
+    "policy": {"type": "object"}
+  },
+  "additionalProperties": true
+}

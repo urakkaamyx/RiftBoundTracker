@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "v1",
+  "policy": {
+    "engineIsAuthority": true,
+    "transportContainsNoAdjudicationLogic": true,
+    "filesystemPathsExposed": false,
+    "fuzzyCardIdentityLookup": false,
+    "currentAuthorityRequiredForAsk": true,
+    "boundedInput": true,
+    "deterministicErrors": true
+  },
+  "serviceMethods": {
+    "status": "Release/corpus/current-authority summary.",
+    "search": "Unified FTS search over the existing canonical index.",
+    "getRule": "Exact Core/Tournament rule lookup with provenance/navigation.",
+    "getCard": "Exact printing-ID or exact-name lookup with provenance/variants.",
+    "ask": "Natural-language adjudication wrapper around RulesEngine.ask().",
+    "getEvidence": "Resolve backend citation IDs to authoritative evidence.",
+    "sources": "Current and historical official source metadata plus rule-version ledgers.",
+    "changes": "Adjacent-version rule change summary/details when archived diff data exists."
+  },
+  "httpRoutes": [
+    {"method": "GET", "path": "/v1/status"},
+    {"method": "GET", "path": "/v1/search?q=...&kind=...&limit=...&offset=..."},
+    {"method": "GET", "path": "/v1/rules/{family}/{ruleId}"},
+    {"method": "GET", "path": "/v1/cards/{printingId-or-exact-name}"},
+    {"method": "POST", "path": "/v1/ask", "body": {"question": "string"}},
+    {"method": "GET", "path": "/v1/evidence/{evidenceId}"},
+    {"method": "GET", "path": "/v1/sources"},
+    {"method": "GET", "path": "/v1/changes?family=core|tournament&sourceId=optional"}
+  ],
+  "errorEnvelope": {
+    "ok": false,
+    "error": {"code": "stable_snake_case_code", "message": "human-readable message", "details": {}}
+  },
+  "limits": {
+    "questionCharacters": 4000,
+    "searchCharacters": 500,
+    "searchLimitMaximum": 100,
+    "searchOffsetMaximum": 10000,
+    "httpBodyBytes": 65536
+  }
+}

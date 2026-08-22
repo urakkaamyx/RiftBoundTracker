@@ -1,0 +1,687 @@
+{
+  "schemaVersion": 1,
+  "programCount": 16,
+  "validProgramCount": 16,
+  "programs": [
+    {
+      "programId": "CARDI:0003",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0003",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "b123334e8119340d56a680ab113b92240e9d0eb88f6fe2e957732dc3a462fa5c",
+      "expectedIdentityTextHashes": {
+        "azir sovereign": [
+          "8257f10343cb58c947c905703250505895e5c6da205a8f98e689ad86f6501281"
+        ],
+        "iascylla": [
+          "40dff0103e7e3534cd1d9c408a63db8038c56802ba4e87667e958befa8075f37"
+        ]
+      },
+      "requiredRuleIds": [
+        "359.3.f"
+      ],
+      "requiredClauseEffectTags": {
+        "iascylla": [
+          "trigger"
+        ],
+        "azir sovereign": [
+          "trigger"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "iascylla_snapshots_held_battlefield_azir_checks_current_battlefield",
+          "claim": "Iascylla preserves the battlefield identified by her trigger condition, while Azir, Sovereign checks the battlefield where he is located when his attack trigger resolves."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0004",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0004",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "d0e13cbfdc99f9a2dc4c1ee1e7ef16a533eb074f6a435b545623e2812ae7cbf5",
+      "expectedIdentityTextHashes": {
+        "mel newly awakened": [
+          "96509db44782bef3cd1436649b713241e1085a66f12507882fa8f21e02a46130",
+          "e4dfa40a51c9b488ca53b1f66f46bceecd54ab2a5690976ff27ba24a7b2617f2"
+        ],
+        "moonfall": [
+          "19ed67315386fb6d31f174642d9855b2f3743222400808364bb668cfb305f1b6"
+        ]
+      },
+      "requiredRuleIds": [
+        "370.1",
+        "370.1.b"
+      ],
+      "requiredClauseEffectTags": {
+        "mel newly awakened": [
+          "might",
+          "choose"
+        ],
+        "moonfall": [
+          "might",
+          "choose"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "moonfall_chosen_unit_minus3_others_minus2",
+          "claim": "Empowered Mel replaces only Moonfall’s chosen unit -2 Might event with -3 Might; the other enemy units at that battlefield still receive -2 Might."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0005",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0005",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "989e66d7512156cb17e55e9a58a61dc676131be8f6baa5d03ab6e3901a1c5650",
+      "expectedIdentityTextHashes": {
+        "mel newly awakened": [
+          "96509db44782bef3cd1436649b713241e1085a66f12507882fa8f21e02a46130",
+          "e4dfa40a51c9b488ca53b1f66f46bceecd54ab2a5690976ff27ba24a7b2617f2"
+        ],
+        "stupefy": [
+          "19e28ec034f7ca6d3126938758679f6163766fef34686b92440b88139f4091b2"
+        ]
+      },
+      "requiredRuleIds": [
+        "375"
+      ],
+      "requiredClauseEffectTags": {
+        "mel newly awakened": [
+          "might",
+          "choose"
+        ],
+        "stupefy": [
+          "might"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "stupefy_minus2_minimum1",
+          "claim": "Empowered Mel replaces Stupefy’s -1 Might with -2 Might, and the replacement inherits Stupefy’s minimum-of-1 modification."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0006",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0006",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "049c552b10ebbe09b25519b8cd5d8100854df8b8264479256dff9aa44ead5eb6",
+      "expectedIdentityTextHashes": {
+        "abandon": [
+          "4bb5146b69df886c9df1345b817f7e25fc6ae81588b36393f2f1db155bd33cad"
+        ],
+        "mel newly awakened": [
+          "96509db44782bef3cd1436649b713241e1085a66f12507882fa8f21e02a46130",
+          "e4dfa40a51c9b488ca53b1f66f46bceecd54ab2a5690976ff27ba24a7b2617f2"
+        ]
+      },
+      "requiredRuleIds": [],
+      "requiredClauseEffectTags": {
+        "mel newly awakened": [
+          "counter"
+        ],
+        "abandon": [
+          "counter",
+          "replace"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "yes_abandon_can_be_played",
+          "claim": "Abandon can be played targeting the spell even though empowered Mel prevents that spell from being countered."
+        },
+        {
+          "issueIndex": 1,
+          "verdict": "abandon_predict_only_no_counter_or_return",
+          "claim": "Abandon fails to counter the spell, so no countered-card Trash event exists for its return-to-hand replacement; it still Predicts and otherwise has no effect on that spell."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0007",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0007",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "b1be194a6853546a90ea922d987a7679909b4ef0552660b9c2cc3cd19a5e1897",
+      "expectedIdentityTextHashes": {
+        "abandon": [
+          "4bb5146b69df886c9df1345b817f7e25fc6ae81588b36393f2f1db155bd33cad"
+        ],
+        "mel newly awakened": [
+          "96509db44782bef3cd1436649b713241e1085a66f12507882fa8f21e02a46130",
+          "e4dfa40a51c9b488ca53b1f66f46bceecd54ab2a5690976ff27ba24a7b2617f2"
+        ],
+        "rebuttal": [
+          "e530648eb62730b1d77b90ddc3b21226217f7341519406c37baed2039b776f4b"
+        ]
+      },
+      "requiredRuleIds": [],
+      "requiredClauseEffectTags": {
+        "mel newly awakened": [
+          "counter"
+        ],
+        "abandon": [
+          "counter"
+        ],
+        "rebuttal": [
+          "control"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "rebuttal_control_change_is_not_countering",
+          "claim": "Rebuttal gaining control of a spell is not countering that spell, so empowered Mel’s protection from countering does not prevent the control change."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0009",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0009",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "7e8d08923378d1bdc40a67c358a1effe782351252c9a95297c6a9f77fbcfaeac",
+      "expectedIdentityTextHashes": {
+        "shady spectacles": [
+          "cdc7ab64cea0544150a069e5e6dd3b1bed6ad28d2c08eb7abb5b74523753d1b5"
+        ]
+      },
+      "requiredRuleIds": [
+        "477.1.b"
+      ],
+      "requiredClauseEffectTags": {
+        "shady spectacles": [
+          "copy"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "empowered_status_not_copied",
+          "claim": "Shady Spectacles copies copyable traits, not temporary status; the equipped unit remains unempowered when it copies an empowered unit."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0010",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0010",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "caba8240ba96a6bae6611c30019692cf909386267d34993fb1802c1be2784aff",
+      "expectedIdentityTextHashes": {
+        "akshan mischievous": [
+          "3a8419d4877abe545dca1aa46a4c8a60b5e9ddabdc490adee40892ffc74dffbf"
+        ],
+        "shady spectacles": [
+          "cdc7ab64cea0544150a069e5e6dd3b1bed6ad28d2c08eb7abb5b74523753d1b5"
+        ]
+      },
+      "requiredRuleIds": [
+        "369.1",
+        "370.1.a",
+        "370.1.b"
+      ],
+      "requiredClauseEffectTags": {
+        "akshan mischievous": [
+          "attach",
+          "control"
+        ],
+        "shady spectacles": [
+          "attach",
+          "copy"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "stolen_spectacles_old_copy_ends_then_akshan_copies",
+          "claim": "When Akshan takes the equipped Shady Spectacles, the old equipped unit loses its copy effect; the Equipment attaches to Akshan and then Akshan becomes a copy chosen by his controller."
+        },
+        {
+          "issueIndex": 1,
+          "verdict": "copied_aphelios_trigger_does_not_see_prior_attach",
+          "claim": "If Akshan becomes a copy of Aphelios, the newly copied triggered ability does not trigger from the already-completed Attach event."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0014",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0014",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "dc6704c6c7eb5e112820f9f1ab7c4267a4b0038dd553407efad02dac98b42f2e",
+      "expectedIdentityTextHashes": {
+        "crumbling sands": [
+          "8992d08c5b89d262e4b5ab0c1513f61786c54bb500d12eb7f4e56de343a7b2c7"
+        ]
+      },
+      "requiredRuleIds": [
+        "419.4.b"
+      ],
+      "requiredClauseEffectTags": {
+        "crumbling sands": [
+          "counter",
+          "play"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "yes_crumbling_sands_can_counter_first_spell",
+          "claim": "Crumbling Sands can counter the first spell once an opponent has finalized another spell later that turn; this check uses the Finalize meaning of played."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0018",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0018",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "1f36a768278c9bd2cfd0b7c834896d34d542b88d03c7deaba071c0ea25b1ff2d",
+      "expectedIdentityTextHashes": {
+        "akali silent": [
+          "ff378e470f25d66b4621a55630cd56e87c9df744cda8d3665091b8f7ae4ac07a"
+        ],
+        "flash": [
+          "4e7eeb0d11428f1128fe93f6e560a0d358e01e9cfbbe10acc06dd3d7d314be71"
+        ],
+        "star crossed": [
+          "1a2610dc4dd84cadc0937c218296b1c12b0789ff5e80acc7a5b53fb17ff7be6f"
+        ]
+      },
+      "requiredRuleIds": [
+        "757.1",
+        "758",
+        "758.1"
+      ],
+      "requiredClauseEffectTags": {
+        "akali silent": [],
+        "flash": [
+          "move"
+        ],
+        "star crossed": [
+          "return_to_hand"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "akali_mistargets_star_crossed_and_is_unaffected",
+          "claim": "After Flash moves Akali, Silent out of combat, she is untargetable to the enemy Star-Crossed; the existing target mistargets on resolution and Akali is unaffected."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0024",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0024",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "bd2180b57f022b1f85a9f2bd0196cca3fac73ce31c1eb3dc2cd61b5e60c3a84a",
+      "expectedIdentityTextHashes": {
+        "akali deadly weapon": [
+          "42eb45a3841c902670c9f234ed2a2f94ab7237abd9c8b4e2394917721c645a33",
+          "e8a718e61f990438fe943ce4ee6b89bd8dcc8843be40f03ce831e928be756f5a"
+        ],
+        "hidden blade": [
+          "885168ffa7ab9e35c8f7510c380a8e8cb863ec6b0941a9398d4959106390304d"
+        ]
+      },
+      "requiredRuleIds": [
+        "359.3.f"
+      ],
+      "requiredClauseEffectTags": {
+        "akali deadly weapon": [
+          "trigger"
+        ],
+        "hidden blade": [
+          "kill"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "akali_move_trigger_snapshot_survives_hidden_blade",
+          "claim": "Akali’s move trigger preserves the battlefield information implicit in its trigger condition even if Akali later leaves the board."
+        },
+        {
+          "issueIndex": 1,
+          "verdict": "yes_akali_trigger_still_deals_damage",
+          "claim": "The triggered ability still has the snapshotted battlefield information on resolution and can deal its damage to the chosen unit."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0026",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0026",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "5886c5f02fb7e62e7cf29f3d96b55fa3eba4a001fbe6c27fd843689882a15675",
+      "expectedIdentityTextHashes": {
+        "astral heron": [
+          "30d4929b5600fca8436199ee3eecb206b3925eea54494228c746f219edd1c009"
+        ]
+      },
+      "requiredRuleIds": [],
+      "requiredClauseEffectTags": {
+        "astral heron": [
+          "play",
+          "trigger"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "astral_heron_discounts_next_card_played_after_resolution",
+          "claim": "Astral Heron discounts the next card played—added to the Chain and queued for finalization—after its triggered ability resolves that turn."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0030",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0030",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "819cb9c2a39f716abceba7eb31ab71141955421e3f4b69d1b6a93f79c5b66800",
+      "expectedIdentityTextHashes": {
+        "dragon form": [
+          "3f24c89d5dc60051d9ebf29e65bc53ab1668cebfbe6994f9646e152594d59c8b"
+        ],
+        "fiora grand duelist": [
+          "b21c54ea7280a18ee57477a6487eec9c923d3966b78c4d50ad8cdec352a66e54"
+        ],
+        "stupefy": [
+          "19e28ec034f7ca6d3126938758679f6163766fef34686b92440b88139f4091b2"
+        ]
+      },
+      "requiredRuleIds": [],
+      "requiredClauseEffectTags": {
+        "dragon form": [
+          "might"
+        ],
+        "stupefy": [
+          "might"
+        ],
+        "fiora grand duelist": [
+          "might",
+          "trigger"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "dragon_form_results_in_4_might_with_existing_stupefy",
+          "claim": "Dragon Form sets base Might to 5 in the Trait-Altering layer and the existing Stupefy -1 applies in the Arithmetic layer, so the unit is 4 Might as soon as the effect is applied."
+        },
+        {
+          "issueIndex": 1,
+          "verdict": "no_fiora_does_not_trigger_from_intermediate_layer_value",
+          "claim": "Fiora, Grand Duelist does not trigger because there is no game-state window in which the unit becomes Mighty at 5 before the arithmetic layer is applied."
+        },
+        {
+          "issueIndex": 2,
+          "verdict": "no_intermediate_5_might_window",
+          "claim": "Layer evaluation is instantaneous for this purpose; there is no moment between the base-Might setting and the existing -1 Might adjustment."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0031",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0031",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "851091540125b0714d0d565ed215ec7cb5ec1231b6c0f1bb51ea6b568530219d",
+      "expectedIdentityTextHashes": {
+        "hostile takeover": [
+          "7f1e754fcc56fcca537d80713d440e85f6958a6424bd5ac9b688fda5402a73de"
+        ],
+        "temporal breach": [
+          "d12aa513c740fb4a8cd1f2c85ae116526867a6e155f8b339a3f3cd94c7fc897e"
+        ]
+      },
+      "requiredRuleIds": [
+        "355.2",
+        "355.2.a",
+        "355.2.b"
+      ],
+      "requiredClauseEffectTags": {
+        "hostile takeover": [
+          "control",
+          "ready",
+          "recall"
+        ],
+        "temporal breach": [
+          "banish",
+          "play"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "temporal_breach_play_cannot_finalize_to_other_players_base",
+          "claim": "Temporal Breach cannot finalize the owner’s play of the unit to a Base controlled by another player; the attempted play is undone."
+        },
+        {
+          "issueIndex": 1,
+          "verdict": "unit_remains_in_banishment",
+          "claim": "Because the instructed play is illegal during finalization, the unit is returned to and remains in Banishment."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0032",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0032",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "de8d515a0eb44659679f1c75651585912cdb6301eb34fd7e9002453e69879f1f",
+      "expectedIdentityTextHashes": {
+        "profiteer": [
+          "b843d58672db3002e7f55c613cba02eca0c14f07d7f53dc90f66377e9c5c4f57"
+        ],
+        "renekton brute": [
+          "7b39fa58128f458f5f9d1d6e0404843350dcbd1a12803c55ff1f4d0571c3f97f",
+          "e267df9fd7bf119d9d28ed6c03653399046e2fe4827f6f0e74f18b5d3fdc9742",
+          "f3c148effd529a62935e272ef8eabc671979483c3ab1ad8f6a19ed28a9e64f12"
+        ],
+        "stupefy": [
+          "19e28ec034f7ca6d3126938758679f6163766fef34686b92440b88139f4091b2"
+        ]
+      },
+      "requiredRuleIds": [],
+      "requiredClauseEffectTags": {
+        "renekton brute": [
+          "might",
+          "trigger",
+          "empower"
+        ],
+        "profiteer": [
+          "empower"
+        ],
+        "stupefy": [
+          "might"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "renekton_does_not_reenter_10_or_more_state",
+          "claim": "Renekton remains in the 10-or-more Might state through the described changes, so he does not become that state again."
+        },
+        {
+          "issueIndex": 1,
+          "verdict": "no_renekton_trigger_from_stupefy_sequence",
+          "claim": "Renekton’s ability does not trigger from Stupefy in this scenario because he never left and re-entered the 10-or-more state."
+        },
+        {
+          "issueIndex": 2,
+          "verdict": "no_renekton_trigger_from_own_might_activation",
+          "claim": "Activating Renekton’s own Might ability likewise does not trigger the ability while he already remains in the 10-or-more state."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0034",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0034",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "4be60f986a566dd01c0f5146b76be278de3e1925d3679358a60967800544cd02",
+      "expectedIdentityTextHashes": {
+        "elder dragon": [
+          "b131df8d1a0ec13b66b552a9f6f2b2fed791c5c919ad90f9960502b160f6958a"
+        ],
+        "hextech ray": [
+          "377f69729cb770dabfd92eaf54e82f577a67b3d55d639258bb0bf9c9d45a48e8"
+        ],
+        "immortal phoenix": [
+          "d949fdf3a03167e13354f84771b2cd2aa8de7bdfeaf7b0c62af3b4e0378d02fb"
+        ],
+        "imperial decree": [
+          "c59259e6c4b54aa0beecf2920e89329abafecd4350d32cfcf0fd45a7cff38035"
+        ]
+      },
+      "requiredRuleIds": [
+        "428.5",
+        "428.5.d"
+      ],
+      "requiredClauseEffectTags": {
+        "hextech ray": [
+          "damage"
+        ],
+        "elder dragon": [
+          "damage",
+          "kill"
+        ],
+        "imperial decree": [
+          "kill",
+          "trigger"
+        ],
+        "immortal phoenix": [
+          "kill",
+          "play",
+          "trigger"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "imperial_decree_delayed_trigger_kill_is_attributed_to_generating_spell",
+          "claim": "Imperial Decree’s delayed triggered ability is generated by the spell and its Kill action is attributed so the generating spell is also attributed that Kill action."
+        },
+        {
+          "issueIndex": 1,
+          "verdict": "yes_immortal_phoenix_can_trigger_and_be_played",
+          "claim": "The attributed spell Kill satisfies Immortal Phoenix’s trigger conditions, so its controller may pay the cost to play it from the Trash."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    },
+    {
+      "programId": "CARDI:0035",
+      "evidenceId": "O:vendetta-faq-2026-08-14:0035",
+      "expectedCoreSourceId": "core-rules-2026-07-16",
+      "expectedOfficialAnswerSha256": "106ed2cbcb07dcd3b2eb838622f10324502eba9cb0c5c8479c2d4ac778d9b8a1",
+      "expectedIdentityTextHashes": {
+        "ride the wind": [
+          "a095f8ca2319123b0c6ab8457c73b212fba757be9c49ea88672f11346b486f21"
+        ],
+        "vilemaw's lair": [
+          "de6fceaed404eab996b1497e4eb0ab83cb0cb8cef8514867c4bb2d2ea3eb687d"
+        ]
+      },
+      "requiredRuleIds": [],
+      "requiredClauseEffectTags": {
+        "ride the wind": [
+          "move",
+          "ready"
+        ],
+        "vilemaw's lair": [
+          "move"
+        ]
+      },
+      "minimumParaphraseScore": 0.9,
+      "outcomes": [
+        {
+          "issueIndex": 0,
+          "verdict": "move_negated_but_linked_ready_still_executes",
+          "claim": "Vilemaw’s Lair negates Ride the Wind’s move-to-Base instruction rather than causing it to be ignored, so the linked Ready instruction still executes and the unit is readied."
+        }
+      ],
+      "valid": true,
+      "executable": true,
+      "validationErrors": [],
+      "compilerVersion": 1
+    }
+  ],
+  "policy": {
+    "normalBuildDoesNotRegenerateGuards": true,
+    "sourceDriftDisablesExecution": true,
+    "faqMatchAloneNeverCreatesAnExecutor": true
+  }
+}

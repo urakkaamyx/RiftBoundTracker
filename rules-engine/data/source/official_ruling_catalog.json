@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "sourceId": "vendetta-faq-2026-08-14",
+  "purpose": "Machine-readable authority role and compiler-routing metadata for each substantive section of the current Vendetta FAQ. This file does not replace the archived official text; it classifies how the engine may use each official section.",
+  "sections": {
+    "O:vendetta-faq-2026-08-14:0001": {
+      "role": "meta",
+      "compilerFamily": "faq_authority_statement"
+    },
+    "O:vendetta-faq-2026-08-14:0002": {
+      "role": "supplement",
+      "compilerFamily": "flow_leave_chain",
+      "matchPhrases": [
+        "flow abandon",
+        "abandon flow",
+        "flow spell leave chain"
+      ]
+    },
+    "O:vendetta-faq-2026-08-14:0003": {
+      "role": "clarification",
+      "compilerFamily": "trigger_snapshot"
+    },
+    "O:vendetta-faq-2026-08-14:0004": {
+      "role": "clarification",
+      "compilerFamily": "replacement_chosen_event"
+    },
+    "O:vendetta-faq-2026-08-14:0005": {
+      "role": "clarification",
+      "compilerFamily": "replacement_inherits_modifiers"
+    },
+    "O:vendetta-faq-2026-08-14:0006": {
+      "role": "supplement",
+      "compilerFamily": "replacement_requires_event",
+      "matchPhrases": [
+        "abandon mel",
+        "cannot be countered abandon",
+        "can't be countered abandon",
+        "uncounterable abandon",
+        "replacement event never occurred"
+      ]
+    },
+    "O:vendetta-faq-2026-08-14:0007": {
+      "role": "clarification",
+      "compilerFamily": "control_change_not_counter"
+    },
+    "O:vendetta-faq-2026-08-14:0008": {
+      "role": "supplement",
+      "compilerFamily": "rebuttal_remake_choices",
+      "matchPhrases": [
+        "rebuttal new choices",
+        "rebuttal remake choices",
+        "rebuttal targets modes",
+        "make new choices rebuttal"
+      ]
+    },
+    "O:vendetta-faq-2026-08-14:0009": {
+      "role": "clarification",
+      "compilerFamily": "copy_temporary_status"
+    },
+    "O:vendetta-faq-2026-08-14:0010": {
+      "role": "supplement",
+      "compilerFamily": "attach_replacement_sequence",
+      "matchPhrases": [
+        "akshan shady spectacles",
+        "svellsongur attach",
+        "shady spectacles attach",
+        "attach then copy"
+      ]
+    },
+    "O:vendetta-faq-2026-08-14:0011": {
+      "role": "supplement",
+      "compilerFamily": "copied_ability_instance",
+      "matchPhrases": [
+        "copied ability again",
+        "shady spectacles same sand soldier",
+        "new instance copied ability"
+      ]
+    },
+    "O:vendetta-faq-2026-08-14:0012": {
+      "role": "clarification",
+      "compilerFamily": "combat_damage_replacement"
+    },
+    "O:vendetta-faq-2026-08-14:0013": {
+      "role": "clarification",
+      "compilerFamily": "multi_type_reflexive"
+    },
+    "O:vendetta-faq-2026-08-14:0014": {
+      "role": "clarification",
+      "compilerFamily": "play_finalize_semantics"
+    },
+    "O:vendetta-faq-2026-08-14:0015": {
+      "role": "clarification",
+      "compilerFamily": "naming"
+    },
+    "O:vendetta-faq-2026-08-14:0016": {
+      "role": "card_specific",
+      "compilerFamily": "kayle_stacking_empowered"
+    },
+    "O:vendetta-faq-2026-08-14:0017": {
+      "role": "card_specific",
+      "compilerFamily": "kayle_empower_activation"
+    },
+    "O:vendetta-faq-2026-08-14:0018": {
+      "role": "clarification",
+      "compilerFamily": "untargetable_legality"
+    },
+    "O:vendetta-faq-2026-08-14:0019": {
+      "role": "clarification",
+      "compilerFamily": "finalize_vs_resolve_control"
+    },
+    "O:vendetta-faq-2026-08-14:0020": {
+      "role": "card_specific",
+      "compilerFamily": "swain_multi_type_check"
+    },
+    "O:vendetta-faq-2026-08-14:0021": {
+      "role": "supplement",
+      "compilerFamily": "swap_replacement",
+      "matchPhrases": [
+        "switcheroo gangplank",
+        "swap replacement",
+        "swap might gangplank"
+      ]
+    },
+    "O:vendetta-faq-2026-08-14:0022": {
+      "role": "clarification",
+      "compilerFamily": "replacement_event_exists_stun"
+    },
+    "O:vendetta-faq-2026-08-14:0023": {
+      "role": "clarification",
+      "compilerFamily": "replacement_event_exists_might"
+    },
+    "O:vendetta-faq-2026-08-14:0024": {
+      "role": "clarification",
+      "compilerFamily": "trigger_snapshot"
+    },
+    "O:vendetta-faq-2026-08-14:0025": {
+      "role": "clarification",
+      "compilerFamily": "dependent_keyword_reference"
+    },
+    "O:vendetta-faq-2026-08-14:0026": {
+      "role": "errata_note",
+      "compilerFamily": "astral_heron_errata"
+    },
+    "O:vendetta-faq-2026-08-14:0027": {
+      "role": "supplement",
+      "compilerFamily": "competing_positive_play_requirements",
+      "matchPhrases": [
+        "temporal breach dragon roost",
+        "competing play locations",
+        "contradictory requirements play unit",
+        "two locations play it"
+      ]
+    },
+    "O:vendetta-faq-2026-08-14:0028": {
+      "role": "clarification",
+      "compilerFamily": "cant_beats_can_play_location"
+    },
+    "O:vendetta-faq-2026-08-14:0029": {
+      "role": "clarification",
+      "compilerFamily": "legend_control"
+    },
+    "O:vendetta-faq-2026-08-14:0030": {
+      "role": "override",
+      "compilerFamily": "layers_and_might_copyable",
+      "matchPhrases": [
+        "dragon form stupefy",
+        "intermediate layer",
+        "layers evaluated",
+        "copyable might",
+        "might copyable",
+        "base might copyable",
+        "printed might copyable"
+      ],
+      "effectiveOverrides": [
+        {
+          "id": "vendetta-2026-might-copyable",
+          "kind": "add_list_member",
+          "target": "copyable_traits",
+          "value": "Might",
+          "overriddenRuleIds": [
+            "477.1.b.1.a"
+          ],
+          "statement": "Might is a copyable trait that copy effects can replace or add to.",
+          "scope": "game_rules"
+        }
+      ]
+    },
+    "O:vendetta-faq-2026-08-14:0031": {
+      "role": "clarification",
+      "compilerFamily": "invalid_base_play_finalization"
+    },
+    "O:vendetta-faq-2026-08-14:0032": {
+      "role": "clarification",
+      "compilerFamily": "become_state_transition"
+    },
+    "O:vendetta-faq-2026-08-14:0033": {
+      "role": "clarification",
+      "compilerFamily": "ignore_deflect"
+    },
+    "O:vendetta-faq-2026-08-14:0034": {
+      "role": "supplement",
+      "compilerFamily": "delayed_trigger_attribution",
+      "matchPhrases": [
+        "imperial decree immortal phoenix",
+        "delayed trigger attributed kill",
+        "generated by a spell kill attribution"
+      ]
+    },
+    "O:vendetta-faq-2026-08-14:0035": {
+      "role": "override",
+      "compilerFamily": "linked_instructions_current_faq",
+      "matchPhrases": [
+        "linked instruction",
+        "ride the wind vilemaw",
+        "ignored instruction negated",
+        "negated instruction linked"
+      ]
+    }
+  }
+}

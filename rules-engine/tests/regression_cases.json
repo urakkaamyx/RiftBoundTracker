@@ -1,0 +1,1658 @@
+[
+  {
+    "name": "controlled battlefield play and contested",
+    "question": "Can you play units to battlefields you control and bypass playing to base, and does this make the Battlefield contested?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "yes",
+        "requiredRules": [
+          "355.2",
+          "355.2.a"
+        ]
+      },
+      {
+        "issue": 1,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "190.3.a",
+          "190.3.a.1"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "hidden card cleanup explicit open state",
+    "question": "During an Open State with no Combat or Showdown ongoing, I have a Hidden card at a battlefield I control and my last unit there dies. At the following Cleanup, is the Hidden card removed?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "remove_to_trash",
+        "requiredRules": [
+          "323.6",
+          "323.7",
+          "811.1.b"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "hidden card missing timing facts remains conditional",
+    "question": "If I have a Hidden card at a battlefield I control and my last unit there dies, does the Hidden card stay there or get removed?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "conditional",
+        "verdict": "conditional",
+        "requiredRules": [
+          "190.4.c",
+          "323.6",
+          "323.7",
+          "811.1.b"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "fully prevented damage is not dealt",
+    "question": "If all damage to my unit is prevented, did it take damage for a 'when I take damage' trigger?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no_damage_dealt",
+        "requiredRules": [
+          "417.1.b",
+          "437.2",
+          "437.2.a",
+          "437.4"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "card only restriction beats default play permission",
+    "question": "Mageseeker Warden is at a battlefield. Can my opponent play a unit directly to a battlefield they control?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "effectiveVerdict": "no",
+        "requiredRules": [
+          "002",
+          "054.2",
+          "355.2.a"
+        ],
+        "requiredCard": "ogn-070-298"
+      }
+    ]
+  },
+  {
+    "name": "default play to uncontrolled battlefield is not valid",
+    "question": "By default, can I play a unit directly to a battlefield I don't control?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no_on_this_rule",
+        "requiredRules": [
+          "355.2",
+          "355.2.a",
+          "355.2.b"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "moving to uncontrolled uncontested battlefield applies contested",
+    "question": "I move a unit to a battlefield I don't control that is not contested. Does the battlefield become Contested?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "yes",
+        "requiredRules": [
+          "190.3.a",
+          "190.3.a.1"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "hidden card remains when battlefield control is retained",
+    "question": "During an Open State with no Combat or Showdown ongoing, I have a Hidden card at a battlefield I control and I still have a unit there. At Cleanup, is the Hidden card removed for loss of battlefield control?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no_on_this_sequence",
+        "requiredRules": [
+          "323.6",
+          "323.7",
+          "811.1.b"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "partial prevention still deals damage",
+    "question": "If I prevent 2 damage from a 5 damage hit, is the damage considered not dealt?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "damage_dealt",
+        "requiredRules": [
+          "417.1.b",
+          "437.2",
+          "437.2.a",
+          "437.4"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "card restriction with missing location remains conditional",
+    "question": "Does Mageseeker Warden stop opponents from playing units to controlled battlefields?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "conditional",
+        "effectiveVerdict": "conditional",
+        "requiredRules": [
+          "002",
+          "054.2",
+          "355.2.a"
+        ],
+        "requiredCard": "ogn-070-298"
+      }
+    ]
+  },
+  {
+    "name": "empower definition returns both official meanings",
+    "question": "What does Empower mean?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "definition",
+        "requiredRules": [
+          "441",
+          "827"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "numeric full prevention deals zero",
+    "question": "If I prevent 5 damage from a 5 damage hit, is any damage considered dealt?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no_damage_dealt",
+        "requiredRules": [
+          "417.1.b",
+          "437.2",
+          "437.2.a",
+          "437.4"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "moving to controlled battlefield does not apply contested",
+    "question": "I move a unit to a battlefield I control that is not contested. Does the battlefield become Contested?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "190.3.a",
+          "190.3.a.1"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "combat blocks cleanup battlefield control loss",
+    "question": "During Combat, I have a Hidden card at a battlefield I control and my last unit there dies. At Cleanup, is the Hidden card removed for loss of control?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no_on_this_sequence",
+        "requiredRules": [
+          "323.6",
+          "323.7",
+          "811.1.b"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "card restriction inactive at base",
+    "question": "Mageseeker Warden is at my base. Can my opponent play a unit directly to a battlefield they control?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "effectiveVerdict": "yes",
+        "requiredRules": [
+          "002",
+          "054.2",
+          "355.2.a"
+        ],
+        "requiredCard": "ogn-070-298"
+      }
+    ]
+  },
+  {
+    "name": "default unit play to base is valid",
+    "question": "By default, can I play a unit to my base?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "yes",
+        "requiredRules": [
+          "355.2",
+          "355.2.a"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "game effect can grant normally invalid play location",
+    "question": "A game effect says I may play a unit to a battlefield I don't control. Does that location become valid for playing it?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "yes_by_effect_permission",
+        "requiredRules": [
+          "355.2",
+          "355.2.a",
+          "355.2.b"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "already contested battlefield is not newly contested",
+    "question": "I move a unit to a battlefield I don't control that is already contested. Does it become Contested?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "190.3.a",
+          "190.3.a.1"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "replace creates without playing",
+    "question": "If I Replace a card with a token, is that token played?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "438",
+          "438.1"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "reaction definition",
+    "question": "What does Reaction mean?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "definition",
+        "requiredRules": [
+          "813"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "hidden definition",
+    "question": "How does Hidden work?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "definition",
+        "requiredRules": [
+          "811"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "prevent definition",
+    "question": "What does Prevent mean?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "definition",
+        "requiredRules": [
+          "437"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "replace definition",
+    "question": "What does Replace mean?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "definition",
+        "requiredRules": [
+          "438"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "equip definition",
+    "question": "What does Equip mean?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "definition",
+        "requiredRules": [
+          "818"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ganking definition",
+    "question": "What does Ganking mean?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "definition",
+        "requiredRules": [
+          "810"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "play game action definition",
+    "question": "What does Play mean?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "definition",
+        "requiredRules": [
+          "419"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "deal game action definition",
+    "question": "What does Deal mean?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "definition",
+        "requiredRules": [
+          "417"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "showdown blocks cleanup battlefield control loss",
+    "question": "During a Showdown, I have a Hidden card at a battlefield I control and my last unit there dies. At Cleanup, is the Hidden card removed for loss of control?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no_on_this_sequence",
+        "requiredRules": [
+          "323.6",
+          "323.7",
+          "811.1.b"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "already ready unit cannot ready again",
+    "question": "If an effect tells me to Ready a unit that is already Ready, does it become Ready again for a trigger?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "415.1.b",
+          "415.1.c"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "already exhausted object cannot pay exhaust cost",
+    "question": "Can I Exhaust a unit that is already Exhausted to pay an Exhaust cost?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "414.1.b",
+          "414.1.c",
+          "414.4"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "already exhausted instruction does nothing additional",
+    "question": "If an effect tells me to Exhaust a unit that is already Exhausted, does anything happen?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "414.1.b",
+          "414.1.c"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "already stunned unit cannot be stunned again",
+    "question": "If my unit is already Stunned and an effect tries to Stun it again, is it Stunned again?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "423.1.a",
+          "423.1.a.1"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "countered spell does not satisfy play trigger",
+    "question": "If my spell is countered, does it count as played for a 'when you play a spell' trigger?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "425.1.a",
+          "425.1.b",
+          "419.4.a.1"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "countering does not refund costs",
+    "question": "If my spell is countered, do I get the Energy and additional costs back?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "425.1.c"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "all illegal targets spell still resolves",
+    "question": "If every target of a spell is illegal when it resolves, is the spell countered or does it still resolve?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "resolves_no_effect",
+        "requiredRules": [
+          "359.3.e.1",
+          "359.3.e.7",
+          "359.3.e.10"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "partial mistarget resolves on legal targets",
+    "question": "If one target becomes illegal but another target remains legal when the spell resolves, does the instruction still affect the legal target?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "partial_resolution",
+        "requiredRules": [
+          "359.3.e.1",
+          "359.3.e.8"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "recall is not move for triggers",
+    "question": "If my unit is Recalled to base, does that count as a Move for a 'when I move' trigger?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "455",
+          "456",
+          "456.1"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "movement restriction cannot prevent recall",
+    "question": "Can a movement restriction prevent a Recall?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "456",
+          "456.3"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gain unscored battlefield control is conquer",
+    "question": "If I gain control of a battlefield I haven't scored this turn, is that a Conquer?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "yes",
+        "requiredRules": [
+          "469.1",
+          "470"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "already scored battlefield cannot conquer score again",
+    "question": "If I gain control of a battlefield I already scored this turn, do I Conquer and score it again?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "469.1",
+          "470"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "beginning phase maintained control is hold",
+    "question": "During my Beginning Phase, if I maintain control of a battlefield I haven't scored this turn, is that a Hold?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "yes",
+        "requiredRules": [
+          "469.2",
+          "470",
+          "471.2.b"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "already scored battlefield cannot hold score again",
+    "question": "During my Beginning Phase, can I Hold and score a battlefield again if I already scored it this turn?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "469.2",
+          "470"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "play destination battlefield is not automatically target",
+    "question": "Does playing a unit to a battlefield target that battlefield?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "355.10",
+          "355.10.b"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "untargetable object cannot be chosen initially",
+    "question": "Can I choose a unit that is already Untargetable as the target of my spell?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "cannot_target",
+        "requiredRules": [
+          "355.8",
+          "355.9.b",
+          "758"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "becoming untargetable after choice causes mistarget",
+    "question": "If I legally target a unit and it becomes Untargetable after I target it but before the spell resolves, what happens?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "mistargets_on_resolution",
+        "requiredRules": [
+          "359.3.e.5",
+          "758",
+          "758.1"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "linked mistarget ignores later linked instruction",
+    "question": "If a linked instruction targets a unit and that target becomes illegal before resolution, does the later linked instruction still execute?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "later_ignored",
+        "requiredRules": [
+          "359.3.e.14",
+          "359.3.e.14.a"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0035"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "linked negated kill still allows independent later instruction",
+    "question": "If a linked instruction tries to kill a unit that cannot be killed, does the later linked instruction still execute?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "later_executes",
+        "requiredRules": [
+          "359.3.e.14.a",
+          "359.3.e.14.b"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0035"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "linked replaced action dependency stops dependent later instruction",
+    "question": "If a linked instruction has its kill replaced and the next instruction directly references that kill action, does the next instruction execute?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "later_does_not_execute",
+        "requiredRules": [
+          "359.3.e.14",
+          "359.3.e.14.b"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0035"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "linked failure type unknown remains conditional",
+    "question": "A spell has linked instructions. If the earlier linked instruction fails, does the later linked instruction execute?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "conditional",
+        "verdict": "conditional",
+        "requiredRules": [
+          "359.3.e.14",
+          "359.3.e.14.a",
+          "359.3.e.14.b"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0035"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "controller orders replacements on controlled object",
+    "question": "If two replacement effects apply to the same event affecting my unit, who chooses their order?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "controller_orders",
+        "requiredRules": [
+          "370.1",
+          "372"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "affected player orders replacements",
+    "question": "If multiple replacement effects apply to me as the player, who chooses their order?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "affected_player_orders",
+        "requiredRules": [
+          "372",
+          "372.1"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "current turn player orders replacements on uncontrolled battlefield",
+    "question": "If multiple replacement effects apply to an uncontrolled battlefield, who chooses their order?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "current_turn_player_orders",
+        "requiredRules": [
+          "372",
+          "372.2"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "simultaneous replaceable events are separate",
+    "question": "If simultaneous events each have replacement effects, are the events handled as one replacement event?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "separate_events",
+        "requiredRules": [
+          "373",
+          "373.1",
+          "373.1.a"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "replacement order unknown affected entity remains conditional",
+    "question": "If two replacement effects apply to the same event, who chooses their order?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "conditional",
+        "verdict": "conditional",
+        "requiredRules": [
+          "372",
+          "372.1",
+          "372.2"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "combat damage replacements apply during assignment",
+    "question": "Do replacement effects that modify combat damage apply during combat damage assignment?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "apply_during_assignment",
+        "requiredRules": [
+          "465.2.c.1",
+          "465.2.c.5"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "finalized countered card counts for nontriggered played check",
+    "question": "If a spell was Finalized and then countered, does a non-triggered ability that checks whether I played a spell count it?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "counts_for_nontriggered_check",
+        "requiredRules": [
+          "419.1",
+          "419.4.b",
+          "425.1"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "resolved card satisfies triggered played check",
+    "question": "If a card resolves, does a triggered ability that says when you play a card trigger?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "trigger_condition_satisfied",
+        "requiredRules": [
+          "419.4",
+          "419.4.a"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "generic finalized meaning remains conditional without check type",
+    "question": "Does Finalized always mean a card was played for every kind of check?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "conditional",
+        "verdict": "conditional",
+        "requiredRules": [
+          "419.1",
+          "419.4.a",
+          "419.4.b"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "trigger condition information snapshots when fulfilled",
+    "question": "If a triggered ability uses information from its trigger condition, is that information checked when the trigger condition is fulfilled or on resolution?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "snapshot_at_trigger",
+        "requiredRules": [
+          "359.3.f.3",
+          "383.2",
+          "383.2.c"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "copy does not copy empowered temporary status",
+    "question": "If I copy an empowered unit, does the copy become empowered too?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "temporary_mod_not_copied",
+        "requiredRules": [
+          "477.1.b.1",
+          "477.1.b.1.a",
+          "477.1.b.1.b"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0009"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "copy does not copy temporary buff",
+    "question": "If I copy a Buffed unit with a temporary Might increase, does the copy get that Buff too?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "temporary_mod_not_copied",
+        "requiredRules": [
+          "477.1.b.1.a",
+          "477.1.b.1.b"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0009"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "copy receiver keeps existing temporary might modification",
+    "question": "If my unit already has +2 Might before it becomes a copy, does that temporary +2 Might remain?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "receiver_mod_remains",
+        "requiredRules": [
+          "477.1.b.1",
+          "477.1.b.1.b"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0009"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "generic copy trait question remains conditional",
+    "question": "If one unit becomes a copy of another, which temporary traits or modifications are copied?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "conditional",
+        "verdict": "conditional",
+        "requiredRules": [
+          "477.1.b.1",
+          "477.1.b.1.a",
+          "477.1.b.1.b"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0009"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "layers have no intermediate trigger window",
+    "question": "Can a unit trigger from an intermediate Might value while layers are recalculated?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no_intermediate_trigger_window",
+        "requiredRules": [
+          "477",
+          "477.1",
+          "477.3"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0030"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "flow spell countered by Abandon is banished",
+    "question": "If Abandon counters a spell that was played for its Flow cost and tries to return it to hand, where does the Flow spell go?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "flow_spell_banished",
+        "requiredRules": [
+          "829",
+          "829.1.b",
+          "829.1.b.1"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0002"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "replacement applies only to qualifying chosen event",
+    "question": "If a replacement effect applies when a spell gives -M to its chosen unit, and that spell also gives -M to other unchosen units, does the replacement affect the other units too?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "only_qualifying_chosen_event_replaced",
+        "requiredRules": [
+          "370.1",
+          "370.1.b"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0004"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "replacement inherits generating-event minimum",
+    "question": "If a replacement effect changes a modified -1 Might event with a minimum of 1 into -2 Might, does the minimum of 1 still apply?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "replacement_inherits_modifiers",
+        "requiredRules": [
+          "375"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0005"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "failed counter provides no event for replacement",
+    "question": "If my spell cannot be countered and Abandon tries to counter it, can Abandon still replace the failed counter event with returning the spell to hand?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no_replacement_without_qualifying_event",
+        "requiredRules": [
+          "370.1",
+          "425.1"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0006"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Rebuttal unchanged choices must remain legal when remaking",
+    "question": "With Rebuttal, if I remake one target choice, must every target I leave unchanged still be legal?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "unchanged_choices_must_be_legal",
+        "requiredRules": [
+          "355.15"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0008"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Rebuttal may keep all existing choices when remaking none",
+    "question": "With Rebuttal, if I choose not to make any new choices, do the existing choices stay as they are?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "may_keep_all_existing_choices",
+        "requiredRules": [
+          "355.15"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0008"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Attach completes before replacement copy event",
+    "question": "If Shady Spectacles attaches and then makes the unit a copy, can an ability gained from that copy trigger from the same Attach event?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "attach_then_copy_not_simultaneous",
+        "requiredRules": [
+          "369.1",
+          "434"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0010"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "reapplied copy creates new copied ability instance",
+    "question": "If a unit gets the same copied ability again from a new copy effect after using the first copied ability, is the copied ability a new instance that can be used again?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "copied_ability_is_new_instance",
+        "requiredRules": [
+          "477.1.b",
+          "477.1.b.1"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0011"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "multi-type Do-the-following creates all applicable reflexives",
+    "question": "If Hwei says Do the following and discards a Patched Porobot that has multiple types, do all applicable reflexive triggers happen?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "all_applicable_reflexive_triggers_created",
+        "requiredRules": [
+          "387.1.b"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0013"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "card may be named by unique description",
+    "question": "When an effect tells me to name a card, can I describe traits that uniquely identify the card instead of saying its exact printed name?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "unique_description_allowed",
+        "requiredRules": [
+          "761",
+          "761.1",
+          "762"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0015"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "nonexistent card cannot be named",
+    "question": "Can I name a card that does not exist in Riftbound?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "cannot_name_nonexistent_object",
+        "requiredRules": [
+          "761",
+          "762",
+          "763"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0015"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ambiguous description does not name a card",
+    "question": "If my description could refer to two different cards, does that count as naming a card?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "ambiguous_name_not_valid",
+        "requiredRules": [
+          "761",
+          "761.2",
+          "762"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0015"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Kayle disempower removes one stack",
+    "question": "If Kayle, Justified has three Empowered stacks and I disempower her once, does she lose all three?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "remove_one_empowered_stack",
+        "requiredRules": [
+          "002",
+          "441.1",
+          "441.1.c.1"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0016",
+          "O:vendetta-faq-2026-08-14:0017"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Kayle can activate Empower at three stacks without fourth event",
+    "question": "Can I activate Kayle's Empower ability when she is already empowered three times?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "ability_may_activate_but_no_additional_empower",
+        "requiredRules": [
+          "002",
+          "441.1",
+          "441.1.c.1"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0016",
+          "O:vendetta-faq-2026-08-14:0017"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control change does not change Finalizer",
+    "question": "If Rebuttal gains control of an opponent's Finalized spell, does that change who Finalized or played the spell for a non-triggered check?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "resolution_control_differs_from_finalizer",
+        "requiredRules": [
+          "419.4",
+          "419.4.a",
+          "419.4.b"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0019"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Swap increase survives replacement of separate decrease",
+    "question": "If Switcheroo swaps Might and a replacement effect replaces only the decrease, does the separate Might increase still happen?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "swap_creates_independent_increase_and_decrease",
+        "requiredRules": [
+          "370.1",
+          "433",
+          "433.1.a"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0021"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "already Stunned creates no new Stun event for replacement",
+    "question": "If empowered Gangplank is already Stunned and an effect tries to Stun him, is there a Stun event for his replacement effect to replace?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no_stun_event_to_replace",
+        "requiredRules": [
+          "370.1",
+          "423.1.a.1"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0022"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "zero Might decrease creates no replacement event",
+    "question": "If empowered Gangplank is 1 Might and Stupefy would reduce him to a minimum so the decrease becomes -0, is there a Might-decrease event for his replacement effect?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no_might_decrease_event_to_replace",
+        "requiredRules": [
+          "370.1",
+          "477.3.b"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0023"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "inactive Dependent Ability remains referenceable",
+    "question": "Can an effect reference or gain a Dependent Ability while its Dependent Keyword condition is inactive?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "inactive_dependent_ability_can_be_referenced",
+        "requiredRules": [
+          "727.1",
+          "727.1.b",
+          "727.1.b.1"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0025"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "choose one of competing positive play requirements",
+    "question": "If two mandatory positive effects require me to play the same unit to two different locations, and neither is a can't/only restriction, do I choose one location requirement?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "choose_one_positive_play_requirement",
+        "requiredRules": [
+          "355.2",
+          "355.2.a",
+          "355.2.b"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0027"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "play restriction beats conflicting location permission",
+    "question": "If a unit says it can only be played to a battlefield I conquered this turn, can another effect that permits playing it to Dragon Roost override that restriction?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "restriction_beats_play_location_permission",
+        "requiredRules": [
+          "054",
+          "054.1",
+          "054.2",
+          "355.2.b",
+          "369.3"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0028"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "player controls own Legend",
+    "question": "Do I control my own Legend?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "yes_control_own_legend",
+        "requiredRules": [
+          "188",
+          "189"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0029"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "unit cannot be played to opponent Base",
+    "question": "Can an effect make me play a unit to my opponent's Base?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "cannot_play_to_other_players_base",
+        "requiredRules": [
+          "355.2",
+          "355.2.a",
+          "359.2"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0031"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "become trigger requires transition into state",
+    "question": "If a unit is already 11 Might and changes to 10 Might, does it become 10 or more for a trigger?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "requires_transition_into_state",
+        "requiredRules": [
+          "124"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0032"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ignore Deflect is scoped to specified action",
+    "question": "If an effect says to ignore Deflect while paying for this spell, does that let me ignore Deflect for a different spell afterward?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "deflect_ignored_only_for_specified_action",
+        "requiredRules": [
+          "766",
+          "767"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0033"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "delayed trigger Kill attribution propagates to generating spell",
+    "question": "If a delayed triggered ability generated by a spell kills a unit, can that Kill be attributed to the spell that generated the delayed trigger?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "kill_attribution_propagates_to_generating_spell",
+        "requiredRules": [
+          "411.4",
+          "411.5",
+          "411.6",
+          "428.5",
+          "428.5.d"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0034"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "current FAQ makes Might copyable",
+    "question": "Is Might a copyable trait when one unit becomes a copy of another?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "might_is_copyable_current",
+        "requiredRules": [
+          "477.1.b",
+          "477.1.b.1",
+          "477.1.b.1.a"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0030"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "current Might override does not copy temporary plus-Might from source",
+    "question": "If I copy a unit that has a temporary +3 Might modification, is that temporary +3 copied as part of the source unit's Might?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "temporary_mod_not_copied",
+        "requiredRules": [
+          "477.1.b.1",
+          "477.1.b.1.b"
+        ],
+        "requiredOfficialEvidence": [
+          "O:vendetta-faq-2026-08-14:0009"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "colloquial tapped Exhaust cost",
+    "question": "If my unit is already tapped, can I tap it again to pay a cost?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "414.1",
+          "414.1.b",
+          "414.1.c",
+          "414.4"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "colloquial untapped Ready action",
+    "question": "If my unit is already untapped, can I untap it again?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "415.1",
+          "415.1.b",
+          "415.1.c"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "colloquial summon Unit to Base",
+    "question": "Can I summon a unit to my base?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "yes",
+        "requiredRules": [
+          "355.2",
+          "355.2.a"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "colloquial cast Unit to controlled Battlefield",
+    "question": "Can I cast a unit directly to a battlefield I control?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "yes",
+        "requiredRules": [
+          "355.2",
+          "355.2.a"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "multipart summon to controlled Battlefield and Contested",
+    "question": "Can I summon a unit straight to a battlefield I control and is it contested?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "yes",
+        "requiredRules": [
+          "355.2",
+          "355.2.a"
+        ]
+      },
+      {
+        "issue": 1,
+        "status": "decided",
+        "verdict": "no",
+        "requiredRules": [
+          "190.3.a",
+          "190.3.a.1"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "colloquial graveyard means Trash for Discard",
+    "question": "If I discard a card, does it go to my graveyard?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "decided",
+        "verdict": "yes",
+        "requiredRules": [
+          "422",
+          "422.1",
+          "422.1.a",
+          "422.1.b"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ambiguous battle is not guessed",
+    "question": "If my unit dies in battle, what happens?",
+    "expected": [
+      {
+        "issue": 0,
+        "status": "insufficient"
+      }
+    ]
+  }
+]

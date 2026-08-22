@@ -1,0 +1,357 @@
+# Vendetta Rules FAQ and Clarifications
+
+Answers for some frequent questions regarding Vendetta’s core rules update.
+
+Published: 2026-08-14
+
+Welcome to the FAQ for our first worldwide set release, the Vendetta FAQ! These are questions we’ve gathered from public discussion, from judges across the world, and from members of our own team. We appreciate everyone’s excitement and energy as they discussed the rules update for Vendetta; we hope this FAQ will clarify some points that may have been unclear, or provide answers to common questions you may run into.
+
+One point we want to address directly: as we transition to worldwide release, our FAQs have a delicate timing. We want to gather as many real questions from players and judges as possible, while ensuring players aren’t left in the dark for too long on points that are confusing from the new set. If we release the FAQ too early, we might not catch the things that players are finding confusing; while if we release it too late, players can’t use it to prepare themselves and their decks for upcoming events.
+
+For future sets, we’re looking to try different models that might reduce some of the pain points players are feeling with this timing, but for now, we appreciate your patience.
+
+The FAQ is a collection of official rulings. In places where the FAQ differs from the Core Rules Document, the FAQ takes precedence. When a new Core Rules Document is released, it will take precedence over any points that differ from this document.
+
+Throughout this document, we use some specific shorthand to represent symbols in card text. Here’s a short guide:
+- [E] means “exhaust”
+- [M] means “Might”
+- [A] means “one power of any domain”
+- [C] means “one power of this card’s domain”
+- [C] in Accelerate costs takes on the domain of the Unit, or turns into [A] if the Unit has no domain or multiple domains.
+- [C] in other cases is treated as the corresponding power symbol in all respects, matching how the cards are actually printed—it’s just a design shorthand!
+
+What happens when you play Abandon on a spell that was played for its Flow cost?
+
+It will be banished when it attempts to leave the chain.
+
+“[T]hen banish it” in flow’s text is short for “if it would leave the chain after becoming a finalized chain item, and leaving the chain wasn’t instructed by its own execution, banish it instead.” Abandon returns the countered card to hand after countering it, but for the purposes of flow’s “then banish it”, this is also leaving the chain. No matter how it happens, as long as the flow spell leaving the chain wasn’t instructed by the execution of the spell itself, it will be banished.
+
+This also applies to effects like Kai’Sa, Evolutionary from Origins, or Fizz, Trickster from Spiritforged.
+
+What is the difference between Iascylla and Azir, Sovereign’s uses of “this battlefield”?
+
+Iascylla’s delayed trigger refers to the battlefield that she held. Azir, Sovereign’s attack trigger refers to the battlefield where he is located.
+
+The difference between these two is that Iascylla has a delayed trigger that references implicit information from her trigger condition: the battlefield where she held. Azir, Sovereign’s attack trigger does not reference information from his trigger condition, which purely checks for the event of Azir gaining the attacker designation for the first time each combat.
+
+Without that information being checked from the trigger condition, the “this battlefield” in Azir, Sovereign’s attack trigger will be checked when the triggered ability resolves. If it resolves and he is not located at a battlefield, any instructions related to that battlefield will be ignored; otherwise, the battlefield he is currently located at will be used.
+
+Comparatively, when a triggered ability refers to information from its trigger condition, that information is checked when the ability triggers and not on resolution. In the case of Iascylla, her delayed trigger is linked with her hold effect, so the information from the trigger condition of the hold effect can be shared with the delayed trigger.
+
+In future sets, we’ve moved to use more precise templating and wording for abilities like Iascylla’s.
+
+Relevant Rules: 359.3.f.1., 359.3.f.2., 359.3.f.3., 359.3.f.3.b.
+
+What happens when I play Moonfall choosing an enemy unit while I control an empowered Mel, Newly Awakened?
+
+The chosen unit will be given -3 [M]. All other enemy units at the chosen battlefield will be given -2 [M].
+
+Mel, Newly Awakened’s empowered ability is a replacement effect. It replaces the event of a spell or ability you control giving a unit it chooses -[M]. The event it replaces that with is the spell or ability giving an additional -1 [M].
+
+Although Moonfall gives -[M] to multiple units, only one of them is chosen, and thus the only event that is eligible to be replaced is the chosen unit being given -2 [M]. It will be replaced with that unit being given -3 [M]. The events of the other units being given -[M] will not be affected by this replacement effect.
+
+Relevant Rules: 370.1., 370.1.b.
+
+What about casting Stupefy while I have an empowered Mel, Newly Awakened?
+
+The chosen unit will be given -2 [M], to a minimum of 1 [M]. If it was 2 [M], it will become 1 [M].
+
+In the case of Stupefy, Mel, Newly Awakened replaces the event of Stupefy giving -1 [M] with it giving -2 [M] instead. However, a replacement effect that replaces an event modified by the game effect that generated that event will inherit any of those modifications. In this case, Stupefy modifies the “give -1 [M]” game action and thus event with “to a minimum of 1 [M].” The replaced event will inherit the same modification.
+
+Relevant Rules: 375.
+
+Speaking of Mel, can my opponent play Abandon on my spell while I control an empowered Mel, Newly Awakened? What happens?
+
+They can play Abandon targeting your spell. On resolution, they will Predict, but nothing else will happen.
+
+Mel, Newly Awakened says “your spells and abilities can’t be countered.” If the spell can’t be countered, Abandon will attempt to counter it and fail, and then it will replace the event of it being put in the Trash with it being returned to its owner’s hand. However, that event never occurred, so there is nothing for the replacement effect to replace. Thus, Abandon will resolve to no effect.
+
+The replacement effect only functions within the limit of the resolution of the ability (it’s not a delayed replacement effect that specifies a duration), so even if the spell resolves later, it will go to the Trash as normal.
+
+How does it work if I cast Abandon while having an empowered Mel, Newly Awakened but they Rebuttal my spell?
+
+In the case of Rebuttal, gaining control of a spell is not the same thing as countering that spell. Effects that prevent spells being countered don’t prevent their controller from changing. If Rebuttal is played choosing your spell, and they pay [A] during resolution of Rebuttal, they will gain control of it. However, them not paying [A] does not mean the spell will be countered.
+
+What new choices can I make when I play Rebuttal and pay [A]?
+
+You can choose any number of targets or modes to make new choices for. The rest remain the same.
+
+If you are remaking choices in this way, any choices you choose not to remake must be legal choices. You can’t choose to have some but not all choices be legal choices. Of course, you can always choose not to make new choices. In that case, any of the current choices will remain in their current state, whether that state is illegal or not.
+
+If a spell has some rules or requirements about the choices made for it, those apply regardless of who controls that spell. For example, if a player plays a spell from face down, they must target game objects located at the battlefield the spell was played from unless the instructions of that spell indicate that a target must be chosen from some other location. Gaining control of such a spell doesn’t change this requirement when making new choices for the spell.
+
+We’ll look at shaping up this section in a future rules update.
+
+What happens if I choose to copy an empowered unit when I equip an unempowered unit with Shady Spectacles?
+
+Being empowered is a status and is not copyable, thus the equipped unit will remain unempowered.
+
+Shady Spectacles applies a copy effect to the equipped unit. Copy effects copy the printed (or copied, if another copy effect has already been applied) traits of the unit being copied. empowered is a status, a temporary modification, and not part of the printed traits of the card, so it will not be copied by Shady Spectacles. Whatever temporary modifications are applied to the unit as the copy effect is executed on that unit will be unaffected by the copy effect.
+
+If the unit has Might increases or decreases, a buff, the empowered status, Temporary, attacker, defender, etc those will remain in place.
+
+Relevant Rules: 477.1.b.1.b.
+
+What happens when my opponent’s Akshan, Mischievous steals my equipped Shady Spectacles? What happens if they want to copy Aphelios?
+
+If it was attached to a unit, the equipped unit loses its copy effect. Akshan will then become a copy of a friendly unit of his controller’s choice. If he becomes a copy of Aphelios, his ability will not trigger.
+
+This question deserves a bit more depth. As of the Vendetta rules update, we have clarified how effects like Shady Spectacles and Svellsongur work; they are replacement effects that replace the event of the equipment being attached to a unit with that event plus whatever their effect specifies.
+
+In the case of Svellsongur, the resulting series of events will be:
+
+Attach → Copy the equipped unit’s text to Svellsongur’s effect text for as long as Svellsongur is attached
+
+For Shady Spectacles, the resulting series of events will be:
+
+Attach → Choose a friendly unit and make the equipped unit a copy of that unit for as long as Shady Spectacles is attached
+
+These events are not simultaneous. The attach event executes first, and then whatever event is instructed by the replacement effect is executed. Thus, the answer in the Spiritforged FAQ is no longer true: if you attach Svellsongur to Aphelios, he will not trigger twice. Svellsongur doesn’t have the copied effect text when the attach event executes.
+
+Similarly here, if Akshan nabs Shady Spectacles from an opponent, it will attach and then make him a copy. If his controller chooses to make him a copy of Aphelios, it’s too late by that point for his new triggered ability to see the attachment event; it’s already been completed.
+
+Relevant Rules: 369.1., 370.1.b.1., 370.1.a.2.
+
+My Sand Soldier has Shady Spectacles equipped and is a copy of Azir, Ascendent. What happens if I activate the copied Azir’s activated ability before detaching the Shady Spectacles and then attach them to the same Sand Soldier as a copy of the same Azir, Ascendent? Can I use the activated ability again?
+
+You can.
+
+Each instance of the copied ability is a different ability. The game object remains the same throughout this whole process, so any temporary modifications will remain on the Sand Soldier as it transforms, but the copied rules text is an entirely new instance of the ability. It is the same idea as Svellsongur’s copy of an ability being “refreshed” if Svellsongur is detached and then reattached to the same unit.
+
+What happens during combat damage assignment if my 4 [M] unit has both Ki Barrier and Lotus Trap played on it this turn and my opponent has a 4 [M] defender?
+
+You can order the replacement effects on your unit. If Ki Barrier is first, your unit will take no damage and you will have 3 damage prevention remaining on your unit. If Lotus Trap is first, your unit will take 1 damage and will have no damage prevention remaining on your unit.
+
+With the Vendetta rules update, we’ve streamlined how replacement effects that apply to damage work in combat. Specifically, any replacement effect that would apply to combat damage being dealt will apply instead to combat damage assignment. This was already the case for prevention effects like Ki Barrier or Counterstrike, to prevent several strange edge cases. Now, damage increasing replacement effects will also apply during damage assignment.
+
+Relevant Rules: 465.2.c.4.a., 465.2.c.5.
+
+What happens when I discard a Patched Porobot with Hwei, Brooding Painter’s move trigger?
+
+Two triggers will go on the chain, in the order of your choosing. One says “Give me +3 [M] this turn.” while the other says “Ready up to 2 runes.”
+
+Hwei, Brooding Painter says “do the following based on the discarded card's type …” Unlike our previous reflexive triggers printed on cards that use a similar template (cf Twisted Fate, Gambler), Hwei doesn’t say “do one of the following …” As long as the card has the appropriate type, you will put the corresponding reflexive trigger on the chain. If somehow there existed a card that was a spell unit gear, you would put three reflexive triggers on the chain when you discard it to Hwei.
+
+Relevant Rules: 387.1.b.
+
+If my opponent plays two spells in succession, can I counter the first one with Crumbling Sands?
+
+Yes.
+
+Crumbling Sands uses the “finalize” meaning of play, because it checks whether cards have been “played” and isn’t a triggered ability. As long as an opponent (not even necessarily the one who played this spell) has chosen targets, paid costs, checked legality, and completed the process of finalizing another spell, even if that spell was countered, Crumbling Sands can counter a spell. That means it can counter the first spell played, as long as another spell was played by an opponent after that one.
+
+Relevant Rules: 419.4.b.
+
+When can I react to my opponent playing Fallen Feline to a battlefield? And how does naming a card work?
+
+You can react to the play effect of Fallen Feline, before they’ve named a spell.
+
+Fallen Feline’s play effect instructs its controller to name a spell. This occurs on resolution of the triggered ability. If Fallen Feline is played to a battlefield, as soon as the ability resolves, opponents cannot play spells with that name. Meaning spells by that name can not be put onto a chain. Any spells already on the chain when Fallen Feline’s ability resolves will be unaffected. However, by the time you know the chosen spell it’s too late to play that spell.
+
+Naming a card or tag has new rules with the Vendetta rules update. When naming something in this way, the overarching rule that applies to all naming is that you can’t name something that doesn’t exist in Riftbound. You can’t name the “Locke” tag, the “totem” type, nor a card named “Lingering Tentacles,” because none of those has been printed on cards or tokens in Riftbound.
+
+However, you can name a card using information that uniquely identifies it. That information could be its name, but it could just as well be something like “the [3] spell with Flow that makes tentacles” or “the red Kai’Sa” or “Illaoi.” As long as there is no ambiguity as to what card is being named, a player can use whatever method is clear to their opponents and teammates.
+
+You can’t name a card by saying just “Kai’Sa” if there are two or more cards that could be identified in that way—you won’t have named a card if that’s all you say.
+
+Relevant Rules: 761., 761.1., 761.2., 762., 762.1., 762.2.
+
+If I disempower a Kayle, Justified who has been empowered 3 times, does she lose all of her empowered statuses?
+
+No. She will lose one of her empowered statuses.
+
+For every Riftbound card other than Kayle, empowered is a binary status. They are either empowered or not. Kayle utilizes the golden rule “Card text supersedes rules text” to overcome this and be able to escape the normal bounds of what the empowered status means. On Kayle, empowered isn’t a binary status but a stacking status; she can have up to 3 empowered statuses. When Kayle is disempowered, the disempower action attempts to remove the empowered status.
+
+If she only has one empowered status, great, it’s gone. If she has more than one empowered status, the disempower action will remove one of the empowered statuses from Kayle.
+
+But can I activate Kayle’s empower ability even if she’s already empowered?
+
+Yes.
+
+Kayle’s empower ability can be activated any number of times. If she has less than 3 empowered statuses, she will become empowered. If she has 3 empowered statuses, the ability can still be activated but nothing will happen when the ability resolves.
+
+What happens if my opponent plays Flash on their Akali, Silent that’s currently in combat after I play Star-Crossed targeting her?
+
+Akali will be unaffected by Star Crossed as it resolves.
+
+Akali, Silent is what the rules refer to as “untargetable” for enemy spells and abilities when she isn’t in combat; meaning she is not a legal target for them. Enemy spells and abilities being played when she’s untargetable can’t choose her. If she becomes untargetable after she’s already been chosen by an effect and retains it as that effect begins to resolve, it will “mistarget” her. She will be unaffected by any of the spell or ability’s instructions.
+
+If an instruction chooses only her, that instruction will be ignored.
+
+Relevant Rules: 757.1., 758., 758.1.
+
+I have a Ravenbloom Student on the board and I haven’t played any spells this turn. What happens when I play Rebuttal targeting my opponent’s Stupefy and pay [A] on resolution? After everything resolves, how much will Battering Ram cost? Will my opponent’s Legion abilities be active?
+
+Ravenbloom Student will trigger twice, Battering Ram will cost [4], and your opponent’s Legion abilities will be active.
+
+Ravenbloom Student’s triggered ability checks whether a spell that you control resolves. You gained control of the Stupefy, and it resolved, so you will have triggered Ravenbloom Student’s ability. Battering Ram and Legion, on the other hand, check whether cards were finalized. Although you gained control of Stupefy, you did not finalize it; you got it after it was already finalized by your opponent.
+
+Thus, your opponent’s Legion abilities will be active, and Battering Ram will only receive a [1] Energy discount.
+
+Relevant Rules: 419.4., 419.4.a., 419.4.b.
+
+What happens when I conquer with Swain, Visionary, if I’ve only played a Patched Porobot and Stupefy this turn?
+
+You will score 2 points total. 1 from conquering, 1 from Swain.
+
+Swain only checks whether you’ve played a non-token unit, a non-token gear, and a spell. Checks like that do not care whether they were satisfied by multiple cards or a single card relevant to the trigger conditions.
+
+What happens when my opponent plays Switcheroo on their 2 [M] unit and my empowered Gangplank, Naval?
+
+Gangplank, Naval will replace his Might being lowered with him being given +3 [M] this turn.
+
+Swap calculates the difference in Might and generates two effects: an increase, and a decrease. When a swap effect is applied to two units’ Mights, it gives those units +[M] and -[M] respective to who has the higher Might.
+
+Under the hood, Gangplank’s replacement effect sees the event of him being given -[M] and replaces it with him being given +3 [M] this turn instead. The event of the other unit being given +[M] is unaffected by Gangplank’s replacement effect. By the time we apply the replacement effect, the difference between the two units has been calculated. In the example with the 2 [M] unit, the final Mights of the two units will be 2 [M] → 6 [M], and 6 [M] → 9 [M].
+
+The way this works is not immediately obvious based on how the swap game action rules are written. We will clarify this in a future rules update.
+
+Note that this logic also applies to Mel, Newly Awakened and Switcheroo.
+
+What happens when my empowered Gangplank, Naval is moved by my opponent’s Blast Cone’s play effect and they exhaust Blast Cone to stun Gangplank? Will he be stunned? What happens if I then play Back Off choosing my Gangplank? Will he get +3 [M] this turn?
+
+Blast Cone will stun Gangplank. If you play Back Off choosing your stunned Gangplank, he will not receive +3 [M] this turn.
+
+Blast Cone’s triggered ability that stuns units doesn’t choose them, so Gangplank’s replacement effect can’t apply to that event. Back Off played on a stunned Gangplank does not actually perform the stun game action, because Gangplank is already stunned. It’s legal to play Back Off, but the instruction will be negated. In order for Gangplank’s replacement effect to replace an event of him being stunned, the stun game action must actually be performed.
+
+Similarly, if an effect that said “Friendly units can’t be stunned” were active with a friendly empowered Gangplank, Naval is on the board, a stun effect that is played choosing Gangplank wouldn’t generate an event that Gangplank could replace, because no stun game action is performed.
+
+Relevant Rules: 423.1.a.1.
+
+What happens if I play Stupefy on my 1 [M] empowered Gangplank, Naval? Will he get +3 [M] this turn?
+
+He will not.
+
+In order for his replacement effect to apply, the event of him being given -[M] must occur. In the case of Stupefy played on a 1 [M] unit, no -[M] is given; it is snapshot to -0 [M]. Thus, there is no suitable event for Gangplank’s replacement effect to replace.
+
+Relevant Rules: 477.3.b.
+
+What happens when my opponent plays Hidden Blade targeting my Akali, Deadly Weapon in reaction to her move trigger? Will it still deal damage to the chosen unit?
+
+It will.
+
+Akali is another case where her ability refers to information implicit to its own trigger condition, similar to Iascylla. Akali’s “battlefield I moved to or from” doesn’t require her to be on the board in order for us to be able to identify it, nor does it reference information about her current state. Even if she leaves the board, that information was checked when her ability triggered, and it is still available to us on resolution.
+
+Relevant Rules: 359.3.f.3.
+
+Can I activate an empowered Heimerdinger, Inventor to ready 2 gear if my Jayce, Defender of Tomorrow legend isn’t empowered? What about if my Heimerdinger isn’t empowered?
+
+You can activate Heimerdinger’s ability if he is empowered, regardless of the empowered status of Jayce, Defender of Tomorrow.
+
+There is a bit of a trick here, in that there are two important details to this question relating to dependent keywords:
+- First is that a dependent keyword (the kind of ability that [Level][>] or [Empowered][>] are when they appear with the arrow) includes the whole of the ability, including the dependent ability. They’re all one object, so to speak.
+- Second is that a dependent keyword’s dependent ability still exists and can be referenced while it is inactive—that is, if its condition isn’t met. In this case, the condition is that the source of the ability is empowered.
+
+Heimerdinger gains all activated abilities that have the [E] symbol in their cost, and he gains the entire ability, restrictions, costs, dependent keywords and all. In effect, Defender of Tomorrow’s ability that Heimerdinger is gaining is the whole line that says:
+
+[Empowered][>] [1], [E]: Ready 2 gear.
+
+Heimerdinger can gain this ability even if Defender of Tomorrow isn’t empowered because of that second point we made previously.
+
+The key rule for this case is 727.1.b.1., which reads:
+
+The Dependent Ability is present on the card for the sake of reference or evaluation until the Condition is met.
+
+This means that the ability isn’t active and its text isn’t being processed yet, but other effects can reference or evaluate its text before the condition is met. Heimerdinger, Inventor is exactly one such effect.
+
+Relevant Rules: 727.1., 727.1.b., 727.1.b.1.
+
+What card does Astral Heron’s triggered ability discount?
+
+It discounts the next card played (added to the chain and queued for finalization) this turn after the ability resolves.
+
+Astral Heron has received an erratum to update its wording: “When you play your first card each turn, if I'm at a battlefield, the next card you play this turn costs [2][A][A] less.”
+
+What happens when I play Temporal Breach targeting my Elder Dragon in base and pay [A][A] for Dragon Roost while playing Elder Dragon? Will it be played to base or to Dragon Roost?
+
+You can choose which of those two locations you want to play it to.
+
+In general, there are not many cases where we have this kind of competing instruction: one effect that tells you to play a unit to one location, and one that tells you to play it to another. That being said, when they do arise with contradictory requirements, the precedent from other areas of the rules is that the player chooses one of those requirements and ignores all others.
+
+Note that this only applies to mandatory positive requirements, ones that specify a location or method without also preventing the action from being performed to other locations or with other methods and that aren’t optional. For example, an effect like Perched Grimwyrm’s passive ability is a restriction on playing that unit to any location other than a battlefield you’ve conquered this turn. Rockfall Path’s passive ability is a restriction on playing units to Rockfall Path.
+
+If you’ve conquered only Rockfall Path this turn, you can’t play Perched Grimwyrm at all, because those two restrictions are contradictory.
+
+In this case, the contradictory requirements don’t directly prohibit the playing of these units to other locations, so we can choose one of the contradictory requirements and ignore the rest.
+
+What happens when I play Perched Grimwyrm while I haven’t conquered Dragon Roost this turn? Can I pay [A][A] and play it to Dragon Roost? What if I’ve conquered another battlefield this turn?
+
+You cannot.
+
+In Riftbound, “can’t” beats “can.” Perched Grimwyrm’s effect is a “can’t,” as in it can’t be played to any location but to a battlefield you’ve conquered this turn. Dragon Roost’s ability tries to give the Grimwyrm permission to be played to the Roost, but that can’t overcome Perched Grimwyrm’s own restriction. If you have no ability to play Perched Grimwyrm to Dragon Roost after paying for it, you will not be able to finalize Perched Grimwyrm at all.
+
+The actions taken as part of playing Perched Grimwyrm will be undone and it will be returned to the zone it was played from.
+
+This is true even if you’ve conquered another battlefield this turn. If you have the ability, you can play Perched Grimwyrm to that battlefield without paying the additional cost of Dragon Roost, but you can’t play it to Dragon Roost itself unless you’ve conquered it.
+
+Sharp eyed readers may remember that Baron Nashor doesn’t work this way. He enters at the Baron Pit regardless of effects preventing him from being played to battlefields. The reason for this is that Baron Nashor’s passive ability generates a delayed replacement effect, the one that reads “I enter there.” This replacement effect replaces the event of him entering to any other location with him entering to the Baron Pit.
+
+The replacement effect gets around effects like Mageseeker Warden which limit where you can play units. However, Dragon Roost is not written as a replacement effect. It tells you where to play the dragon you’ve paid the additional cost for, but it doesn’t specify how that dragon enters the board. Therefore it is a permission on play location, but not a replacement effect.
+
+Relevant Rules: 054.2., 369.3.
+
+Can I disempower my Ambessa, Matriarch of War with Profiteer to empower my Kayle? Do I control my own legend?
+
+Yes, you can disempower Ambessa, Matriarch of War with Profiteer. And yes, you control your own legend.
+
+We don’t typically consider the possibility that any player controls a legend, because control of legends cannot change, but you do indeed control your own legend.
+
+What happens if I play Dragon Form on a unit that has -1 [M] from Stupefy applied to it? Will my Fiora, Grand Duelist trigger? Is there a moment where my unit becomes 5 [M] before the -1 [M] from Stupefy brings it down to 4 [M]?
+
+She will not trigger.
+
+Although Dragon Form sets the base Might of a unit to 5 [M], it does so via layers. Layers are evaluated when the effect is applied and their evaluation includes all existing applied layer alterations.
+
+We process layers in order, starting from the Trait-Altering layer (where this base Might setting effect is applied), proceeding to the Ability-Altering layer (not part of this example), and proceeding to the Arithmetic layer (where Stupefy’s -1 [M] is applied), but this process happens instantaneously; there is no window while evaluating layers for the unit to see itself become 5 [M] and then go down to 4 [M]. As soon as the effect of Dragon Form is applied, the unit is 4 [M].
+
+As a side note, Might is one of the traits that is managed in the Trait-Altering layer, and it is one of the copyable traits that copy effects can replace or add to.
+
+What happens when I play Hostile Takeover gaining control of my opponent’s ready unit, move it to base, and then play Temporal Breach choosing it? Where will the unit go?
+
+The unit will remain in Banishment.
+
+Units cannot be played to a base of a player other than their own controller under any circumstances. Because the owner of the unit is the one being instructed to play the unit, and the location they are being instructed to play it to is a base other than their own, it isn’t possible to play the unit. During the check legality step of finalization, the unit will be returned to banishment from the chain and all actions taken will be undone.
+
+My 11 Might Renekton, Brute is disempowered by my own Profiteer. What happens when my opponent plays Stupefy choosing him? Will his ability trigger? What happens if instead I activated his ability?
+
+Renekton’s ability will not trigger in either scenario.
+
+In order to “become 10 or more,” his Might would have to have previously been less than 10. “10 or more” is a state, and Renekton’s triggered ability checks for the event of him achieving that state. If he maintains that state, regardless of how his Might changes, he will not “become” that state.
+
+What happens when I play Icathian Rain choosing a Recruit at Heisho, Shell of the World once and Irelia, Fervent in base five times? How many times do I pay for deflect?
+
+You will not pay for deflect.
+
+While your spell or ability chooses a unit at Heisho, Shell of the World, you ignore deflect while paying for the spell. Ignore, in this context, means you treat deflect on the specified units as being inactive, like it’s turned off temporarily. In the case of Heisho, it doesn’t specify any units whose deflect to ignore, so you ignore all instances of deflect on units.
+
+This only applies to the specified spell or ability. You can’t play a spell or ability choosing a unit at Heisho, and then play another one choosing a unit at another location and not at Heisho and still ignore deflect. Only while at least one target of the spell or ability is a unit located at Heisho do you ignore deflect while paying costs for that spell or ability.
+
+Relevant Rules: 766., 767.
+
+What happens when I play Hextech Ray on an Elder Dragon while Imperial Decree’s delayed trigger is active and I have an Immortal Phoenix in the Trash? Can I play Immortal Phoenix from the Trash?
+
+You can.
+
+Per the current rules, there is nothing that would stop Imperial Decree’s delayed trigger from triggering Immortal Phoenix. It is a triggered ability generated by a spell; it is attributed a kill action, and thus the spell that generated it will also be attributed the same kill action.
+
+The owner of Imperial Decree is the controller of the delayed triggered ability; the player responsible for the kill action is the one who controls the ability; and that same player is the owner of Immortal Phoenix in the Trash. Thus all three conditions for Immortal Phoenix triggering are complete, and it will trigger.
+
+If I play Ride the Wind targeting my unit at Vilemaw’s Lair and attempt to move them to base, what happens?
+
+They will be readied.
+
+This is a rules quirk that players and judges identified as a result of a small additional rule added in the Vendetta rules update. We’re going to give some clarity to this that will resolve this issue, but if you don’t understand the conversation or why it is necessary, don’t worry. This isn’t an actual change to how we’ve been interpreting and ruling cards, but smoothing out a bug.
+
+In short, the linked instructions rules are too expansive currently on what qualifies as an “ignored” instruction. To clarify this definition: an ignored instruction is one that wasn’t performed as part of the execution of a spell or ability’s instructions because it mistargeted (i.e. because the targeted object wasn’t a legal target on resolution). This is a case where, for example, you play Hidden Blade choosing an enemy unit and they play Star-Crossed in reaction, returning their unit to hand.
+
+When Hidden Blade resolves, the unit isn’t on the board, so we ignore the “Its controller draws 2.” instruction. Alternatively, if Hidden Blade is given the Repeat keyword by the Academy and both executions target the same unit, this is the reason why the unit’s controller doesn’t draw 4 cards.
+
+An instruction is not ignored if an ability, effect, or circumstance of the game prevents it from occurring. This could take the form of a replacement effect that replaces the event of the instruction with something else, it could take the form of an ability like Vilemaw’s Lair that says “Units can’t move from here to base.” or it could take the form of a game action like Buff or Ready being performed on a unit that already has the appropriate state.
+
+It could even take the form of a unit, gear, or spell no longer being in an appropriate zone as long as the instruction doesn’t target those objects. The instruction in these cases isn’t ignored, but instead negated. A negated instruction has its effects skipped, replaced, or prevented. A negated instruction will not cause any linked instructions to be ignored unless those instructions refer specifically to the action being performed.
+
+Some examples:
+- If a unit at a battlefield says “I can’t be killed.” and a player plays Hidden Blade choosing that unit, the unit’s controller will still draw 2 on resolution of Hidden Blade. (The instruction was negated and not ignored, so the linked instruction will still execute.)
+- If a unit at a battlefield is chosen by Hidden Blade and in reaction its controller plays Flash moving it to base, that unit’s controller will not draw 2 on resolution of Hidden Blade. (The instruction was ignored, so any linked instructions will be ignored.)
+- If a unit at a battlefield is chosen by Hidden Blade and in reaction its controller plays Zhonya’s Hourglass, that unit’s controller will draw 2 on resolution of Hidden Blade. (The unit is on the board and can have its information checked, and the instruction was negated and not ignored.)
+- If a unit at a battlefield has been affected by Smite previously this turn and it is chosen by Hidden Blade, that unit’s controller will not draw 2 on resolution of Hidden Blade. (Although the instruction is executed, the unit is not on the board to have its information checked. Additionally, the unit was moved to a non-board zone by an effect other than Hidden Blade and thus no longer has a controller that Hidden Blade can reference.)

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RiftKeep M10 LLM Interpretation Hints",
+  "type": "object",
+  "required": ["schemaVersion", "issues", "ambiguities", "globalSearchConcepts"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "issues": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["sourceText", "interpretation", "searchConcepts", "confidence"],
+        "properties": {
+          "sourceText": {"type": "string", "minLength": 1, "maxLength": 1000},
+          "interpretation": {"type": "string", "minLength": 1, "maxLength": 700},
+          "searchConcepts": {"type": "array", "maxItems": 8, "items": {"type": "string", "minLength": 1, "maxLength": 100}},
+          "confidence": {"enum": ["high", "medium", "low"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "ambiguities": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["sourceText", "reason", "clarificationQuestion"],
+        "properties": {
+          "sourceText": {"type": "string", "minLength": 1, "maxLength": 300},
+          "reason": {"type": "string", "minLength": 1, "maxLength": 400},
+          "clarificationQuestion": {"type": "string", "minLength": 1, "maxLength": 400}
+        },
+        "additionalProperties": false
+      }
+    },
+    "globalSearchConcepts": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {"type": "string", "minLength": 1, "maxLength": 100}
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "riftkeep://contracts/runtime_hardening.schema.json",
+  "title": "RiftKeep Production Runtime Hardening Contract",
+  "type": "object",
+  "required": ["schemaVersion", "runtimeArtifacts", "indexSchemaVersion", "cache", "policies"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "runtimeArtifacts": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+    "indexSchemaVersion": {"type": "integer", "minimum": 1},
+    "cache": {
+      "type": "object",
+      "required": ["bounded", "threadSafe", "deepCopyResults", "adjudicationCached"],
+      "properties": {
+        "bounded": {"const": true},
+        "threadSafe": {"const": true},
+        "deepCopyResults": {"const": true},
+        "adjudicationCached": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "policies": {
+      "type": "object",
+      "required": ["failStartupOnCorruption", "failClosedOnRuntimeDrift", "readOnlySqliteAtRuntime", "atomicCanonicalWrites", "networkRequiredForServing"],
+      "properties": {
+        "failStartupOnCorruption": {"const": true},
+        "failClosedOnRuntimeDrift": {"const": true},
+        "readOnlySqliteAtRuntime": {"const": true},
+        "atomicCanonicalWrites": {"const": true},
+        "networkRequiredForServing": {"const": false}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

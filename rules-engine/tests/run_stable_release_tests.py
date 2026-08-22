@@ -44,7 +44,7 @@ def load(rel: str):
 # Product/package identity.
 pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 check("pyproject package name", pyproject["project"]["name"] == "riftkeep-rules-engine", pyproject["project"])
-check("pyproject stable version matches PRODUCT_VERSION", pyproject["project"]["version"] == PRODUCT_VERSION == "1.0.1", pyproject["project"]["version"])
+check("pyproject stable version matches PRODUCT_VERSION", pyproject["project"]["version"] == PRODUCT_VERSION, pyproject["project"]["version"])
 check("package __version__ 1.0.0", riftkeep_rules.__version__ == PRODUCT_VERSION, riftkeep_rules.__version__)
 check("stable product name", PRODUCT_NAME == "RiftKeep Rules Engine", PRODUCT_NAME)
 check("stable release line", RELEASE_LINE == "stable", RELEASE_LINE)

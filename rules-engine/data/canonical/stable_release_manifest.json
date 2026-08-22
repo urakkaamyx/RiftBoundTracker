@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "product": {
     "name": "RiftKeep Rules Engine",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "releaseLine": "stable"
   },
   "compatibility": {
@@ -74,7 +74,7 @@
   "certifiedReleaseSuiteCount": 19,
   "artifactHashes": {
     "pyproject.toml": {
-      "sha256": "9f37921d4e9cf1a8586f0b1eacc6c4c81bdcedeffdaa0f8f95b358fa4cad0fd9",
+      "sha256": "62529f41a184b23bfbb6960b3d3315a4302c7bf23167608f3716a3c620b57bda",
       "bytes": 289
     },
     "src/riftkeep_rules/__init__.py": {
@@ -82,7 +82,7 @@
       "bytes": 142
     },
     "src/riftkeep_rules/release_identity.py": {
-      "sha256": "6b17cd664b1009de1ffdbd7b1b77bd0c51fc9fbc0762fdb15d5cc8cad1726abf",
+      "sha256": "ba6d9b17d9b7adb0ddaba7825e12991eddc5638800d988b6c719c8b8f227d0ab",
       "bytes": 7151
     },
     "src/riftkeep_rules/product_api.py": {
@@ -178,7 +178,7 @@
       "bytes": 649
     },
     "data/canonical/stable_release_contract.json": {
-      "sha256": "89d5226374984912e775fdcbbbace0194445e2bf96d67fbef40dd33f7234205f",
+      "sha256": "ca882803c3368c2ce3f59c7f3cf0003fcfc524c6b7c4b3106421784d2ce9a6f7",
       "bytes": 1963
     },
     "data/canonical/release_candidate_audit_contract.json": {
@@ -206,8 +206,8 @@
       "bytes": 2118284
     },
     "data/canonical/rule_programs.json": {
-      "sha256": "36ff52e70565e113edf3515b511dfc52df9d42545324c9b6518cfea705bbaab3",
-      "bytes": 36832
+      "sha256": "b234a64b5af18fc410c502e4cfa28c6c5fb46bc6f41b88099d7036eb067cf9d5",
+      "bytes": 38921
     },
     "data/canonical/card_interaction_programs.json": {
       "sha256": "98f5191f9f78c95dada09bf58692f0ac286f45519c49c50ea2206c1aa757b280",
@@ -238,8 +238,8 @@
       "bytes": 11468
     },
     "tests/run_stable_release_tests.py": {
-      "sha256": "36329711715002eedc83ef21616538e0b48c20536095bc014d5c801a720222ea",
-      "bytes": 15258
+      "sha256": "1653689d4a71d746803b5fca076ab12cbcaf86e4c1d796a0b029a9f22b79de02",
+      "bytes": 15247
     },
     "RELEASE_NOTES_1.0.md": {
       "sha256": "56b64d28d4ef9993e37c2d142970555de98425c1d2d5c6ebc6fdc2600f229bff",

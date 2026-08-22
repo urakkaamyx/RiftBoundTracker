@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.28.1 — Ask Rules: Attach/Exhausted question, and a real update-failure fix
+
+- Fixed a real "Access to the path 'mupdfcpp64.dll' is denied" failure: updating the rules engine could fail if a sidecar process from a previous run of the app was still holding its files open, since nothing stopped that leftover process before overwriting its files. The updater now stops any running copy of the engine — including one left over from before the app was last restarted — before replacing its files.
+- Added a compiled answer for Attach + Exhausted questions (e.g. "Can I attach gear to an exhausted unit?") — previously declined with no answer at all. Exhausted/Ready state doesn't prevent a card from being Attached or receiving an Attach action; cited to Rule 719.4 and 434.2.
+
 ## v1.28.0 — Ask Rules now runs on a real deterministic rules engine
 
 - Replaced Ask Rules' entire retrieval+local-AI pipeline with the RiftKeep Rules Engine — a separately-developed, proof-verified deterministic rules compiler with a sealed LLM boundary (the model never sees authoritative rule/card text and never decides a verdict; any malformed output falls back to the deterministic answer). It runs locally as a sidecar process the app talks to over its own HTTP API, fetched on first use the same way the old local-AI model was — nothing changes in the base install size.

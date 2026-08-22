@@ -52,13 +52,13 @@ check("unless is represented as negative condition", any(c.get("connector") == "
 check("negative permission masking works standalone", parse_modalities("This cannot be played.") == ["prohibition"], parse_modalities("This cannot be played."))
 
 # T71 — all initial programs are guarded and valid.
-# 15 as of RiftKeep 1.0.1's Deck Construction Obligation Integration Fix: the original 8 plus 7
-# Rule 103 (Deck Construction) programs (champion_legend_count, main_deck_minimum,
+# 16: the original 8, plus 7 Rule 103 (Deck Construction) programs from RiftKeep 1.0.1's Deck
+# Construction Obligation Integration Fix (champion_legend_count, main_deck_minimum,
 # same_name_copy_limit, signature_limit, rune_deck_count, battlefield_duplicate_limit,
-# battlefield_count_requirement).
-check("fifteen executable Rule Programs compiled", programs["programCount"] == 15 and programs["validProgramCount"] == 15, (programs["programCount"], programs["validProgramCount"]))
+# battlefield_count_requirement), plus attach_exhausted_state_legality (Rule 719.4/434.2).
+check("sixteen executable Rule Programs compiled", programs["programCount"] == 16 and programs["validProgramCount"] == 16, (programs["programCount"], programs["validProgramCount"]))
 check("every program carries source text guard hashes", all(p.get("sourceTextGuardHashes") and p.get("valid") and p.get("executable") for p in programs["programs"]))
-check("program obligations are unique", len({p["obligation"] for p in programs["programs"]}) == 15)
+check("program obligations are unique", len({p["obligation"] for p in programs["programs"]}) == 16)
 
 # Source drift must fail closed at compile time.
 mutated = copy.deepcopy(core)

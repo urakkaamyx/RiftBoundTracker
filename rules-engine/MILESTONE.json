@@ -32,8 +32,8 @@
       "targeting": 86,
       "trigger": 153
     },
-    "executableProgramCount": 15,
-    "migratedAdjudicationFamilyCount": 15,
+    "executableProgramCount": 16,
+    "migratedAdjudicationFamilyCount": 16,
     "remainingHandCodedFamilyCount": 39,
     "replacementTaggedRuleCount": 40,
     "safeDefaultNonExecutable": true,
@@ -288,13 +288,13 @@
   },
   "product": {
     "name": "RiftKeep Rules Engine",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "releaseLine": "stable",
     "productApi": "v1"
   },
   "stableRelease": {
     "schemaVersion": 1,
-    "productVersion": "1.0.1",
+    "productVersion": "1.0.2",
     "releaseLine": "stable",
     "productApiVersion": "v1",
     "criticalArtifactCount": 44,

@@ -8,7 +8,7 @@
     "checkCount": 74,
     "runtimeArtifactCount": 18,
     "indexSchemaVersion": 1,
-    "startupValidationSeconds": 0.2365,
+    "startupValidationSeconds": 0.2392,
     "searchCache": {
       "maxEntries": 256,
       "entries": 3,
@@ -20,7 +20,7 @@
       "requests": 21,
       "errors": 1,
       "active": 0,
-      "maxConcurrent": 10,
+      "maxConcurrent": 9,
       "statusCounts": {
         "200": 20,
         "404": 1

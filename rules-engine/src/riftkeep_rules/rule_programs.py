@@ -418,6 +418,22 @@ PROGRAM_SPECS: list[dict[str, Any]] = [
             "evidenceRuleIds": ["103.4", "103.4.a"],
         },
     },
+    {
+        "programId": "attach-exhausted-state-independence",
+        "obligation": "attach_exhausted_state_legality",
+        "evidenceRuleIds": ["719.4", "434.2", "434.2.a"],
+        "sourceTextGuards": {
+            "719.4": "The Exhausted and Ready state of the Top-Most card does not affect nor change the status of the Attached cards and vice versa.",
+            "434.2": "Attaching is a Limited Action.",
+            "434.2.a": "Players may only Attach cards when directed to by Game Effects.",
+        },
+        "cases": [{
+            "when": [], "verdict": "yes", "truth": "true",
+            "claim": "Exhausted/Ready state does not prevent a card from being Attached, or from having a card Attached to it - the Top-Most card's Exhausted/Ready state is explicitly independent of its Attached cards' status, and vice versa. Attaching only happens when a Game Effect directs it (such as a Gear's Equip ability), and that Game Effect's own wording controls what it actually requires - typically that you control the unit, not that you control the battlefield it's at.",
+            "evidenceRuleIds": ["719.4", "434.2", "434.2.a"],
+        }],
+        "fallback": None,
+    },
 ]
 
 

@@ -40,7 +40,7 @@ public sealed class RulesEngineSidecarService(
 {
     private const string Owner = "urakkaamyx";
     private const string Repo = "RiftBoundTracker";
-    private const string ReleaseTag = "rules-engine-v1.0.1";
+    private const string ReleaseTag = "rules-engine-v1.0.2";
     private const int Port = 8765;
 
     public static readonly Uri BaseAddress = new($"http://127.0.0.1:{Port}/");
@@ -109,7 +109,14 @@ public sealed class RulesEngineSidecarService(
             }
 
             SetProgress(p => p with { Phase = "extracting" });
-            if (Directory.Exists(EngineRootDir)) Directory.Delete(EngineRootDir, recursive: true);
+            // A stale sidecar process from a previous app run (this service instance never spawned
+            // it, so StopProcess() has no handle to it) can still be holding a native DLL open under
+            // EngineRootDir - confirmed in the wild as "Access to the path 'mupdfcpp64.dll' is
+            // denied." when Directory.Delete hit a locked file mid-update. Stop anything running out
+            // of this directory before touching it, and give the OS a moment to release the handle.
+            StopProcess();
+            KillStaleEngineProcesses();
+            if (Directory.Exists(EngineRootDir)) await DeleteWithRetryAsync(EngineRootDir, ct);
             var extractTempDir = EngineRootDir + ".extracting";
             if (Directory.Exists(extractTempDir)) Directory.Delete(extractTempDir, recursive: true);
             ZipFile.ExtractToDirectory(tempZipPath, extractTempDir);
@@ -216,6 +223,72 @@ public sealed class RulesEngineSidecarService(
         finally
         {
             process.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Finds and kills any process actually running from this engine's python.exe, including one
+    /// spawned by a previous app run that this instance has no handle to. Comparing full,
+    /// normalized paths (not just process name) avoids ever touching an unrelated python.exe the
+    /// user happens to have running elsewhere on the machine.
+    /// </summary>
+    private void KillStaleEngineProcesses()
+    {
+        string target;
+        try
+        {
+            target = Path.GetFullPath(PythonExePath);
+        }
+        catch
+        {
+            return;
+        }
+        foreach (var process in Process.GetProcessesByName("python"))
+        {
+            try
+            {
+                var modulePath = process.MainModule?.FileName;
+                if (modulePath is not null && string.Equals(Path.GetFullPath(modulePath), target, StringComparison.OrdinalIgnoreCase))
+                {
+                    process.Kill(entireProcessTree: true);
+                    process.WaitForExit(5000);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to stop a stale rules engine process (PID {Pid})", process.Id);
+            }
+            finally
+            {
+                process.Dispose();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Even after a process is killed, Windows can take a brief moment to release its handle on a
+    /// native DLL it had loaded (this is what actually produced the "Access to the path
+    /// 'mupdfcpp64.dll' is denied." failure). A short retry loop absorbs that instead of failing
+    /// the whole update on a race the caller can't control.
+    /// </summary>
+    private static async Task DeleteWithRetryAsync(string path, CancellationToken ct)
+    {
+        const int maxAttempts = 5;
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                Directory.Delete(path, recursive: true);
+                return;
+            }
+            catch (IOException) when (attempt < maxAttempts)
+            {
+                await Task.Delay(500 * attempt, ct);
+            }
+            catch (UnauthorizedAccessException) when (attempt < maxAttempts)
+            {
+                await Task.Delay(500 * attempt, ct);
+            }
         }
     }
 

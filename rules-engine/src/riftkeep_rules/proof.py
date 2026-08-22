@@ -71,6 +71,7 @@ OBLIGATION_FAMILIES: dict[str, dict[str, Any]] = {
     "rune_deck_count": {"mustInclude": ["103.3", "103.3.a", "103.3.a.1"], "families": ["103"]},
     "battlefield_duplicate_limit": {"mustInclude": ["103.4", "103.4.c"], "families": ["103"]},
     "battlefield_count_requirement": {"mustInclude": ["103.4", "103.4.a"], "families": ["103"]},
+    "attach_exhausted_state_legality": {"mustInclude": ["719.4", "434.2", "434.2.a"], "families": ["434", "716", "719"]},
 }
 
 
@@ -197,6 +198,8 @@ def detect_obligations(issue: str, named_cards: list[dict[str, Any]] | None = No
         out.append("ignore_deflect_scope")
     if re.search(r"\bimperial decree|immortal phoenix|delayed trigger(?:ed)?\b", q) and re.search(r"\bkill|attribut|responsib|trigger", q):
         out.append("delayed_trigger_attribution")
+    if re.search(r"\battach(?:ing|ed)?\b|\bequip(?:ping|ped)?\b", q) and re.search(r"\bexhaust", q):
+        out.append("attach_exhausted_state_legality")
     # Deck Construction (Rule 103 family) - kept in its own module since it needs numeric
     # quantity parsing, not just boolean keyword regexes. See RiftKeep 1.0.1's Deck Construction
     # Obligation Integration Fix.

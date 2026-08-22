@@ -54,6 +54,11 @@ App_Data/
 /scripts/training/__pycache__/
 /scripts/training/*.zip
 
+# Compiled Python bytecode cache - reproducible from source on any interpreter run, never
+# meaningfully reviewable in a diff.
+__pycache__/
+*.pyc
+
 # Working/staging area for the Rules Engine collaboration (milestone zips, recovery audits,
 # scratch extractions) - not the source of truth. The canonical engine source lives in
 # /rules-engine/, checked in separately once a milestone is actually integrated.

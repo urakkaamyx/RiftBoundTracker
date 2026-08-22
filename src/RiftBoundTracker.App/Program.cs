@@ -99,6 +99,12 @@ internal static class Program
         Directory.CreateDirectory(dataDir);
         Directory.CreateDirectory(Path.Combine(dataDir, "images"));
 
+        // Persisted alongside --debug-console rather than replacing it: the console is for
+        // watching live while reproducing something, this is for pulling a trace after the fact
+        // (e.g. into a bug report) without needing to have had the console open in advance.
+        builder.Logging.AddProvider(new RiftBoundTracker.App.Services.Logging.FileLoggerProvider(
+            Path.Combine(dataDir, "logs", "riftkeep.log")));
+
         // Live camera access (getUserMedia) only works in a "secure context" — HTTPS, or localhost.
         // The phone hits this over a LAN IP, so it needs a real (if self-signed) TLS endpoint too.
         var devCert = DevCertificateProvider.GetOrCreate(
@@ -174,6 +180,7 @@ internal static class Program
         builder.Services.AddSingleton<ImageHashService>();
         builder.Services.AddSingleton<OcrService>();
         builder.Services.AddSingleton<UpdateService>();
+        builder.Services.AddScoped<BugReportService>();
         builder.Services.AddSingleton<BrowserRelayClient>();
         builder.Services.AddSingleton(sp => new NgrokService(port, sp.GetRequiredService<IHttpClientFactory>(), sp.GetRequiredService<ILogger<NgrokService>>()));
         builder.Services.AddScoped<CardCacheService>();
@@ -293,6 +300,38 @@ internal static class Program
             {
                 return Results.BadRequest(new { error = ex.Message });
             }
+        });
+
+        app.MapGet("/api/bug-report/screenshot", (BugReportService bugReport) =>
+        {
+            var png = bugReport.CaptureAppWindow();
+            return png is null ? Results.NoContent() : Results.File(png, "image/png");
+        });
+
+        app.MapPost("/api/bug-report", async (BugReportRequest body, BugReportService bugReport, CancellationToken ct) =>
+        {
+            var result = await bugReport.SubmitIssueAsync(body.Title, body.Description, ct);
+            return Results.Ok(new { ok = result.Ok, message = result.Message, issueUrl = result.IssueUrl });
+        });
+
+        // Frontend errors (window.onerror / unhandledrejection) land in the same rolling log file
+        // as the backend, so one bug report captures both sides of a failure instead of just half.
+        app.MapPost("/api/logs/client", (ClientLogEntry body, ILoggerFactory loggerFactory) =>
+        {
+            loggerFactory.CreateLogger("Client").LogWarning("[client] {Message}\n{Stack}\n{Url}", body.Message, body.Stack, body.Url);
+            return Results.Ok();
+        });
+
+        // Deliberately restricted to github.com — this exists only so the bug-report flow can open
+        // the freshly-created issue in the user's real browser (WebView2 has no built-in way to
+        // "open externally"), not as a general-purpose local URL launcher.
+        app.MapPost("/api/open-external", (OpenExternalRequest body) =>
+        {
+            if (!Uri.TryCreate(body.Url, UriKind.Absolute, out var uri) ||
+                uri.Scheme != "https" || uri.Host != "github.com")
+                return Results.BadRequest(new { error = "Only https://github.com links can be opened externally." });
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = uri.ToString(), UseShellExecute = true });
+            return Results.Ok();
         });
 
         app.MapGet("/api/connection-info", () =>
@@ -788,4 +827,7 @@ public record CommunitySyncRequest(int? Days);
 public record AskRuleQuestionRequest(string Question, string? CardId);
 public record RulesLocalAiToggleRequest(bool Enabled);
 public record PriceRefreshRequest(bool IncludeAllCards);
+public record BugReportRequest(string Title, string Description);
+public record ClientLogEntry(string Message, string? Stack, string? Url);
+public record OpenExternalRequest(string Url);
 public record PriceQueueRequest(bool Queued);

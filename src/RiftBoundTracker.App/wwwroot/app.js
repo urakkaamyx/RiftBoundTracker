@@ -3727,6 +3727,104 @@ async function confirmPurgeData() {
   }
 }
 
+// Bug Report — files a real GitHub Issue via a scoped write-only token the backend holds. The
+// screenshot never goes through that API call at all (GitHub has no way to attach a binary image
+// to an issue except through its website's own session-authenticated upload, regardless of token
+// scope) — instead it's copied to the OS clipboard and the new issue opens in the browser, so one
+// Ctrl+V drops it into a comment.
+let bugReportAttachedBlob = null;
+
+function resetBugReportForm() {
+  bugReportAttachedBlob = null;
+  document.getElementById("bugReportTitle").value = "";
+  document.getElementById("bugReportDescription").value = "";
+  document.getElementById("bugReportScreenshotInput").value = "";
+  document.getElementById("bugReportStatus").textContent = "";
+  renderBugReportScreenshotPreview();
+}
+
+function renderBugReportScreenshotPreview() {
+  const preview = document.getElementById("bugReportScreenshotPreview");
+  if (!bugReportAttachedBlob) {
+    preview.innerHTML = `<i data-icon="image"></i><span>None attached — one will be captured automatically when you submit, or attach your own below.</span>`;
+    renderIcons(preview);
+    return;
+  }
+  const url = URL.createObjectURL(bugReportAttachedBlob);
+  preview.innerHTML = `<img src="${url}" alt="Attached screenshot" />`;
+}
+
+async function fetchAutoScreenshot() {
+  const response = await fetch("/api/bug-report/screenshot");
+  if (response.status === 204 || !response.ok) return null;
+  return response.blob();
+}
+
+async function copyBlobToClipboard(blob) {
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+    return true;
+  } catch {
+    return false; // Clipboard permissions can vary — the issue still gets filed either way.
+  }
+}
+
+async function submitBugReport() {
+  const button = document.getElementById("bugReportSubmit");
+  const status = document.getElementById("bugReportStatus");
+  const title = document.getElementById("bugReportTitle").value.trim();
+  const description = document.getElementById("bugReportDescription").value.trim();
+  if (!title || !description) {
+    status.textContent = "Title and description are both required.";
+    return;
+  }
+
+  button.disabled = true;
+  status.textContent = "Submitting...";
+  try {
+    let screenshot = bugReportAttachedBlob;
+    if (!screenshot) {
+      status.textContent = "Capturing a screenshot...";
+      screenshot = await fetchAutoScreenshot();
+    }
+    if (!screenshot) {
+      status.textContent = "Couldn't capture a screenshot automatically — please attach one below.";
+      button.disabled = false;
+      return;
+    }
+
+    status.textContent = "Filing the issue...";
+    const result = await api("/api/bug-report", jsonOptions("POST", { title, description }));
+    if (!result.ok) {
+      status.textContent = result.message;
+      button.disabled = false;
+      return;
+    }
+
+    const copied = await copyBlobToClipboard(screenshot);
+    if (result.issueUrl) {
+      await api("/api/open-external", jsonOptions("POST", { url: result.issueUrl })).catch(() => {});
+    }
+    closeModal("bugReportModal");
+    toast(copied
+      ? "Issue filed — screenshot copied to your clipboard. Paste it (Ctrl+V) into a comment on the page that just opened."
+      : "Issue filed — couldn't copy the screenshot to your clipboard, so attach it manually on the page that just opened.");
+  } catch (err) {
+    status.textContent = err.message;
+  } finally {
+    button.disabled = false;
+  }
+}
+
+// Frontend errors land in the same rolling log file the backend writes to, so a bug report always
+// carries both sides of a failure — best-effort and silent on its own failure, since a broken
+// logger must never itself throw during error handling.
+function logClientError(message, stack) {
+  api("/api/logs/client", jsonOptions("POST", { message, stack: stack || "", url: location.href })).catch(() => {});
+}
+window.addEventListener("error", event => logClientError(event.message, event.error?.stack));
+window.addEventListener("unhandledrejection", event => logClientError(String(event.reason), event.reason?.stack));
+
 function wireEvents() {
   document.addEventListener("mouseover", event => {
     const row = event.target.closest("[data-hover-card]");
@@ -3862,6 +3960,19 @@ function wireEvents() {
     resetScanner();
     showModal("scanModal");
   });
+  document.getElementById("openBugReport").addEventListener("click", () => {
+    resetBugReportForm();
+    showModal("bugReportModal");
+  });
+  document.getElementById("bugReportAttachBtn").addEventListener("click", () =>
+    document.getElementById("bugReportScreenshotInput").click());
+  document.getElementById("bugReportScreenshotInput").addEventListener("change", event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    bugReportAttachedBlob = file;
+    renderBugReportScreenshotPreview();
+  });
+  document.getElementById("bugReportSubmit").addEventListener("click", submitBugReport);
   document.getElementById("packImportList").addEventListener("click", event => {
     const row = event.target.closest("[data-pack-key]");
     if (row) previewPack(row).catch(err => toast(err.message, true));

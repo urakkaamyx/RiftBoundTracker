@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.28.7 — Report a Bug: files a real GitHub Issue, plus a real logging system
+
+- Added a "Report a Bug" button (bottom of the sidebar) that opens a form and files a real GitHub Issue directly — title, description, app version, OS, and a recent trace of what the app was doing, all attached automatically.
+- Added a persisted rolling log file (`App_Data/logs/riftkeep.log`) covering both the backend and frontend (JS errors and unhandled promise rejections now get logged too) — previously the only way to see backend logs at all was `--debug-console`, which only showed anything if you remembered to launch with that flag *before* reproducing the problem. Every bug report now automatically includes a recent excerpt.
+- The screenshot never travels through GitHub's issue-creation API — there's no way to attach a binary image to an issue through it regardless of token scope, that only exists behind GitHub's own website upload flow. Instead, submitting copies the screenshot to your clipboard and opens the new issue in your browser so a single paste drops it in as a comment. If you don't attach your own screenshot, one is captured automatically from the app's own window at submit time.
+- The GitHub token used to file issues is scoped to Issues-write-only on this one repo and is never committed to source — it's stamped into the build at publish time from an environment variable, so the public repo's history never contains it.
+
 ## v1.28.6 — Mass Add rebuilt, plus a new "Add to Collection+" tabbed entry point
 
 - Rebuilt Mass Add end-to-end: live per-line search with a grid-style dropdown (`[CardID] Card Name`), hover-to-preview big on the right with click-to-lock, inline and big-preview quantity steppers, and a scrollable error log for anything that failed to resolve instead of it silently vanishing into a stack of toasts.

@@ -39,6 +39,8 @@
         <div class="set-nav" id="setNav"></div>
       </section>
 
+      <button type="button" class="sidebar-bug-btn" id="openBugReport"><i data-icon="alert-triangle"></i><span>Report a Bug</span></button>
+
       <div class="sidebar-footer">
         <span class="status-dot"></span><span>Local vault</span><b>v<span id="currentVersion">...</span></b>
         <button type="button" class="update-indicator" id="updateIndicator" data-page="settings" title="An update is available — click to open Settings" hidden></button>
@@ -333,6 +335,30 @@
       <div class="modal-actions">
         <span class="mass-add-variant-progress" id="massAddVariantProgress"></span>
         <button type="button" class="command-btn" id="massAddVariantSkip">Skip</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-layer" id="bugReportModal" hidden>
+    <div class="modal bug-report-modal">
+      <div class="modal-head"><div><span>Feedback</span><h2>Report a Bug</h2></div><button class="icon-btn" data-close="bugReportModal"><i data-icon="x"></i></button></div>
+      <p class="settings-hint">This opens a real GitHub Issue with your description and a recent trace of what the app was doing. A screenshot isn't uploaded automatically — after you submit, it's copied to your clipboard and the new issue opens in your browser so you can paste it (Ctrl+V) into a comment.</p>
+      <div class="form-stack">
+        <label>Title<input type="text" id="bugReportTitle" maxlength="120" placeholder="Short summary of the problem" /></label>
+        <label>What happened?<textarea id="bugReportDescription" rows="6" placeholder="What were you doing, what did you expect, what happened instead?"></textarea></label>
+        <label>Screenshot
+          <div class="bug-report-screenshot">
+            <div class="bug-report-screenshot-preview" id="bugReportScreenshotPreview">
+              <i data-icon="image"></i><span>None attached — one will be captured automatically when you submit, or attach your own below.</span>
+            </div>
+            <input type="file" accept="image/*" id="bugReportScreenshotInput" hidden />
+            <button type="button" class="command-btn quiet" id="bugReportAttachBtn">Attach a Screenshot</button>
+          </div>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <span class="bug-report-status" id="bugReportStatus"></span>
+        <button type="button" class="command-btn gold" id="bugReportSubmit">Submit Report</button>
       </div>
     </div>
   </div>

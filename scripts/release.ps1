@@ -37,6 +37,21 @@ if ($LASTEXITCODE -ne 0) { throw "Restore failed" }
 dotnet publish $proj -c Release -r win-x64 --self-contained true --no-restore -o $publishDir
 if ($LASTEXITCODE -ne 0) { throw "Publish failed" }
 
+# The bug-report GitHub token stays empty in source (appsettings.json is committed and public) —
+# it's stamped into the PUBLISHED output only, read from an environment variable so it never
+# touches git history. Set it once per shell: $env:RIFTKEEP_BUG_REPORT_TOKEN = "github_pat_...".
+# Missing env var just means this build ships with bug reporting disabled, not a failed release.
+$bugReportToken = $env:RIFTKEEP_BUG_REPORT_TOKEN
+if ($bugReportToken) {
+    Write-Host "== Stamping bug-report token into published build ==" -ForegroundColor Cyan
+    $publishedSettings = Join-Path $publishDir "appsettings.json"
+    $settingsJson = Get-Content $publishedSettings -Raw | ConvertFrom-Json
+    $settingsJson.BugReport.GitHubToken = $bugReportToken
+    $settingsJson | ConvertTo-Json -Depth 10 | Set-Content $publishedSettings
+} else {
+    Write-Host "== RIFTKEEP_BUG_REPORT_TOKEN not set — this build ships with bug reporting disabled ==" -ForegroundColor Yellow
+}
+
 Write-Host "== Zipping ==" -ForegroundColor Cyan
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
 Compress-Archive -Path "$publishDir\*" -DestinationPath $zipPath

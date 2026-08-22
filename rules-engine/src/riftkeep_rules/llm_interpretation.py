@@ -46,6 +46,49 @@ RELATION_TERMS = {
 TOP_KEYS = {"schemaVersion", "issues", "ambiguities", "globalSearchConcepts"}
 ISSUE_KEYS = {"sourceText", "interpretation", "searchConcepts", "confidence"}
 AMBIGUITY_KEYS = {"sourceText", "reason", "clarificationQuestion"}
+
+# Mirrors validate_interpretation_payload's structural checks exactly, so a schema-constrained
+# provider can only emit tokens that already satisfy them - content-level checks (sourceText
+# actually being copied from the question, no invented relation words, etc.) still run afterward;
+# a schema can guarantee shape, never meaning.
+INTERPRETATION_JSON_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "schemaVersion": {"type": "integer", "enum": [1]},
+        "issues": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "sourceText": {"type": "string"},
+                    "interpretation": {"type": "string", "maxLength": 700},
+                    "searchConcepts": {"type": "array", "items": {"type": "string"}, "maxItems": 8},
+                    "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+                },
+                "required": ["sourceText", "interpretation", "searchConcepts", "confidence"],
+                "additionalProperties": False,
+            },
+        },
+        "ambiguities": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "sourceText": {"type": "string"},
+                    "reason": {"type": "string", "maxLength": 300},
+                    "clarificationQuestion": {"type": "string", "maxLength": 300},
+                },
+                "required": ["sourceText", "reason", "clarificationQuestion"],
+                "additionalProperties": False,
+            },
+        },
+        "globalSearchConcepts": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["schemaVersion", "issues", "ambiguities", "globalSearchConcepts"],
+    "additionalProperties": False,
+}
 FORBIDDEN_KEY_FRAGMENTS = (
     "ruleid", "rule_id", "evidence", "citation", "verdict", "ruling", "fact", "assumption",
     "binding", "controller", "owner", "authority", "proof", "cardtext", "card_text", "answer",
@@ -279,6 +322,8 @@ def run_interpretation(question: str, provider: JsonLlmProvider | None) -> Inter
             system=INTERPRETATION_SYSTEM,
             user=json.dumps(packet, ensure_ascii=False),
             temperature=0.0,
+            json_schema=INTERPRETATION_JSON_SCHEMA,
+            schema_name="m10_interpretation",
         )
     except Exception as exc:
         return InterpretationStageResult(

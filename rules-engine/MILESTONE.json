@@ -77,7 +77,7 @@
     "uiIntegrationChecks": 148,
     "updateAutomationChecks": 70,
     "productionHardeningChecks": 74,
-    "definitionLookupChecks": 120,
+    "definitionLookupChecks": 131,
     "releaseCandidateAuditChecks": 48,
     "stableReleaseChecks": 191
   },
@@ -264,7 +264,7 @@
     "keywordCount": 25,
     "gameActionCount": 32,
     "ruleConceptCount": 63,
-    "definitionLookupChecks": 120,
+    "definitionLookupChecks": 131,
     "proofVerifiedDefinitionEvidence": true,
     "conservativeScenarioGuard": true,
     "releaseGateSuiteCount": 17
@@ -288,13 +288,13 @@
   },
   "product": {
     "name": "RiftKeep Rules Engine",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "releaseLine": "stable",
     "productApi": "v1"
   },
   "stableRelease": {
     "schemaVersion": 1,
-    "productVersion": "1.0.3",
+    "productVersion": "1.0.4",
     "releaseLine": "stable",
     "productApiVersion": "v1",
     "criticalArtifactCount": 44,

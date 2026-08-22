@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "product": {
     "name": "RiftKeep Rules Engine",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "releaseLine": "stable"
   },
   "compatibility": {
@@ -74,7 +74,7 @@
   "certifiedReleaseSuiteCount": 19,
   "artifactHashes": {
     "pyproject.toml": {
-      "sha256": "8c71fe9a0424c01896143afcd8cdebaefcc83658b2509b52a01a06d038cf9580",
+      "sha256": "a563a4ba1d4ffe87a8782caa37ec1df367b45317a1e8c4274454d0d6d416c0e1",
       "bytes": 289
     },
     "src/riftkeep_rules/__init__.py": {
@@ -82,12 +82,12 @@
       "bytes": 142
     },
     "src/riftkeep_rules/release_identity.py": {
-      "sha256": "ddfb8e7d5f53b4f9de72fa957bf4a3fc0910f453a58938aaf82a4ae828d0a1f0",
+      "sha256": "674f2109aea438bfd70f952bfe607b27291fa3d204a5b1e38580858215b122c5",
       "bytes": 7151
     },
     "src/riftkeep_rules/product_api.py": {
-      "sha256": "0db7ab12a10a91b8c4f3bbcdbca130d090d35feae87e282823e80f032bf95925",
-      "bytes": 27126
+      "sha256": "607f6da27c5f2a887812cb1e5dc95bc0df871bddc820e7681319933ab9b6f0cf",
+      "bytes": 27441
     },
     "src/riftkeep_rules/api_http.py": {
       "sha256": "4537521e5f941929f48b7f28230e38512c53b02120bc24f26ca17dde284b3ab0",
@@ -178,7 +178,7 @@
       "bytes": 649
     },
     "data/canonical/stable_release_contract.json": {
-      "sha256": "95695da43f8741e5a57b3ef444b614e189096e88c0231ec82326e5bc769ee91f",
+      "sha256": "9d44dfabee79a1216322ba8bf3091118302ee4fd957afbeb7286b442c22172d5",
       "bytes": 1963
     },
     "data/canonical/release_candidate_audit_contract.json": {
@@ -238,7 +238,7 @@
       "bytes": 11468
     },
     "tests/run_stable_release_tests.py": {
-      "sha256": "1653689d4a71d746803b5fca076ab12cbcaf86e4c1d796a0b029a9f22b79de02",
+      "sha256": "36edd8980809b25b912f2a1d7dc012ac419084de7113fba2e15a9935a365ac3c",
       "bytes": 15247
     },
     "RELEASE_NOTES_1.0.md": {
@@ -246,8 +246,8 @@
       "bytes": 1837
     },
     "KNOWN_LIMITATIONS_1.0.md": {
-      "sha256": "9261f1fed6858b8cf7de756d62e324bab2c463c46e4e96436380c52012fbfd1d",
-      "bytes": 1442
+      "sha256": "2e268a6801ae884658f6a156aa9d02df3fe64294749b308e665c28a83c4ecb6a",
+      "bytes": 2537
     }
   }
 }

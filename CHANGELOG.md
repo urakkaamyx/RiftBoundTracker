@@ -1,6 +1,9 @@
 # Changelog
 
-## v1.28.3 — Ask Rules: token cards like Brush Battlefield now have real answers
+## v1.28.4 — Ask Rules: real local-AI wiring (experimental, off by default)
+
+- Wired a real local LLM provider into Ask Rules' existing AI interpretation/explanation design, which had never actually been connected to a model since the engine swap earlier this release line — it's off by default, and enabling it requires an advanced manual setup (running a local OpenAI-compatible model server yourself). When enabled, the model can only emit output matching the exact expected shape (schema-constrained generation), and every verdict and citation is still checked exactly against the real deterministic answer no matter what the model produces — a bad response is discarded, never shown.
+- Direct testing against a small local model caught it explaining Riftbound's own "Ganking" keyword using outside knowledge of an unrelated game's same-spelled slang term instead of the real supplied rule text — fluent, confidently wrong, and something no structural check can catch since it's about truth, not shape. Documented as an experimental limitation; this is why the feature ships off by default rather than on.
 
 - Added definition-lookup coverage for every token type in Rule 187's catalog — Brush battlefield, Baron Pit battlefield, Recruit, Sprite, Sand Soldier, Mech, Gold gear, Reflection, Bird, Tentacle, and Shadow Clone. These are created by other cards' effects rather than played from your deck, and Ask Rules previously had no way to answer questions about any of them (e.g. "How do I play the Brush Battlefield card?" just declined, or a looser phrasing accidentally matched the generic Battlefield rules instead). Now correctly answers with the actual rule text for whichever token was asked about.
 - "How do I play X?" / "How to play X?" is now recognized as a definition-lookup question when X is exactly one of these token names — since most things asked about this way aren't cards you play at all. Ordinary gameplay questions like "How do I play a unit to a battlefield I control?" are unaffected.

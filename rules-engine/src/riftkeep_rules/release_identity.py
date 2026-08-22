@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 PRODUCT_NAME = "RiftKeep Rules Engine"
-PRODUCT_VERSION = "1.0.3"
+PRODUCT_VERSION = "1.0.4"
 RELEASE_LINE = "stable"
 PRODUCT_API_VERSION = "v1"
 STABLE_MANIFEST_SCHEMA_VERSION = 1

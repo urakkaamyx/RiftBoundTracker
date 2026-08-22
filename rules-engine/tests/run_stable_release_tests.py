@@ -127,7 +127,7 @@ check("M18 independent audit inherited", rc.get("passed") is True and rc.get("bl
 check("M18 expected medium limitation remains one", (rc.get("findingCounts") or {}).get("Medium") == 1, rc.get("findingCounts"))
 prior_reports = {
     "core_test_report.json": 164,
-    "definition_lookup_test_report.json": 120,
+    "definition_lookup_test_report.json": 131,
     "regression_report.json": 99,
     "language_test_report.json": 42,
     "scenario_language_test_report.json": 43,

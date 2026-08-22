@@ -10,6 +10,7 @@ from .retrieval import Hit, search as retrieval_search
 from .version_integrity import FAMILIES, load_history
 from .runtime_hardening import BoundedLruCache, RuntimeArtifactGuard
 from .release_identity import PRODUCT_VERSION, RELEASE_LINE
+from .llm_provider import provider_from_env
 
 API_VERSION = "v1"
 SCHEMA_VERSION = 1
@@ -152,7 +153,16 @@ class ProductApiService:
         # stat signature and fail closed if an M16 publish changes runtime bytes.
         self.runtime_guard = RuntimeArtifactGuard(self.root, require_current_authority=require_current_authority)
         self._search_cache: BoundedLruCache[tuple[Any, ...], dict[str, Any]] = BoundedLruCache(max_entries=256)
-        self.engine = engine or RulesEngine(self.root, require_current_authority=require_current_authority)
+        if engine is not None:
+            self.engine = engine
+        else:
+            llm_provider = provider_from_env()
+            self.engine = RulesEngine(
+                self.root,
+                require_current_authority=require_current_authority,
+                interpretation_provider=llm_provider,
+                explanation_provider=llm_provider,
+            )
         self.core = _load(self.root / "data/canonical/core_rules.json", {"rules": []})
         self.tournament = _load(self.root / "data/canonical/tournament_rules.json", {"rules": []})
         self.cards = _load(self.root / "data/canonical/cards.json", {"cards": []})

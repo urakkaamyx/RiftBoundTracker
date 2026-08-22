@@ -96,16 +96,15 @@ function domainKey(value) {
   return domainName(value).toLowerCase();
 }
 
-function domainSceneMarkup(domains) {
-  const primary = domainName(domains[0]);
-  const secondary = domains[1] ? domainName(domains[1]) : null;
+// List-row backdrop is the card's own art (blurred/extended), not a shared per-domain scene -
+// each row reads as that specific card at a glance instead of just its domain.
+function cardListSceneMarkup(card, domains) {
   const crests = domains.slice(0, 2).map(value => {
     const name = domainName(value);
     return `<img src="/assets/domain-crests/${DOMAIN_CREST[name]}" alt="" aria-hidden="true" loading="lazy" decoding="async" />`;
   }).join("");
-  return `<div class="list-domain-scene${secondary ? " dual-domain" : ""}" aria-hidden="true">
-    <img class="list-domain-scene-art primary" src="/assets/domain-scenes/${DOMAIN_SCENE[primary]}" alt="" loading="lazy" decoding="async" />
-    ${secondary ? `<img class="list-domain-scene-art secondary" src="/assets/domain-scenes/${DOMAIN_SCENE[secondary]}" alt="" loading="lazy" decoding="async" />` : ""}
+  return `<div class="list-domain-scene${domains[1] ? " dual-domain" : ""}" aria-hidden="true">
+    <img class="list-domain-scene-art" src="${escapeHtml(cardImage(card))}" alt="" loading="lazy" decoding="async" />
     <span class="list-domain-scene-crests">${crests}</span>
   </div>`;
 }
@@ -712,7 +711,7 @@ function cardListRow(card) {
   const rarity = card.rarity || "Unknown";
   return `
     <article class="card-list-row${cardDomainThemeClasses(domains)}${card.ownedCount <= 0 ? " missing" : ""}${state.selectedCardId === card.id ? " selected" : ""}" data-card-open="${escapeHtml(card.id)}">
-      ${domainSceneMarkup(domains)}
+      ${cardListSceneMarkup(card, domains)}
       <div class="card-art list-card-art${card.orientation === "landscape" ? " landscape" : ""}">
         <div class="card-domain">${domains.map(domain => `<span style="background:${DOMAIN_COLOR[domain] || DOMAIN_COLOR.Colorless}"></span>`).join("")}</div>
         <img src="${escapeHtml(cardImage(card))}" alt="${escapeHtml(card.name)}" loading="lazy" />

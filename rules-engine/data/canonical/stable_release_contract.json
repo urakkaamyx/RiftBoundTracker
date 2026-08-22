@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "product": {
     "name": "RiftKeep Rules Engine",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "releaseLine": "stable"
   },
   "compatibility": {

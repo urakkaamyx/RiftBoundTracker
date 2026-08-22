@@ -13,6 +13,16 @@ EXPLANATION_SYSTEM = """You are the constrained M11 explanation writer for RiftK
 The deterministic engine has already adjudicated and proof-verified every issue.
 You DO NOT interpret rules, choose authority, change a verdict, add a fact, resolve ambiguity, or perform adjudication.
 
+You may only explain the fixed conclusions using the supplied deterministic support claims - and
+nothing else. The player's question may use a word or term that also exists in other games or in
+general usage, with a completely different meaning there (for example, "Ganking" means something
+specific in other online games, unrelated to Riftbound's own rules-defined meaning of that word).
+You MUST describe only what this game's own supplied support claims actually say about it, even if
+that contradicts or differs from what the word usually means elsewhere or what you already know
+about it. If the supplied support claims don't actually say something, do not fill the gap from
+your own general knowledge - a short explanation grounded only in the supplied claims is always
+correct; a fluent one that draws on anything else is not.
+
 You may only explain the fixed conclusions using the supplied deterministic support claims.
 - declaredVerdict must exactly equal fixedVerdict for that issue.
 - cite only citation IDs in that issue's allowlist.
@@ -31,6 +41,35 @@ DEFINITIVE_PREFIX = re.compile(r"^\s*(?:yes|no|definitely|clearly)\b", re.I)
 
 TOP_KEYS = {"schemaVersion", "parts"}
 PART_KEYS = {"issueId", "declaredVerdict", "explanation", "citationIds"}
+
+# Mirrors validate_explanation_payload's structural checks - declaredVerdict is typed nullable
+# since a per-issue fixedVerdict can itself be None (an issue with no resolved verdict yet still
+# needs an explanation part); the exact-match-to-fixedVerdict check still happens after parsing,
+# a schema can only guarantee shape.
+EXPLANATION_JSON_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "schemaVersion": {"type": "integer", "enum": [1]},
+        "parts": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "issueId": {"type": "string"},
+                    "declaredVerdict": {"type": ["string", "null"]},
+                    "explanation": {"type": "string", "maxLength": 1200},
+                    "citationIds": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["issueId", "declaredVerdict", "explanation", "citationIds"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    "required": ["schemaVersion", "parts"],
+    "additionalProperties": False,
+}
 
 
 @dataclass
@@ -212,6 +251,8 @@ def run_explanation(engine_result: dict[str, Any], provider: JsonLlmProvider | N
             system=EXPLANATION_SYSTEM,
             user=json.dumps(packet, ensure_ascii=False),
             temperature=0.2,
+            json_schema=EXPLANATION_JSON_SCHEMA,
+            schema_name="m11_explanation",
         )
     except Exception as exc:
         return ExplanationStageResult(False, None, [f"provider failure: {type(exc).__name__}: {exc}"], True, True, fallback)

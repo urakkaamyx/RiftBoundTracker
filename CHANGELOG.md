@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.5 — Ask Rules: fixed the Brush/token fix actually applying to how you'd ask it
+
+- Fixed a real gap in the previous token-catalog fix (v1.28.3): it only worked when phrased as a question ("what is X", "how do I play X"). A bare mention with no question phrase at all — "Brush", "Token Brush Card", just typing the name — never triggered the lookup at all despite the answer existing. Ask Rules now recognizes a question that's nothing but a known card/token/keyword name (after stripping words like "token"/"card"/"the") as a definition lookup on its own.
+
 ## v1.28.4 — Ask Rules: real local-AI wiring (experimental, off by default)
 
 - Wired a real local LLM provider into Ask Rules' existing AI interpretation/explanation design, which had never actually been connected to a model since the engine swap earlier this release line — it's off by default, and enabling it requires an advanced manual setup (running a local OpenAI-compatible model server yourself). When enabled, the model can only emit output matching the exact expected shape (schema-constrained generation), and every verdict and citation is still checked exactly against the real deterministic answer no matter what the model produces — a bad response is discarded, never shown.

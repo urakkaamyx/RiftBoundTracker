@@ -31,14 +31,59 @@ DEFINITION_PATTERNS = [
 ]
 
 
+# Only words that could never themselves be a real concept's own name - "game action" and "rule"
+# are deliberately handled as atomic two/one-word PHRASES below instead, not added here, because
+# "Action" and (in principle) "Rule" can be real standalone keyword names on their own (confirmed
+# directly: rule 806 is literally the keyword "Action" - an earlier version of this set included
+# bare "action", which normalized "Action" itself down to an empty string and broke its own lookup).
+_FILLER_WORDS = {"the", "a", "an", "token", "tokens", "card", "cards", "keyword", "keywords", "ability", "abilities"}
+_TYPE_PHRASE_RE = re.compile(r"^(?:keyword|game action|rule|ability)\s+|\s+(?:keyword|game action|rule|ability)$", re.I)
+
+
 def _normalize_direct_definition_target(text: str) -> str:
     target = (text or "").strip().replace("’", "'")
     target = re.sub(r"^[\[\(\{\"']+|[\]\)\}\"']+$", "", target).strip()
-    target = re.sub(r"^the\s+", "", target, flags=re.I)
-    target = re.sub(r"\s+(?:keyword|game action|rule|ability|cards?|tokens?)$", "", target, flags=re.I).strip()
     # Parameterized keywords such as Shield 2 still ask for the Shield definition.
     target = re.sub(r"\s+\d+$", "", target).strip()
-    return re.sub(r"\s+", " ", target).casefold()
+    # Strip a leading/trailing type-word phrase and single filler words repeatedly and in either
+    # order - "Token Brush Card", "Brush Token", and "the Brush" should all reduce the same way
+    # "Brush" alone does. Interior words are never touched, so a real concept name like "Brush
+    # battlefield" (where "battlefield" isn't filler, it's the actual name) is unaffected.
+    changed = True
+    while changed:
+        changed = False
+        stripped = _TYPE_PHRASE_RE.sub("", target).strip()
+        if stripped != target:
+            target, changed = stripped, True
+        words = target.split()
+        if words and words[0].casefold() in _FILLER_WORDS:
+            words.pop(0)
+            target, changed = " ".join(words), True
+        elif words and words[-1].casefold() in _FILLER_WORDS:
+            words.pop()
+            target, changed = " ".join(words), True
+    return re.sub(r"\s+", " ", target).strip().casefold()
+
+
+def _is_bare_concept_mention(question: str, concepts: list[dict[str, Any]] | None) -> bool:
+    """A question that, once filler words are stripped, IS entirely a known concept's name/alias
+    and nothing else - "Brush", "brush battlefield", "Token Brush Card" - is a definition lookup by
+    construction: there's no other reasonable thing a bare card/token/keyword name typed into Ask
+    Rules could mean. Confirmed missing directly: the earlier Rule 187 token-catalog fix added the
+    concepts themselves but every existing definition-intent trigger requires an explicit phrase
+    ("what is", "explain", "how do I play") - a bare mention with no such phrase never reached the
+    concept lookup at all despite the concept being right there in the catalog."""
+    if not concepts:
+        return False
+    target = _normalize_direct_definition_target(question)
+    if not target:
+        return False
+    for concept in concepts:
+        names = [concept.get("name", ""), *concept.get("aliases", [])]
+        for name in names:
+            if _normalize_direct_definition_target(str(name)) == target:
+                return True
+    return False
 
 
 def _is_exact_do_definition(question: str, concepts: list[dict[str, Any]] | None) -> bool:
@@ -91,7 +136,11 @@ def is_definition_intent(question: str, concepts: list[dict[str, Any]] | None = 
     # than played from hand), so the honest answer is what it actually is, not a decline.
     # Ordinary gameplay questions like "How do I play a unit to a battlefield I control?"
     # never exactly match a concept name/alias, so they fall through untouched.
-    return _is_exact_how_to_play_definition(question, concepts)
+    if _is_exact_how_to_play_definition(question, concepts):
+        return True
+    # A bare mention with no question phrase at all - "Brush", "brush battlefield", "Token Brush
+    # Card" - still needs to resolve; nothing else could reasonably route it anywhere else.
+    return _is_bare_concept_mention(question, concepts)
 
 
 def find_concepts(question: str, semantic_ir: dict[str, Any], max_matches: int = 8) -> list[dict[str, Any]]:

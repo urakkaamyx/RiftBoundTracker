@@ -288,13 +288,13 @@
   },
   "product": {
     "name": "RiftKeep Rules Engine",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "releaseLine": "stable",
     "productApi": "v1"
   },
   "stableRelease": {
     "schemaVersion": 1,
-    "productVersion": "1.0.4",
+    "productVersion": "1.0.5",
     "releaseLine": "stable",
     "productApiVersion": "v1",
     "criticalArtifactCount": 44,

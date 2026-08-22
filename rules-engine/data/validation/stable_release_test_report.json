@@ -455,7 +455,7 @@
   "metrics": {
     "schemaVersion": 1,
     "checkCount": 191,
-    "productVersion": "1.0.4",
+    "productVersion": "1.0.5",
     "productApiVersion": "v1",
     "criticalArtifactCount": 44,
     "certifiedReleaseSuiteCount": 19,

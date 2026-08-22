@@ -75,10 +75,8 @@
             <div class="vault-tools-group">
               <p class="vault-group-label">Tools</p>
               <div class="vault-tools">
-                <button class="command-btn" id="openMassAdd" title="Mass Add"><i data-icon="list-plus"></i><span>Mass Add</span></button>
-                <button class="command-btn" id="openScan"><i data-icon="scan"></i><span>Scan Card</span></button>
+                <button class="command-btn gold" id="openAddCollection" title="Add to Collection"><i data-icon="list-plus"></i><span>Add to Collection+</span></button>
                 <button class="command-btn" id="openCheckPrice" title="Scan a card to look up its price — never adds it to your collection"><i data-icon="dollar"></i><span>Check Price</span></button>
-                <button class="command-btn" id="openPackImport" title="Import a Premade Pack"><i data-icon="archive"></i><span>Import Pack</span></button>
               </div>
             </div>
           </div>
@@ -273,8 +271,70 @@
     </div>
   </div>
 
-  <div class="modal-layer" id="massAddModal" hidden>
-    <div class="modal"><div class="modal-head"><div><span>Collection</span><h2>Mass Add</h2></div><button class="icon-btn" data-close="massAddModal"><i data-icon="x"></i></button></div><textarea id="massAddInput" rows="9" placeholder="OGN-045&#10;VEN-R01 x2&#10;88&#10;&#10;Also accepts a pasted RiftKeep deck export:&#10;3 SFD-001 Against the Odds&#10;&#10;Or paste a single RiftAtlas deck code to add its whole decklist at once."></textarea><div class="modal-actions"><button class="command-btn" id="massAddPreview">Preview</button><button class="command-btn gold" id="massAddConfirm" hidden>Add Selected</button></div><div class="result-list" id="massAddResults"></div></div>
+  <div class="modal-layer" id="addCollectionModal" hidden>
+    <div class="modal add-collection-modal">
+      <div class="modal-head"><div><span>Collection</span><h2>Add to Collection</h2></div><button class="icon-btn" data-close="addCollectionModal"><i data-icon="x"></i></button></div>
+      <div class="segmented add-collection-tabs">
+        <button type="button" data-add-tab="massAdd" class="active">Mass Add</button>
+        <button type="button" data-add-tab="scan">Scan Card</button>
+        <button type="button" data-add-tab="pack">Import Pack</button>
+      </div>
+
+      <div class="add-collection-panel active" data-add-panel="massAdd">
+        <p class="settings-hint">Type a card name or code and pick a match as you type — or paste a whole decklist / RiftAtlas deck code at once.</p>
+        <div class="mass-add-body">
+          <div class="mass-add-main">
+            <div class="mass-add-lines" id="massAddLines"></div>
+            <div class="mass-add-entry">
+              <input type="text" id="massAddEntryInput" autocomplete="off" spellcheck="false" placeholder="Card name or code… (try &quot;Blade x3&quot;)" />
+              <div class="mass-add-dropdown" id="massAddDropdown" hidden></div>
+            </div>
+            <div class="mass-add-errors" id="massAddErrors" hidden></div>
+          </div>
+          <aside class="mass-add-preview-panel" id="massAddPreviewPanel">
+            <div class="mass-add-preview-empty"><i data-icon="image"></i><span>Hover or click a line to preview it here.</span></div>
+          </aside>
+        </div>
+        <div class="modal-actions">
+          <span class="mass-add-summary" id="massAddSummary"></span>
+          <button class="command-btn gold" id="massAddConfirm" disabled>Add to Collection</button>
+        </div>
+      </div>
+
+      <div class="add-collection-panel" data-add-panel="scan" hidden>
+        <div class="add-collection-scan-intro">
+          <i data-icon="scan"></i>
+          <h3>Scan a Card</h3>
+          <p>Use your camera, a photo, or an uploaded image to identify a card and add it straight to your collection.</p>
+          <button type="button" class="command-btn gold" id="launchScanFromAdd">Open Scanner</button>
+        </div>
+      </div>
+
+      <div class="add-collection-panel" data-add-panel="pack" hidden>
+        <div class="pack-import-body">
+          <div class="pack-import-main">
+            <p class="pack-import-intro">Add every card from a preconstructed Champion Deck to your tracked collection — on top of whatever you already own.</p>
+            <div id="packImportList" class="pack-import-list"></div>
+            <div id="packImportResult"></div>
+          </div>
+          <aside class="pack-preview-panel" id="packPreviewPanel">
+            <div id="packPreviewHeader" class="pack-preview-header"></div>
+            <div id="packPreviewList" class="pack-preview-list"><div class="pack-preview-empty"><i data-icon="archive"></i><span>Click a pack to preview its cards here.</span></div></div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-layer" id="massAddVariantModal" hidden>
+    <div class="modal mass-add-variant-modal">
+      <div class="modal-head"><div><span>Choose Printing</span><h2 id="massAddVariantTitle"></h2></div><button class="icon-btn" data-close="massAddVariantModal"><i data-icon="x"></i></button></div>
+      <div class="mass-add-variant-grid" id="massAddVariantGrid"></div>
+      <div class="modal-actions">
+        <span class="mass-add-variant-progress" id="massAddVariantProgress"></span>
+        <button type="button" class="command-btn" id="massAddVariantSkip">Skip</button>
+      </div>
+    </div>
   </div>
 
   <div class="modal-layer" id="scanModal" hidden>
@@ -292,7 +352,6 @@
 
   <div class="modal-layer" id="deckModal" hidden><div class="modal legend-modal" id="legendPickerModal"><div class="modal-head"><div><span>Deck Builder</span><h2>Choose Your Legend</h2></div><button class="icon-btn" data-close="deckModal"><i data-icon="x"></i></button></div><div class="legend-picker-toolbar"><input id="legendSearch" placeholder="Search legends..." /><label class="legend-owned-toggle"><input type="checkbox" id="legendOwnedOnly" /><span>Owned Only</span></label></div><div class="legend-picker-body"><div class="legend-picker-grid" id="legendPickerGrid"></div><aside class="legend-detail-panel" id="legendDetailPanel"></aside></div></div></div>
 
-  <div class="modal-layer" id="packImportModal" hidden><div class="modal pack-import-modal"><div class="modal-head"><div><span>Collection</span><h2>Import a Premade Pack</h2></div><button class="icon-btn" data-close="packImportModal"><i data-icon="x"></i></button></div><div class="pack-import-body"><div class="pack-import-main"><p class="pack-import-intro">Add every card from a preconstructed Champion Deck to your tracked collection — on top of whatever you already own.</p><div id="packImportList" class="pack-import-list"></div><div id="packImportResult"></div></div><aside class="pack-preview-panel" id="packPreviewPanel"><div id="packPreviewHeader"></div><div id="packPreviewList" class="pack-preview-list"><div class="pack-preview-empty"><i data-icon="archive"></i><span>Click a pack to preview its cards here.</span></div></div></aside></div></div></div>
 
   <div class="modal-layer" id="importDeckModal" hidden><div class="modal"><div class="modal-head"><div><span>Deck Builder</span><h2>Import Deck</h2></div><button class="icon-btn" data-close="importDeckModal"><i data-icon="x"></i></button></div><div class="form-stack"><label>Deck name<input id="importDeckName" value="Imported Deck" /></label><label>Deck list<textarea id="importDeckContents" rows="12" placeholder="Paste a decklist — the format is detected automatically"></textarea></label></div><div class="modal-actions"><button type="button" class="command-btn gold" id="confirmImportDeck"><i data-icon="upload"></i>Import Deck</button></div><div id="importDeckResult"></div></div></div>
 

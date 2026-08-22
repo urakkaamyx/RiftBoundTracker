@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.28.6 — Mass Add rebuilt, plus a new "Add to Collection+" tabbed entry point
+
+- Rebuilt Mass Add end-to-end: live per-line search with a grid-style dropdown (`[CardID] Card Name`), hover-to-preview big on the right with click-to-lock, inline and big-preview quantity steppers, and a scrollable error log for anything that failed to resolve instead of it silently vanishing into a stack of toasts.
+- Fixed the real gap that prompted the rebuild: every network call in Mass Add — both the bulk-paste path and the final "Add to Collection" submit — is now its own try/catch, so one bad line or one failed card can no longer halt the rest of a batch.
+- Added a printing picker: pasting or searching a card name that matches more than one real printing (e.g. two "Riptide Rex" reprints) now offers a picker instead of just erroring out, and repeat occurrences of the same card later in a paste reuse the earlier choice automatically. The big preview panel also gained a printing-switch strip and a "Not Owned" ribbon matching the existing Legend picker's look.
+- Fixed duplicate entries silently failing to combine: adding a card already on the list now merges into that line's quantity instead of creating a second row, and reopening Mass Add after an accidental backdrop click or Escape no longer wipes an in-progress list.
+- Replaced the separate Mass Add / Scan Card / Import Pack toolbar buttons with a single "Add to Collection+" button that opens one tabbed modal for all three (Check Price stays separate, since it never touches your collection).
+- Fixed a real mobile layout bug: on narrow windows the new modal was capped at its desktop height and pinned to the bottom of the screen by the existing mobile bottom-sheet styling, leaving a large empty gap above it — it now fills the sheet the same way every other tall modal already does.
+
 ## v1.28.5 — Ask Rules: fixed the Brush/token fix actually applying to how you'd ask it
 
 - Fixed a real gap in the previous token-catalog fix (v1.28.3): it only worked when phrased as a question ("what is X", "how do I play X"). A bare mention with no question phrase at all — "Brush", "Token Brush Card", just typing the name — never triggered the lookup at all despite the answer existing. Ask Rules now recognizes a question that's nothing but a known card/token/keyword name (after stripping words like "token"/"card"/"the") as a definition lookup on its own.

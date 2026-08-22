@@ -78,7 +78,19 @@ const state = {
   updateStatus: null, updateFooterDismissed: false
 };
 const cardsById = new Map();
-let massEntries = [];
+// Mass Add state: each resolved line is { id, card, quantity }. massAddLockedId is the line whose
+// image stays pinned in the preview panel after a click; massAddHoverId is whichever line the
+// mouse is currently over, which takes priority over the lock while the mouse is there.
+let massAddLines = [];
+let massAddLineSeq = 0;
+let massAddLockedId = null;
+let massAddHoverId = null;
+let massAddSearchTimer = null;
+let massAddSearchSeq = 0;
+let massAddErrors = [];
+let massAddDropdownGroups = [];
+let massAddVariantQueue = [];
+let massAddVariantMemory = new Map();
 let catalogPoll = null;
 let saveDeckTimer = null;
 
@@ -301,6 +313,8 @@ function closeModal(id) {
   modal.hidden = true;
   if (id === "scanModal") stopLiveScan();
   if (id === "imageViewer") document.body.classList.remove("image-viewer-open");
+  if (id === "massAddVariantModal" && massAddVariantQueue.length) cancelMassAddVariantQueue();
+  if (id === "addCollectionModal") packImportLoaded = false; // refetch next open so owned counts stay current
 }
 
 function openFullscreenCardImage(cardId) {
@@ -1878,65 +1892,453 @@ function looksLikeDeckCode(text) {
   return /^[A-Za-z2-7]+$/.test(trimmed);
 }
 
-async function previewMassAdd() {
-  const root = document.getElementById("massAddResults");
-  const raw = document.getElementById("massAddInput").value;
-  massEntries = [];
-  root.innerHTML = "";
+// "Add to Collection+" — one modal, three tabs (Mass Add / Scan Card / Import Pack). Scan Card
+// hands off to the standalone scanModal instead of embedding the camera UI here, since that modal
+// is also reused by Check Price (see setScanMode) and its live-camera lifecycle isn't safe to
+// duplicate into a second DOM location.
+let packImportLoaded = false; // avoid refetching the pack list every time the tab is reselected
 
+function openAddCollectionModal(tab) {
+  showModal("addCollectionModal");
+  switchAddCollectionTab(tab || "massAdd");
+}
+
+function switchAddCollectionTab(tab) {
+  document.querySelectorAll("#addCollectionModal .add-collection-tabs [data-add-tab]").forEach(button =>
+    button.classList.toggle("active", button.dataset.addTab === tab));
+  document.querySelectorAll("#addCollectionModal .add-collection-panel").forEach(panel => {
+    const isActive = panel.dataset.addPanel === tab;
+    panel.classList.toggle("active", isActive);
+    panel.hidden = !isActive;
+  });
+  // Reopening after an accidental backdrop click / Escape shouldn't wipe an in-progress list —
+  // only start fresh if there's nothing left over from before.
+  if (tab === "massAdd" && !massAddLines.length) resetMassAdd();
+  if (tab === "pack" && !packImportLoaded) {
+    packImportLoaded = true;
+    openPackImportModal().catch(err => toast(err.message, true));
+  }
+}
+
+// Mass Add — a growing list of resolved "pill" lines, built either by picking a live search
+// result one at a time or by pasting a whole decklist/deck code at once (same parsers as before).
+// Hovering a pill previews it big on the right; clicking pins that preview until another pill is
+// clicked. Every network call in here is its own try/catch specifically so one bad line (an
+// unmatched card, a transient fetch failure) can never silently stop the rest of a batch the way
+// the previous single unguarded loop could.
+
+function resetMassAdd() {
+  massAddLines = [];
+  massAddLockedId = null;
+  massAddHoverId = null;
+  massAddErrors = [];
+  massAddDropdownGroups = [];
+  massAddVariantQueue = [];
+  massAddVariantMemory.clear();
+  clearTimeout(massAddSearchTimer);
+  massAddSearchSeq++;
+  const input = document.getElementById("massAddEntryInput");
+  if (input) input.value = "";
+  const dropdown = document.getElementById("massAddDropdown");
+  if (dropdown) { dropdown.hidden = true; dropdown.innerHTML = ""; }
+  renderMassAddLines();
+  renderMassAddPreview();
+  updateMassAddSummary();
+  renderMassAddErrors();
+}
+
+// Toasts fade after a few seconds, which loses the picture on a big paste with several bad lines —
+// every per-line failure also lands here so the full error list stays visible in the modal.
+function logMassAddError(message) {
+  massAddErrors.push(message);
+  renderMassAddErrors();
+}
+
+function renderMassAddErrors() {
+  const box = document.getElementById("massAddErrors");
+  if (!box) return;
+  if (!massAddErrors.length) {
+    box.hidden = true;
+    box.innerHTML = "";
+    return;
+  }
+  box.hidden = false;
+  box.innerHTML = `
+    <div class="mass-add-errors-head">
+      <span>${massAddErrors.length} error${massAddErrors.length === 1 ? "" : "s"}</span>
+      <button type="button" id="massAddErrorsClear">Clear</button>
+    </div>
+    <div class="mass-add-errors-list">${massAddErrors.map(msg => `<div class="mass-add-errors-row">${escapeHtml(msg)}</div>`).join("")}</div>`;
+}
+
+function updateMassAddSummary() {
+  const count = massAddLines.length;
+  const total = massAddLines.reduce((sum, line) => sum + line.quantity, 0);
+  document.getElementById("massAddSummary").textContent = count
+    ? `${count} card${count === 1 ? "" : "s"}, ${total} cop${total === 1 ? "y" : "ies"}`
+    : "";
+  document.getElementById("massAddConfirm").disabled = count === 0;
+}
+
+function renderMassAddLines() {
+  const root = document.getElementById("massAddLines");
+  if (!massAddLines.length) {
+    root.innerHTML = `<div class="mass-add-lines-empty">No cards added yet — start typing below, or paste a decklist / deck code.</div>`;
+    return;
+  }
+  root.innerHTML = massAddLines.map(line => `
+    <div class="mass-add-line${line.id === massAddLockedId ? " locked" : ""}" data-mass-line="${escapeHtml(line.id)}">
+      <img src="${escapeHtml(cardImage(line.card))}" alt="" loading="lazy" />
+      <span class="mass-add-line-id">[${escapeHtml(line.card.setId)}-${escapeHtml(cardCode(line.card))}]</span>
+      <span class="mass-add-line-name">${escapeHtml(line.card.name)}</span>
+      <div class="mini-stepper">
+        <button type="button" data-mass-qty-delta="-1" data-mass-line-target="${escapeHtml(line.id)}" aria-label="Decrease quantity">-</button>
+        <span>${line.quantity}</span>
+        <button type="button" data-mass-qty-delta="1" data-mass-line-target="${escapeHtml(line.id)}" aria-label="Increase quantity">+</button>
+      </div>
+      <button type="button" class="mass-add-line-remove" data-mass-remove="${escapeHtml(line.id)}" aria-label="Remove line">${icon("x")}</button>
+    </div>`).join("");
+  renderIcons(root);
+}
+
+function renderMassAddPreview() {
+  const panel = document.getElementById("massAddPreviewPanel");
+  const activeId = massAddHoverId ?? massAddLockedId;
+  const line = massAddLines.find(l => l.id === activeId);
+  if (!line) {
+    panel.innerHTML = `<div class="mass-add-preview-empty"><i data-icon="image"></i><span>Hover or click a line to preview it here.</span></div>`;
+    renderIcons(panel);
+    return;
+  }
+  const variants = line.variants && line.variants.length > 1 ? line.variants : null;
+  panel.innerHTML = `
+    <div class="mass-add-preview-card">
+      <div class="mass-add-preview-heading">
+        <span class="mass-add-preview-heading-add">Add ${line.quantity} to Collection</span>
+        <span class="mass-add-preview-heading-owned">${line.card.ownedCount} in Vault</span>
+      </div>
+      ${variants ? `<div class="legend-variation-strip">${variants.map(v => `
+        <button type="button" class="legend-variation-seg${v.id === line.card.id ? " active" : ""}" data-mass-variant-target="${escapeHtml(line.id)}" data-mass-variant="${escapeHtml(v.id)}" title="${escapeHtml(v.name)}">
+          <img src="${escapeHtml(cardImage(v))}" alt="" />
+          <span>${escapeHtml(legendVariantLabel(v, variants))}</span>
+        </button>`).join("")}</div>` : ""}
+      <div class="mass-add-preview-art">
+        <img src="${escapeHtml(cardImage(line.card))}" alt="${escapeHtml(line.card.name)}" />
+        ${line.card.ownedCount > 0 ? `<span class="legend-owned-badge" title="Already own ${line.card.ownedCount}">${icon("check")}</span>` : `<span class="legend-not-owned-banner">Not Owned</span>`}
+      </div>
+      <div class="mass-add-preview-name"><b>${escapeHtml(line.card.name)}</b><span>${escapeHtml(line.card.setId)}-${escapeHtml(cardCode(line.card))}</span></div>
+      ${line.id === massAddLockedId ? `<span class="mass-add-preview-lock">${icon("check")} Locked</span>` : ""}
+      <div class="mass-add-preview-qty">
+        <label>Quantity</label>
+        <div class="mini-stepper">
+          <button type="button" data-mass-qty-delta="-1" data-mass-line-target="${escapeHtml(line.id)}" aria-label="Decrease quantity">-</button>
+          <span>${line.quantity}</span>
+          <button type="button" data-mass-qty-delta="1" data-mass-line-target="${escapeHtml(line.id)}" aria-label="Increase quantity">+</button>
+        </div>
+      </div>
+    </div>`;
+  renderIcons(panel);
+}
+
+function setMassAddQuantity(lineId, delta) {
+  const line = massAddLines.find(l => l.id === lineId);
+  if (!line) return;
+  line.quantity = Math.max(1, Math.min(99, line.quantity + delta));
+  renderMassAddLines();
+  renderMassAddPreview();
+  updateMassAddSummary();
+}
+
+function removeMassAddLine(lineId) {
+  massAddLines = massAddLines.filter(l => l.id !== lineId);
+  if (massAddLockedId === lineId) massAddLockedId = null;
+  if (massAddHoverId === lineId) massAddHoverId = null;
+  renderMassAddLines();
+  renderMassAddPreview();
+  updateMassAddSummary();
+}
+
+// `variants` is the full sibling-printing list a card was picked from (e.g. both "Riptide Rex"
+// reprints) — kept on the line so the big preview can offer the same BASE/alt-printing strip the
+// Legend picker uses, letting a mis-picked printing be corrected after the fact without redoing
+// the whole entry.
+function addMassAddLine(card, quantity, variants) {
+  const qty = quantity && quantity > 0 ? Math.min(99, quantity) : 1;
+  const siblingSet = variants && variants.length > 1 ? variants : null;
+  const existing = massAddLines.find(l => l.card.id === card.id);
+  if (existing) {
+    existing.quantity = Math.min(99, existing.quantity + qty);
+    if (siblingSet) existing.variants = siblingSet;
+    massAddLockedId = existing.id;
+  } else {
+    const line = { id: `m${++massAddLineSeq}`, card, quantity: qty, variants: siblingSet };
+    massAddLines.push(line);
+    massAddLockedId = line.id;
+  }
+  renderMassAddLines();
+  renderMassAddPreview();
+  updateMassAddSummary();
+}
+
+function switchMassAddLineVariant(lineId, variantId) {
+  const line = massAddLines.find(l => l.id === lineId);
+  if (!line || !line.variants) return;
+  const variant = line.variants.find(v => v.id === variantId);
+  if (!variant || variant.id === line.card.id) return;
+  line.card = variant;
+  renderMassAddLines();
+  renderMassAddPreview();
+}
+
+// Splits a trailing " x3" style quantity off the live-typed search text, so "Blade Fervor x3"
+// both searches for "Blade Fervor" and applies quantity 3 to whatever gets picked.
+function parseMassAddEntryText(raw) {
+  const text = (raw || "").trim();
+  const qtyMatch = /\s+[xX](\d{1,2})\s*$/.exec(text);
+  return qtyMatch
+    ? { searchText: text.slice(0, qtyMatch.index).trim(), quantity: Math.max(1, Number(qtyMatch[1])) }
+    : { searchText: text, quantity: null };
+}
+
+function scheduleMassAddSearch() {
+  clearTimeout(massAddSearchTimer);
+  massAddSearchTimer = setTimeout(runMassAddSearch, 160);
+}
+
+async function runMassAddSearch() {
+  const input = document.getElementById("massAddEntryInput");
+  const dropdown = document.getElementById("massAddDropdown");
+  const { searchText } = parseMassAddEntryText(input.value);
+  if (searchText.length < 2) {
+    dropdown.hidden = true;
+    dropdown.innerHTML = "";
+    return;
+  }
+  const seq = ++massAddSearchSeq;
+  let cards;
+  try {
+    cards = await api(`/api/cards?${queryString({ search: searchText, sort: "name-asc" })}`);
+  } catch (err) {
+    if (seq !== massAddSearchSeq) return; // a newer keystroke already superseded this search
+    dropdown.hidden = false;
+    dropdown.innerHTML = `<div class="mass-add-dropdown-empty">${escapeHtml(err.message)}</div>`;
+    return;
+  }
+  if (seq !== massAddSearchSeq) return;
+  registerCards(cards);
+  // Group same-name reprints into one tile — picking a grouped tile opens the printing picker
+  // instead of listing every variant as its own separate row.
+  renderMassAddDropdown(groupLegendVariants(cards).slice(0, 24));
+}
+
+function renderMassAddDropdown(groups) {
+  const dropdown = document.getElementById("massAddDropdown");
+  dropdown.hidden = false;
+  massAddDropdownGroups = groups;
+  if (!groups.length) {
+    dropdown.innerHTML = `<div class="mass-add-dropdown-empty">No matching cards</div>`;
+    return;
+  }
+  dropdown.innerHTML = `<div class="mass-add-dropdown-grid">${groups.map((group, index) => {
+    const card = group.variants[0];
+    return `
+    <button type="button" class="mass-add-dropdown-item" data-mass-pick-group="${index}">
+      <img src="${escapeHtml(cardImage(card))}" alt="" loading="lazy" />
+      <span class="mass-add-dropdown-item-text"><span class="mass-add-dropdown-item-id">[${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))}]</span><span class="mass-add-dropdown-item-name">${escapeHtml(group.baseName)}</span></span>
+      ${group.variants.length > 1 ? `<span class="mass-add-dropdown-item-count">${group.variants.length}</span>` : ""}
+    </button>`;
+  }).join("")}</div>`;
+}
+
+function selectMassAddGroup(index) {
+  const group = massAddDropdownGroups[index];
+  if (!group) return;
+  const input = document.getElementById("massAddEntryInput");
+  const { quantity } = parseMassAddEntryText(input.value);
+  const qty = quantity && quantity > 0 ? quantity : 1;
+  input.value = "";
+  clearTimeout(massAddSearchTimer);
+  massAddSearchSeq++; // discard any in-flight search response for the text that was just replaced
+  const dropdown = document.getElementById("massAddDropdown");
+  dropdown.hidden = true;
+  dropdown.innerHTML = "";
+  massAddDropdownGroups = [];
+  if (group.variants.length === 1) {
+    addMassAddLine(group.variants[0], qty);
+  } else {
+    queueMassAddVariantChoice(group, qty);
+    flushMassAddVariantQueue();
+  }
+  input.focus();
+}
+
+// A same-name group with more than one real printing (e.g. two "Riptide Rex" reprints) can't be
+// auto-resolved — queued here so the printing-picker popup can ask once per distinct base name.
+// Repeat occurrences of a base name already answered this session reuse that answer silently,
+// so a paste with the same ambiguous card on several lines only prompts once.
+function queueMassAddVariantChoice(group, quantity) {
+  const remembered = massAddVariantMemory.get(group.baseName);
+  if (remembered) {
+    const variant = group.variants.find(v => v.id === remembered);
+    if (variant) { addMassAddLine(variant, quantity, group.variants); return; }
+  }
+  massAddVariantQueue.push({ group, quantity });
+}
+
+function flushMassAddVariantQueue() {
+  const modal = document.getElementById("massAddVariantModal");
+  if (massAddVariantQueue.length && modal.hidden) showNextMassAddVariantPrompt();
+}
+
+function showNextMassAddVariantPrompt() {
+  const next = massAddVariantQueue[0];
+  if (!next) { closeModal("massAddVariantModal"); return; }
+  const { group, quantity } = next;
+  document.getElementById("massAddVariantTitle").textContent = `${group.baseName} ×${quantity}`;
+  document.getElementById("massAddVariantProgress").textContent =
+    massAddVariantQueue.length > 1 ? `${massAddVariantQueue.length} left to resolve` : "";
+  const grid = document.getElementById("massAddVariantGrid");
+  grid.innerHTML = group.variants.map(v => `
+    <button type="button" class="mass-add-variant-tile" data-variant-pick="${escapeHtml(v.id)}">
+      <img src="${escapeHtml(cardImage(v))}" alt="" />
+      <span>${escapeHtml(legendVariantLabel(v, group.variants))}</span>
+      ${v.ownedCount > 0 ? `<em>${icon("check")} own ${v.ownedCount}</em>` : ""}
+    </button>`).join("");
+  renderIcons(grid);
+  showModal("massAddVariantModal");
+}
+
+function resolveMassAddVariantPrompt(variantId) {
+  const next = massAddVariantQueue.shift();
+  if (!next) return;
+  if (variantId) {
+    const variant = next.group.variants.find(v => v.id === variantId);
+    if (variant) {
+      massAddVariantMemory.set(next.group.baseName, variantId);
+      addMassAddLine(variant, next.quantity, next.group.variants);
+    }
+  } else {
+    logMassAddError(`${next.group.baseName} ×${next.quantity} skipped — add it manually below`);
+  }
+  if (massAddVariantQueue.length) showNextMassAddVariantPrompt();
+  else closeModal("massAddVariantModal");
+}
+
+function cancelMassAddVariantQueue() {
+  massAddVariantQueue.forEach(item => logMassAddError(`${item.group.baseName} ×${item.quantity} skipped — add it manually below`));
+  massAddVariantQueue = [];
+}
+
+// Pasting a whole decklist or a RiftAtlas deck code resolves every line in one go, the same way
+// the old single big textarea did — reusing the exact same parsers (parseCardEntry/looksLikeDeckCode)
+// so every previously-supported paste format still works here.
+async function bulkAddMassAddText(raw) {
   if (looksLikeDeckCode(raw)) {
     let decoded;
     try {
       decoded = await api("/api/decks/decode-code", jsonOptions("POST", { contents: raw.trim() }));
     } catch (err) {
-      root.innerHTML = `<div class="result-row error">${escapeHtml(err.message)}</div>`;
-      document.getElementById("massAddConfirm").hidden = true;
+      toast(err.message, true);
       return;
     }
     for (const entry of decoded.entries) {
       const label = `${entry.setId}-${entry.code}`;
-      const cards = await api(`/api/cards/lookup?${queryString({ setId: entry.setId, code: entry.code })}`);
-      registerCards(cards);
-      if (!cards.length) massEntries.push({ raw: label, error: "No match" });
-      else cards.forEach(card => massEntries.push({ raw: label, card, quantity: entry.quantity, selected: cards.length === 1 }));
+      try {
+        const cards = await api(`/api/cards/lookup?${queryString({ setId: entry.setId, code: entry.code })}`);
+        registerCards(cards);
+        if (!cards.length) logMassAddError(`No match: ${label}`);
+        else if (cards.length > 1) logMassAddError(`${label} is ambiguous — add it manually below`);
+        else addMassAddLine(cards[0], entry.quantity);
+      } catch (err) {
+        logMassAddError(`${label}: ${err.message}`);
+      }
     }
-  } else {
-    // Newline-only, not comma-separated — a comma split broke on real card names that contain
-    // their own comma (e.g. "Kennen, Keeper of Balance"), cutting a valid pasted-decklist line in
-    // half. Matches DeckService.cs's own import parser, which never split on commas either.
-    const lines = raw.split(/[\r\n]+/).map(value => value.trim()).filter(Boolean);
-    for (const line of lines) {
-      // RiftKeep deck exports mark section boundaries with "# main" / "# sideboard" comment lines —
-      // meaningless here (Mass Add only tracks owned counts, not deck sections), so skip them
-      // instead of reporting "Could not parse" for a perfectly valid pasted line.
-      if (line.startsWith("#")) continue;
-      const quantityMatch = /\s+[xX](\d+)\s*$/.exec(line);
-      const trailingQuantity = quantityMatch ? Math.max(1, Number(quantityMatch[1])) : null;
-      const parsed = parseCardEntry(quantityMatch ? line.slice(0, quantityMatch.index) : line);
-      if (!parsed) { massEntries.push({ raw: line, error: "Could not parse" }); continue; }
-      const quantity = trailingQuantity ?? parsed.quantity ?? 1;
-      const cards = await api(`/api/cards/lookup?${queryString({ setId: parsed.setId, code: parsed.code })}`);
+    return;
+  }
+  // Newline-only, not comma-separated — a comma split broke on real card names that contain their
+  // own comma (e.g. "Kennen, Keeper of Balance"). Matches DeckService.cs's own import parser.
+  const lines = raw.split(/[\r\n]+/).map(value => value.trim()).filter(Boolean);
+  for (const line of lines) {
+    // RiftKeep deck exports mark section boundaries with "# main" / "# sideboard" comment lines —
+    // meaningless here (Mass Add only tracks owned counts, not deck sections).
+    if (line.startsWith("#")) continue;
+    const quantityMatch = /\s+[xX](\d+)\s*$/.exec(line);
+    const trailingQuantity = quantityMatch ? Math.max(1, Number(quantityMatch[1])) : null;
+    const entryText = quantityMatch ? line.slice(0, quantityMatch.index).trim() : line;
+    const parsed = parseCardEntry(entryText);
+    const quantity = trailingQuantity ?? parsed?.quantity ?? 1;
+    try {
+      let cards;
+      let ambiguous = false;
+      if (parsed) {
+        cards = await api(`/api/cards/lookup?${queryString({ setId: parsed.setId, code: parsed.code })}`);
+      } else {
+        // Not code-shaped — fall back to a name search (same endpoint the live dropdown uses), so
+        // pasted decklists of plain card names ("Blade Fervor x3") resolve just like typed entries.
+        cards = await api(`/api/cards?${queryString({ search: entryText, sort: "name-asc" })}`);
+        const exact = cards.filter(c => c.name.toLowerCase() === entryText.toLowerCase());
+        if (exact.length === 1) cards = exact;
+        else if (cards.length > 1) ambiguous = true;
+      }
       registerCards(cards);
-      if (!cards.length) massEntries.push({ raw: line, error: "No match" });
-      else cards.forEach(card => massEntries.push({ raw: line, card, quantity, selected: cards.length === 1 }));
+      if (!cards.length) {
+        logMassAddError(`No match: ${line}`);
+      } else if (ambiguous || cards.length > 1) {
+        // Multiple hits for a plain name are usually just reprints of the one card sharing an
+        // identical name (e.g. two "Riptide Rex" printings) — group them, and only fall back to a
+        // hard error if the search actually matched genuinely different cards.
+        const groups = groupLegendVariants(cards);
+        if (groups.length === 1) queueMassAddVariantChoice(groups[0], quantity);
+        else logMassAddError(`${line} is ambiguous — add it manually below`);
+      } else {
+        addMassAddLine(cards[0], quantity);
+      }
+    } catch (err) {
+      logMassAddError(`${line}: ${err.message}`);
     }
   }
+  flushMassAddVariantQueue();
+}
 
-  root.innerHTML = massEntries.map((entry, index) => entry.error
-    ? `<div class="result-row error">${escapeHtml(entry.raw)}: ${escapeHtml(entry.error)}</div>`
-    : `<label class="result-row result-check"><img src="${escapeHtml(cardImage(entry.card))}" alt="" /><div><strong>${escapeHtml(entry.card.name)}</strong><span>${escapeHtml(entry.card.setId)}-${escapeHtml(cardCode(entry.card))} / +${entry.quantity}</span></div><input type="checkbox" data-mass-index="${index}" ${entry.selected ? "checked" : ""} /></label>`).join("");
-  document.getElementById("massAddConfirm").hidden = !massEntries.some(entry => !entry.error);
+function handleMassAddPaste(event) {
+  const text = event.clipboardData?.getData("text") || "";
+  if (!text.includes("\n") && !looksLikeDeckCode(text)) return; // a single card/code — let normal typing-search handle it
+  event.preventDefault();
+  bulkAddMassAddText(text);
 }
 
 async function confirmMassAdd() {
-  document.querySelectorAll("[data-mass-index]").forEach(input => { massEntries[Number(input.dataset.massIndex)].selected = input.checked; });
-  const selected = massEntries.filter(entry => entry.selected && !entry.error);
-  for (const entry of selected) {
-    await api(`/api/collection/${encodeURIComponent(entry.card.id)}`, jsonOptions("POST", { owned: entry.card.ownedCount + entry.quantity }));
+  const button = document.getElementById("massAddConfirm");
+  button.disabled = true;
+  const lines = [...massAddLines];
+  const failedLineIds = new Set();
+  let succeeded = 0;
+  for (const line of lines) {
+    try {
+      await api(`/api/collection/${encodeURIComponent(line.card.id)}`, jsonOptions("POST", { owned: line.card.ownedCount + line.quantity }));
+      succeeded++;
+    } catch (err) {
+      failedLineIds.add(line.id);
+      logMassAddError(`${line.card.name}: ${err.message}`);
+    }
   }
-  closeModal("massAddModal");
-  toast(`${selected.length} card entr${selected.length === 1 ? "y" : "ies"} added`);
-  await refreshAfterCollectionChange();
+  if (failedLineIds.size) {
+    // Only the lines that actually failed stay in the list — nothing succeeded is left behind to
+    // be re-submitted, and nothing failed is silently lost. The modal stays open so it's visible.
+    massAddLines = massAddLines.filter(line => failedLineIds.has(line.id));
+    if (massAddLockedId && !failedLineIds.has(massAddLockedId)) massAddLockedId = null;
+    if (massAddHoverId && !failedLineIds.has(massAddHoverId)) massAddHoverId = null;
+    renderMassAddLines();
+    renderMassAddPreview();
+    updateMassAddSummary();
+    toast(`${succeeded} added, ${failedLineIds.size} failed`, true);
+  } else {
+    resetMassAdd(); // fully submitted — clear so a later reopen starts fresh instead of resubmitting
+    closeModal("addCollectionModal");
+    toast(`${succeeded} card${succeeded === 1 ? "" : "s"} added`);
+  }
+  button.disabled = massAddLines.length === 0;
+  if (succeeded) await refreshAfterCollectionChange();
 }
 
 async function openConnection() {
@@ -2371,7 +2773,6 @@ async function importDeck() {
 }
 
 async function openPackImportModal() {
-  showModal("packImportModal");
   document.getElementById("packImportResult").innerHTML = "";
   resetPackPreview();
   const listEl = document.getElementById("packImportList");
@@ -3450,8 +3851,17 @@ function wireEvents() {
     refreshExportPreview();
   }));
   document.getElementById("confirmExportBtn")?.addEventListener("click", () => exportActiveDeck(state.exportFormat));
-  document.getElementById("openMassAdd").addEventListener("click", () => showModal("massAddModal"));
-  document.getElementById("openPackImport").addEventListener("click", () => openPackImportModal().catch(err => toast(err.message, true)));
+  document.getElementById("openAddCollection").addEventListener("click", () => openAddCollectionModal("massAdd"));
+  document.querySelector("#addCollectionModal .add-collection-tabs").addEventListener("click", event => {
+    const tab = event.target.closest("[data-add-tab]");
+    if (tab) switchAddCollectionTab(tab.dataset.addTab);
+  });
+  document.getElementById("launchScanFromAdd").addEventListener("click", () => {
+    closeModal("addCollectionModal");
+    setScanMode("add");
+    resetScanner();
+    showModal("scanModal");
+  });
   document.getElementById("packImportList").addEventListener("click", event => {
     const row = event.target.closest("[data-pack-key]");
     if (row) previewPack(row).catch(err => toast(err.message, true));
@@ -3460,8 +3870,61 @@ function wireEvents() {
     if (event.target.closest("#confirmImportPackBtn")) confirmImportPack().catch(err => toast(err.message, true));
     if (event.target.closest("#confirmRemovePackBtn")) confirmRemovePack().catch(err => toast(err.message, true));
   });
-  document.getElementById("massAddPreview").addEventListener("click", previewMassAdd);
-  document.getElementById("massAddConfirm").addEventListener("click", confirmMassAdd);
+  document.getElementById("massAddConfirm").addEventListener("click", () => confirmMassAdd().catch(err => toast(err.message, true)));
+
+  const massAddEntryInput = document.getElementById("massAddEntryInput");
+  massAddEntryInput.addEventListener("input", scheduleMassAddSearch);
+  massAddEntryInput.addEventListener("paste", handleMassAddPaste);
+  massAddEntryInput.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      document.getElementById("massAddDropdown").hidden = true;
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      const firstPick = document.querySelector("#massAddDropdown [data-mass-pick-group]");
+      if (firstPick) selectMassAddGroup(Number(firstPick.dataset.massPickGroup));
+    }
+  });
+  document.getElementById("massAddDropdown").addEventListener("click", event => {
+    const pick = event.target.closest("[data-mass-pick-group]");
+    if (pick) selectMassAddGroup(Number(pick.dataset.massPickGroup));
+  });
+  document.getElementById("massAddLines").addEventListener("click", event => {
+    const remove = event.target.closest("[data-mass-remove]");
+    if (remove) { removeMassAddLine(remove.dataset.massRemove); return; }
+    const qty = event.target.closest("[data-mass-qty-delta]");
+    if (qty) { setMassAddQuantity(qty.dataset.massLineTarget, Number(qty.dataset.massQtyDelta)); return; }
+    const line = event.target.closest("[data-mass-line]");
+    if (line) { massAddLockedId = line.dataset.massLine; renderMassAddLines(); renderMassAddPreview(); }
+  });
+  document.getElementById("massAddLines").addEventListener("mouseover", event => {
+    const line = event.target.closest("[data-mass-line]");
+    const id = line?.dataset.massLine ?? null;
+    if (id === massAddHoverId) return;
+    massAddHoverId = id;
+    renderMassAddPreview();
+  });
+  document.getElementById("massAddLines").addEventListener("mouseleave", () => {
+    if (massAddHoverId === null) return;
+    massAddHoverId = null;
+    renderMassAddPreview();
+  });
+  document.getElementById("massAddPreviewPanel").addEventListener("click", event => {
+    const qty = event.target.closest("[data-mass-qty-delta]");
+    if (qty) { setMassAddQuantity(qty.dataset.massLineTarget, Number(qty.dataset.massQtyDelta)); return; }
+    const variant = event.target.closest("[data-mass-variant]");
+    if (variant) switchMassAddLineVariant(variant.dataset.massVariantTarget, variant.dataset.massVariant);
+  });
+  document.getElementById("massAddErrors").addEventListener("click", event => {
+    if (event.target.closest("#massAddErrorsClear")) { massAddErrors = []; renderMassAddErrors(); }
+  });
+  document.getElementById("massAddVariantGrid").addEventListener("click", event => {
+    const pick = event.target.closest("[data-variant-pick]");
+    if (pick) resolveMassAddVariantPrompt(pick.dataset.variantPick);
+  });
+  document.getElementById("massAddVariantSkip").addEventListener("click", () => resolveMassAddVariantPrompt(null));
+  document.addEventListener("click", event => {
+    if (!event.target.closest(".mass-add-entry")) document.getElementById("massAddDropdown").hidden = true;
+  });
   document.getElementById("openConnection").addEventListener("click", openConnection);
   document.getElementById("updateIndicator").addEventListener("click", () => navigate("settings"));
   document.getElementById("refreshCatalogBtn").addEventListener("click", refreshCatalog);
@@ -3548,7 +4011,6 @@ function wireEvents() {
   document.getElementById("updateFooterPatchNotes").addEventListener("click", openPatchNotes);
   document.getElementById("updateFooterDismiss").addEventListener("click", dismissUpdateFooter);
   document.querySelectorAll("#themeControl button").forEach(button => button.addEventListener("click", () => setTheme(button.dataset.themeValue)));
-  document.getElementById("openScan").addEventListener("click", () => { setScanMode("add"); resetScanner(); showModal("scanModal"); });
   document.getElementById("openCheckPrice").addEventListener("click", () => { setScanMode("price"); resetScanner(); showModal("scanModal"); });
   document.getElementById("closeScan").addEventListener("click", () => closeModal("scanModal"));
   document.querySelectorAll("[data-scan-tab]").forEach(button => button.addEventListener("click", () => {

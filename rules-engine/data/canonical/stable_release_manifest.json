@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "product": {
     "name": "RiftKeep Rules Engine",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "releaseLine": "stable"
   },
   "compatibility": {
@@ -74,7 +74,7 @@
   "certifiedReleaseSuiteCount": 19,
   "artifactHashes": {
     "pyproject.toml": {
-      "sha256": "62529f41a184b23bfbb6960b3d3315a4302c7bf23167608f3716a3c620b57bda",
+      "sha256": "8c71fe9a0424c01896143afcd8cdebaefcc83658b2509b52a01a06d038cf9580",
       "bytes": 289
     },
     "src/riftkeep_rules/__init__.py": {
@@ -82,7 +82,7 @@
       "bytes": 142
     },
     "src/riftkeep_rules/release_identity.py": {
-      "sha256": "ba6d9b17d9b7adb0ddaba7825e12991eddc5638800d988b6c719c8b8f227d0ab",
+      "sha256": "ddfb8e7d5f53b4f9de72fa957bf4a3fc0910f453a58938aaf82a4ae828d0a1f0",
       "bytes": 7151
     },
     "src/riftkeep_rules/product_api.py": {
@@ -178,7 +178,7 @@
       "bytes": 649
     },
     "data/canonical/stable_release_contract.json": {
-      "sha256": "ca882803c3368c2ce3f59c7f3cf0003fcfc524c6b7c4b3106421784d2ce9a6f7",
+      "sha256": "95695da43f8741e5a57b3ef444b614e189096e88c0231ec82326e5bc769ee91f",
       "bytes": 1963
     },
     "data/canonical/release_candidate_audit_contract.json": {

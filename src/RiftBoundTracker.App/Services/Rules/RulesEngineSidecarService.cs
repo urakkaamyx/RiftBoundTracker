@@ -40,7 +40,7 @@ public sealed class RulesEngineSidecarService(
 {
     private const string Owner = "urakkaamyx";
     private const string Repo = "RiftBoundTracker";
-    private const string ReleaseTag = "rules-engine-v1.0.2";
+    private const string ReleaseTag = "rules-engine-v1.0.3";
     private const int Port = 8765;
 
     public static readonly Uri BaseAddress = new($"http://127.0.0.1:{Port}/");

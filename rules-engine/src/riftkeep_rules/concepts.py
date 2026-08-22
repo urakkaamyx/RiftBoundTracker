@@ -3,7 +3,23 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from .compiler import is_concept_title
+from .compiler import is_concept_title, TOKEN_DEFINITION_RE
+
+
+def _ruleid_sort_key(rule_id: str) -> tuple:
+    """Order key for rule IDs that may be plain ("706") or dotted ("187.1") - concept ruleIds were
+    previously always plain (only depth==1 title rules qualified), but Rule 187's token catalog
+    concepts are dotted, and a bare int() cast can't parse those."""
+    parts: list[tuple[int, Any]] = []
+    for p in re.split(r"[.]", rule_id or ""):
+        m = re.match(r"^(\d+)([a-z]*)$", p, flags=re.I)
+        if m:
+            parts.append((0, int(m.group(1))))
+            parts.append((1, m.group(2) or ""))
+        else:
+            parts.append((2, p))
+    return tuple(parts)
+
 
 DEFINITION_PATTERNS = [
     re.compile(r"\bwhat does\b.*\bmean\b", re.I),
@@ -19,7 +35,7 @@ def _normalize_direct_definition_target(text: str) -> str:
     target = (text or "").strip().replace("’", "'")
     target = re.sub(r"^[\[\(\{\"']+|[\]\)\}\"']+$", "", target).strip()
     target = re.sub(r"^the\s+", "", target, flags=re.I)
-    target = re.sub(r"\s+(?:keyword|game action|rule|ability)$", "", target, flags=re.I).strip()
+    target = re.sub(r"\s+(?:keyword|game action|rule|ability|cards?|tokens?)$", "", target, flags=re.I).strip()
     # Parameterized keywords such as Shield 2 still ask for the Shield definition.
     target = re.sub(r"\s+\d+$", "", target).strip()
     return re.sub(r"\s+", " ", target).casefold()
@@ -42,13 +58,40 @@ def _is_exact_do_definition(question: str, concepts: list[dict[str, Any]] | None
     return False
 
 
+def _is_exact_how_to_play_definition(question: str, concepts: list[dict[str, Any]] | None) -> bool:
+    if not concepts:
+        return False
+    m = re.match(r"^\s*how\s+(?:do|can|would)\s+(?:i|you)\s+play\s+(.+?)\s*[?.!]*\s*$", question or "", flags=re.I)
+    if not m:
+        m = re.match(r"^\s*how\s+to\s+play\s+(.+?)\s*[?.!]*\s*$", question or "", flags=re.I)
+    if not m:
+        return False
+    target = _normalize_direct_definition_target(m.group(1))
+    if not target:
+        return False
+    for concept in concepts:
+        names = [concept.get("name", ""), *concept.get("aliases", [])]
+        for name in names:
+            if _normalize_direct_definition_target(str(name)) == target:
+                return True
+    return False
+
+
 def is_definition_intent(question: str, concepts: list[dict[str, Any]] | None = None) -> bool:
     if any(p.search(question or "") for p in DEFINITION_PATTERNS):
         return True
     # Player phrasing such as "What does Tank do?" is a definition lookup only
     # when the entire subject is an explicitly matched rules concept. This avoids
     # hijacking scenario questions such as "What does my unit do after I play it?".
-    return _is_exact_do_definition(question, concepts)
+    if _is_exact_do_definition(question, concepts):
+        return True
+    # Similarly, "How do I play the Brush Battlefield card?" only becomes a definition
+    # lookup when its entire subject is an explicit concept - most things named this way
+    # aren't cards you play at all (e.g. Rule 187's tokens, created by other effects rather
+    # than played from hand), so the honest answer is what it actually is, not a decline.
+    # Ordinary gameplay questions like "How do I play a unit to a battlefield I control?"
+    # never exactly match a concept name/alias, so they fall through untouched.
+    return _is_exact_how_to_play_definition(question, concepts)
 
 
 def find_concepts(question: str, semantic_ir: dict[str, Any], max_matches: int = 8) -> list[dict[str, Any]]:
@@ -65,7 +108,7 @@ def find_concepts(question: str, semantic_ir: dict[str, Any], max_matches: int =
                 break
         if hit:
             matches.append({**c, "matchedAlias": hit})
-    matches.sort(key=lambda c: (-len(c["matchedAlias"]), int(c["ruleId"])))
+    matches.sort(key=lambda c: (-len(c["matchedAlias"]), _ruleid_sort_key(c["ruleId"])))
     # Avoid major-section umbrella concepts when a more specific concept is explicitly matched.
     specific = [m for m in matches if m["category"] not in {"major_section", "keyword_section"}]
     return (specific or matches)[:max_matches]
@@ -81,6 +124,14 @@ def concept_rule_bundle(core: dict[str, Any], concept: dict[str, Any], max_rules
     for i in range(start, len(rules)):
         r = rules[i]
         if i > start and r.get("depth") == 1 and is_concept_title(r):
+            break
+        # Rule 187's token catalog is unlike Mighty-style families (706 "Mighty" is a bare title
+        # whose definition legitimately spans untitled sibling rules 707-711, stopped only by the
+        # next real title at 712): each token type is itself a complete, self-contained definition
+        # in one sentence, immediately followed by an unrelated sibling token's definition rather
+        # than a continuation. Reaching another one mid-walk means the current concept's bundle is
+        # already complete.
+        if i > start and TOKEN_DEFINITION_RE.match(r.get("normativeText") or ""):
             break
         rows.append(r)
         if len(rows) >= max_rules:

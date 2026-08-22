@@ -9,6 +9,46 @@ from .rule_compiler import parse_conditions, parse_modalities, classify_effect_t
 
 TITLE_RE = re.compile(r"^[A-Z][A-Za-z0-9'’\- ]{1,79}$")
 
+# Rule 187 (Tokens) is structured unlike every other title-then-definition family this compiler
+# otherwise handles (e.g. 810 "Ganking" / 810.1 "Ganking is..."): each token type is a single flat
+# numbered rule whose own text both names and fully defines it in one sentence
+# ("A Brush battlefield token is a domainless battlefield token with..."), so is_concept_title's
+# short-title heuristic can never match it. Extracted separately rather than loosening that
+# heuristic, which would risk false-positive concepts elsewhere in the corpus.
+TOKEN_DEFINITION_RE = re.compile(
+    r"^(?:A|The)\s+(?:\d+\s*\[M\]\s+)?(?P<name>[A-Z][A-Za-z' ]*?)\s+token(?:\s+with\s+\w+)?\s+is a domainless\s+(?P<kind>\w+)\s+token\b"
+)
+
+
+def _token_catalog_concepts(core: dict[str, Any]) -> list[dict[str, Any]]:
+    concepts: list[dict[str, Any]] = []
+    for r in core["rules"]:
+        if r.get("parentRuleId") != "187":
+            continue
+        text = (r.get("normativeText") or "").strip()
+        m = TOKEN_DEFINITION_RE.match(text)
+        if not m:
+            continue
+        name = m.group("name").strip()
+        kind = m.group("kind").strip().lower()
+        aliases = {name.lower()}
+        # "Brush battlefield" -> also answer to "Brush"; "Gold gear" -> also "Gold". Only strip the
+        # trailing type word when it's actually present, so plain names like "Recruit" are untouched.
+        if name.lower().endswith(" " + kind):
+            aliases.add(name[: -(len(kind) + 1)].strip().lower())
+        concepts.append(
+            {
+                "conceptId": f"concept:{r['ruleId']}",
+                "name": name,
+                "ruleId": r["ruleId"],
+                "category": "rule_concept",
+                "aliases": sorted(aliases),
+                "majorSectionRuleId": r.get("majorSectionRuleId"),
+                "majorSectionTitle": r.get("majorSectionTitle"),
+            }
+        )
+    return concepts
+
 
 def is_concept_title(rule: dict[str, Any]) -> bool:
     if rule.get("depth") != 1:
@@ -63,6 +103,7 @@ def build_concept_catalog(core: dict[str, Any]) -> dict[str, Any]:
                 "majorSectionTitle": r.get("majorSectionTitle"),
             }
         )
+    concepts.extend(_token_catalog_concepts(core))
     return {"count": len(concepts), "concepts": concepts}
 
 

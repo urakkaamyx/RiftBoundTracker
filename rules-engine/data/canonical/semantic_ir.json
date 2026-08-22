@@ -1,12 +1,12 @@
 {
   "metadata": {
-    "conceptCount": 155,
+    "conceptCount": 166,
     "ruleIrCount": 2381,
     "executableRuleCount": 0,
     "policy": "Semantic parsing is conservative. Textual condition decomposition is not treated as executable logic until separately compiled and tested."
   },
   "conceptCatalog": {
-    "count": 155,
+    "count": 166,
     "concepts": [
       {
         "conceptId": "concept:000",
@@ -1868,6 +1868,130 @@
         ],
         "majorSectionRuleId": "800",
         "majorSectionTitle": "Keywords"
+      },
+      {
+        "conceptId": "concept:187.1",
+        "name": "Recruit",
+        "ruleId": "187.1",
+        "category": "rule_concept",
+        "aliases": [
+          "recruit"
+        ],
+        "majorSectionRuleId": "179",
+        "majorSectionTitle": "Tokens"
+      },
+      {
+        "conceptId": "concept:187.2",
+        "name": "Sprite",
+        "ruleId": "187.2",
+        "category": "rule_concept",
+        "aliases": [
+          "sprite"
+        ],
+        "majorSectionRuleId": "179",
+        "majorSectionTitle": "Tokens"
+      },
+      {
+        "conceptId": "concept:187.3",
+        "name": "Sand Soldier",
+        "ruleId": "187.3",
+        "category": "rule_concept",
+        "aliases": [
+          "sand soldier"
+        ],
+        "majorSectionRuleId": "179",
+        "majorSectionTitle": "Tokens"
+      },
+      {
+        "conceptId": "concept:187.4",
+        "name": "Mech",
+        "ruleId": "187.4",
+        "category": "rule_concept",
+        "aliases": [
+          "mech"
+        ],
+        "majorSectionRuleId": "179",
+        "majorSectionTitle": "Tokens"
+      },
+      {
+        "conceptId": "concept:187.5",
+        "name": "Gold gear",
+        "ruleId": "187.5",
+        "category": "rule_concept",
+        "aliases": [
+          "gold",
+          "gold gear"
+        ],
+        "majorSectionRuleId": "179",
+        "majorSectionTitle": "Tokens"
+      },
+      {
+        "conceptId": "concept:187.6",
+        "name": "Reflection",
+        "ruleId": "187.6",
+        "category": "rule_concept",
+        "aliases": [
+          "reflection"
+        ],
+        "majorSectionRuleId": "179",
+        "majorSectionTitle": "Tokens"
+      },
+      {
+        "conceptId": "concept:187.7",
+        "name": "Bird",
+        "ruleId": "187.7",
+        "category": "rule_concept",
+        "aliases": [
+          "bird"
+        ],
+        "majorSectionRuleId": "179",
+        "majorSectionTitle": "Tokens"
+      },
+      {
+        "conceptId": "concept:187.8",
+        "name": "Brush battlefield",
+        "ruleId": "187.8",
+        "category": "rule_concept",
+        "aliases": [
+          "brush",
+          "brush battlefield"
+        ],
+        "majorSectionRuleId": "179",
+        "majorSectionTitle": "Tokens"
+      },
+      {
+        "conceptId": "concept:187.9",
+        "name": "Baron Pit battlefield",
+        "ruleId": "187.9",
+        "category": "rule_concept",
+        "aliases": [
+          "baron pit",
+          "baron pit battlefield"
+        ],
+        "majorSectionRuleId": "179",
+        "majorSectionTitle": "Tokens"
+      },
+      {
+        "conceptId": "concept:187.10",
+        "name": "Tentacle",
+        "ruleId": "187.10",
+        "category": "rule_concept",
+        "aliases": [
+          "tentacle"
+        ],
+        "majorSectionRuleId": "179",
+        "majorSectionTitle": "Tokens"
+      },
+      {
+        "conceptId": "concept:187.11",
+        "name": "Shadow Clone",
+        "ruleId": "187.11",
+        "category": "rule_concept",
+        "aliases": [
+          "shadow clone"
+        ],
+        "majorSectionRuleId": "179",
+        "majorSectionTitle": "Tokens"
       }
     ]
   },
@@ -13067,7 +13191,9 @@
       "dependencies": [],
       "executable": false,
       "note": "Textual semantic IR only; conditions are not executable unless a deterministic Rule Program explicitly supports them.",
-      "mentionedConceptIds": []
+      "mentionedConceptIds": [
+        "concept:187.1"
+      ]
     },
     {
       "ruleId": "187.2",
@@ -13086,7 +13212,8 @@
       "executable": false,
       "note": "Textual semantic IR only; conditions are not executable unless a deterministic Rule Program explicitly supports them.",
       "mentionedConceptIds": [
-        "concept:816"
+        "concept:816",
+        "concept:187.2"
       ]
     },
     {
@@ -13103,7 +13230,9 @@
       "dependencies": [],
       "executable": false,
       "note": "Textual semantic IR only; conditions are not executable unless a deterministic Rule Program explicitly supports them.",
-      "mentionedConceptIds": []
+      "mentionedConceptIds": [
+        "concept:187.3"
+      ]
     },
     {
       "ruleId": "187.4",
@@ -13119,7 +13248,9 @@
       "dependencies": [],
       "executable": false,
       "note": "Textual semantic IR only; conditions are not executable unless a deterministic Rule Program explicitly supports them.",
-      "mentionedConceptIds": []
+      "mentionedConceptIds": [
+        "concept:187.4"
+      ]
     },
     {
       "ruleId": "187.5",
@@ -13138,6 +13269,7 @@
       "executable": false,
       "note": "Textual semantic IR only; conditions are not executable unless a deterministic Rule Program explicitly supports them.",
       "mentionedConceptIds": [
+        "concept:187.5",
         "concept:813",
         "concept:147",
         "concept:428",
@@ -13158,7 +13290,9 @@
       "dependencies": [],
       "executable": false,
       "note": "Textual semantic IR only; conditions are not executable unless a deterministic Rule Program explicitly supports them.",
-      "mentionedConceptIds": []
+      "mentionedConceptIds": [
+        "concept:187.6"
+      ]
     },
     {
       "ruleId": "187.7",
@@ -13177,7 +13311,8 @@
       "executable": false,
       "note": "Textual semantic IR only; conditions are not executable unless a deterministic Rule Program explicitly supports them.",
       "mentionedConceptIds": [
-        "concept:809"
+        "concept:809",
+        "concept:187.7"
       ]
     },
     {
@@ -13203,8 +13338,10 @@
       "executable": false,
       "note": "Textual semantic IR only; conditions are not executable unless a deterministic Rule Program explicitly supports them.",
       "mentionedConceptIds": [
+        "concept:187.8",
         "concept:438",
-        "concept:140"
+        "concept:140",
+        "concept:187.7"
       ]
     },
     {
@@ -13230,6 +13367,7 @@
       "executable": false,
       "note": "Textual semantic IR only; conditions are not executable unless a deterministic Rule Program explicitly supports them.",
       "mentionedConceptIds": [
+        "concept:187.9",
         "concept:140",
         "concept:420"
       ]
@@ -13248,7 +13386,9 @@
       "dependencies": [],
       "executable": false,
       "note": "Textual semantic IR only; conditions are not executable unless a deterministic Rule Program explicitly supports them.",
-      "mentionedConceptIds": []
+      "mentionedConceptIds": [
+        "concept:187.10"
+      ]
     },
     {
       "ruleId": "187.11",
@@ -13280,6 +13420,7 @@
       "executable": false,
       "note": "Textual semantic IR only; conditions are not executable unless a deterministic Rule Program explicitly supports them.",
       "mentionedConceptIds": [
+        "concept:187.11",
         "concept:807",
         "concept:427"
       ]
@@ -49971,7 +50112,11 @@
       "dependencies": [],
       "executable": false,
       "note": "Textual semantic IR only; conditions are not executable unless a deterministic Rule Program explicitly supports them.",
-      "mentionedConceptIds": []
+      "mentionedConceptIds": [
+        "concept:187.1",
+        "concept:187.4",
+        "concept:187.7"
+      ]
     },
     {
       "ruleId": "764",

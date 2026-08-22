@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.28.3 — Ask Rules: token cards like Brush Battlefield now have real answers
+
+- Added definition-lookup coverage for every token type in Rule 187's catalog — Brush battlefield, Baron Pit battlefield, Recruit, Sprite, Sand Soldier, Mech, Gold gear, Reflection, Bird, Tentacle, and Shadow Clone. These are created by other cards' effects rather than played from your deck, and Ask Rules previously had no way to answer questions about any of them (e.g. "How do I play the Brush Battlefield card?" just declined, or a looser phrasing accidentally matched the generic Battlefield rules instead). Now correctly answers with the actual rule text for whichever token was asked about.
+- "How do I play X?" / "How to play X?" is now recognized as a definition-lookup question when X is exactly one of these token names — since most things asked about this way aren't cards you play at all. Ordinary gameplay questions like "How do I play a unit to a battlefield I control?" are unaffected.
+
 ## v1.28.2 — Ask Rules engine now actually updates itself
 
 - Fixed the real cause behind "I have no way to update the Rules Engine": once an engine version was installed, nothing ever checked whether it was still the version the app expected, so it kept running forever even after a newer one shipped — the update mechanism silently never fired. Ask Rules now checks the installed engine's version against what this app build expects, and automatically fetches and swaps in the right one (cleanly stopping the old one first) the next time you use Ask Rules — no manual reinstall needed. Verified end-to-end: an old install with no version marker was correctly detected as stale, swapped for the current engine, and answered correctly right after.

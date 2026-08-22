@@ -1,11 +1,11 @@
 {
   "passed": true,
-  "checkCount": 120,
+  "checkCount": 131,
   "failureCount": 0,
   "metrics": {
     "keywordCount": 25,
     "gameActionCount": 32,
-    "ruleConceptCount": 52,
+    "ruleConceptCount": 63,
     "naturalDoPhraseCoverage": true,
     "singularPluralAliasCoverage": true,
     "proofVerifiedDefinitions": true,

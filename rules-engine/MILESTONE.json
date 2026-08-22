@@ -263,7 +263,7 @@
     "naturalDoPhrase": true,
     "keywordCount": 25,
     "gameActionCount": 32,
-    "ruleConceptCount": 52,
+    "ruleConceptCount": 63,
     "definitionLookupChecks": 120,
     "proofVerifiedDefinitionEvidence": true,
     "conservativeScenarioGuard": true,
@@ -288,13 +288,13 @@
   },
   "product": {
     "name": "RiftKeep Rules Engine",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "releaseLine": "stable",
     "productApi": "v1"
   },
   "stableRelease": {
     "schemaVersion": 1,
-    "productVersion": "1.0.2",
+    "productVersion": "1.0.3",
     "releaseLine": "stable",
     "productApiVersion": "v1",
     "criticalArtifactCount": 44,

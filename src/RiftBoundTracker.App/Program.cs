@@ -624,6 +624,14 @@ internal static class Program
         app.MapGet("/api/rules/cards/{cardId}", async (string cardId, RulesService rules, CancellationToken ct) =>
             Results.Ok(await rules.GetCardRulesAsync(cardId, ct)));
 
+        // The bulk browse list — see RulesService.GetErrataListAsync for why this reads the
+        // sidecar's own canonical data file rather than calling its API (which has no bulk-list
+        // route). Keywords and Legality don't have an equivalent bulk source yet, so those two
+        // routes stay unimplemented — the frontend already shows a clear "Could not load" message
+        // rather than a raw failure when a Rules Browser route 404s.
+        app.MapGet("/api/rules/errata", async (RulesService rules, CancellationToken ct) =>
+            Results.Ok(await rules.GetErrataListAsync(ct)));
+
         // Backs the Ask Rules "Why?" citation popup — a thin passthrough to the sidecar's own
         // rule lookup, not a database query, so it stays correct without needing the same
         // ID-scheme migration the rest of Rules Browser is waiting on.

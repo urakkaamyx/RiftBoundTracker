@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.28.14 — Rules Browser's Errata list is back
+
+- Fixed a real gap left over since the rules-engine swap in v1.28.0: `/api/rules/keywords`, `/api/rules/errata`, and `/api/rules/legality` were never re-implemented on the new engine at all (documented at the time as "temporarily degraded," which never got a follow-up) — so the Rules Browser's Errata, Keywords, and Legality tabs were 404ing on every load.
+- Errata is properly fixed: 63 real official errata entries, read from the rules engine's own canonical data (same file it already ships with — no new download), with 44 automatically matched to a real card in your catalog for a working detail link.
+- Keywords and Legality don't have an equivalent bulk-list source in the engine yet (only single-item and search lookups exist there) — those two still show a clear "Could not load" message rather than a broken page, and are real follow-up work rather than something rushed through tonight.
+
 ## v1.28.13 — Only "orphan" tokens get their own tab — the rest still belong to their set
 
 - The tokens that came through the normal riftcodex sync with real official set data (the three Recruits, Sprite, and Gold // Buff) were wrongly swept into the same "keep out of All Cards" treatment as the 12 hand-added orphan tokens (Brush, Baron Pit, etc., which have no real set data anywhere). Split the two apart with a new flag: only the 12 true orphans stay in their own Tokens tab and out of set/collection stats — the 5 with real set data are back to behaving like any other card in their set, contributing to All Cards, that set's completion %, and everything else, the same as before tokens existed as a separate concept in this app at all.

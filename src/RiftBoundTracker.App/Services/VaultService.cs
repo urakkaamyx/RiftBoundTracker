@@ -11,7 +11,7 @@ public record ValuableCardDto(CardEntity Card, double UnitPrice, double Collecti
 public record ConfirmTradeAllResult(int ConfirmedCards, int ConfirmedCopies);
 public record VaultOverviewDto(
     int TotalCards, int OwnedCards, int OwnedCopies, int MissingCards, int FavoriteCards,
-    int BinderCards, int BinderCopies, int Decks, int ReadyDecks, bool HasPricing,
+    int TokenCards, int BinderCards, int BinderCopies, int Decks, int ReadyDecks, bool HasPricing,
     double CollectionValue, double BinderValue, List<SetProgressDto> Sets,
     List<DistributionDto> Rarities, List<DistributionDto> Domains,
     List<ValuableCardDto> MostValuable, List<DeckSummaryDto> DeckReadiness);
@@ -88,7 +88,12 @@ public sealed class VaultService(
 
     public async Task<VaultOverviewDto> GetOverviewAsync(CancellationToken ct = default)
     {
-        var cards = await db.Cards.AsNoTracking().ToListAsync(ct);
+        // Token cards (Brush, Baron Pit, etc.) get their own Vault tab and are deliberately kept
+        // out of every stat below — mixed in, they'd distort each set's completion %, the rarity/
+        // domain distributions, and the collection-value total, none of which "collecting tokens"
+        // meaningfully applies to the same way it does a real print.
+        var cards = await db.Cards.AsNoTracking().Where(c => c.Supertype != "Token").ToListAsync(ct);
+        var tokenCount = await db.Cards.CountAsync(c => c.Supertype == "Token", ct);
         var latestPrices = await prices.GetLatestAsync(ct);
         var deckSummaries = await decks.GetAllAsync(ct);
 
@@ -136,6 +141,7 @@ public sealed class VaultService(
             cards.Sum(c => c.OwnedCount),
             cards.Count(c => c.OwnedCount == 0),
             cards.Count(c => c.IsFavorite),
+            tokenCount,
             cards.Count(c => c.BinderCount > 0),
             cards.Sum(c => c.BinderCount),
             deckSummaries.Count,

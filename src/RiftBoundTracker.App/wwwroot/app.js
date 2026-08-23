@@ -584,6 +584,7 @@ async function loadOverview() {
   document.getElementById("tabOwnedCount").textContent = overview.ownedCards;
   document.getElementById("tabMissingCount").textContent = overview.missingCards;
   document.getElementById("tabFavoriteCount").textContent = overview.favoriteCards;
+  document.getElementById("tabTokenCount").textContent = overview.tokenCards;
 }
 
 async function loadPrices() {
@@ -3846,6 +3847,13 @@ function wireEvents() {
     state.setId = button.dataset.setId || null; renderSetNavigation(); navigate("vault");
   });
   document.querySelectorAll(".vault-tab").forEach(button => button.addEventListener("click", () => {
+    // Token cards use their own rarity/type/domain values (Battlefield/Gear/Marker, Colorless)
+    // that don't overlap with a normal card's — a filter left over from browsing regular cards
+    // would just produce an empty, confusing result the moment either tab is entered or left.
+    if (button.dataset.owned === "tokens" || state.owned === "tokens") {
+      state.rarity = state.type = state.domain = "";
+      document.getElementById("rarityFilter").value = document.getElementById("typeFilter").value = document.getElementById("domainFilter").value = "";
+    }
     state.owned = button.dataset.owned;
     document.querySelectorAll(".vault-tab").forEach(item => item.classList.toggle("active", item === button));
     saveNavState();

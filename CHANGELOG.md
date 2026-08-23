@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.28.9 — Token cards moved to their own Vault tab
+
+- Token cards no longer clutter the main All Cards / Owned / Missing grid — added a 5th Vault tab ("Tokens") so they're still fully searchable, ownable, and trackable, just kept separate from normal browsing. An explicit search (Mass Add, the Vault's own search box, etc.) still finds a token by name even from the regular tabs — only plain, unsearched browsing excludes them.
+- Fixed token cards silently distorting collection stats: each set's completion %, the rarity/domain distribution charts, and total collection value were quietly counting tokens as if they were normal owned/missing prints. They're now excluded from every one of those calculations, with their own dedicated count instead.
+
 ## v1.28.8 — Added the missing token cards (Brush, Baron Pit, Mech, and 9 others)
 
 - Riftbound's token cards are real printed cards, but riftcodex.com (the only data source cards are synced from) only carries the ones that happen to share their base set's normal numeric collector numbering — 4 tokens (3 Recruits + Sprite in Origins) were already tracked correctly; everything else uses special "T01"-style collector codes riftcodex's own API doesn't expose at all, confirmed by querying it directly. Added the 12 missing ones by hand: Mech, Sand Soldier (Spiritforged), Baron Pit, Bird, Brush, Buff, Gold, Reflection, XP Tracker (Unleashed), Empowered, Shadow Clone, Tentacle (Vendetta) — real card text pulled verbatim from the compiled rules engine's own Rule 187, not paraphrased.

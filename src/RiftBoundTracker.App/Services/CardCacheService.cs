@@ -151,10 +151,23 @@ public partial class CardCacheService(
             query = query.Where(c => c.Name.ToLower().Contains(search) || c.Id.ToLower().Contains(search)
                 || c.CollectorNumber.ToString().Contains(search) || c.CollectorCode.ToLower().Contains(search));
         }
-        if (q.Owned == "owned")
-            query = query.Where(c => c.OwnedCount > 0);
-        else if (q.Owned == "missing")
-            query = query.Where(c => c.OwnedCount == 0);
+        if (q.Owned == "tokens")
+        {
+            query = query.Where(c => c.Supertype == "Token");
+        }
+        else
+        {
+            // Token cards (Brush, Baron Pit, etc.) have their own Vault tab so they don't clutter
+            // the normal browsing grid — but an explicit search (Mass Add, the scanner's exact
+            // set+code lookup, or a Vault search for a token by name) should still be able to find
+            // them, so the exclusion only applies to a plain, unsearched browse.
+            if (string.IsNullOrWhiteSpace(q.Search))
+                query = query.Where(c => c.Supertype != "Token");
+            if (q.Owned == "owned")
+                query = query.Where(c => c.OwnedCount > 0);
+            else if (q.Owned == "missing")
+                query = query.Where(c => c.OwnedCount == 0);
+        }
 
         query = q.Sort switch
         {

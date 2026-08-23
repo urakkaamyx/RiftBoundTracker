@@ -4106,8 +4106,11 @@ function wireEvents() {
   document.getElementById("rulesResults").addEventListener("click", event => {
     const button = event.target.closest("[data-result-id]");
     if (!button) return;
-    const id = Number(button.dataset.resultId);
     const kind = button.dataset.resultKind;
+    // Rule/keyword results use legacy numeric IDs; errata/legality use string IDs (e.g.
+    // "origins-errata:006") — coercing those through Number() turned every one into NaN, so a
+    // click always missed on the find(e => e.id === id) lookup and silently did nothing.
+    const id = kind === "rule" || kind === "keyword" ? Number(button.dataset.resultId) : button.dataset.resultId;
     if (kind === "rule") selectRuleResult(id);
     else if (kind === "keyword") selectKeywordResult(id);
     else if (kind === "errata") selectErrataResult(id);

@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.15 — Fixed Errata (and any string-ID) result rows never being clickable
+
+- Found the real cause behind Errata entries not responding to clicks: the shared result-list click handler ran every result ID through `Number(...)` before looking it up — correct for the legacy numeric rule/keyword IDs, but errata uses string IDs like "origins-errata:006", which `Number()` turns into `NaN`. Every click matched nothing and silently did nothing. Fixed to only coerce IDs for the kinds that actually use numeric ones.
+
 ## v1.28.14 — Rules Browser's Errata list is back
 
 - Fixed a real gap left over since the rules-engine swap in v1.28.0: `/api/rules/keywords`, `/api/rules/errata`, and `/api/rules/legality` were never re-implemented on the new engine at all (documented at the time as "temporarily degraded," which never got a follow-up) — so the Rules Browser's Errata, Keywords, and Legality tabs were 404ing on every load.

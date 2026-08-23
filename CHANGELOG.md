@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.28.10 — Token card artwork upgraded, and a wrong card code fixed
+
+- Switched token card images from the League wiki (bot-walled, needed a browser-relay workaround, only had art for 9 of 12) to static.dotgg.gg — riftbound.gg's own card image CDN, directly reachable with a plain request. All 12 token cards now have real artwork, up from 9.
+- Fixed a wrong collector code: Tentacle was seeded as VEN-T06 based on the wiki, which doesn't actually exist (confirmed — that code 404s). The real card is VEN-T03. The bad row is removed and replaced automatically on next launch, no action needed.
+
 ## v1.28.9 — Token cards moved to their own Vault tab
 
 - Token cards no longer clutter the main All Cards / Owned / Missing grid — added a 5th Vault tab ("Tokens") so they're still fully searchable, ownable, and trackable, just kept separate from normal browsing. An explicit search (Mass Add, the Vault's own search box, etc.) still finds a token by name even from the regular tabs — only plain, unsearched browsing excludes them.

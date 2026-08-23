@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.28.8 — Added the missing token cards (Brush, Baron Pit, Mech, and 9 others)
+
+- Riftbound's token cards are real printed cards, but riftcodex.com (the only data source cards are synced from) only carries the ones that happen to share their base set's normal numeric collector numbering — 4 tokens (3 Recruits + Sprite in Origins) were already tracked correctly; everything else uses special "T01"-style collector codes riftcodex's own API doesn't expose at all, confirmed by querying it directly. Added the 12 missing ones by hand: Mech, Sand Soldier (Spiritforged), Baron Pit, Bird, Brush, Buff, Gold, Reflection, XP Tracker (Unleashed), Empowered, Shadow Clone, Tentacle (Vendetta) — real card text pulled verbatim from the compiled rules engine's own Rule 187, not paraphrased.
+- Found and fixed a real bug in the browser-relay fetch path while sourcing these cards' artwork: the existing binary-fetch helper read image responses as text and re-encoded them as UTF-8, which silently corrupts arbitrary binary data — every fetched image was coming back empty. Added a proper base64-safe binary fetch path; 9 of the 12 tokens now have their real card art (the remaining 3 have no image on record anywhere, so they're left honestly blank rather than faked).
+- Verified end-to-end rather than just inserted: Mass Add's search, Single Add's exact set+code lookup, and owning a copy all round-trip correctly against the new cards. The Scanner's OCR code parser and deck export already handled letter-prefixed collector codes like "T03" by design — no changes needed there. The regular card sync only ever adds/updates by Id and never deletes what it doesn't recognize, so these entries are safe from being wiped by a future sync.
+
 ## v1.28.7 — Report a Bug: files a real GitHub Issue, plus a real logging system
 
 - Added a "Report a Bug" button (bottom of the sidebar) that opens a form and files a real GitHub Issue directly — title, description, app version, OS, and a recent trace of what the app was doing, all attached automatically.

@@ -183,6 +183,100 @@ public sealed class BrowserRelayClient(IWebHostEnvironment env, ILogger<BrowserR
         }).Task.Unwrap();
     }
 
+    /// <summary>
+    /// Fetches a binary payload (an image) from an arbitrary origin — deliberately separate from
+    /// <see cref="FetchBytesAsync"/> in two ways. First, that method reads the response as text and
+    /// UTF-8 re-encodes it, which is lossy for arbitrary bytes and silently corrupts anything
+    /// binary; this reads the response as a blob and base64-encodes it in JS instead, which
+    /// round-trips through the string-only WebMessage bridge intact. Second, that method reuses a
+    /// page already loaded on <see cref="BaseSiteUrl"/> (riftcodex.com) so its fetches are
+    /// same-origin API calls; a `fetch()` to a *different* origin's images from that page would be
+    /// cross-origin and get CORS-blocked regardless of engine, so this always navigates to the
+    /// target image's own origin first (no `_baseSiteLoaded` caching — this is a rare, one-time
+    /// seeding path, not a hot one).
+    /// </summary>
+    public async Task<byte[]?> FetchImageBytesAsync(string url, CancellationToken ct = default)
+    {
+        await EnsureStartedAsync();
+        await _ready.Task;
+        if (_failed || _dispatcher is null || _webView is null) return null;
+
+        var origin = new Uri(url).GetLeftPart(UriPartial.Authority) + "/";
+
+        return await _dispatcher.InvokeAsync(async () =>
+        {
+            var core = _webView!.CoreWebView2;
+
+            var navTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            void NavHandler(object? s, CoreWebView2NavigationCompletedEventArgs e) => navTcs.TrySetResult(e.IsSuccess);
+            core.NavigationCompleted += NavHandler;
+            bool loaded;
+            try
+            {
+                using var reg = ct.Register(() => navTcs.TrySetCanceled(ct));
+                core.Navigate(origin);
+                loaded = await navTcs.Task.WaitAsync(TimeSpan.FromSeconds(20), ct);
+            }
+            catch (TimeoutException)
+            {
+                logger.LogWarning("Browser relay timed out loading {Url}", origin);
+                return null;
+            }
+            finally
+            {
+                core.NavigationCompleted -= NavHandler;
+            }
+            if (!loaded)
+            {
+                logger.LogWarning("Browser relay couldn't load {Url}", origin);
+                return null;
+            }
+            _baseSiteLoaded = false; // this instance now sits on a foreign origin — force FetchBytesAsync to renavigate to riftcodex.com next time
+
+            var msgTcs = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            void MessageHandler(object? s, CoreWebView2WebMessageReceivedEventArgs e)
+                => msgTcs.TrySetResult(e.TryGetWebMessageAsString());
+            core.WebMessageReceived += MessageHandler;
+
+            try
+            {
+                var jsUrl = System.Text.Json.JsonSerializer.Serialize(url);
+                var script = $$"""
+                    fetch({{jsUrl}})
+                        .then(r => r.blob())
+                        .then(b => new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result.split(',')[1]);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(b);
+                        }))
+                        .then(b64 => window.chrome.webview.postMessage(b64))
+                        .catch(e => window.chrome.webview.postMessage('FETCH_ERROR: ' + String(e)));
+                    """;
+                await core.ExecuteScriptAsync(script);
+
+                using var reg = ct.Register(() => msgTcs.TrySetCanceled(ct));
+                var base64 = await msgTcs.Task.WaitAsync(TimeSpan.FromSeconds(20), ct);
+
+                if (base64 is null || base64.StartsWith("FETCH_ERROR:"))
+                {
+                    logger.LogWarning("Browser relay image fetch of {Url} failed: {Text}", url, base64);
+                    return null;
+                }
+                return Convert.FromBase64String(base64);
+            }
+            catch (TimeoutException)
+            {
+                logger.LogWarning("Browser relay timed out fetching image {Url}", url);
+                return null;
+            }
+            finally
+            {
+                core.WebMessageReceived -= MessageHandler;
+            }
+        }).Task.Unwrap();
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_dispatcher is null) return;

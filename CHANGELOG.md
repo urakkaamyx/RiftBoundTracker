@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.19 — Collection export (RiftKeep) line order changed to qty/name/id
+
+- `{qty} {SetId}-{Code} {Name}` → `{qty} {Name} {SetId}-{Code}` for the RiftKeep collection export specifically — decks keep the old order since their import parser depends on the code coming right after the quantity.
+
 ## v1.28.18 — Export your entire collection (RiftKeep or RiftAtlas format)
 
 - Added "Export Collection" to Settings — every card you own as a plain text file, in either RiftKeep's own format (grouped by set) or RiftAtlas's flat decklist format, reusing the same export UI and formats decks already export in. Orphan token cards are excluded, same as every other collection stat.

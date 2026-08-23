@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.20 — Collection export line format: qty, name, (id)
+
+- `{qty} {Name} {SetId}-{Code}` → `{qty} {Name} ({SetId}-{Code})` for the RiftKeep collection export — matches riftbound.gg's expected format.
+
 ## v1.28.19 — Collection export (RiftKeep) line order changed to qty/name/id
 
 - `{qty} {SetId}-{Code} {Name}` → `{qty} {Name} {SetId}-{Code}` for the RiftKeep collection export specifically — decks keep the old order since their import parser depends on the code coming right after the quantity.

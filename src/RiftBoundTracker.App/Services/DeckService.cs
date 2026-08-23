@@ -379,7 +379,7 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
             text.AppendLine();
             text.AppendLine($"# {group.Key.SetLabel}");
             foreach (var card in group.OrderBy(c => c.CollectorNumber).ThenBy(c => c.CollectorCode))
-                text.AppendLine($"{card.OwnedCount} {card.Name} {card.SetId}-{CardCode(card)}");
+                text.AppendLine($"{card.OwnedCount} {card.Name} ({card.SetId}-{CardCode(card)})");
         }
         return text.ToString();
     }

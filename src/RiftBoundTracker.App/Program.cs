@@ -594,6 +594,9 @@ internal static class Program
                 : Results.Text(contents, "text/plain", System.Text.Encoding.UTF8);
         });
 
+        app.MapGet("/api/collection/export", async (string? format, DeckService decks, CancellationToken ct) =>
+            Results.Text(await decks.ExportCollectionAsync(format, ct), "text/plain", System.Text.Encoding.UTF8));
+
         app.MapGet("/api/decks/{id:int}/recommendations", async (
             int id, string legendCardId, CommunityRecommendationService recommendations, CancellationToken ct) =>
             Results.Ok(await recommendations.GetRecommendationsAsync(id, legendCardId, ct)));

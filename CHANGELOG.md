@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.18 — Export your entire collection (RiftKeep or RiftAtlas format)
+
+- Added "Export Collection" to Settings — every card you own as a plain text file, in either RiftKeep's own format (grouped by set) or RiftAtlas's flat decklist format, reusing the same export UI and formats decks already export in. Orphan token cards are excluded, same as every other collection stat.
+
 ## v1.28.17 — Import Pack notification now shows real copy counts
 
 - "Import Pack" only ever reported the number of *unique* cards added (e.g. "24 cards added"), never how many physical copies that actually meant — a 25-card deck with several 3-ofs was really adding 56 copies to your collection, silently. The notification (and Remove Pack's) now shows both: "25 unique cards (56 copies)."

@@ -351,6 +351,47 @@ public partial class DeckService(AppDbContext db, CardCacheService cache)
             : ExportRiftKeep(detail);
     }
 
+    // Whole-collection export — distinct from a single deck's export above (no deck sections to
+    // group by, so RiftKeep groups by set instead and RiftAtlas is just one flat list). Excludes
+    // orphan token cards (Brush, Baron Pit, etc.) the same way every other collection stat does —
+    // they don't have set data of their own, and "export what I've collected" doesn't meaningfully
+    // include them; tokens with real set data (Recruit, Sprite, etc.) are included like any card.
+    public async Task<string> ExportCollectionAsync(string? format, CancellationToken ct = default)
+    {
+        var owned = await db.Cards.AsNoTracking()
+            .Where(c => c.OwnedCount > 0 && !c.IsSyntheticToken)
+            .ToListAsync(ct);
+
+        return string.Equals(format, "riftatlas", StringComparison.OrdinalIgnoreCase)
+            ? ExportCollectionRiftAtlas(owned)
+            : ExportCollectionRiftKeep(owned);
+    }
+
+    private static string ExportCollectionRiftKeep(List<CardEntity> owned)
+    {
+        var text = new StringBuilder();
+        text.AppendLine("# My Collection");
+        text.AppendLine($"# Exported {DateTimeOffset.UtcNow:yyyy-MM-dd}");
+        text.AppendLine($"# {owned.Count} unique cards, {owned.Sum(c => c.OwnedCount)} copies");
+
+        foreach (var group in owned.GroupBy(c => new { c.SetId, c.SetLabel }).OrderBy(g => g.Key.SetId))
+        {
+            text.AppendLine();
+            text.AppendLine($"# {group.Key.SetLabel}");
+            foreach (var card in group.OrderBy(c => c.CollectorNumber).ThenBy(c => c.CollectorCode))
+                text.AppendLine($"{card.OwnedCount} {card.SetId}-{CardCode(card)} {card.Name}");
+        }
+        return text.ToString();
+    }
+
+    private static string ExportCollectionRiftAtlas(List<CardEntity> owned)
+    {
+        var text = new StringBuilder();
+        foreach (var card in owned.OrderBy(c => c.Name).ThenBy(c => c.SetId).ThenBy(c => c.CollectorNumber))
+            text.AppendLine($"{card.OwnedCount} {card.Name} [{card.SetId}-{CardCode(card)}]");
+        return text.ToString();
+    }
+
     private static string ExportRiftKeep(DeckDetailDto detail)
     {
         var text = new StringBuilder();

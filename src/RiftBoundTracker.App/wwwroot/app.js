@@ -1414,7 +1414,7 @@ function wireDeckWorkspace() {
   root.querySelector("#activeDeckName")?.addEventListener("change", save);
   root.querySelector("#activeDeckDescription")?.addEventListener("change", save);
   root.querySelector("#deleteDeckBtn")?.addEventListener("click", deleteActiveDeck);
-  root.querySelector("#exportDeckBtn")?.addEventListener("click", openExportModal);
+  root.querySelector("#exportDeckBtn")?.addEventListener("click", () => openExportModal("deck"));
   root.querySelector("#testDrawBtn")?.addEventListener("click", openTestHand);
   root.querySelector("#markDeckTradeBtn")?.addEventListener("click", () => markDeckForTrade().catch(err => toast(err.message, true)));
   root.querySelector("#changeLegendBtn")?.addEventListener("click", openChangeLegendModal);
@@ -1713,15 +1713,21 @@ async function markDeckForTrade() {
   await loadOverview();
 }
 
-function openExportModal() {
+function openExportModal(mode) {
+  state.exportMode = mode || "deck";
   state.exportFormat = state.exportFormat || "riftkeep";
+  document.getElementById("exportModalEyebrow").textContent = state.exportMode === "collection" ? "Collection" : "Deck Builder";
+  document.getElementById("exportModalTitle").textContent = state.exportMode === "collection" ? "Export Collection" : "Export";
   showModal("exportModal");
   refreshExportPreview();
 }
 
 async function fetchExportText(format) {
-  const response = await fetch(`/api/decks/${state.activeDeckId}/export?${queryString({ format })}`);
-  if (!response.ok) throw new Error("Deck export failed");
+  const url = state.exportMode === "collection"
+    ? `/api/collection/export?${queryString({ format })}`
+    : `/api/decks/${state.activeDeckId}/export?${queryString({ format })}`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(state.exportMode === "collection" ? "Collection export failed" : "Deck export failed");
   return response.text();
 }
 
@@ -1746,15 +1752,16 @@ async function exportActiveDeck(format) {
   } catch (err) {
     return toast(err.message, true);
   }
+  const isCollection = state.exportMode === "collection";
   const blob = new Blob([contents], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
-  const base = state.activeDeck.summary.name.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "deck";
+  const base = isCollection ? "collection" : state.activeDeck.summary.name.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "deck";
   const link = document.createElement("a");
   link.href = url;
   link.download = format === "riftatlas" ? `${base}-riftatlas.txt` : `${base}.txt`;
   link.click();
   URL.revokeObjectURL(url);
-  toast("Deck exported");
+  toast(isCollection ? "Collection exported" : "Deck exported");
 }
 
 function openTestHand() {
@@ -4075,6 +4082,7 @@ function wireEvents() {
   document.getElementById("clearTopdeckKey").addEventListener("click", clearTopdeckKey);
   document.getElementById("syncCommunityBtn").addEventListener("click", syncCommunityData);
   document.getElementById("openPurgeData").addEventListener("click", openPurgeDataModal);
+  document.getElementById("openExportCollection").addEventListener("click", () => openExportModal("collection"));
   document.getElementById("purgeConfirmInput").addEventListener("input", updatePurgeConfirmState);
   document.querySelectorAll("#purgeDataModal [data-purge-key]").forEach(input =>
     input.addEventListener("change", updatePurgeConfirmState));

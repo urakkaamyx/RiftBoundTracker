@@ -94,6 +94,12 @@ public sealed class VaultService(
         // meaningfully applies to the same way it does a real print.
         var cards = await db.Cards.AsNoTracking().Where(c => c.Supertype != "Token").ToListAsync(ct);
         var tokenCount = await db.Cards.CountAsync(c => c.Supertype == "Token", ct);
+        // OwnedCopies is a raw "how many copies do you physically have" total, not a ratio against
+        // TotalCards the way OwnedCards/MissingCards/set completion % are — so unlike those, token
+        // copies you actually own belong in it. Adding them to the ratio-based stats instead would
+        // let "owned" exceed "total" (tokens aren't in that denominator either), which is exactly
+        // the stat-skewing v1.28.9 fixed in the other direction.
+        var tokenOwnedCopies = await db.Cards.Where(c => c.Supertype == "Token").SumAsync(c => c.OwnedCount, ct);
         var latestPrices = await prices.GetLatestAsync(ct);
         var deckSummaries = await decks.GetAllAsync(ct);
 
@@ -138,7 +144,7 @@ public sealed class VaultService(
         return new VaultOverviewDto(
             cards.Count,
             cards.Count(c => c.OwnedCount > 0),
-            cards.Sum(c => c.OwnedCount),
+            cards.Sum(c => c.OwnedCount) + tokenOwnedCopies,
             cards.Count(c => c.OwnedCount == 0),
             cards.Count(c => c.IsFavorite),
             tokenCount,

@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.12 — Owned token copies now count toward "Total copies"
+
+- v1.28.9 excluded token cards from every collection stat, which also silently dropped owned token copies out of "Total copies" (Analytics/Settings) — if you actually own some tokens, that's a real part of your collection size. Fixed by counting them there specifically, while leaving the sidebar's "X owned / Y cards" ratio and set completion % untouched, since tokens still aren't in that denominator — adding them to the numerator there would let "owned" exceed "total."
+
 ## v1.28.11 — Fixed Battlefield token orientation (Baron Pit, Brush)
 
 - Baron Pit and Brush are Battlefield cards, which print landscape — but their seeded data never set that, so both were rendered as if portrait everywhere. Now correctly flip to fit the grid's portrait tile slots (matching how every other landscape card in the app already behaves) and show in their natural horizontal orientation on the card detail view.

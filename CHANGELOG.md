@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.13 — Only "orphan" tokens get their own tab — the rest still belong to their set
+
+- The tokens that came through the normal riftcodex sync with real official set data (the three Recruits, Sprite, and Gold // Buff) were wrongly swept into the same "keep out of All Cards" treatment as the 12 hand-added orphan tokens (Brush, Baron Pit, etc., which have no real set data anywhere). Split the two apart with a new flag: only the 12 true orphans stay in their own Tokens tab and out of set/collection stats — the 5 with real set data are back to behaving like any other card in their set, contributing to All Cards, that set's completion %, and everything else, the same as before tokens existed as a separate concept in this app at all.
+
 ## v1.28.12 — Owned token copies now count toward "Total copies"
 
 - v1.28.9 excluded token cards from every collection stat, which also silently dropped owned token copies out of "Total copies" (Analytics/Settings) — if you actually own some tokens, that's a real part of your collection size. Fixed by counting them there specifically, while leaving the sidebar's "X owned / Y cards" ratio and set completion % untouched, since tokens still aren't in that denominator — adding them to the numerator there would let "owned" exceed "total."

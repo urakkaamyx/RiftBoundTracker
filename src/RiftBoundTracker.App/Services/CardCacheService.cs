@@ -153,16 +153,20 @@ public partial class CardCacheService(
         }
         if (q.Owned == "tokens")
         {
-            query = query.Where(c => c.Supertype == "Token");
+            // Only "orphan" tokens with no real set data (Brush, Baron Pit, etc.) — tokens that
+            // came through the normal riftcodex sync (the three Recruits, Sprite, Gold // Buff)
+            // still belong to their actual set, so they're excluded here the same as any other
+            // regular card.
+            query = query.Where(c => c.IsSyntheticToken);
         }
         else
         {
-            // Token cards (Brush, Baron Pit, etc.) have their own Vault tab so they don't clutter
-            // the normal browsing grid — but an explicit search (Mass Add, the scanner's exact
-            // set+code lookup, or a Vault search for a token by name) should still be able to find
-            // them, so the exclusion only applies to a plain, unsearched browse.
+            // Orphan token cards have their own Vault tab so they don't clutter the normal
+            // browsing grid — but an explicit search (Mass Add, the scanner's exact set+code
+            // lookup, or a Vault search for a token by name) should still be able to find them, so
+            // the exclusion only applies to a plain, unsearched browse.
             if (string.IsNullOrWhiteSpace(q.Search))
-                query = query.Where(c => c.Supertype != "Token");
+                query = query.Where(c => !c.IsSyntheticToken);
             if (q.Owned == "owned")
                 query = query.Where(c => c.OwnedCount > 0);
             else if (q.Owned == "missing")

@@ -88,18 +88,19 @@ public sealed class VaultService(
 
     public async Task<VaultOverviewDto> GetOverviewAsync(CancellationToken ct = default)
     {
-        // Token cards (Brush, Baron Pit, etc.) get their own Vault tab and are deliberately kept
-        // out of every stat below — mixed in, they'd distort each set's completion %, the rarity/
-        // domain distributions, and the collection-value total, none of which "collecting tokens"
-        // meaningfully applies to the same way it does a real print.
-        var cards = await db.Cards.AsNoTracking().Where(c => c.Supertype != "Token").ToListAsync(ct);
-        var tokenCount = await db.Cards.CountAsync(c => c.Supertype == "Token", ct);
+        // Orphan token cards (Brush, Baron Pit, etc. — no real set data of their own) get their own
+        // Vault tab and are deliberately kept out of every stat below — mixed in, they'd distort
+        // each set's completion %, the rarity/domain distributions, and the collection-value
+        // total. Tokens that *did* come through the normal riftcodex sync (the three Recruits,
+        // Sprite, Gold // Buff) still belong to their real set and are treated like any other card.
+        var cards = await db.Cards.AsNoTracking().Where(c => !c.IsSyntheticToken).ToListAsync(ct);
+        var tokenCount = await db.Cards.CountAsync(c => c.IsSyntheticToken, ct);
         // OwnedCopies is a raw "how many copies do you physically have" total, not a ratio against
         // TotalCards the way OwnedCards/MissingCards/set completion % are — so unlike those, token
         // copies you actually own belong in it. Adding them to the ratio-based stats instead would
         // let "owned" exceed "total" (tokens aren't in that denominator either), which is exactly
         // the stat-skewing v1.28.9 fixed in the other direction.
-        var tokenOwnedCopies = await db.Cards.Where(c => c.Supertype == "Token").SumAsync(c => c.OwnedCount, ct);
+        var tokenOwnedCopies = await db.Cards.Where(c => c.IsSyntheticToken).SumAsync(c => c.OwnedCount, ct);
         var latestPrices = await prices.GetLatestAsync(ct);
         var deckSummaries = await decks.GetAllAsync(ct);
 

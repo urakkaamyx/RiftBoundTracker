@@ -31,6 +31,13 @@ public class CardEntity
     public int? Might { get; set; }
     public int? Power { get; set; }
 
+    // True only for the token cards TokenCardCatalogService hand-seeds (Brush, Baron Pit, etc.) —
+    // riftcodex.com has no data for them at all, unlike the handful of tokens (Recruit x3, Sprite,
+    // Gold // Buff) that came through the normal set sync with real set data and stay part of
+    // their set's own collection/completion stats like any other card. This flag is what lets the
+    // Vault separate "orphan" tokens with no real set home from those that still have one.
+    public bool IsSyntheticToken { get; set; }
+
     public int OwnedCount { get; set; }
     public bool IsFavorite { get; set; }
     public int BinderCount { get; set; }

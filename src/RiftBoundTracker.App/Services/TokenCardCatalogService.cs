@@ -89,6 +89,11 @@ public class TokenCardCatalogService(AppDbContext db, IHttpClientFactory httpCli
                     existing.Orientation = def.Orientation;
                     changed = true;
                 }
+                if (!existing.IsSyntheticToken)
+                {
+                    existing.IsSyntheticToken = true;
+                    changed = true;
+                }
                 if (changed) existing.UpdatedAt = DateTimeOffset.UtcNow;
                 continue;
             }
@@ -105,6 +110,7 @@ public class TokenCardCatalogService(AppDbContext db, IHttpClientFactory httpCli
                 SetLabel = def.SetLabel,
                 Type = def.Type,
                 Supertype = "Token",
+                IsSyntheticToken = true,
                 Rarity = "Common",
                 DomainsCsv = "Colorless",
                 TextRich = $"<p>{def.Text}</p>",

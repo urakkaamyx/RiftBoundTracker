@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.28.21 — Added the missing Spiritforged and Unleashed Runes
+
+- Same underlying gap as the orphan token cards: riftcodex.com has no data at all for Spiritforged's or Unleashed's own Rune reprints (confirmed by querying it directly), even though they're real printed cards with real artwork. Added all 36 (6 domains × base/Alternate Art/Promo, across both sets) — real art fetched from the same source the token images use.
+- Unlike orphan tokens, these are stored as ordinary cards, not set apart in the Tokens tab — they have real set data, so they count toward Spiritforged's and Unleashed's own totals and completion % like any other card (SFD 288→306, UNL 280→298).
+
 ## v1.28.20 — Collection export line format: qty, name, (id)
 
 - `{qty} {Name} {SetId}-{Code}` → `{qty} {Name} ({SetId}-{Code})` for the RiftKeep collection export — matches riftbound.gg's expected format.

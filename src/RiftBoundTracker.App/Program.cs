@@ -182,6 +182,7 @@ internal static class Program
         builder.Services.AddSingleton<UpdateService>();
         builder.Services.AddScoped<BugReportService>();
         builder.Services.AddScoped<TokenCardCatalogService>();
+        builder.Services.AddScoped<RuneCardCatalogService>();
         builder.Services.AddSingleton<BrowserRelayClient>();
         builder.Services.AddSingleton(sp => new NgrokService(port, sp.GetRequiredService<IHttpClientFactory>(), sp.GetRequiredService<ILogger<NgrokService>>()));
         builder.Services.AddScoped<CardCacheService>();
@@ -228,6 +229,9 @@ internal static class Program
 
             var tokenCatalog = scope.ServiceProvider.GetRequiredService<TokenCardCatalogService>();
             await tokenCatalog.EnsureSeededAsync();
+
+            var runeCatalog = scope.ServiceProvider.GetRequiredService<RuneCardCatalogService>();
+            await runeCatalog.EnsureSeededAsync();
 
             // First launch (or a DB that's never finished a full sync) — populate the whole
             // catalog automatically instead of requiring the old manual per-set sync. Runs in its

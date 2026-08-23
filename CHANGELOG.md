@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.11 — Fixed Battlefield token orientation (Baron Pit, Brush)
+
+- Baron Pit and Brush are Battlefield cards, which print landscape — but their seeded data never set that, so both were rendered as if portrait everywhere. Now correctly flip to fit the grid's portrait tile slots (matching how every other landscape card in the app already behaves) and show in their natural horizontal orientation on the card detail view.
+
 ## v1.28.10 — Token card artwork upgraded, and a wrong card code fixed
 
 - Switched token card images from the League wiki (bot-walled, needed a browser-relay workaround, only had art for 9 of 12) to static.dotgg.gg — riftbound.gg's own card image CDN, directly reachable with a plain request. All 12 token cards now have real artwork, up from 9.

@@ -24,7 +24,7 @@ public class TokenCardCatalogService(AppDbContext db, IHttpClientFactory httpCli
 {
     private sealed record TokenDef(
         string Id, string Name, string SetId, string SetLabel, string CollectorCode,
-        string Type, int? Might, string Text);
+        string Type, int? Might, string Text, string Orientation = "portrait");
 
     // Rules text is verbatim from Rule 187 (the compiled rules-engine's own canonical core_rules
     // data) — not paraphrased, so it matches the actual printed card text. Domain "Colorless"
@@ -41,11 +41,11 @@ public class TokenCardCatalogService(AppDbContext db, IHttpClientFactory httpCli
         new("sfd-t02", "Sand Soldier", "SFD", "Spiritforged", "T02", "Unit", 2,
             "A 2 Might Sand Soldier token is a domainless unit token with 2 Might and the Shurima tag."),
         new("unl-t01", "Baron Pit", "UNL", "Unleashed", "T01", "Battlefield", null,
-            "The Baron Pit battlefield token is a domainless battlefield token with \"Units can move here from anywhere.\""),
+            "The Baron Pit battlefield token is a domainless battlefield token with \"Units can move here from anywhere.\"", "landscape"),
         new("unl-t02", "Bird", "UNL", "Unleashed", "T02", "Unit", 1,
             "A 1 Might Bird token is a domainless unit token with 1 Might, the Bird tag, and the Deflect keyword."),
         new("unl-t03", "Brush", "UNL", "Unleashed", "T03", "Battlefield", null,
-            "A Brush battlefield token is a domainless battlefield token with \"Bird, Cat, Dog, Poro, and Ivern units here have +1 Might\" and \"When you score here, you may replace this with the battlefield it replaced.\""),
+            "A Brush battlefield token is a domainless battlefield token with \"Bird, Cat, Dog, Poro, and Ivern units here have +1 Might\" and \"When you score here, you may replace this with the battlefield it replaced.\"", "landscape"),
         new("unl-t04", "Buff", "UNL", "Unleashed", "T04", "Marker", null,
             "A reference card used alongside a token to track additional Might it has been granted."),
         new("unl-t05", "Gold", "UNL", "Unleashed", "T05", "Gear", null,
@@ -76,13 +76,20 @@ public class TokenCardCatalogService(AppDbContext db, IHttpClientFactory httpCli
                 // these from the League wiki (lower quality, 3 of 12 had no image at all) — this
                 // upgrades every existing row to the better dotgg source too, not just the gaps.
                 var refreshed = await TryFetchImageAsync(def, ct);
+                var changed = false;
                 if (refreshed is not null && refreshed != existing.LocalImagePath)
                 {
                     existing.LocalImagePath = refreshed;
                     existing.ImageUrl = DotggImageUrl(def);
-                    existing.UpdatedAt = DateTimeOffset.UtcNow;
+                    changed = true;
                     logger.LogInformation("Refreshed image for token card {Id}", def.Id);
                 }
+                if (existing.Orientation != def.Orientation)
+                {
+                    existing.Orientation = def.Orientation;
+                    changed = true;
+                }
+                if (changed) existing.UpdatedAt = DateTimeOffset.UtcNow;
                 continue;
             }
 
@@ -104,6 +111,7 @@ public class TokenCardCatalogService(AppDbContext db, IHttpClientFactory httpCli
                 TextPlain = def.Text,
                 ImageUrl = DotggImageUrl(def),
                 LocalImagePath = localImagePath,
+                Orientation = def.Orientation,
                 Might = def.Might,
                 OwnedCount = 0,
                 CachedAt = now,

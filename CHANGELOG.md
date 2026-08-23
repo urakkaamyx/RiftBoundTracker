@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.22 — Rules hidden for now
+
+- Hid the Rules nav item while Keywords/Legality are still unimplemented and Ask Rules' answer quality gets more work — nothing removed, just tucked away until it's ready for regular use.
+
 ## v1.28.21 — Added the missing Spiritforged and Unleashed Runes
 
 - Same underlying gap as the orphan token cards: riftcodex.com has no data at all for Spiritforged's or Unleashed's own Rune reprints (confirmed by querying it directly), even though they're real printed cards with real artwork. Added all 36 (6 domains × base/Alternate Art/Promo, across both sets) — real art fetched from the same source the token images use.

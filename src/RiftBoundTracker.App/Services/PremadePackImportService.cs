@@ -6,7 +6,7 @@ namespace RiftBoundTracker.App.Services;
 // would be added -- image, name, type, rarity -- without a second round-trip to look each one up.
 public sealed record PremadePackAppliedCard(CardEntity Card, int Quantity);
 public sealed record PremadePackPreviewResult(List<string> UnmatchedCards, List<PremadePackAppliedCard> Cards);
-public sealed record PremadePackImportResult(int AddedCards, List<string> UnmatchedCards, List<PremadePackAppliedCard> AppliedCards);
+public sealed record PremadePackImportResult(int AddedCards, int AddedCopies, List<string> UnmatchedCards, List<PremadePackAppliedCard> AppliedCards);
 
 // Lean id+quantity pairs for the reverse direction -- undo only needs enough to find and adjust
 // each card, not the full entity the import response carried for display purposes.
@@ -42,7 +42,7 @@ public sealed class PremadePackImportService(CardCacheService cache)
         foreach (var entry in resolved)
             await cache.AdjustOwnedAsync(entry.Card.Id, entry.Quantity, ct);
 
-        return new PremadePackImportResult(resolved.Count, unmatched, resolved);
+        return new PremadePackImportResult(resolved.Count, resolved.Sum(r => r.Quantity), unmatched, resolved);
     }
 
     private async Task<(List<PremadePackAppliedCard> Resolved, List<string> Unmatched)> ResolveAsync(
@@ -87,6 +87,6 @@ public sealed class PremadePackImportService(CardCacheService cache)
         foreach (var entry in resolved)
             await cache.AdjustOwnedAsync(entry.Card.Id, -entry.Quantity, ct);
 
-        return new PremadePackImportResult(resolved.Count, unmatched, resolved);
+        return new PremadePackImportResult(resolved.Count, resolved.Sum(r => r.Quantity), unmatched, resolved);
     }
 }

@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.17 — Import Pack notification now shows real copy counts
+
+- "Import Pack" only ever reported the number of *unique* cards added (e.g. "24 cards added"), never how many physical copies that actually meant — a 25-card deck with several 3-ofs was really adding 56 copies to your collection, silently. The notification (and Remove Pack's) now shows both: "25 unique cards (56 copies)."
+
 ## v1.28.16 — Fixed Mass Add: couldn't add a second, different printing of the same card
 
 - First real bug caught by the new "Report a Bug" pipeline (issue #2): once you picked a printing for an ambiguous card name (e.g. two different arts of Dockside Butcher) from the live search dropdown, picking that same name again silently reused the first choice instead of showing the printing picker again — so a second, different variant of the same card could never be added. The "remember the answer" shortcut was meant for a bulk paste with the same card repeated on several lines, not for a deliberate second pick from the dropdown; it now only applies to the paste path.

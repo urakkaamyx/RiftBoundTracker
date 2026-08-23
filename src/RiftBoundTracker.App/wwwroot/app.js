@@ -2898,12 +2898,13 @@ async function confirmImportPack() {
     const result = await api(`/api/premade-packs/${encodeURIComponent(key)}/import`, jsonOptions("POST"));
     const undoBtn = result.appliedCards.length
       ? `<button type="button" class="command-btn quiet" id="undoPackImportBtn">Undo</button>` : "";
+    const summary = `${result.addedCards} unique card${result.addedCards === 1 ? "" : "s"} (${result.addedCopies} cop${result.addedCopies === 1 ? "y" : "ies"})`;
     if (result.unmatchedCards.length) {
-      resultEl.innerHTML = `<p>${result.addedCards} cards added. ${result.unmatchedCards.length} card names did not match:</p>
+      resultEl.innerHTML = `<p>${summary} added. ${result.unmatchedCards.length} card name${result.unmatchedCards.length === 1 ? "" : "s"} did not match:</p>
         <ul class="import-unmatched-list">${result.unmatchedCards.map(c => `<li>${escapeHtml(c)}</li>`).join("")}</ul>
         <div class="pack-import-result-actions">${undoBtn}</div>`;
     } else {
-      resultEl.innerHTML = `<p>${result.addedCards} cards added to your collection.</p>
+      resultEl.innerHTML = `<p>${summary} added to your collection.</p>
         <div class="pack-import-result-actions">${undoBtn}</div>`;
     }
     if (result.appliedCards.length) {
@@ -2932,7 +2933,7 @@ async function confirmRemovePack() {
   lastPackImport = null;
   try {
     const result = await api(`/api/premade-packs/${encodeURIComponent(key)}/remove`, jsonOptions("POST"));
-    resultEl.innerHTML = `<p>${result.addedCards} cards subtracted from your collection.</p>`;
+    resultEl.innerHTML = `<p>${result.addedCards} unique card${result.addedCards === 1 ? "" : "s"} (${result.addedCopies} cop${result.addedCopies === 1 ? "y" : "ies"}) subtracted from your collection.</p>`;
     await refreshAfterCollectionChange();
   } catch (err) {
     resultEl.innerHTML = `<p class="ask-answer-note">${escapeHtml(err.message)}</p>`;

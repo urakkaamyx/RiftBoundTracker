@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.16 — Fixed Mass Add: couldn't add a second, different printing of the same card
+
+- First real bug caught by the new "Report a Bug" pipeline (issue #2): once you picked a printing for an ambiguous card name (e.g. two different arts of Dockside Butcher) from the live search dropdown, picking that same name again silently reused the first choice instead of showing the printing picker again — so a second, different variant of the same card could never be added. The "remember the answer" shortcut was meant for a bulk paste with the same card repeated on several lines, not for a deliberate second pick from the dropdown; it now only applies to the paste path.
+
 ## v1.28.15 — Fixed Errata (and any string-ID) result rows never being clickable
 
 - Found the real cause behind Errata entries not responding to clicks: the shared result-list click handler ran every result ID through `Number(...)` before looking it up — correct for the legacy numeric rule/keyword IDs, but errata uses string IDs like "origins-errata:006", which `Number()` turns into `NaN`. Every click matched nothing and silently did nothing. Fixed to only coerce IDs for the kinds that actually use numeric ones.

@@ -2167,7 +2167,11 @@ function selectMassAddGroup(index) {
   if (group.variants.length === 1) {
     addMassAddLine(group.variants[0], qty);
   } else {
-    queueMassAddVariantChoice(group, qty);
+    // useMemory: false — picking from the live dropdown is a deliberate, individual choice each
+    // time (e.g. wanting a second, *different* printing of a card already on the list), so it
+    // must always show the picker. Silently reusing the last answer here (as bulk paste does)
+    // made a second distinct variant impossible to add at all — reported as issue #2.
+    queueMassAddVariantChoice(group, qty, false);
     flushMassAddVariantQueue();
   }
   input.focus();
@@ -2175,10 +2179,12 @@ function selectMassAddGroup(index) {
 
 // A same-name group with more than one real printing (e.g. two "Riptide Rex" reprints) can't be
 // auto-resolved — queued here so the printing-picker popup can ask once per distinct base name.
-// Repeat occurrences of a base name already answered this session reuse that answer silently,
-// so a paste with the same ambiguous card on several lines only prompts once.
-function queueMassAddVariantChoice(group, quantity) {
-  const remembered = massAddVariantMemory.get(group.baseName);
+// Repeat occurrences of a base name already answered this session reuse that answer silently
+// (useMemory: true, the bulk-paste path's default) so a paste with the same ambiguous card on
+// several lines only prompts once — but interactive picking (the live dropdown) opts out, since
+// there the whole point can be choosing a different variant than last time.
+function queueMassAddVariantChoice(group, quantity, useMemory = true) {
+  const remembered = useMemory ? massAddVariantMemory.get(group.baseName) : null;
   if (remembered) {
     const variant = group.variants.find(v => v.id === remembered);
     if (variant) { addMassAddLine(variant, quantity, group.variants); return; }

@@ -91,6 +91,7 @@ let massAddErrors = [];
 let massAddDropdownGroups = [];
 let massAddVariantQueue = [];
 let massAddVariantMemory = new Map();
+let massAddPriceCache = new Map(); // cardId -> {normalPrice, foilPrice} | null (null = looked up, no price available)
 let catalogPoll = null;
 let saveDeckTimer = null;
 
@@ -315,6 +316,7 @@ function closeModal(id) {
   if (id === "imageViewer") document.body.classList.remove("image-viewer-open");
   if (id === "massAddVariantModal" && massAddVariantQueue.length) cancelMassAddVariantQueue();
   if (id === "addCollectionModal") packImportLoaded = false; // refetch next open so owned counts stay current
+  if (id === "scanConfirmModal") { scanConfirmCard = null; scanConfirmCallback = null; } // closed without confirming — abandon, no side effect
 }
 
 function openFullscreenCardImage(cardId) {
@@ -2031,6 +2033,22 @@ function updateMassAddSummary() {
   document.getElementById("massAddConfirm").disabled = count === 0;
 }
 
+// Price data comes from a separate bulk lookup (massAddPriceCache), not from the card object
+// itself — cardsById never carries per-printing Normal/Foil prices, only whatever the collection
+// stats query last resolved as "the" price. massAddFoilToggleMarkup/massAddPriceMarkup render
+// whatever's cached for this line right now; ensureMassAddPrices (called after every line-list
+// change) fills the cache in and re-renders once it lands.
+function massAddPriceMarkup(line) {
+  const prices = massAddPriceCache.get(line.card.id);
+  if (prices === undefined) return `<span class="mass-add-line-price loading">...</span>`;
+  const value = prices && (line.isFoil ? prices.foilPrice : prices.normalPrice);
+  return `<span class="mass-add-line-price">${value != null ? formatMoney(value) : "—"}</span>`;
+}
+
+function massAddFoilToggleMarkup(line) {
+  return `<button type="button" class="mass-add-foil-toggle${line.isFoil ? " active" : ""}" data-mass-foil-toggle="${escapeHtml(line.id)}" title="${line.isFoil ? "Foil — click for Normal price" : "Normal — click for Foil price"}">${icon("star")}</button>`;
+}
+
 function renderMassAddLines() {
   const root = document.getElementById("massAddLines");
   if (!massAddLines.length) {
@@ -2042,6 +2060,8 @@ function renderMassAddLines() {
       <img src="${escapeHtml(cardImage(line.card))}" alt="" loading="lazy" />
       <span class="mass-add-line-id">[${escapeHtml(line.card.setId)}-${escapeHtml(cardCode(line.card))}]</span>
       <span class="mass-add-line-name">${escapeHtml(line.card.name)}</span>
+      ${massAddPriceMarkup(line)}
+      ${massAddFoilToggleMarkup(line)}
       <div class="mini-stepper">
         <button type="button" data-mass-qty-delta="-1" data-mass-line-target="${escapeHtml(line.id)}" aria-label="Decrease quantity">-</button>
         <span>${line.quantity}</span>
@@ -2079,6 +2099,7 @@ function renderMassAddPreview() {
       </div>
       <div class="mass-add-preview-name"><b>${escapeHtml(line.card.name)}</b><span>${escapeHtml(line.card.setId)}-${escapeHtml(cardCode(line.card))}</span></div>
       ${line.id === massAddLockedId ? `<span class="mass-add-preview-lock">${icon("check")} Locked</span>` : ""}
+      <div class="mass-add-preview-price-row">${massAddPriceMarkup(line)}${massAddFoilToggleMarkup(line)}</div>
       <div class="mass-add-preview-qty">
         <label>Quantity</label>
         <div class="mini-stepper">
@@ -2112,8 +2133,10 @@ function removeMassAddLine(lineId) {
 // `variants` is the full sibling-printing list a card was picked from (e.g. both "Riptide Rex"
 // reprints) — kept on the line so the big preview can offer the same BASE/alt-printing strip the
 // Legend picker uses, letting a mis-picked printing be corrected after the fact without redoing
-// the whole entry.
-function addMassAddLine(card, quantity, variants) {
+// the whole entry. `isFoil` defaults to true (foil-first, per how this feature was asked for) —
+// only set at line creation; merging more copies into an existing line never flips its foil state,
+// since a second "add" of the same card shouldn't silently change what the first one already set.
+function addMassAddLine(card, quantity, variants, isFoil = true) {
   const qty = quantity && quantity > 0 ? Math.min(99, quantity) : 1;
   const siblingSet = variants && variants.length > 1 ? variants : null;
   const existing = massAddLines.find(l => l.card.id === card.id);
@@ -2122,13 +2145,38 @@ function addMassAddLine(card, quantity, variants) {
     if (siblingSet) existing.variants = siblingSet;
     massAddLockedId = existing.id;
   } else {
-    const line = { id: `m${++massAddLineSeq}`, card, quantity: qty, variants: siblingSet };
+    const line = { id: `m${++massAddLineSeq}`, card, quantity: qty, variants: siblingSet, isFoil };
     massAddLines.push(line);
     massAddLockedId = line.id;
   }
   renderMassAddLines();
   renderMassAddPreview();
   updateMassAddSummary();
+  ensureMassAddPrices([card.id]);
+}
+
+function toggleMassAddFoil(lineId) {
+  const line = massAddLines.find(l => l.id === lineId);
+  if (!line) return;
+  line.isFoil = !line.isFoil;
+  renderMassAddLines();
+  renderMassAddPreview();
+}
+
+// Batches every price lookup Mass Add needs into one request instead of one per line — called
+// after every line-list change, but only ever fetches cards not already in massAddPriceCache.
+async function ensureMassAddPrices(cardIds) {
+  const missing = [...new Set(cardIds)].filter(id => !massAddPriceCache.has(id));
+  if (!missing.length) return;
+  missing.forEach(id => massAddPriceCache.set(id, undefined)); // mark in-flight so a fast double-call doesn't double-request
+  try {
+    const result = await api("/api/pricing/dual", jsonOptions("POST", { cardIds: missing }));
+    missing.forEach(id => massAddPriceCache.set(id, result[id] || null));
+  } catch {
+    missing.forEach(id => massAddPriceCache.set(id, null)); // fail closed — show "—" rather than retrying forever
+  }
+  renderMassAddLines();
+  renderMassAddPreview();
 }
 
 function switchMassAddLineVariant(lineId, variantId) {
@@ -2232,14 +2280,16 @@ function selectMassAddGroup(index) {
 // Repeat occurrences of a base name already answered this session reuse that answer silently
 // (useMemory: true, the bulk-paste path's default) so a paste with the same ambiguous card on
 // several lines only prompts once — but interactive picking (the live dropdown) opts out, since
-// there the whole point can be choosing a different variant than last time.
-function queueMassAddVariantChoice(group, quantity, useMemory = true) {
+// there the whole point can be choosing a different variant than last time. isFoil carries through
+// to whichever variant eventually gets picked, so a paste line's trailing "foil" marker survives
+// even when it has to wait on the printing picker.
+function queueMassAddVariantChoice(group, quantity, useMemory = true, isFoil = true) {
   const remembered = useMemory ? massAddVariantMemory.get(group.baseName) : null;
   if (remembered) {
     const variant = group.variants.find(v => v.id === remembered);
-    if (variant) { addMassAddLine(variant, quantity, group.variants); return; }
+    if (variant) { addMassAddLine(variant, quantity, group.variants, isFoil); return; }
   }
-  massAddVariantQueue.push({ group, quantity });
+  massAddVariantQueue.push({ group, quantity, isFoil });
 }
 
 function flushMassAddVariantQueue() {
@@ -2272,7 +2322,7 @@ function resolveMassAddVariantPrompt(variantId) {
     const variant = next.group.variants.find(v => v.id === variantId);
     if (variant) {
       massAddVariantMemory.set(next.group.baseName, variantId);
-      addMassAddLine(variant, next.quantity, next.group.variants);
+      addMassAddLine(variant, next.quantity, next.group.variants, next.isFoil);
     }
   } else {
     logMassAddError(`${next.group.baseName} ×${next.quantity} skipped — add it manually below`);
@@ -2319,9 +2369,16 @@ async function bulkAddMassAddText(raw) {
     // RiftKeep deck exports mark section boundaries with "# main" / "# sideboard" comment lines —
     // meaningless here (Mass Add only tracks owned counts, not deck sections).
     if (line.startsWith("#")) continue;
-    const quantityMatch = /\s+[xX](\d+)\s*$/.exec(line);
+    // Foil marker is stripped first since it sits after the quantity when both are present
+    // ("Blazing Scorcher x3 f") — it's always the actual last token on the line. Unlike the live
+    // dropdown (which defaults to foil), a pasted line's foil-ness is read from the text itself:
+    // no trailing "f"/"foil" means Normal, not a default.
+    const foilMatch = /\s+(f|foil)\s*$/i.exec(line);
+    const isFoil = !!foilMatch;
+    const withoutFoil = foilMatch ? line.slice(0, foilMatch.index).trim() : line;
+    const quantityMatch = /\s+[xX](\d+)\s*$/.exec(withoutFoil);
     const trailingQuantity = quantityMatch ? Math.max(1, Number(quantityMatch[1])) : null;
-    const entryText = quantityMatch ? line.slice(0, quantityMatch.index).trim() : line;
+    const entryText = quantityMatch ? withoutFoil.slice(0, quantityMatch.index).trim() : withoutFoil;
     const parsed = parseCardEntry(entryText);
     const quantity = trailingQuantity ?? parsed?.quantity ?? 1;
     try {
@@ -2345,10 +2402,10 @@ async function bulkAddMassAddText(raw) {
         // identical name (e.g. two "Riptide Rex" printings) — group them, and only fall back to a
         // hard error if the search actually matched genuinely different cards.
         const groups = groupLegendVariants(cards);
-        if (groups.length === 1) queueMassAddVariantChoice(groups[0], quantity);
+        if (groups.length === 1) queueMassAddVariantChoice(groups[0], quantity, true, isFoil);
         else logMassAddError(`${line} is ambiguous — add it manually below`);
       } else {
-        addMassAddLine(cards[0], quantity);
+        addMassAddLine(cards[0], quantity, undefined, isFoil);
       }
     } catch (err) {
       logMassAddError(`${line}: ${err.message}`);
@@ -3077,10 +3134,11 @@ function renderScanResult(result) {
     root.querySelectorAll("[data-scan-price]").forEach(button => button.addEventListener("click", () =>
       openScanPriceDetail(cardsById.get(button.dataset.scanPrice))));
   } else {
-    root.querySelectorAll("[data-scan-add]").forEach(button => button.addEventListener("click", async () => {
-      await changeOwned(cardsById.get(button.dataset.scanAdd), 1);
-      root.innerHTML = "";
-      status.textContent = "Card added";
+    root.querySelectorAll("[data-scan-add]").forEach(button => button.addEventListener("click", () => {
+      openScanConfirm(cardsById.get(button.dataset.scanAdd), () => {
+        root.innerHTML = "";
+        status.textContent = "Card added";
+      });
     }));
   }
 }
@@ -3288,6 +3346,44 @@ async function captureLiveFrame() {
   }, "image/jpeg", .84);
 }
 
+// A physical scan is the one moment the app can trust a real, in-hand answer to "is this copy
+// foil?" — unlike Mass Add's toggle (which only controls which price to show), confirming here
+// with the box checked actually marks the newly-added copy as a Hologram (HologramCount), since
+// this is a genuine claim about the physical card just scanned, not a lookup preference.
+let scanConfirmCard = null;
+let scanConfirmCallback = null;
+
+function openScanConfirm(card, onConfirmed) {
+  if (!card) return;
+  scanConfirmCard = card;
+  scanConfirmCallback = onConfirmed || null;
+  document.getElementById("scanConfirmImg").src = cardImage(card);
+  document.getElementById("scanConfirmName").textContent = card.name;
+  document.getElementById("scanConfirmCode").textContent = `${card.setId}-${cardCode(card)}`;
+  document.getElementById("scanConfirmFoilInput").checked = false;
+  showModal("scanConfirmModal");
+}
+
+async function confirmScanAdd() {
+  if (!scanConfirmCard) return;
+  const card = scanConfirmCard;
+  const isFoil = document.getElementById("scanConfirmFoilInput").checked;
+  const callback = scanConfirmCallback;
+  scanConfirmCard = null;
+  scanConfirmCallback = null;
+  closeModal("scanConfirmModal");
+  try {
+    await changeOwned(card, 1);
+    if (isFoil) {
+      const updated = cardsById.get(card.id) || card;
+      await setHologramCount(updated, updated.hologramCount + 1);
+    }
+    callback?.();
+  } catch (err) {
+    toast(err.message, true);
+  }
+}
+
 function showLiveHit(match) {
   scan.hitPending = true;
   registerCards([match.card]);
@@ -3297,11 +3393,12 @@ function showLiveHit(match) {
   root.innerHTML = `<div class="result-row"><div class="result-card-art"><img src="${escapeHtml(cardImage(match.card))}" alt="" />${cardImagePopout(match.card)}</div><div><strong>${escapeHtml(match.card.name)}</strong><span>${escapeHtml(match.card.setId)}-${escapeHtml(cardCode(match.card))}</span></div><button class="command-btn gold" id="liveAdd">${actionLabel}</button></div>`;
   renderIcons(root);
   document.getElementById("liveStatus").textContent = "Card matched";
-  document.getElementById("liveAdd").onclick = isPriceMode ? () => openScanPriceDetail(match.card) : async () => {
-    await changeOwned(match.card, 1);
-    root.innerHTML = "";
-    scan.hitPending = false; scan.voteKey = null; scan.voteCount = 0;
-    document.getElementById("liveStatus").textContent = "Align the printed Card ID inside the box";
+  document.getElementById("liveAdd").onclick = isPriceMode ? () => openScanPriceDetail(match.card) : () => {
+    openScanConfirm(match.card, () => {
+      root.innerHTML = "";
+      scan.hitPending = false; scan.voteKey = null; scan.voteCount = 0;
+      document.getElementById("liveStatus").textContent = "Align the printed Card ID inside the box";
+    });
   };
   setTimeout(() => {
     if (!scan.hitPending) return;
@@ -4069,6 +4166,8 @@ function wireEvents() {
     if (remove) { removeMassAddLine(remove.dataset.massRemove); return; }
     const qty = event.target.closest("[data-mass-qty-delta]");
     if (qty) { setMassAddQuantity(qty.dataset.massLineTarget, Number(qty.dataset.massQtyDelta)); return; }
+    const foil = event.target.closest("[data-mass-foil-toggle]");
+    if (foil) { toggleMassAddFoil(foil.dataset.massFoilToggle); return; }
     const line = event.target.closest("[data-mass-line]");
     if (line) { massAddLockedId = line.dataset.massLine; renderMassAddLines(); renderMassAddPreview(); }
   });
@@ -4087,6 +4186,8 @@ function wireEvents() {
   document.getElementById("massAddPreviewPanel").addEventListener("click", event => {
     const qty = event.target.closest("[data-mass-qty-delta]");
     if (qty) { setMassAddQuantity(qty.dataset.massLineTarget, Number(qty.dataset.massQtyDelta)); return; }
+    const foil = event.target.closest("[data-mass-foil-toggle]");
+    if (foil) { toggleMassAddFoil(foil.dataset.massFoilToggle); return; }
     const variant = event.target.closest("[data-mass-variant]");
     if (variant) switchMassAddLineVariant(variant.dataset.massVariantTarget, variant.dataset.massVariant);
   });
@@ -4201,6 +4302,7 @@ function wireEvents() {
   document.getElementById("scanFile").addEventListener("change", event => handleScanFile(event.target.files[0]));
   document.getElementById("scanFileExisting").addEventListener("change", event => handleScanFile(event.target.files[0]));
   document.getElementById("manualLookupBtn").addEventListener("click", manualLookup);
+  document.getElementById("scanConfirmAddBtn").addEventListener("click", confirmScanAdd);
   document.getElementById("liveScanBtn").addEventListener("click", startLiveScan);
   document.getElementById("flipCamera").addEventListener("click", flipLiveCamera);
 }

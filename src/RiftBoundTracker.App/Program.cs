@@ -714,6 +714,18 @@ internal static class Program
         app.MapGet("/api/pricing/latest", async (PriceSyncService prices, CancellationToken ct) =>
             Results.Ok(await prices.GetLatestAsync(ct)));
 
+        // Both Normal and Foil prices side by side, for Mass Add's per-line foil toggle — the
+        // single-price endpoint above collapses to whichever printing "wins," which isn't useful
+        // when the point is letting the user pick. Bulk by design: Mass Add needs prices for every
+        // line on the list at once, not one round trip per line.
+        app.MapPost("/api/pricing/dual", async (DualPriceRequest body, RiftboundGgPriceService riftboundGg, AppDbContext db, CancellationToken ct) =>
+        {
+            var ids = body.CardIds.Distinct().ToList();
+            var cards = await db.Cards.AsNoTracking().Where(c => ids.Contains(c.Id)).ToListAsync(ct);
+            var prices = await riftboundGg.GetDualLatestAsync(cards, ct);
+            return Results.Ok(prices);
+        });
+
         app.MapGet("/api/pricing/history/{cardId}", async (string cardId, int? days, PriceSyncService prices, CancellationToken ct) =>
             Results.Ok(await prices.GetHistoryAsync(cardId, days ?? 30, ct)));
 
@@ -852,6 +864,7 @@ public record CommunitySyncRequest(int? Days);
 public record AskRuleQuestionRequest(string Question, string? CardId);
 public record RulesLocalAiToggleRequest(bool Enabled);
 public record PriceRefreshRequest(bool IncludeAllCards);
+public record DualPriceRequest(List<string> CardIds);
 public record BugReportRequest(string Title, string Description);
 public record ClientLogEntry(string Message, string? Stack, string? Url);
 public record OpenExternalRequest(string Url);

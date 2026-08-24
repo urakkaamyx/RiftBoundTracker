@@ -820,6 +820,18 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .modal-layer { position: fixed; inset: 0; height: 100vh; height: 100dvh; z-index: 100; display: grid; place-items: center; padding: 18px; background: rgba(2,2,5,.76); backdrop-filter: blur(6px); }
 .modal { position: relative; width: min(620px, 100%); max-height: calc(100vh - 36px); max-height: calc(100dvh - 36px); overflow-y: auto; padding: 20px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow); }
 .compact-modal { width: min(440px, 100%); }
+.scan-confirm-modal { width: min(400px, 100%); }
+.scan-confirm-card { display: flex; align-items: center; gap: 12px; padding: 10px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--panel-2); margin-bottom: 14px; }
+.scan-confirm-card img { width: 60px; height: 84px; object-fit: cover; border-radius: 5px; flex: none; }
+.scan-confirm-info { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.scan-confirm-info b { font-size: 13px; }
+.scan-confirm-info span { font: 700 10px var(--mono); color: var(--faint); }
+.scan-confirm-foil { display: flex; align-items: center; gap: 8px; padding: 9px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel-2); color: var(--muted); font-size: 11px; cursor: pointer; }
+.scan-confirm-foil:hover { border-color: var(--accent); color: var(--text); }
+.scan-confirm-foil input { position: absolute; width: 1px; height: 1px; padding: 0; opacity: 0; pointer-events: none; }
+.scan-confirm-foil .icon { width: 15px; height: 15px; }
+.scan-confirm-foil:has(input:checked) { border-color: var(--gold); color: var(--gold-bright); }
+.scan-confirm-foil:has(input:checked) .icon { fill: currentColor; }
 .detail-modal { width: min(760px, 100%); }
 .legend-modal { width: min(1080px, 100%); height: min(720px, calc(100vh - 36px)); height: min(720px, calc(100dvh - 36px)); display: flex; flex-direction: column; transition: box-shadow .25s ease; }
 .legend-modal[data-domain-glow="fury"] { box-shadow: var(--shadow), 0 0 60px -14px color-mix(in srgb, var(--c-fury) 55%, transparent); }
@@ -1021,6 +1033,13 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .mass-add-line img { width: 30px; height: 40px; object-fit: cover; border-radius: 4px; flex: none; }
 .mass-add-line-id { font: 700 9px var(--mono); color: var(--faint); flex: none; }
 .mass-add-line-name { flex: 1; min-width: 0; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mass-add-line-price { flex: none; min-width: 40px; text-align: right; color: var(--green); font: 700 10px var(--mono); }
+.mass-add-line-price.loading { color: var(--faint); }
+.mass-add-foil-toggle { flex: none; width: 22px; height: 22px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--faint); }
+.mass-add-foil-toggle:hover { background: var(--accent-soft); }
+.mass-add-foil-toggle .icon { width: 14px; height: 14px; }
+.mass-add-foil-toggle.active { color: var(--gold-bright); }
+.mass-add-foil-toggle.active .icon { fill: currentColor; }
 .mass-add-line .mini-stepper { flex: none; }
 .mass-add-line-remove { flex: none; width: 22px; height: 22px; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--faint); }
 .mass-add-line-remove:hover { background: color-mix(in srgb, var(--red) 18%, transparent); color: var(--red); }
@@ -1058,6 +1077,8 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .mass-add-preview-name b { display: block; font-size: 13px; }
 .mass-add-preview-name span { display: block; margin-top: 2px; font: 700 9px var(--mono); color: var(--faint); }
 .mass-add-preview-lock { font-size: 10px; color: var(--accent); display: flex; align-items: center; gap: 4px; }
+.mass-add-preview-price-row { display: flex; align-items: center; gap: 6px; }
+.mass-add-preview-price-row .mass-add-line-price { font-size: 13px; }
 .mass-add-preview-qty { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .mass-add-preview-qty label { font-size: 9px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); }
 .mass-add-preview-qty .mini-stepper { width: 96px; height: 34px; grid-template-columns: 34px 28px 34px; }

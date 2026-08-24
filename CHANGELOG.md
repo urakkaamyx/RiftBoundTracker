@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.28.24 — Foil pricing and selection across Mass Add and Scanner
+
+- Mass Add now shows a live price per line, Foil by default, with a shiny toggle to switch to Normal — sourced from riftbound.gg, which already returns both prices per card; the pipeline just used to collapse them to one and discard the other, now it doesn't for this new bulk lookup path.
+- Pasted decklists set the foil flag from the text itself instead of defaulting: a trailing "f" or "foil" on a line (after the quantity, if any — e.g. "Blazing Scorcher x3 foil") marks it Foil, its absence means Normal. The printing picker (for ambiguous same-name cards) carries the flag through even when it has to wait on your choice.
+- Scanning a card to add it now opens a confirmation popup with the card's art/name and a Hologram checkbox, default off — since a physical scan is a genuine claim about the real card in hand, checking it actually marks the new copy as a Hologram (the counter added in v1.28.23), not just a price preference like Mass Add's toggle.
+
 ## v1.28.23 — Track how many of a card's copies are Hologram
 
 - Added a Hologram counter to the card inspector, right next to Owned/Trade — since Hologram is a foil finish rather than its own separately-numbered printing, it's tracked as a sub-count of how many copies you own (not a separate card entry, unlike Alternate Art). Always clamped to your owned count in both directions: setting Hologram above what you own is capped, and lowering your owned count below your recorded Hologram count brings it down with it.

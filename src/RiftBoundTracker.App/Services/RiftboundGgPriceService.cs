@@ -16,6 +16,16 @@ public sealed record RiftboundGgPrice(
     DateTimeOffset FetchedAt,
     string SourceUrl);
 
+// Both prices side by side rather than collapsed to one "preferred" printing — for Mass Add's
+// foil/normal toggle, where the choice belongs to whoever's adding the card, not a fixed priority.
+public sealed record RiftboundGgDualPrice(
+    string CardId,
+    double? NormalPrice,
+    double? NormalChange24Hours,
+    double? FoilPrice,
+    double? FoilChange24Hours,
+    DateTimeOffset FetchedAt);
+
 public sealed class RiftboundGgPriceService(
     IHttpClientFactory httpClientFactory,
     ILogger<RiftboundGgPriceService> logger)
@@ -42,15 +52,41 @@ public sealed class RiftboundGgPriceService(
                 continue;
             }
 
+            var isNormal = price.PreferredPrinting == "Normal";
             result[card.Id] = new RiftboundGgPrice(
                 card.Id,
                 price.ProviderCardId,
-                price.Printing,
-                price.MarketPrice,
-                price.Change24Hours,
-                price.Change7Days,
+                price.PreferredPrinting,
+                (isNormal ? price.NormalPrice : price.FoilPrice) ?? 0,
+                isNormal ? price.NormalChange24h : price.FoilChange24h,
+                isNormal ? price.NormalChange7d : price.FoilChange7d,
                 catalog.FetchedAt,
                 $"https://riftbound.gg/prices/?textSearch={Uri.EscapeDataString(price.ProviderCardId)}");
+        }
+
+        return result;
+    }
+
+    public async Task<Dictionary<string, RiftboundGgDualPrice>> GetDualLatestAsync(
+        IReadOnlyList<CardEntity> cards,
+        CancellationToken ct = default)
+    {
+        var catalog = await GetCatalogAsync(ct);
+        var result = new Dictionary<string, RiftboundGgDualPrice>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var card in cards)
+        {
+            var printedCode = $"{card.SetId}-{card.CollectorCode}".ToUpperInvariant();
+            if (!catalog.ByPrintedCode.TryGetValue(printedCode, out var price)
+                && (string.IsNullOrWhiteSpace(card.TcgplayerId)
+                    || !catalog.ByMarketId.TryGetValue(card.TcgplayerId, out price)))
+            {
+                continue;
+            }
+
+            result[card.Id] = new RiftboundGgDualPrice(
+                card.Id, price.NormalPrice, price.NormalChange24h, price.FoilPrice, price.FoilChange24h,
+                catalog.FetchedAt);
         }
 
         return result;
@@ -128,37 +164,21 @@ public sealed class RiftboundGgPriceService(
             var hasNormal = ReadBoolean(row, fields["hasNormal"]);
             var hasFoil = ReadBoolean(row, fields["hasFoil"]);
 
-            CatalogPrice? price = null;
-            if (normalPrice is > 0 && (hasNormal || foilPrice is not > 0))
-            {
-                price = new CatalogPrice(
-                    providerCardId, "Normal", normalPrice.Value,
-                    ReadDouble(row, fields["deltaPrice"]),
-                    ReadDouble(row, fields["delta7dPrice"]));
-            }
-            else if (foilPrice is > 0 && (hasFoil || normalPrice is not > 0))
-            {
-                price = new CatalogPrice(
-                    providerCardId, "Foil", foilPrice.Value,
-                    ReadDouble(row, fields["deltaFoilPrice"]),
-                    ReadDouble(row, fields["delta7dPriceFoil"]));
-            }
-            else if (normalPrice is > 0)
-            {
-                price = new CatalogPrice(
-                    providerCardId, "Normal", normalPrice.Value,
-                    ReadDouble(row, fields["deltaPrice"]),
-                    ReadDouble(row, fields["delta7dPrice"]));
-            }
-            else if (foilPrice is > 0)
-            {
-                price = new CatalogPrice(
-                    providerCardId, "Foil", foilPrice.Value,
-                    ReadDouble(row, fields["deltaFoilPrice"]),
-                    ReadDouble(row, fields["delta7dPriceFoil"]));
-            }
+            double? normal = normalPrice is > 0 ? normalPrice : null;
+            double? foil = foilPrice is > 0 ? foilPrice : null;
+            if (normal is null && foil is null) continue;
 
-            if (price is null) continue;
+            // Same priority the single-price path always used (Normal wins unless only Foil is
+            // actually available) — preserved here so GetLatestAsync's existing callers (Analytics,
+            // Inspector, etc.) see identical output to before; GetDualLatestAsync below is the new
+            // path that exposes both prices instead of collapsing to one.
+            var preferNormal = normal is not null && (hasNormal || foil is null);
+            var price = new CatalogPrice(
+                providerCardId,
+                normal, ReadDouble(row, fields["deltaPrice"]), ReadDouble(row, fields["delta7dPrice"]),
+                foil, ReadDouble(row, fields["deltaFoilPrice"]), ReadDouble(row, fields["delta7dPriceFoil"]),
+                preferNormal ? "Normal" : "Foil");
+
             byPrintedCode[providerCardId.ToUpperInvariant()] = price;
 
             var marketIds = ReadString(row, fields["marketIds"]);
@@ -207,10 +227,9 @@ public sealed class RiftboundGgPriceService(
 
     private sealed record CatalogPrice(
         string ProviderCardId,
-        string Printing,
-        double MarketPrice,
-        double? Change24Hours,
-        double? Change7Days);
+        double? NormalPrice, double? NormalChange24h, double? NormalChange7d,
+        double? FoilPrice, double? FoilChange24h, double? FoilChange7d,
+        string PreferredPrinting);
 
     private sealed record CatalogCache(
         Dictionary<string, CatalogPrice> ByPrintedCode,

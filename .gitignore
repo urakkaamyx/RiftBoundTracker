@@ -63,3 +63,7 @@ __pycache__/
 # scratch extractions) - not the source of truth. The canonical engine source lives in
 # /rules-engine/, checked in separately once a milestone is actually integrated.
 /REWORK/
+
+# Large corpus/training data dropped at repo root, not part of the app itself.
+/RiftKeep_Full_MNT_Reset/
+/RiftKeep_Full_MNT_Reset_PARTS_MANIFEST_v2.md

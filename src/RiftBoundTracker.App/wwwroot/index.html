@@ -376,6 +376,28 @@
     </div>
   </div>
 
+  <div class="modal-layer" id="scanConfirmModal" hidden>
+    <div class="modal scan-confirm-modal">
+      <div class="modal-head"><div><span>Scanner</span><h2>Add to Collection</h2></div><button class="icon-btn" data-close="scanConfirmModal"><i data-icon="x"></i></button></div>
+      <div class="scan-confirm-card">
+        <img id="scanConfirmImg" alt="" />
+        <div class="scan-confirm-info">
+          <b id="scanConfirmName"></b>
+          <span id="scanConfirmCode"></span>
+        </div>
+      </div>
+      <label class="scan-confirm-foil">
+        <input type="checkbox" id="scanConfirmFoilInput" />
+        <i data-icon="star" aria-hidden="true"></i>
+        <span>This copy is a Hologram</span>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="command-btn quiet" data-close="scanConfirmModal">Cancel</button>
+        <button type="button" class="command-btn gold" id="scanConfirmAddBtn">Add to Collection</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-layer" id="connectionModal" hidden><div class="modal compact-modal"><div class="modal-head"><div><span>Phone Scanner</span><h2>Connect</h2></div><button class="icon-btn" data-close="connectionModal"><i data-icon="x"></i></button></div><div class="connection-body" id="connectionBody"><div class="loading-line">Loading...</div></div></div></div>
 
   <div class="modal-layer" id="deckModal" hidden><div class="modal legend-modal" id="legendPickerModal"><div class="modal-head"><div><span>Deck Builder</span><h2>Choose Your Legend</h2></div><button class="icon-btn" data-close="deckModal"><i data-icon="x"></i></button></div><div class="legend-picker-toolbar"><input id="legendSearch" placeholder="Search legends..." /><label class="legend-owned-toggle"><input type="checkbox" id="legendOwnedOnly" /><span>Owned Only</span></label></div><div class="legend-picker-body"><div class="legend-picker-grid" id="legendPickerGrid"></div><aside class="legend-detail-panel" id="legendDetailPanel"></aside></div></div></div>

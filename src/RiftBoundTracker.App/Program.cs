@@ -140,6 +140,9 @@ internal static class Program
             c.DefaultRequestHeaders.Add("Sec-Fetch-Dest", "empty");
         });
         builder.Services.AddHttpClient("card-images", c => c.Timeout = TimeSpan.FromSeconds(30));
+        // No fixed BaseAddress — RiftKeepServerClient sets it per-call from the user's configured
+        // server URL (Settings → RiftKeep Server), since that's a runtime value, not a constant.
+        builder.Services.AddHttpClient("riftkeep-server", c => c.Timeout = TimeSpan.FromSeconds(60));
         builder.Services.AddHttpClient("github", c =>
         {
             c.DefaultRequestHeaders.UserAgent.ParseAdd("RiftKeep-UpdateChecker");
@@ -199,6 +202,10 @@ internal static class Program
         builder.Services.AddSingleton<RiftboundGgPriceService>();
         builder.Services.AddSingleton<PricingSettingsService>();
         builder.Services.AddSingleton<TopDeckSettingsService>();
+        builder.Services.AddSingleton<RiftKeepServerSettingsService>();
+        builder.Services.AddScoped<RiftKeepServerClient>();
+        builder.Services.AddScoped<RiftKeepServerCardSyncService>();
+        builder.Services.AddSingleton<DiscordSignInService>();
         builder.Services.AddScoped<TopDeckClient>();
         builder.Services.AddScoped<CommunityCardResolver>();
         builder.Services.AddScoped<CommunityDeckSyncService>();
@@ -711,6 +718,47 @@ internal static class Program
             return Results.Ok(settings.GetStatus());
         });
 
+        app.MapGet("/api/riftkeep-server/status", (RiftKeepServerSettingsService settings) =>
+        {
+            var stored = settings.GetSettings();
+            return Results.Ok(new
+            {
+                connected = settings.IsConnected(),
+                serverUrl = stored?.ServerUrl,
+                tier = stored?.Tier,
+                expiresAt = stored?.ExpiresAt,
+                discordUsername = stored?.DiscordUsername,
+            });
+        });
+
+        // Opens a real, visible Discord sign-in window (DiscordSignInService) and blocks until the
+        // user finishes (or cancels) — a plain request/response is fine here since this is a rare,
+        // explicitly user-initiated action from Settings, not something on a hot path.
+        app.MapPost("/api/riftkeep-server/connect", async (RiftKeepServerConnectRequest body, DiscordSignInService signIn, RiftKeepServerSettingsService settings, CancellationToken ct) =>
+        {
+            var serverUrl = body.ServerUrl.Trim().TrimEnd('/');
+            if (serverUrl.Length == 0) return Results.BadRequest("Enter a RiftKeep server URL.");
+
+            var result = await signIn.SignInAsync(serverUrl, ct);
+            if (result is null) return Results.Ok(new { connected = false, cancelled = true });
+
+            settings.Save(new RiftKeepServerSettings(serverUrl, result.Token, result.Tier, result.ExpiresAt, result.DiscordUsername));
+            return Results.Ok(new
+            {
+                connected = true,
+                serverUrl,
+                tier = result.Tier,
+                expiresAt = result.ExpiresAt,
+                discordUsername = result.DiscordUsername,
+            });
+        });
+
+        app.MapDelete("/api/riftkeep-server/connect", (RiftKeepServerSettingsService settings) =>
+        {
+            settings.Clear();
+            return Results.Ok(new { connected = false });
+        });
+
         app.MapGet("/api/pricing/latest", async (PriceSyncService prices, CancellationToken ct) =>
             Results.Ok(await prices.GetLatestAsync(ct)));
 
@@ -859,6 +907,7 @@ public record DecodeDeckCodeRequest(string Contents);
 public record DeckCodeEntryDto(string SetId, string Code, int Quantity);
 public record DecodedDeckCodeResult(List<DeckCodeEntryDto> Entries);
 public record PricingKeyRequest(string ApiKey);
+public record RiftKeepServerConnectRequest(string ServerUrl);
 public record TopDeckKeyRequest(string ApiKey);
 public record CommunitySyncRequest(int? Days);
 public record AskRuleQuestionRequest(string Question, string? CardId);

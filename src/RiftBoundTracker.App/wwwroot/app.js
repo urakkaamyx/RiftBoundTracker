@@ -1891,6 +1891,51 @@ async function loadSettings() {
   document.getElementById("databaseFacts").innerHTML = db ? `<span>${health.cards} cards now</span><span>${health.ownedCards} owned now</span><span>${health.ownedCopies} copies now</span>${db.lastBackupPath ? `<span>Last migration backup: ${escapeHtml(db.lastBackupPath.split(/[\\/]/).pop())}</span>` : ""}` : "";
   document.getElementById("currentVersion").textContent = server.version;
   document.querySelectorAll("#themeControl button").forEach(button => button.classList.toggle("active", button.dataset.themeValue === document.documentElement.dataset.theme));
+
+  await refreshRiftKeepServerStatus();
+}
+
+async function refreshRiftKeepServerStatus() {
+  const status = await api("/api/riftkeep-server/status");
+  const statusEl = document.getElementById("riftkeepServerStatus");
+  const form = document.getElementById("riftkeepServerConnectForm");
+  const actions = document.getElementById("riftkeepServerConnectedActions");
+  if (status.connected) {
+    const expires = status.expiresAt ? formatRelativeTime(status.expiresAt) : "unknown";
+    statusEl.textContent = `Connected to ${status.serverUrl} as ${status.discordUsername || "you"} (${status.tier} tier, expires ${expires}).`;
+    form.hidden = true;
+    actions.hidden = false;
+  } else {
+    statusEl.textContent = "Not connected — card sync, pricing, and collection backup stay local-only until you connect.";
+    form.hidden = false;
+    actions.hidden = true;
+  }
+}
+
+async function connectRiftKeepServer() {
+  const serverUrl = document.getElementById("riftkeepServerUrl").value.trim();
+  if (!serverUrl) return;
+  const button = document.getElementById("riftkeepServerConnectBtn");
+  button.disabled = true;
+  toast("Opening Discord sign-in…");
+  try {
+    const result = await api("/api/riftkeep-server/connect", jsonOptions("POST", { serverUrl }));
+    if (result.cancelled) {
+      toast("Sign-in cancelled");
+    } else {
+      toast("Connected to RiftKeep server");
+      document.getElementById("riftkeepServerUrl").value = "";
+    }
+  } finally {
+    button.disabled = false;
+    await refreshRiftKeepServerStatus();
+  }
+}
+
+async function disconnectRiftKeepServer() {
+  await api("/api/riftkeep-server/connect", { method: "DELETE" });
+  toast("Disconnected from RiftKeep server");
+  await refreshRiftKeepServerStatus();
 }
 
 async function refreshCatalog() {
@@ -4222,6 +4267,8 @@ function wireEvents() {
   document.getElementById("confirmImportDeck").addEventListener("click", importDeck);
   document.getElementById("savePricingKey").addEventListener("click", savePricingKey);
   document.getElementById("clearPricingKey").addEventListener("click", clearPricingKey);
+  document.getElementById("riftkeepServerConnectBtn").addEventListener("click", connectRiftKeepServer);
+  document.getElementById("riftkeepServerDisconnectBtn").addEventListener("click", disconnectRiftKeepServer);
   document.getElementById("saveTopdeckKey").addEventListener("click", saveTopdeckKey);
   document.getElementById("clearTopdeckKey").addEventListener("click", clearTopdeckKey);
   document.getElementById("syncCommunityBtn").addEventListener("click", syncCommunityData);

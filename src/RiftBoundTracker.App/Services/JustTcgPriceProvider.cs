@@ -19,6 +19,8 @@ public interface IPriceProvider
 public sealed class JustTcgPriceProvider(
     IHttpClientFactory httpClientFactory,
     PricingSettingsService settings,
+    RiftKeepServerSettingsService serverSettings,
+    RiftKeepServerClient serverClient,
     ILogger<JustTcgPriceProvider> logger) : IPriceProvider
 {
     public const int FreeTierBatchSize = 20;
@@ -37,6 +39,15 @@ public sealed class JustTcgPriceProvider(
             .Where(c => !string.IsNullOrWhiteSpace(c.TcgplayerId))
             .ToDictionary(c => c.TcgplayerId!, StringComparer.OrdinalIgnoreCase);
         if (requested.Count == 0) return [];
+
+        // The stored JustTCG key never leaves this machine except attached to a request — once a
+        // RiftKeep server is configured, that request goes to the server's own pass-through
+        // endpoint (which relays it to JustTCG and forgets it) instead of this client calling
+        // api.justtcg.com directly. See RiftKeepServerClient.GetJustTcgPricesAsync.
+        if (serverSettings.IsConnected())
+            return (await serverClient.GetJustTcgPricesAsync(apiKey, requested.Keys.ToList(), ct))
+                .Select(q => new PriceQuote(q.CardId, q.Provider, q.VariantId, q.Condition, q.Printing, q.Currency, q.MarketPrice, q.Change24Hours, q.SourceUpdatedAt))
+                .ToList();
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/cards");
         request.Headers.Add("x-api-key", apiKey);

@@ -17,6 +17,8 @@ public record CatalogSyncStatus(
 public class CatalogSyncService(
     RiftcodexClient riftcodex,
     CardCacheService cache,
+    RiftKeepServerSettingsService serverSettings,
+    RiftKeepServerCardSyncService serverSync,
     AppDbContext db,
     ILogger<CatalogSyncService> logger)
 {
@@ -41,6 +43,21 @@ public class CatalogSyncService(
         _cardsDone = 0;
         try
         {
+            // A configured, signed-in RiftKeep server is authoritative once it exists — the whole
+            // point of "no direct calls to external services" is that this client stops talking to
+            // riftcodex.com itself and instead pulls the same catalog through the server. Without a
+            // server configured (or its token has lapsed), the direct sync below is what keeps a
+            // standalone install working exactly as it always has.
+            if (serverSettings.IsConnected())
+            {
+                _currentSet = "RiftKeep server";
+                var syncedFromServer = await serverSync.SyncAsync(ct);
+                _cardsDone = syncedFromServer;
+                _setsDone = _setsTotal = 1;
+                await SaveSyncStateAsync(ok: true, setsKnown: 1, syncedFromServer, ct);
+                return true;
+            }
+
             var sets = new List<RiftcodexSetListItem>();
             await foreach (var set in riftcodex.GetAllSetsAsync(ct: ct))
                 sets.Add(set);

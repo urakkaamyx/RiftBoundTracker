@@ -192,6 +192,7 @@ public partial class CardCacheService(
         if (card is null) return null;
         card.OwnedCount = Math.Max(0, ownedCount);
         card.BinderCount = Math.Min(card.BinderCount, card.OwnedCount);
+        card.HologramCount = Math.Min(card.HologramCount, card.OwnedCount);
         card.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(ct);
         return card;

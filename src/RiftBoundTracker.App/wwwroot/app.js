@@ -780,6 +780,12 @@ function cardDetailMarkup(card, mobile) {
         <button type="button" data-inspector-owned-delta="1" aria-label="Add one owned copy" title="Add one copy">${icon("plus")}</button>
       </div>
       <label class="trade-toggle" title="Mark this card as available for trade"><span>Trade</span><input type="checkbox" data-inspector-binder-toggle${card.binderCount > 0 ? " checked" : ""}${card.ownedCount <= 0 ? " disabled" : ""} /><i aria-hidden="true"></i></label>
+      <div class="owned-editor hologram-editor" title="How many of your owned copies are the Hologram finish">
+        <span>Hologram</span>
+        <button type="button" data-inspector-hologram-delta="-1" aria-label="Remove one hologram copy"${card.hologramCount <= 0 ? " disabled" : ""}>${icon("minus")}</button>
+        <input type="number" min="0" max="${card.ownedCount}" step="1" inputmode="numeric" value="${card.hologramCount}" data-inspector-hologram-input aria-label="Hologram copies"${card.ownedCount <= 0 ? " disabled" : ""} />
+        <button type="button" data-inspector-hologram-delta="1" aria-label="Add one hologram copy"${card.hologramCount >= card.ownedCount ? " disabled" : ""}>${icon("plus")}</button>
+      </div>
     </div>
     <div class="inspector-stats">
       <span>Type</span><b>${escapeHtml([card.supertype, card.type].filter(Boolean).join(" "))}</b>
@@ -887,6 +893,29 @@ function wireInspector(root, card) {
   });
   root.querySelector("[data-inspector-binder-toggle]")?.addEventListener("change", event =>
     setBinderAvailability(currentCard(), event.target.checked).catch(err => toast(err.message, true)));
+  root.querySelectorAll("[data-inspector-hologram-delta]").forEach(button => button.addEventListener("click", () =>
+    changeHologram(currentCard(), Number(button.dataset.inspectorHologramDelta)).catch(err => toast(err.message, true))));
+  const hologramInput = root.querySelector("[data-inspector-hologram-input]");
+  let hologramSaveTimer;
+  let lastRequestedHologram = hologramInput?.value;
+  const saveHologramInput = () => {
+    clearTimeout(hologramSaveTimer);
+    if (!hologramInput || hologramInput.value === lastRequestedHologram) return;
+    lastRequestedHologram = hologramInput.value;
+    setHologramCount(currentCard(), hologramInput.value).catch(err => {
+      lastRequestedHologram = String(currentCard().hologramCount);
+      toast(err.message, true);
+      refreshVisibleCardDetails(currentCard());
+    });
+  };
+  hologramInput?.addEventListener("input", () => {
+    clearTimeout(hologramSaveTimer);
+    hologramSaveTimer = setTimeout(saveHologramInput, 500);
+  });
+  hologramInput?.addEventListener("change", saveHologramInput);
+  hologramInput?.addEventListener("keydown", event => {
+    if (event.key === "Enter") { event.preventDefault(); saveHologramInput(); hologramInput.blur(); }
+  });
   root.querySelector("[data-add-to-deck]")?.addEventListener("click", async () => {
     const deckId = Number(root.querySelector("[data-deck-picker]").value);
     const detail = await api(`/api/decks/${deckId}`);
@@ -935,6 +964,20 @@ async function setOwnedCount(card, ownedCount) {
 
 async function changeOwned(card, delta) {
   return setOwnedCount(card, card.ownedCount + delta);
+}
+
+async function setHologramCount(card, hologramCount) {
+  const parsed = Number(hologramCount);
+  const next = Number.isFinite(parsed) ? Math.min(card.ownedCount, Math.max(0, Math.floor(parsed))) : card.hologramCount;
+  if (next === card.hologramCount) return refreshVisibleCardDetails(card);
+  const updated = await api(`/api/hologram/${encodeURIComponent(card.id)}`, jsonOptions("POST", { count: next }));
+  cardsById.set(updated.id, updated);
+  toast(`${card.name}: ${updated.hologramCount} hologram`);
+  refreshVisibleCardDetails(updated);
+}
+
+async function changeHologram(card, delta) {
+  return setHologramCount(card, card.hologramCount + delta);
 }
 
 async function changeFavorite(card) {

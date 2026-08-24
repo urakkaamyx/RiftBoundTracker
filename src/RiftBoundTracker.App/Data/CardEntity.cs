@@ -41,6 +41,11 @@ public class CardEntity
     public int OwnedCount { get; set; }
     public bool IsFavorite { get; set; }
     public int BinderCount { get; set; }
+    // How many of OwnedCount are the Hologram foil finish — a sub-count of ownership, not a
+    // separate printing (unlike Alternate Art etc., Hologram isn't its own collector-numbered
+    // card), so it's tracked here rather than as a distinct CardEntity row. Always clamped to
+    // [0, OwnedCount], same as BinderCount.
+    public int HologramCount { get; set; }
     public string? Notes { get; set; }
     public DateTimeOffset CachedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }

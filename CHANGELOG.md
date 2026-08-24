@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.23 — Track how many of a card's copies are Hologram
+
+- Added a Hologram counter to the card inspector, right next to Owned/Trade — since Hologram is a foil finish rather than its own separately-numbered printing, it's tracked as a sub-count of how many copies you own (not a separate card entry, unlike Alternate Art). Always clamped to your owned count in both directions: setting Hologram above what you own is capped, and lowering your owned count below your recorded Hologram count brings it down with it.
+
 ## v1.28.22 — Rules hidden for now
 
 - Hid the Rules nav item while Keywords/Legality are still unimplemented and Ask Rules' answer quality gets more work — nothing removed, just tucked away until it's ready for regular use.

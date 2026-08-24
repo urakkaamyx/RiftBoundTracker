@@ -484,6 +484,12 @@ internal static class Program
         app.MapGet("/api/binder", async (VaultService vault, CancellationToken ct) =>
             Results.Ok(await vault.GetBinderAsync(ct)));
 
+        app.MapPost("/api/hologram/{cardId}", async (string cardId, HologramRequest body, VaultService vault, CancellationToken ct) =>
+        {
+            var updated = await vault.SetHologramCountAsync(cardId, body.Count, ct);
+            return updated is null ? Results.NotFound() : Results.Ok(updated);
+        });
+
         app.MapPost("/api/binder/{cardId}/confirm-trade", async (string cardId, BinderRequest body, VaultService vault, CancellationToken ct) =>
         {
             var updated = await vault.ConfirmTradeAsync(cardId, body.Count, ct);

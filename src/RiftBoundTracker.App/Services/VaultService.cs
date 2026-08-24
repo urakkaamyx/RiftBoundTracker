@@ -5,6 +5,7 @@ namespace RiftBoundTracker.App.Services;
 
 public record FavoriteRequest(bool Favorite);
 public record BinderRequest(int Count);
+public record HologramRequest(int Count);
 public record SetProgressDto(string SetId, string SetLabel, int Total, int Owned, int Copies, double Completion);
 public record DistributionDto(string Label, int Cards, int Owned, int Copies);
 public record ValuableCardDto(CardEntity Card, double UnitPrice, double CollectionValue, double? Change24Hours);
@@ -36,6 +37,16 @@ public sealed class VaultService(
         var card = await db.Cards.FindAsync([cardId], ct);
         if (card is null) return null;
         card.BinderCount = Math.Clamp(count, 0, card.OwnedCount);
+        card.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return card;
+    }
+
+    public async Task<CardEntity?> SetHologramCountAsync(string cardId, int count, CancellationToken ct = default)
+    {
+        var card = await db.Cards.FindAsync([cardId], ct);
+        if (card is null) return null;
+        card.HologramCount = Math.Clamp(count, 0, card.OwnedCount);
         card.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(ct);
         return card;

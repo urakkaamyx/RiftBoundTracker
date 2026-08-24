@@ -101,7 +101,7 @@ public sealed class DiscordSignInService(IWebHostEnvironment env, ILogger<Discor
                 }
             };
 
-            webView.Source = new Uri($"{serverBaseUrl.TrimEnd('/')}/account/login");
+            webView.Source = new Uri($"{serverBaseUrl.TrimEnd('/')}/signin");
         }
         catch (Exception ex)
         {

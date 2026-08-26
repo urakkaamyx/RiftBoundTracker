@@ -65,6 +65,7 @@ const state = {
   deckTab: "builder", discoverTab: "recommended", discoverSearch: "", discoverSection: "main",
   discoverVariantSelection: new Map(), discoverPage: 1, discoverPageSize: 25,
   discoverCache: { key: null, cards: [] },
+  ownedVariantIndex: null, ownedVariantIndexPromise: null,
   recommendedCache: { key: null, recs: [] },
   recommendedRowsById: new Map(),
   vaultFacetCache: { setId: undefined, cards: [] },
@@ -549,8 +550,40 @@ async function refreshAfterCollectionChange() {
   // both caches here forces a fresh fetch on the next render, whenever ownership actually changed.
   state.discoverCache = { key: null, cards: [] };
   state.recommendedCache = { key: null, recs: [] };
+  state.ownedVariantIndex = null;
+  state.ownedVariantIndexPromise = null;
   await Promise.all([loadSets(), loadOverview()]);
   await refreshCurrentPage();
+}
+
+// A base-name -> owned card ids index, used to flag deck rows where you own a different printing
+// of that card than the one in the deck. Built from the same "owned" catalog query the Discover
+// panel's My Collection tab already uses, cached until refreshAfterCollectionChange() clears it
+// (ownership changing anywhere is the only thing that can add/remove an entry).
+function ensureOwnedVariantIndex() {
+  if (state.ownedVariantIndex) return Promise.resolve(state.ownedVariantIndex);
+  if (state.ownedVariantIndexPromise) return state.ownedVariantIndexPromise;
+  state.ownedVariantIndexPromise = api(`/api/cards?${queryString({ owned: "owned", sort: "name-asc" })}`)
+    .then(cards => {
+      const index = new Map();
+      for (const card of cards) {
+        const key = legendBaseName(card.name);
+        if (!index.has(key)) index.set(key, new Set());
+        index.get(key).add(card.id);
+      }
+      state.ownedVariantIndex = index;
+      state.ownedVariantIndexPromise = null;
+      return index;
+    })
+    .catch(err => { state.ownedVariantIndexPromise = null; throw err; });
+  return state.ownedVariantIndexPromise;
+}
+
+function ownsOtherPrinting(row) {
+  const ids = state.ownedVariantIndex?.get(legendBaseName(row.card.name));
+  if (!ids) return false;
+  for (const id of ids) if (id !== row.cardId) return true;
+  return false;
 }
 
 async function loadSets() {
@@ -1366,6 +1399,9 @@ function renderDeckWorkspace() {
   if (state.deckTab === "analysis") {
     renderDeckAnalysis(document.getElementById("deckTabBody"), detail);
   } else {
+    if (!state.ownedVariantIndex) {
+      ensureOwnedVariantIndex().then(() => { if (state.deckTab === "builder") renderDeckWorkspace(); }).catch(() => {});
+    }
     document.getElementById("deckTabBody").innerHTML = `
       <div class="deck-builder">
         ${deckSummaryMarkup(detail)}
@@ -1505,7 +1541,7 @@ function deckGroupMarkup(group, rows) {
   return `<section class="deck-group"><div class="deck-group-head"><span>${escapeHtml(group)}</span><b>${count}</b></div>${rows.map(row => `
     <div class="deck-row" data-hover-card="${escapeHtml(row.cardId)}">
       <img class="deck-row-bust" src="${escapeHtml(cardImage(row.card))}" alt="" aria-hidden="true" />
-      <div class="deck-row-copy"><strong>${escapeHtml(row.card.name)}</strong><span>${escapeHtml(row.card.setId)}-${escapeHtml(cardCode(row.card))} / ${escapeHtml(row.section)}</span></div>
+      <div class="deck-row-copy"><strong>${escapeHtml(row.card.name)}${ownsOtherPrinting(row) ? `<span class="deck-row-alt-badge" title="You own a different printing of this card - click to switch">${icon("layers")}</span>` : ""}</strong><span>${escapeHtml(row.card.setId)}-${escapeHtml(cardCode(row.card))} / ${escapeHtml(row.section)}</span></div>
       ${row.missing > 0
         ? `<button type="button" class="deck-row-acquire" data-acquire-card="${escapeHtml(row.cardId)}" title="Add 1 copy of this card to your Vault">Acquired</button>`
         : `<span class="deck-row-acquire-slot"></span>`}

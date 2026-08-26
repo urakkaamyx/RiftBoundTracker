@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.26 — Deck Builder flags cards where you own a different printing
+
+- Each deck row now shows a small badge when you own a different printing of that card than the one in the deck — built from a base-name index over your owned cards, so you don't have to click into every line's Change Printing popup just to find out. Click the row same as before to switch.
+
 ## v1.28.25 — Deck Builder: deck-scoped Missing tab, click a card to change its printing
 
 - The deck workspace's Missing discover tab now shows only the open deck's own unfulfilled lines instead of every not-owned card in the whole catalog — the catalog-wide "not owned anywhere" view is still there on the Vault page's own Missing filter, this was specifically about the deck you're actively building.

@@ -1418,6 +1418,68 @@ function hideDeckRowPopup() {
   document.getElementById("deckRowPopup").hidden = true;
 }
 
+function hideVariantSwapPopup() {
+  const popup = document.getElementById("variantSwapPopup");
+  popup.hidden = true;
+  popup.innerHTML = "";
+}
+
+function positionVariantSwapPopup(event) {
+  const popup = document.getElementById("variantSwapPopup");
+  if (popup.hidden) return;
+  const margin = 12;
+  const width = popup.offsetWidth || 260;
+  const height = popup.offsetHeight || 120;
+  let x = event.clientX + margin;
+  if (x + width > window.innerWidth - 8) x = event.clientX - margin - width;
+  let y = event.clientY + margin;
+  if (y + height > window.innerHeight - 8) y = event.clientY - margin - height;
+  popup.style.left = `${Math.max(8, x)}px`;
+  popup.style.top = `${Math.max(8, y)}px`;
+}
+
+// Lets any card row in the deck's own card list be swapped to a different printing without
+// leaving the builder - the same base-name grouping the Legend picker uses, generalized to every
+// card instead of just Legends. Reuses SetCardAsync's existing Legend cover-reassignment
+// (DeckService.cs, triggered whenever the card being set is Type "Legend") for free, since this
+// goes through the exact same POST /api/decks/{id}/cards endpoint as Change Legend does.
+async function openVariantSwapPopup(cardId, event) {
+  const row = state.activeDeck.cards.find(r => r.cardId === cardId);
+  const card = row?.card;
+  if (!card) return;
+  const popup = document.getElementById("variantSwapPopup");
+  popup.innerHTML = `<div class="variant-swap-popup-loading">Loading...</div>`;
+  popup.hidden = false;
+  positionVariantSwapPopup(event);
+  const baseName = legendBaseName(card.name);
+  let cards;
+  try {
+    cards = await api(`/api/cards?${queryString({ search: baseName, sort: "name-asc" })}`);
+  } catch (err) {
+    popup.innerHTML = `<div class="variant-swap-popup-empty">${escapeHtml(err.message)}</div>`;
+    return;
+  }
+  if (popup.hidden) return; // closed while the fetch was in flight
+  const variants = cards.filter(c => legendBaseName(c.name) === baseName);
+  registerCards(variants);
+  if (variants.length <= 1) {
+    popup.innerHTML = `<div class="variant-swap-popup-empty">No other printings found.</div>`;
+    return;
+  }
+  const group = { baseName, variants: variants.sort((a, b) => a.name.length - b.name.length || a.name.localeCompare(b.name)) };
+  popup.innerHTML = `<div class="variant-swap-popup-label">Change printing</div>${legendVariationStripMarkup(group, card)}`;
+  popup.querySelectorAll("[data-legend-variant]").forEach(seg => seg.addEventListener("click", () => {
+    const newId = seg.dataset.legendVariant;
+    hideVariantSwapPopup();
+    if (newId !== card.id) swapDeckCardVariant(row, newId).catch(err => toast(err.message, true));
+  }));
+}
+
+async function swapDeckCardVariant(row, newCardId) {
+  await setDeckCard(state.activeDeckId, row.cardId, 0, row.section);
+  await setDeckCard(state.activeDeckId, newCardId, row.quantity, row.section);
+}
+
 // Recommended-tab rows get a stats popup instead of the plain image popup other Discover tabs
 // use — the whole point of that tab is "why is this recommended", not "what does it look like".
 function showRecommendationPopup(cardId, event) {
@@ -1485,7 +1547,7 @@ function wireDeckWorkspace() {
   }));
   root.querySelectorAll(".deck-row[data-hover-card]").forEach(row => row.addEventListener("click", event => {
     if (event.target.closest(".mini-stepper, .deck-row-acquire")) return;
-    openFullscreenCardImage(row.dataset.hoverCard);
+    openVariantSwapPopup(row.dataset.hoverCard, event);
   }));
   root.querySelectorAll("[data-deck-tab]").forEach(button => button.addEventListener("click", () => {
     state.deckTab = button.dataset.deckTab;
@@ -1633,6 +1695,35 @@ async function renderRecommendedTab(root) {
     setDeckCard(state.activeDeckId, button.dataset.cardId, Number(button.dataset.discoverQty), state.discoverSection)));
 }
 
+// The Missing tab shows this deck's own unfulfilled lines, not a whole-catalog "not owned
+// anywhere" scan - that catalog-wide view still exists on the Vault page's own Missing filter.
+function renderDeckMissingTab(root) {
+  const missingLines = state.activeDeck.cards.filter(row => row.missing > 0);
+  if (!missingLines.length) {
+    renderEmptyPanel(root, { icon: "check", title: "Nothing missing", body: "Every card in this deck is fully owned." });
+    return;
+  }
+  const search = state.discoverSearch.trim().toLowerCase();
+  const filtered = search ? missingLines.filter(row => row.card.name.toLowerCase().includes(search)) : missingLines;
+  if (!filtered.length) {
+    renderEmptyPanel(root, { icon: "search", title: "No cards found", body: "Try a different search." });
+    return;
+  }
+  const cards = filtered.map(row => row.card);
+  registerCards(cards);
+  const groups = groupLegendVariants(cards);
+  root.innerHTML = groups.map(discoverGroupMarkup).join("");
+  renderIcons(root);
+  root.querySelectorAll("[data-discover-add]").forEach(button => button.addEventListener("click", () =>
+    setDeckCard(state.activeDeckId, button.dataset.discoverAdd, 1, state.discoverSection)));
+  root.querySelectorAll("[data-discover-qty]").forEach(button => button.addEventListener("click", () =>
+    setDeckCard(state.activeDeckId, button.dataset.cardId, Number(button.dataset.discoverQty), state.discoverSection)));
+  root.querySelectorAll("[data-discover-variant]").forEach(button => button.addEventListener("click", () => {
+    state.discoverVariantSelection.set(button.dataset.discoverGroup, button.dataset.discoverVariant);
+    renderDiscoverResults().catch(err => toast(err.message, true));
+  }));
+}
+
 async function renderDiscoverResults() {
   const root = document.getElementById("discoverResults");
   const pageRoot = document.getElementById("discoverPagination");
@@ -1642,7 +1733,12 @@ async function renderDiscoverResults() {
     await renderRecommendedTab(root);
     return;
   }
-  const owned = state.discoverTab === "collection" ? "owned" : state.discoverTab === "missing" ? "missing" : "";
+  if (state.discoverTab === "missing") {
+    if (pageRoot) pageRoot.innerHTML = "";
+    renderDeckMissingTab(root);
+    return;
+  }
+  const owned = state.discoverTab === "collection" ? "owned" : "";
   const search = state.discoverSearch.trim();
   // Deck add/remove/qty changes re-render this panel constantly but never change which cards
   // match the current search/tab — only re-fetch the (potentially 1000+ row) catalog query when
@@ -4079,6 +4175,7 @@ function wireEvents() {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); document.getElementById("globalSearch").focus(); }
     if (event.key === "Escape") {
       closeCardContextMenu();
+      hideVariantSwapPopup();
       document.querySelectorAll(".modal-layer:not([hidden])").forEach(modal => closeModal(modal.id));
     }
   });
@@ -4115,6 +4212,7 @@ function wireEvents() {
   });
   document.addEventListener("click", event => {
     if (!event.target.closest("#cardContextMenu")) closeCardContextMenu();
+    if (!event.target.closest("#variantSwapPopup, .deck-row[data-hover-card]")) hideVariantSwapPopup();
     const imagePopout = event.target.closest("[data-fullscreen-card]");
     if (imagePopout) { event.preventDefault(); event.stopPropagation(); openFullscreenCardImage(imagePopout.dataset.fullscreenCard); return; }
     if (event.target.closest(".card-trade-toggle")) { event.stopPropagation(); return; }

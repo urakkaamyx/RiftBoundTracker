@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.28.25 — Deck Builder: deck-scoped Missing tab, click a card to change its printing
+
+- The deck workspace's Missing discover tab now shows only the open deck's own unfulfilled lines instead of every not-owned card in the whole catalog — the catalog-wide "not owned anywhere" view is still there on the Vault page's own Missing filter, this was specifically about the deck you're actively building.
+- Clicking a card in the deck's own card list now opens a popup to swap it for a different printing (same base-name variant grouping the Legend picker already used, generalized to any card) instead of opening a full-screen image — reuses SetCardAsync's existing Legend cover-art reassignment, so swapping a Legend's own printing this way correctly updates the deck's cover art too, same as Change Legend already did.
+
 ## v1.28.24 — Foil pricing and selection across Mass Add and Scanner
 
 - Mass Add now shows a live price per line, Foil by default, with a shiny toggle to switch to Normal — sourced from riftbound.gg, which already returns both prices per card; the pipeline just used to collapse them to one and discard the other, now it doesn't for this new bulk lookup path.

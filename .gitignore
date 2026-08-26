@@ -51,6 +51,7 @@ App_Data/
 /scripts/training/.venv/
 /scripts/training/llama.cpp-src/
 /scripts/training/llama.cpp-bin/
+/rules-engine/.venv/
 /scripts/training/__pycache__/
 /scripts/training/*.zip
 

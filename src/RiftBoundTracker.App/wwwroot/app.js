@@ -1225,11 +1225,13 @@ function computeDeckStats(cards, prices) {
   const domainBalance = [...domainCounts.entries()].sort((a, b) => b[1] - a[1])
     .map(([label, count]) => ({ label, count, pct: count * 100 / domainTotal }));
 
+  const missingRowsSorted = missingRows.sort((a, b) => b.cost - a.cost);
   return {
     energyCurve, typeDistribution, domainBalance,
     completion: { full, partial, missing },
     missingCost,
-    mostExpensiveMissing: missingRows.sort((a, b) => b.cost - a.cost).slice(0, 4)
+    missingRowsSorted,
+    mostExpensiveMissing: missingRowsSorted.slice(0, 4)
   };
 }
 
@@ -1241,6 +1243,7 @@ function deckSummaryMarkup(detail) {
   const maxEnergy = Math.max(1, ...stats.energyCurve);
   const totalCards = summary.mainCount + summary.sideboardCount;
   const ownedPct = totalCards ? Math.round(summary.ownedCount * 100 / totalCards) : 0;
+  state.deckCostBreakdown = stats.missingRowsSorted;
   return `
     <aside class="deck-summary">
       <button type="button" class="command-btn quiet deck-change-legend" id="changeLegendBtn">${icon("refresh")}Change Legend</button>
@@ -1255,7 +1258,10 @@ function deckSummaryMarkup(detail) {
         <div class="deck-summary-dot-row"><span class="dot partial"></span>Partially Owned<b>${stats.completion.partial}</b></div>
         <div class="deck-summary-dot-row"><span class="dot missing"></span>Missing<b>${stats.completion.missing}</b></div>
       </div>
-      <div class="deck-summary-cost"><span>Estimated Missing Cost</span><b>${formatMoney(stats.missingCost)}</b></div>
+      <div class="deck-summary-cost" data-hover-cost><span>Estimated Missing Cost</span><b>${formatMoney(stats.missingCost)}</b></div>
+      ${stats.missingRowsSorted.length
+        ? `<button type="button" class="command-btn quiet deck-replace-cheapest" id="replaceCheapestBtn">${icon("dollar")}Replace All With Cheapest</button>`
+        : ""}
       <button type="button" class="command-btn deck-view-analysis" id="viewAnalysisBtn">${icon("chart")}View Analysis</button>
     </aside>`;
 }
@@ -1274,6 +1280,7 @@ function countDistributionMarkup(rows, colorFor) {
 
 function renderDeckAnalysis(root, detail) {
   const stats = computeDeckStats(detail.cards, state.prices);
+  state.deckCostBreakdown = stats.missingRowsSorted;
   const totalQty = detail.cards.reduce((sum, row) => sum + row.quantity, 0) || 1;
   const weightedEnergy = detail.cards.reduce((sum, row) =>
     sum + (typeof row.card.energy === "number" ? row.card.energy * row.quantity : 0), 0);
@@ -1310,7 +1317,10 @@ function renderDeckAnalysis(root, detail) {
           <div class="distribution-row"><span>Partially owned cards</span><div></div><b>${stats.completion.partial}</b></div>
           <div class="distribution-row"><span>Missing cards</span><div></div><b>${stats.completion.missing}</b></div>
         </div>
-        <div class="deck-summary-cost" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-soft);"><span>Estimated missing cost</span><b>${formatMoney(stats.missingCost)}</b></div>
+        <div class="deck-summary-cost" data-hover-cost style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-soft);"><span>Estimated missing cost</span><b>${formatMoney(stats.missingCost)}</b></div>
+        ${stats.missingRowsSorted.length
+          ? `<button type="button" class="command-btn quiet deck-replace-cheapest" id="replaceCheapestBtnAnalysis" style="margin-top: 10px;">${icon("dollar")}Replace All With Cheapest</button>`
+          : ""}
       </div>
       <div class="analytics-panel"><div class="panel-head"><h2>Top Recommended Upgrades</h2></div><div id="deckTopUpgrades"></div></div>
       <div class="analytics-panel wide">
@@ -1328,6 +1338,8 @@ function renderDeckAnalysis(root, detail) {
     icon: "star", title: "No community data yet", body: "Upgrade suggestions need synced tournament data."
   });
   loadCommunityAnalysis(detail).catch(err => toast(err.message, true));
+  root.querySelector("#replaceCheapestBtnAnalysis")?.addEventListener("click", () =>
+    replaceAllMissingWithCheapest().catch(err => toast(err.message, true)));
 }
 
 async function loadCommunityAnalysis(detail) {
@@ -1451,7 +1463,9 @@ function positionDeckRowPopup(event) {
 }
 
 function hideDeckRowPopup() {
-  document.getElementById("deckRowPopup").hidden = true;
+  const popup = document.getElementById("deckRowPopup");
+  popup.hidden = true;
+  popup.classList.remove("deck-row-popup--list");
 }
 
 function hideVariantSwapPopup() {
@@ -1516,6 +1530,62 @@ async function swapDeckCardVariant(row, newCardId) {
   await setDeckCard(state.activeDeckId, newCardId, row.quantity, row.section);
 }
 
+// For every missing deck line, swaps it to whichever sibling printing (same base-name group)
+// would cost the least to finish out the deck's required quantity - (quantity - that printing's
+// own ownedCount) copies still to buy, times its market price - not just the cheapest unowned
+// print by itself. A print you already own several copies of can beat a technically-cheaper one
+// you own none of, since fewer copies need buying at all. Bypasses setDeckCard's per-call
+// re-render (a 20+ line deck would mean 40+ full workspace re-renders otherwise) and renders once
+// at the end instead.
+async function replaceAllMissingWithCheapest() {
+  const missingLines = state.activeDeck.cards.filter(row => row.missing > 0);
+  if (!missingLines.length) return toast("Nothing missing to replace.");
+  const buttons = [...document.querySelectorAll("#replaceCheapestBtn, #replaceCheapestBtnAnalysis")];
+  buttons.forEach(b => b.disabled = true);
+  try {
+    const allCards = await api(`/api/cards?${queryString({ sort: "name-asc" })}`);
+    const byBase = new Map();
+    for (const c of allCards) {
+      const key = legendBaseName(c.name);
+      if (!byBase.has(key)) byBase.set(key, []);
+      byBase.get(key).push(c);
+    }
+    const priceOf = c => { const p = Number(state.prices[c.id]?.marketPrice); return Number.isFinite(p) ? p : Infinity; };
+    let replaced = 0;
+    for (const row of missingLines) {
+      const siblings = byBase.get(legendBaseName(row.card.name)) || [row.card];
+      const remainingCost = c => Math.max(0, row.quantity - c.ownedCount) * priceOf(c);
+      const cheapest = siblings.reduce((best, c) => remainingCost(c) < remainingCost(best) ? c : best, siblings[0]);
+      if (cheapest.id !== row.cardId) {
+        await api(`/api/decks/${state.activeDeckId}/cards`, jsonOptions("POST", { cardId: row.cardId, quantity: 0, section: row.section }));
+        state.activeDeck = await api(`/api/decks/${state.activeDeckId}/cards`, jsonOptions("POST", { cardId: cheapest.id, quantity: row.quantity, section: row.section }));
+        replaced++;
+      }
+    }
+    registerCards(state.activeDeck.cards.map(r => r.card));
+    await refreshDeckSidebar();
+    renderDeckWorkspace();
+    toast(replaced ? `Replaced ${replaced} card${replaced === 1 ? "" : "s"} with cheaper printings` : "Already on the cheapest available printings");
+  } finally {
+    document.querySelectorAll("#replaceCheapestBtn, #replaceCheapestBtnAnalysis").forEach(b => b.disabled = false);
+  }
+}
+
+function costBreakdownPopupMarkup() {
+  const rows = state.deckCostBreakdown || [];
+  if (!rows.length) return `<div class="cost-breakdown-empty">Nothing missing.</div>`;
+  return `<div class="cost-breakdown-popup">${rows.map(row => `
+    <div class="cost-breakdown-row"><span>${row.missing}&times; ${escapeHtml(row.card.name)}</span><b>${formatMoney(row.cost)}</b></div>`).join("")}</div>`;
+}
+
+function showCostBreakdownPopup(event) {
+  const popup = document.getElementById("deckRowPopup");
+  popup.classList.add("deck-row-popup--list");
+  popup.innerHTML = costBreakdownPopupMarkup();
+  popup.hidden = false;
+  positionDeckRowPopup(event);
+}
+
 // Recommended-tab rows get a stats popup instead of the plain image popup other Discover tabs
 // use — the whole point of that tab is "why is this recommended", not "what does it look like".
 function showRecommendationPopup(cardId, event) {
@@ -1561,6 +1631,8 @@ function wireDeckWorkspace() {
   root.querySelector("#testDrawBtn")?.addEventListener("click", openTestHand);
   root.querySelector("#markDeckTradeBtn")?.addEventListener("click", () => markDeckForTrade().catch(err => toast(err.message, true)));
   root.querySelector("#changeLegendBtn")?.addEventListener("click", openChangeLegendModal);
+  root.querySelector("#replaceCheapestBtn")?.addEventListener("click", () =>
+    replaceAllMissingWithCheapest().catch(err => toast(err.message, true)));
   root.querySelector("#viewAnalysisBtn")?.addEventListener("click", () => {
     state.deckTab = "analysis";
     saveNavState();
@@ -1623,27 +1695,29 @@ function discoverPanelMarkup() {
     </aside>`;
 }
 
-function discoverCardRow(card, group) {
+function discoverCardRow(card, group, opts = {}) {
   const existing = state.activeDeck.cards.find(row => row.cardId === card.id && row.section === state.discoverSection);
   const qty = existing?.quantity || 0;
   const hasVariants = group && group.variants.length > 1;
+  const priceValue = Number(state.prices[card.id]?.marketPrice);
+  const priceText = opts.showPrice ? ` &middot; ${Number.isFinite(priceValue) ? formatMoney(priceValue) : "--"}` : "";
   return `
     <div class="deck-search-row${card.ownedCount > 0 ? " owned" : ""}" data-hover-card="${escapeHtml(card.id)}">
       <div class="deck-search-art"><img src="${escapeHtml(cardImage(card))}" alt="" />${cardImagePopout(card)}</div>
-      <div><strong>${escapeHtml(hasVariants ? group.baseName : card.name)}</strong><span>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))} / own ${card.ownedCount}</span></div>
+      <div><strong>${escapeHtml(hasVariants ? group.baseName : card.name)}</strong><span>${escapeHtml(card.setId)}-${escapeHtml(cardCode(card))} / own ${card.ownedCount}${priceText}</span></div>
       ${qty > 0
         ? `<div class="mini-stepper"><button data-discover-qty="${qty - 1}" data-card-id="${escapeHtml(card.id)}">-</button><span>${qty}</span><button data-discover-qty="${qty + 1}" data-card-id="${escapeHtml(card.id)}">+</button></div>`
         : `<button class="icon-btn" data-discover-add="${escapeHtml(card.id)}">${icon("plus")}</button>`}
     </div>`;
 }
 
-function discoverGroupMarkup(group) {
-  if (group.variants.length === 1) return discoverCardRow(group.variants[0]);
+function discoverGroupMarkup(group, opts = {}) {
+  if (group.variants.length === 1) return discoverCardRow(group.variants[0], null, opts);
   const selectedId = state.discoverVariantSelection.get(group.baseName) || group.variants[0].id;
   const card = group.variants.find(v => v.id === selectedId) || group.variants[0];
   return `
     <div class="discover-group-wrap">
-      ${discoverCardRow(card, group)}
+      ${discoverCardRow(card, group, opts)}
       <div class="discover-variant-strip">${group.variants.map(v => {
         const caution = discoverVariantCaution(v);
         return `
@@ -1748,7 +1822,7 @@ function renderDeckMissingTab(root) {
   const cards = filtered.map(row => row.card);
   registerCards(cards);
   const groups = groupLegendVariants(cards);
-  root.innerHTML = groups.map(discoverGroupMarkup).join("");
+  root.innerHTML = groups.map(group => discoverGroupMarkup(group, { showPrice: true })).join("");
   renderIcons(root);
   root.querySelectorAll("[data-discover-add]").forEach(button => button.addEventListener("click", () =>
     setDeckCard(state.activeDeckId, button.dataset.discoverAdd, 1, state.discoverSection)));
@@ -1799,7 +1873,7 @@ async function renderDiscoverResults() {
   state.discoverPage = Math.min(Math.max(1, state.discoverPage), totalPages);
   const start = (state.discoverPage - 1) * pageSize;
   const groups = allGroups.slice(start, start + pageSize);
-  root.innerHTML = groups.map(discoverGroupMarkup).join("");
+  root.innerHTML = groups.map(group => discoverGroupMarkup(group)).join("");
   if (pageRoot) pageRoot.innerHTML = discoverPaginationMarkup(allGroups.length, totalPages);
   renderIcons(root);
   renderIcons(pageRoot);
@@ -2974,9 +3048,10 @@ function selectLegendGroup(baseName) {
 
 function legendVariationStripMarkup(group, activeCard) {
   return `<div class="legend-variation-strip">${group.variants.map(v => `
-    <button type="button" class="legend-variation-seg${v.id === activeCard.id ? " active" : ""}" data-legend-variant="${escapeHtml(v.id)}" title="${escapeHtml(v.name)}">
+    <button type="button" class="legend-variation-seg${v.id === activeCard.id ? " active" : ""}" data-legend-variant="${escapeHtml(v.id)}" title="${escapeHtml(v.name)} - own ${v.ownedCount}">
       <img src="${escapeHtml(cardImage(v))}" alt="" />
-      <span>${escapeHtml(legendVariantLabel(v, group.variants))}</span>
+      <span class="legend-variation-seg-owned${v.ownedCount > 0 ? " owned" : ""}">${v.ownedCount}</span>
+      <span class="legend-variation-seg-label">${escapeHtml(legendVariantLabel(v, group.variants))}</span>
     </button>`).join("")}</div>`;
 }
 
@@ -4163,12 +4238,14 @@ function wireEvents() {
     if (row && !row.contains(event.relatedTarget)) showDeckRowPopup(row.dataset.hoverCard, event);
     const rec = event.target.closest("[data-hover-rec]");
     if (rec && !rec.contains(event.relatedTarget)) showRecommendationPopup(rec.dataset.hoverRec, event);
+    const cost = event.target.closest("[data-hover-cost]");
+    if (cost && !cost.contains(event.relatedTarget)) showCostBreakdownPopup(event);
   });
   document.addEventListener("mousemove", event => {
-    if (event.target.closest("[data-hover-card], [data-hover-rec]")) positionDeckRowPopup(event);
+    if (event.target.closest("[data-hover-card], [data-hover-rec], [data-hover-cost]")) positionDeckRowPopup(event);
   });
   document.addEventListener("mouseout", event => {
-    const row = event.target.closest("[data-hover-card], [data-hover-rec]");
+    const row = event.target.closest("[data-hover-card], [data-hover-rec], [data-hover-cost]");
     if (row && !row.contains(event.relatedTarget)) hideDeckRowPopup();
   });
   document.querySelectorAll(".nav-item").forEach(button => button.addEventListener("click", () => navigate(button.dataset.page)));

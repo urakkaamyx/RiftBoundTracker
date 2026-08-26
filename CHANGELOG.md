@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.28.27 — Deck Builder: prices on Missing, cost breakdown, cheapest-printing swap
+
+- The Missing tab now shows each card's market price alongside owned count, sourced from the same price cache the Estimated Missing Cost figure already used.
+- Hovering Estimated Missing Cost shows every missing card and its cost, priciest first, in a compact one-line-per-card popup sized to fit without scrolling.
+- Added "Replace All With Cheapest" next to Estimated Missing Cost (both the deck summary and Analysis tab) — for every missing line, swaps to whichever printing of that card would cost the least to finish the deck's required quantity (copies still needed after that printing's own owned count, times its price), not just the cheapest printing by sticker price alone. Reuses the same swap path the printing-picker popup uses, so nothing about deck legality changes.
+- Also fixed the yellow alt-printing badge (v1.28.26) actually rendering grey — a more specific existing selector was winning the color; and the printing-swap popup's variant segments now show how many of each you own.
+
 ## v1.28.26 — Deck Builder flags cards where you own a different printing
 
 - Each deck row now shows a small badge when you own a different printing of that card than the one in the deck — built from a base-name index over your owned cards, so you don't have to click into every line's Change Printing popup just to find out. Click the row same as before to switch.

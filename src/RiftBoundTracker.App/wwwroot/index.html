@@ -231,6 +231,7 @@
               <div class="segmented" id="poLobbyTabs">
                 <button type="button" data-po-tab="host" class="active">Host</button>
                 <button type="button" data-po-tab="join">Join</button>
+                <button type="button" data-po-tab="solo">Solo</button>
               </div>
             </div>
 
@@ -274,12 +275,27 @@
                 </div>
               </section>
             </div>
+
+            <div id="poSoloTab" hidden>
+              <section class="settings-section">
+                <div class="settings-icon"><i data-icon="repeat"></i></div>
+                <div>
+                  <h2>Practice Solo</h2>
+                  <p class="settings-hint">Play both sides yourself on this one screen — pick a deck for each seat, then switch between them to act. Each seat only sees its own hand, same as a real opponent would.</p>
+                  <div class="settings-actions"><button class="command-btn gold" id="poSoloBtn"><i data-icon="repeat"></i>Start Solo Game</button></div>
+                </div>
+              </section>
+            </div>
           </div>
 
           <div id="poRoom" hidden>
             <div class="page-toolbar">
               <div><h2>Room <span id="poRoomCode"></span></h2><p id="poRoomMeta"></p></div>
               <div class="settings-actions">
+                <div class="segmented" id="poSoloSeatSwitch" hidden>
+                  <button type="button" data-po-solo-seat="0" class="active">Player 1</button>
+                  <button type="button" data-po-solo-seat="1">Player 2</button>
+                </div>
                 <button class="command-btn gold" id="poStartMatchBtn" hidden><i data-icon="shield"></i>Start Match</button>
                 <button class="command-btn" id="poPassTurnBtn"><i data-icon="repeat"></i>Pass Turn</button>
                 <button class="command-btn quiet" id="poLeaveRoomBtn">Leave Room</button>

@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.30.7 — Emulator: Solo Game
+
+- New "Solo" tab in the Emulator lobby — practice a matchup by playing both sides yourself on one screen, no friends required. Pick a deck for each seat, then switch between "Player 1" / "Player 2" to act as either side.
+- Each seat only ever sees its own hand while you're viewing it — the same hidden-information handling as a real match, so switching seats plays honest even solo. Turn passing, costs, Combat, and everything else already built work completely unchanged.
+
 ## v1.30.6 — Emulator: fit both boards on screen, no scrolling
 
 - Compacted the whole board considerably — smaller card art, tighter spacing everywhere, Energy/Runes side by side instead of stacked — so your board and your opponent's both fit on screen together on a normal desktop display without scrolling the page.

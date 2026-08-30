@@ -72,7 +72,7 @@ const state = {
   vaultFacetCache: { setId: undefined, cards: [] },
   legendPicker: { cards: [], search: "", ownedOnly: false, selectedBase: null, selectedVariantId: null, mode: "create" },
   cardTextSymbols: new Map(),
-  playOnline: { unlocked: false, serverGranted: false, autoLaunch: false, connection: null, myConnectionId: null, room: null, lobbyTab: "host", lastWanUrl: null, announcedWinner: null },
+  playOnline: { unlocked: false, serverGranted: false, autoLaunch: false, connection: null, myConnectionId: null, room: null, lobbyTab: "host", lastWanUrl: null, announcedWinner: null, solo: null },
   riftCodeTimer: null,
   priceQueue: { items: [], batchSize: 20, configured: false, provider: "JustTCG" },
   priceQueueIds: new Set(),
@@ -2856,6 +2856,7 @@ function poSetLobbyTab(tab) {
   document.querySelectorAll("#poLobbyTabs [data-po-tab]").forEach(b => b.classList.toggle("active", b.dataset.poTab === tab));
   document.getElementById("poHostTab").hidden = tab !== "host";
   document.getElementById("poJoinTab").hidden = tab !== "join";
+  document.getElementById("poSoloTab").hidden = tab !== "solo";
 }
 
 async function renderPoWanConnection() {
@@ -2895,14 +2896,67 @@ function renderPoWanStatus(status) {
   }
 }
 
+function poCreateConnection() {
+  return new signalR.HubConnectionBuilder().withUrl("/hubs/match").withAutomaticReconnect().build();
+}
+
 function poGetConnection() {
   if (state.playOnline.connection) return state.playOnline.connection;
-  const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/match").withAutomaticReconnect().build();
+  const connection = poCreateConnection();
   connection.on("BoardStateUpdated", view => { state.playOnline.room = view; poRenderRoom(); });
   connection.on("RoomClosed", () => { toast("The host ended the room.", true); poLeaveRoom(); });
   connection.onclose(() => { if (state.playOnline.room) { toast("Disconnected from the room.", true); poLeaveRoom(); } });
   state.playOnline.connection = connection;
   return connection;
+}
+
+// Solo mode is two real connections to the same room - a "Player 1" host and a "Player 2" guest,
+// both driven from this one tab. That's deliberate: it means the whole rules engine (hidden hands,
+// costs, combat, everything already verified for real multiplayer) runs completely unchanged, and
+// each seat only ever sees its own hand, exactly like a considerate hotseat player would. Switching
+// seats just repoints the existing "myConnectionId" perspective the normal room view already uses.
+async function poStartSolo() {
+  if (state.playOnline.room) return;
+  const connA = poCreateConnection();
+  const connB = poCreateConnection();
+  const solo = { connections: [connA, connB], views: [null, null], seat: 0 };
+  const onUpdate = seat => view => {
+    solo.views[seat] = view;
+    if (state.playOnline.solo === solo && solo.seat === seat) { state.playOnline.room = view; poRenderRoom(); }
+  };
+  connA.on("BoardStateUpdated", onUpdate(0));
+  connB.on("BoardStateUpdated", onUpdate(1));
+  connA.on("RoomClosed", () => poLeaveRoom());
+  connB.on("RoomClosed", () => poLeaveRoom());
+  try {
+    await connA.start();
+    const hostResult = await connA.invoke("HostRoom", "Player 1");
+    if (!hostResult.ok) { toast(hostResult.error || "Could not start a solo game.", true); connA.stop(); connB.stop(); return; }
+    await connB.start();
+    const joinResult = await connB.invoke("JoinRoom", hostResult.view.roomCode, "Player 2");
+    if (!joinResult.ok) { toast(joinResult.error || "Could not start a solo game.", true); connA.stop(); connB.stop(); return; }
+  } catch (err) {
+    connA.stop(); connB.stop();
+    toast(err.message || "Could not start a solo game.", true);
+    return;
+  }
+  state.playOnline.solo = solo;
+  state.playOnline.connection = connA;
+  state.playOnline.myConnectionId = connA.connectionId;
+  state.playOnline.room = solo.views[0] || state.playOnline.room;
+  if (!state.decks.length) state.decks = await api("/api/decks");
+  poShowView("room");
+  poRenderRoom();
+}
+
+function poSoloSwitchSeat(seat) {
+  const solo = state.playOnline.solo;
+  if (!solo || solo.seat === seat) return;
+  solo.seat = seat;
+  state.playOnline.connection = solo.connections[seat];
+  state.playOnline.myConnectionId = solo.connections[seat].connectionId;
+  if (solo.views[seat]) state.playOnline.room = solo.views[seat];
+  poRenderRoom();
 }
 
 async function poEnterRoom(connection, result) {
@@ -3070,6 +3124,10 @@ async function poAdjustCounter(name, delta) {
 }
 
 function poLeaveRoom() {
+  if (state.playOnline.solo) {
+    state.playOnline.solo.connections.forEach(c => c.stop());
+    state.playOnline.solo = null;
+  }
   state.playOnline.connection?.stop();
   state.playOnline.connection = null;
   state.playOnline.room = null;
@@ -3128,7 +3186,14 @@ function poRenderRoom() {
   const room = state.playOnline.room;
   if (!room) return;
   document.getElementById("poRoomCode").textContent = room.roomCode;
-  document.getElementById("poRoomMeta").textContent = `Turn ${room.board.turnNumber} · ${room.players.length}/3 players`;
+  document.getElementById("poRoomMeta").textContent = state.playOnline.solo
+    ? `Turn ${room.board.turnNumber} · Solo practice`
+    : `Turn ${room.board.turnNumber} · ${room.players.length}/3 players`;
+  const seatSwitch = document.getElementById("poSoloSeatSwitch");
+  seatSwitch.hidden = !state.playOnline.solo;
+  if (state.playOnline.solo) {
+    seatSwitch.querySelectorAll("[data-po-solo-seat]").forEach(b => b.classList.toggle("active", Number(b.dataset.poSoloSeat) === state.playOnline.solo.seat));
+  }
   document.getElementById("poLog").innerHTML = room.log.length
     ? room.log.slice().reverse().map(entry => `<div class="po-log-row"><b>${new Date(entry.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</b><span>${escapeHtml(entry.message)}</span></div>`).join("")
     : `<div class="po-log-empty">Nothing's happened yet.</div>`;
@@ -5112,6 +5177,11 @@ function wireEvents() {
   });
   document.getElementById("poHostBtn").addEventListener("click", () => poHostRoom().catch(err => toast(err.message, true)));
   document.getElementById("poJoinBtn").addEventListener("click", () => poJoinRoom().catch(err => toast(err.message, true)));
+  document.getElementById("poSoloBtn").addEventListener("click", () => poStartSolo().catch(err => toast(err.message, true)));
+  document.getElementById("poSoloSeatSwitch").addEventListener("click", event => {
+    const button = event.target.closest("[data-po-solo-seat]");
+    if (button) poSoloSwitchSeat(Number(button.dataset.poSoloSeat));
+  });
   document.getElementById("poStartMatchBtn").addEventListener("click", () => poStartMatch().catch(err => toast(err.message, true)));
   document.getElementById("poPassTurnBtn").addEventListener("click", () => poPassTurn().catch(err => toast(err.message, true)));
   document.getElementById("poLeaveRoomBtn").addEventListener("click", poLeaveRoom);

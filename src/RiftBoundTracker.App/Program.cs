@@ -220,6 +220,16 @@ internal static class Program
         builder.Services.AddScoped<RulesEngineClient>();
         builder.Services.AddScoped<RulesAnswerService>();
 
+        // Emulator: private, RiftCode-gated multiplayer rooms. AddSignalR() needs no extra package -
+        // it ships in the ASP.NET Core shared framework Sdk.Web already targets. MatchRoomService is
+        // a singleton (one host instance can run more than one room, and every hub connection needs
+        // to see the same in-memory room state); EmulatorAccessService is scoped like any other
+        // service backed by the (scoped) AppDbContext.
+        builder.Services.AddSignalR();
+        builder.Services.AddScoped<Services.PlayOnline.EmulatorAccessService>();
+        builder.Services.AddSingleton<Services.PlayOnline.DeckLegalityService>();
+        builder.Services.AddSingleton<Services.PlayOnline.MatchRoomService>();
+
         var app = builder.Build();
 
         using (var scope = app.Services.CreateScope())
@@ -690,6 +700,14 @@ internal static class Program
             return Results.Ok(new { enabled = settings.IsEnabled() });
         });
 
+        app.MapHub<Services.PlayOnline.MatchHub>("/hubs/match");
+
+        app.MapGet("/api/play-online/access", async (Services.PlayOnline.EmulatorAccessService access) =>
+            Results.Ok(new { hasAccess = await access.HasAccessTodayAsync() }));
+
+        app.MapPost("/api/play-online/access", async (EmulatorAccessVerifyRequest body, Services.PlayOnline.EmulatorAccessService access) =>
+            Results.Ok(new { hasAccess = await access.TryVerifyAsync(body.Code) }));
+
         app.MapGet("/api/pricing/status", (PricingSettingsService settings) => Results.Ok(settings.GetStatus()));
 
         app.MapPost("/api/pricing/configure", (PricingKeyRequest body, PricingSettingsService settings) =>
@@ -912,6 +930,7 @@ public record TopDeckKeyRequest(string ApiKey);
 public record CommunitySyncRequest(int? Days);
 public record AskRuleQuestionRequest(string Question, string? CardId);
 public record RulesLocalAiToggleRequest(bool Enabled);
+public record EmulatorAccessVerifyRequest(string Code);
 public record PriceRefreshRequest(bool IncludeAllCards);
 public record DualPriceRequest(List<string> CardIds);
 public record BugReportRequest(string Title, string Description);

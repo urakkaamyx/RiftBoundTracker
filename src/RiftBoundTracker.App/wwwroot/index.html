@@ -25,6 +25,7 @@
         <button class="nav-item" data-page="price-checker" hidden><i data-icon="list-plus"></i><span>Price Checker</span><b id="navPriceQueueCount"></b></button>
         <button class="nav-item" data-page="analytics"><i data-icon="chart"></i><span>Analytics</span></button>
         <button class="nav-item" data-page="rules" hidden><i data-icon="book-open"></i><span>Rules</span></button>
+        <button class="nav-item" data-page="play-online" id="navEmulator" hidden><i data-icon="shield"></i><span>Emulator</span></button>
         <button class="nav-item" data-page="settings"><i data-icon="settings"></i><span>Settings</span></button>
       </nav>
 
@@ -57,6 +58,10 @@
           <kbd>Ctrl K</kbd>
         </label>
         <div class="top-actions">
+          <label class="riftcode-field" id="riftCodeField">
+            <span>RiftCode</span>
+            <input id="riftCodeInput" type="text" placeholder="......" autocomplete="off" maxlength="12" />
+          </label>
           <div class="segmented" id="themeControl">
             <button data-theme-value="dark" class="active">Dark</button>
             <button data-theme-value="light">Light</button>
@@ -216,6 +221,72 @@
             <div id="askRulesResult">
               <div class="page-empty"><i data-icon="book-open"></i><h2>Ask a question</h2><span>The system only answers from real Riftbound rules evidence — it will say so if the evidence doesn't cover your exact question.</span></div>
             </div>
+          </div>
+        </section>
+
+        <section class="page" id="page-play-online" data-title="Emulator" data-eyebrow="Multiplayer">
+          <div id="poLobby">
+            <div class="page-toolbar">
+              <div><h2>Emulator</h2><p>Private matches with friends — nothing leaves your machines except what you choose to expose.</p></div>
+              <div class="segmented" id="poLobbyTabs">
+                <button type="button" data-po-tab="host" class="active">Host</button>
+                <button type="button" data-po-tab="join">Join</button>
+              </div>
+            </div>
+
+            <div id="poHostTab">
+              <div class="settings-row">
+                <section class="settings-section">
+                  <div class="settings-icon"><i data-icon="repeat"></i></div>
+                  <div>
+                    <h2>Expose This Room</h2>
+                    <p id="poWanStatus">Loading...</p>
+                    <div id="poWanBody"></div>
+                  </div>
+                </section>
+                <section class="settings-section">
+                  <div class="settings-icon"><i data-icon="shield"></i></div>
+                  <div>
+                    <h2>Host a Room</h2>
+                    <div class="po-form">
+                      <input id="poHostName" type="text" placeholder="Your display name" autocomplete="off" />
+                    </div>
+                    <div class="settings-actions"><button class="command-btn gold" id="poHostBtn"><i data-icon="shield"></i>Host Room</button></div>
+                    <p class="settings-hint">Only reachable on this Wi-Fi network unless you expose it above — share the room code (and link, if exposed) with your two friends.</p>
+                  </div>
+                </section>
+              </div>
+            </div>
+
+            <div id="poJoinTab" hidden>
+              <section class="settings-section">
+                <div class="settings-icon"><i data-icon="archive"></i></div>
+                <div>
+                  <h2>Join a Room</h2>
+                  <p class="settings-hint">If your friend is hosting over the internet, open their link in this app first — then join from here.</p>
+                  <div class="po-form">
+                    <div class="po-form-row">
+                      <input id="poJoinName" type="text" placeholder="Your display name" autocomplete="off" />
+                      <input id="poJoinCode" type="text" placeholder="Room code" autocomplete="off" />
+                    </div>
+                  </div>
+                  <div class="settings-actions"><button class="command-btn gold" id="poJoinBtn"><i data-icon="archive"></i>Join Room</button></div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <div id="poRoom" hidden>
+            <div class="page-toolbar">
+              <div><h2>Room <span id="poRoomCode"></span></h2><p id="poRoomMeta"></p></div>
+              <div class="settings-actions">
+                <button class="command-btn gold" id="poStartMatchBtn" hidden><i data-icon="shield"></i>Start Match</button>
+                <button class="command-btn" id="poPassTurnBtn"><i data-icon="repeat"></i>Pass Turn</button>
+                <button class="command-btn quiet" id="poLeaveRoomBtn">Leave Room</button>
+              </div>
+            </div>
+            <div id="poShareBox"></div>
+            <div class="po-board" id="poBoard"></div>
           </div>
         </section>
 
@@ -427,6 +498,7 @@
   <div class="variant-swap-popup" id="variantSwapPopup" hidden></div>
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>
   <script src="icons.js"></script>
+  <script src="signalr.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

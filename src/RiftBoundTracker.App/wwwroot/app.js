@@ -41,6 +41,7 @@ const PAGE_LABELS = {
   favorites: ["Saved Cards", "Favorites"], binder: ["Collection", "Trade Binder"],
   "price-checker": ["Pricing", "Price Checker"],
   analytics: ["Collection Insights", "Analytics"], rules: ["Reference", "Rules"],
+  "play-online": ["Multiplayer", "Play Online"],
   settings: ["Vault", "Settings"]
 };
 
@@ -71,6 +72,8 @@ const state = {
   vaultFacetCache: { setId: undefined, cards: [] },
   legendPicker: { cards: [], search: "", ownedOnly: false, selectedBase: null, selectedVariantId: null, mode: "create" },
   cardTextSymbols: new Map(),
+  playOnline: { unlocked: false, connection: null, myConnectionId: null, room: null, lobbyTab: "host", lastWanUrl: null },
+  riftCodeTimer: null,
   priceQueue: { items: [], batchSize: 20, configured: false, provider: "JustTCG" },
   priceQueueIds: new Set(),
   rules: { mode: "search", query: "", results: [], glossary: [], errata: [], legality: [], selectedKind: null, selectedId: null, searchTimer: null },
@@ -523,6 +526,7 @@ async function refreshCurrentPage() {
     case "price-checker": await loadPriceChecker(); break;
     case "analytics": await loadAnalytics(); break;
     case "rules": await loadRules(); break;
+    case "play-online": await loadPlayOnline(); break;
     case "settings": await loadSettings(); break;
   }
 }
@@ -2787,6 +2791,290 @@ async function startWanConnection() {
   } catch (err) { body.textContent = err.message; }
 }
 
+// ---- Emulator (Play Online) -------------------------------------------------------------------
+// Phase 1: private room hosting + a live-synced shared board (zones/turn/counters), no card-
+// specific rules automation. RiftCode access is re-verified server-side in MatchHub on every
+// HostRoom/JoinRoom call, never trusted from the client's nav-item visibility alone, since a hosted
+// room's server is reachable from the public internet the moment WAN exposure (the same ngrok flow
+// Connect/Settings uses) is turned on.
+
+// Checks the typed RiftCode against today's word and, on a match, persists access for the rest of
+// the day server-side (see EmulatorAccessService) - that's what MatchHub itself checks, not this
+// nav-visibility toggle, which is just a convenience gate.
+async function checkRiftCode() {
+  const field = document.getElementById("riftCodeField");
+  const code = document.getElementById("riftCodeInput").value.trim();
+  if (!code) { poSetUnlocked(false); return; }
+  try {
+    const result = await api("/api/play-online/access", jsonOptions("POST", { code }));
+    poSetUnlocked(result.hasAccess);
+  } catch { poSetUnlocked(false); }
+}
+
+function poSetUnlocked(unlocked) {
+  state.playOnline.unlocked = unlocked;
+  document.getElementById("riftCodeField").classList.toggle("riftcode-unlocked", unlocked);
+  document.getElementById("navEmulator").hidden = !unlocked;
+  if (!unlocked && state.page === "play-online") navigate("vault");
+}
+
+async function loadPlayOnline() {
+  if (!state.playOnline.unlocked) { navigate("vault"); return; }
+  if (state.playOnline.room) { poShowView("room"); poRenderRoom(); return; }
+  poShowView("lobby");
+  poSetLobbyTab(state.playOnline.lobbyTab);
+  renderPoWanConnection();
+}
+
+function poShowView(view) {
+  document.getElementById("poLobby").hidden = view !== "lobby";
+  document.getElementById("poRoom").hidden = view !== "room";
+}
+
+function poSetLobbyTab(tab) {
+  state.playOnline.lobbyTab = tab;
+  document.querySelectorAll("#poLobbyTabs [data-po-tab]").forEach(b => b.classList.toggle("active", b.dataset.poTab === tab));
+  document.getElementById("poHostTab").hidden = tab !== "host";
+  document.getElementById("poJoinTab").hidden = tab !== "join";
+}
+
+async function renderPoWanConnection() {
+  const status = document.getElementById("poWanStatus");
+  const body = document.getElementById("poWanBody");
+  try {
+    renderPoWanStatus(await api("/api/remote-access/status"));
+  } catch (err) { status.textContent = err.message; body.innerHTML = ""; }
+}
+
+function renderPoWanStatus(status) {
+  const statusEl = document.getElementById("poWanStatus");
+  const body = document.getElementById("poWanBody");
+  state.playOnline.lastWanUrl = status.active ? status.url : null;
+  if (status.active && status.url) {
+    statusEl.textContent = "Exposed to the internet.";
+    body.innerHTML = `
+      <div class="connection-url"><input value="${escapeHtml(status.url)}" readonly /><button class="command-btn" id="poCopyWan">Copy</button></div>
+      <p class="settings-hint">Anyone with this link can reach this app, not just this Wi-Fi network. Stop it when you're done playing.</p>
+      <button type="button" class="command-btn quiet" id="poStopWan">Stop Remote Access</button>`;
+    document.getElementById("poCopyWan").onclick = async () => { await navigator.clipboard.writeText(status.url); toast("Link copied"); };
+    document.getElementById("poStopWan").onclick = async () => { await api("/api/remote-access/stop", { method: "POST" }); await renderPoWanConnection(); };
+  } else if (!status.installed) {
+    statusEl.textContent = "Only reachable on this Wi-Fi network.";
+    body.innerHTML = `
+      <p class="settings-hint">To let a friend outside your Wi-Fi join, this app uses ngrok to create a temporary public link. It isn't installed on this machine yet — see Settings → Connect for setup steps.</p>`;
+  } else {
+    statusEl.textContent = "Only reachable on this Wi-Fi network.";
+    body.innerHTML = `
+      ${status.error ? `<p class="ask-answer-note">${escapeHtml(status.error)}</p>` : ""}
+      <button type="button" class="command-btn gold" id="poStartWan">Expose to the Internet</button>`;
+    document.getElementById("poStartWan").onclick = async () => {
+      body.innerHTML = `<div class="loading-line">Starting tunnel... this can take a few seconds.</div>`;
+      try { renderPoWanStatus(await api("/api/remote-access/start", jsonOptions("POST", {}))); }
+      catch (err) { body.textContent = err.message; }
+    };
+  }
+}
+
+function poGetConnection() {
+  if (state.playOnline.connection) return state.playOnline.connection;
+  const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/match").withAutomaticReconnect().build();
+  connection.on("BoardStateUpdated", view => { state.playOnline.room = view; poRenderRoom(); });
+  connection.on("RoomClosed", () => { toast("The host ended the room.", true); poLeaveRoom(); });
+  connection.onclose(() => { if (state.playOnline.room) { toast("Disconnected from the room.", true); poLeaveRoom(); } });
+  state.playOnline.connection = connection;
+  return connection;
+}
+
+async function poEnterRoom(connection, result) {
+  state.playOnline.room = result.view;
+  state.playOnline.myConnectionId = connection.connectionId;
+  if (!state.decks.length) state.decks = await api("/api/decks");
+  poShowView("room");
+  poRenderRoom();
+}
+
+async function poHostRoom() {
+  const name = document.getElementById("poHostName").value.trim();
+  if (!name) { toast("Enter a display name", true); return; }
+  const connection = poGetConnection();
+  if (connection.state === signalR.HubConnectionState.Disconnected) await connection.start();
+  const result = await connection.invoke("HostRoom", name);
+  if (!result.ok) { toast(result.error || "Could not host room.", true); return; }
+  await poEnterRoom(connection, result);
+}
+
+async function poJoinRoom() {
+  const name = document.getElementById("poJoinName").value.trim();
+  const code = document.getElementById("poJoinCode").value.trim();
+  if (!name || !code) { toast("Fill in your name and the room code", true); return; }
+  const connection = poGetConnection();
+  if (connection.state === signalR.HubConnectionState.Disconnected) await connection.start();
+  const result = await connection.invoke("JoinRoom", code, name);
+  if (!result.ok) { toast(result.error || "Could not join room.", true); return; }
+  await poEnterRoom(connection, result);
+}
+
+async function poSelectDeck(deckId) {
+  const result = await state.playOnline.connection.invoke("SelectDeck", state.playOnline.room.roomCode, deckId);
+  if (!result.ok) {
+    const message = result.violations?.length ? result.violations.map(v => v.message).join(" ") : (result.error || "Deck is not legal.");
+    toast(message, true);
+    return;
+  }
+  // So hand/board/etc. can show real card names instead of bare ids once the match deals them.
+  const detail = await api(`/api/decks/${deckId}`);
+  registerCards(detail.cards.map(row => row.card));
+}
+
+function poCardLabel(cardId) {
+  return escapeHtml(cardsById.get(cardId)?.name || cardId);
+}
+
+async function poStartMatch() {
+  const result = await state.playOnline.connection.invoke("StartMatch", state.playOnline.room.roomCode);
+  if (!result.ok) toast(result.error || "Could not start the match.", true);
+}
+
+async function poDrawCard() {
+  await state.playOnline.connection.invoke("DrawCard", state.playOnline.room.roomCode);
+}
+
+async function poChannelRune() {
+  await state.playOnline.connection.invoke("ChannelRune", state.playOnline.room.roomCode);
+}
+
+async function poMoveCard(cardId, fromZone, toZone) {
+  const result = await state.playOnline.connection.invoke("MoveCard", state.playOnline.room.roomCode, cardId, fromZone, toZone);
+  if (!result.ok) toast(result.error || "Could not move that card.", true);
+}
+
+async function poReadyUp(ready) {
+  await state.playOnline.connection.invoke("ReadyUp", state.playOnline.room.roomCode, ready);
+}
+
+async function poPassTurn() {
+  await state.playOnline.connection.invoke("PassTurn", state.playOnline.room.roomCode);
+}
+
+async function poAdjustCounter(name, delta) {
+  await state.playOnline.connection.invoke("UpdateCounter", state.playOnline.room.roomCode, name, delta);
+}
+
+function poLeaveRoom() {
+  state.playOnline.connection?.stop();
+  state.playOnline.connection = null;
+  state.playOnline.room = null;
+  state.playOnline.myConnectionId = null;
+  poShowView("lobby");
+  poSetLobbyTab(state.playOnline.lobbyTab);
+  renderPoWanConnection();
+}
+
+// Zones a player can freely move their own cards between via the generic MoveCard action - kept
+// in sync with MatchRoomService.MovableZones server-side (MainDeck/RuneDeck are deliberately
+// excluded there too, since they're face-down and only move via DrawCard/ChannelRune).
+const PO_MOVABLE_ZONES = [
+  ["hand", "Hand"], ["board", "Board"], ["battlefield", "Battlefield"],
+  ["trash", "Trash"], ["banishment", "Banishment"], ["runePool", "Rune Pool"],
+];
+
+function poRenderRoom() {
+  const room = state.playOnline.room;
+  if (!room) return;
+  document.getElementById("poRoomCode").textContent = room.roomCode;
+  document.getElementById("poRoomMeta").textContent = `Turn ${room.board.turnNumber} · ${room.players.length}/3 players`;
+  document.getElementById("poPassTurnBtn").disabled = room.board.activePlayerConnectionId !== state.playOnline.myConnectionId;
+
+  const me = room.players.find(p => p.connectionId === state.playOnline.myConnectionId);
+  const matchStarted = room.players.some(p => room.board.zonesByPlayer[p.connectionId]);
+  const canStart = !matchStarted && room.players.length >= 2 && room.players.every(p => p.ready && p.deckId);
+  const startBtn = document.getElementById("poStartMatchBtn");
+  startBtn.hidden = !me?.isHost || matchStarted;
+  startBtn.disabled = !canStart;
+
+  const wanUrl = state.playOnline.lastWanUrl;
+  const shareBox = document.getElementById("poShareBox");
+  shareBox.innerHTML = wanUrl
+    ? `<div class="po-share-box"><i data-icon="qr"></i><div class="connection-url"><input value="${escapeHtml(wanUrl)}" readonly /></div></div>`
+    : "";
+
+  const deckOptions = state.decks.map(deck => `<option value="${deck.id}">${escapeHtml(deck.name)}</option>`).join("");
+
+  document.getElementById("poBoard").innerHTML = room.players.map(player => {
+    const zones = room.board.zonesByPlayer[player.connectionId];
+    const isMe = player.connectionId === state.playOnline.myConnectionId;
+    const isActiveTurn = player.connectionId === room.board.activePlayerConnectionId;
+    const counters = zones ? Object.entries(zones.counters) : [];
+    const chip = cardId => `<span class="po-card-chip">${poCardLabel(cardId)}</span>`;
+    const zoneChips = (cards, label) => `<div class="po-zone-block"><span class="po-zone-label">${label} ${cards.length}</span><div class="po-zone-chips">${cards.map(chip).join("") || "—"}</div></div>`;
+    // Every one of the caller's own cards, tagged with which zone it's currently in, so the move
+    // tool's single dropdown can address any of them without a separate control per zone.
+    const myMovableCards = isMe && zones ? PO_MOVABLE_ZONES.flatMap(([key, label]) =>
+      (key === "hand" ? zones.hand || [] : zones[key]).map(cardId => ({ cardId, key, label }))) : [];
+    return `
+      <div class="po-player-card${isActiveTurn ? " po-active-turn" : ""}">
+        <div class="po-player-head">
+          <strong>${escapeHtml(player.name)}${isMe ? " (You)" : ""}</strong>
+          ${player.isHost ? `<span class="po-badge po-badge-host">Host</span>` : ""}
+          ${isActiveTurn ? `<span class="po-badge po-badge-turn">Turn</span>` : ""}
+          ${player.ready ? `<span class="po-badge po-badge-ready">Ready</span>` : ""}
+        </div>
+        ${isMe ? `
+          <select data-po-deck-select>
+            <option value="">${player.deckId ? "Change deck..." : "Select a deck..."}</option>
+            ${deckOptions}
+          </select>
+          <button class="command-btn${player.ready ? " quiet" : " gold"}" data-po-ready="${!player.ready}" ${player.deckId ? "" : "disabled"}>${player.ready ? "Not Ready" : "Ready Up"}</button>
+        ` : `<p class="settings-hint">${player.deckId ? "Deck selected." : "Choosing a deck..."}</p>`}
+        ${zones ? `
+          <div class="po-zone-strip">
+            <span>Main Deck ${zones.mainDeckCount}</span>
+            <span>Rune Deck ${zones.runeDeckCount}</span>
+          </div>
+          ${isMe ? `
+            <div class="settings-actions">
+              <button class="command-btn quiet" data-po-draw ${zones.mainDeckCount ? "" : "disabled"}><i data-icon="download"></i>Draw</button>
+              <button class="command-btn quiet" data-po-channel ${zones.runeDeckCount ? "" : "disabled"}><i data-icon="repeat"></i>Channel Rune</button>
+            </div>
+            ${zoneChips(zones.hand || [], "Hand")}
+          ` : `<div class="po-zone-strip"><span>Hand ${zones.handCount}</span></div>`}
+          ${zoneChips(zones.runePool, "Rune Pool")}
+          ${zoneChips(zones.board, "Board")}
+          ${zoneChips(zones.battlefield, "Battlefield")}
+          ${zoneChips(zones.trash, "Trash")}
+          ${zoneChips(zones.banishment, "Banishment")}
+          ${isMe && myMovableCards.length ? `
+            <div class="po-move-tool">
+              <select id="poMoveCard-${escapeHtml(player.connectionId)}">
+                ${myMovableCards.map(c => `<option value="${escapeHtml(c.cardId)}|${c.key}">${poCardLabel(c.cardId)} — ${c.label}</option>`).join("")}
+              </select>
+              <select id="poMoveTo-${escapeHtml(player.connectionId)}">
+                ${PO_MOVABLE_ZONES.map(([key, label]) => `<option value="${key}">→ ${label}</option>`).join("")}
+              </select>
+              <button class="command-btn quiet" data-po-move="${escapeHtml(player.connectionId)}">Move</button>
+            </div>` : ""}
+          <div class="po-counters">
+            ${counters.map(([counterName, value]) => `
+              <div class="po-counter-row">
+                <span>${escapeHtml(counterName)}</span>
+                <b>${value}</b>
+                ${isMe ? `
+                  <button class="icon-btn" data-po-counter-delta="-1" data-po-counter-name="${escapeHtml(counterName)}">−</button>
+                  <button class="icon-btn" data-po-counter-delta="1" data-po-counter-name="${escapeHtml(counterName)}">+</button>
+                ` : ""}
+              </div>`).join("")}
+          </div>
+          ${isMe ? `
+            <div class="po-add-counter">
+              <input id="poNewCounterName-${escapeHtml(player.connectionId)}" type="text" placeholder="New counter (e.g. Life)" autocomplete="off" />
+              <button class="command-btn" data-po-add-counter="${escapeHtml(player.connectionId)}">Add</button>
+            </div>` : ""}
+        ` : `<p class="settings-hint">Waiting for the match to start...</p>`}
+      </div>`;
+  }).join("");
+  renderIcons(document.getElementById("poBoard"));
+}
+
 function renderChangelog(notes) {
   if (!notes || !notes.trim()) return "<p>No release notes for this version.</p>";
   const html = [];
@@ -4539,6 +4827,47 @@ function wireEvents() {
     const keywordBtn = event.target.closest("[data-keyword-goto]");
     if (keywordBtn) selectKeywordResult(Number(keywordBtn.dataset.keywordGoto));
   });
+  document.getElementById("riftCodeInput").addEventListener("input", () => {
+    clearTimeout(state.riftCodeTimer);
+    state.riftCodeTimer = setTimeout(() => checkRiftCode().catch(() => poSetUnlocked(false)), 300);
+  });
+  document.getElementById("poLobbyTabs").addEventListener("click", event => {
+    const button = event.target.closest("[data-po-tab]");
+    if (button) poSetLobbyTab(button.dataset.poTab);
+  });
+  document.getElementById("poHostBtn").addEventListener("click", () => poHostRoom().catch(err => toast(err.message, true)));
+  document.getElementById("poJoinBtn").addEventListener("click", () => poJoinRoom().catch(err => toast(err.message, true)));
+  document.getElementById("poStartMatchBtn").addEventListener("click", () => poStartMatch().catch(err => toast(err.message, true)));
+  document.getElementById("poPassTurnBtn").addEventListener("click", () => poPassTurn().catch(err => toast(err.message, true)));
+  document.getElementById("poLeaveRoomBtn").addEventListener("click", poLeaveRoom);
+  document.getElementById("poBoard").addEventListener("click", event => {
+    const readyBtn = event.target.closest("[data-po-ready]");
+    if (readyBtn) { poReadyUp(readyBtn.dataset.poReady === "true").catch(err => toast(err.message, true)); return; }
+    const counterBtn = event.target.closest("[data-po-counter-delta]");
+    if (counterBtn) { poAdjustCounter(counterBtn.dataset.poCounterName, Number(counterBtn.dataset.poCounterDelta)).catch(err => toast(err.message, true)); return; }
+    const addCounterBtn = event.target.closest("[data-po-add-counter]");
+    if (addCounterBtn) {
+      const input = document.getElementById(`poNewCounterName-${addCounterBtn.dataset.poAddCounter}`);
+      const name = input?.value.trim();
+      if (name) { poAdjustCounter(name, 1).catch(err => toast(err.message, true)); input.value = ""; }
+      return;
+    }
+    if (event.target.closest("[data-po-draw]")) { poDrawCard().catch(err => toast(err.message, true)); return; }
+    if (event.target.closest("[data-po-channel]")) { poChannelRune().catch(err => toast(err.message, true)); return; }
+    const moveBtn = event.target.closest("[data-po-move]");
+    if (moveBtn) {
+      const cardSelect = document.getElementById(`poMoveCard-${moveBtn.dataset.poMove}`);
+      const toSelect = document.getElementById(`poMoveTo-${moveBtn.dataset.poMove}`);
+      if (cardSelect?.value && toSelect?.value) {
+        const [cardId, fromZone] = cardSelect.value.split("|");
+        poMoveCard(cardId, fromZone, toSelect.value).catch(err => toast(err.message, true));
+      }
+    }
+  });
+  document.getElementById("poBoard").addEventListener("change", event => {
+    const select = event.target.closest("[data-po-deck-select]");
+    if (select && select.value) poSelectDeck(Number(select.value)).catch(err => toast(err.message, true));
+  });
   document.getElementById("refreshTrackedPrices").addEventListener("click", () => refreshPrices(false));
   document.getElementById("refreshAllPrices").addEventListener("click", () => refreshPrices(true));
   document.getElementById("clearPriceQueue").addEventListener("click", () => clearPriceQueue().catch(err => toast(err.message, true)));
@@ -4662,9 +4991,12 @@ async function init() {
   renderIcons(document);
   restoreNavState();
   try {
-    const [server] = await Promise.all([api("/api/server-info"), loadCardTextSymbols(), loadSets(), loadPrices(), loadPriceQueue(), loadOverview(), loadDecks()]);
+    const results = await Promise.all([api("/api/server-info"), loadCardTextSymbols(), loadSets(), loadPrices(), loadPriceQueue(), loadOverview(), loadDecks(), api("/api/play-online/access")]);
+    const server = results[0];
+    const emuAccess = results[7];
     document.getElementById("currentVersion").textContent = server.version;
     document.querySelectorAll(".vault-tab").forEach(item => item.classList.toggle("active", item.dataset.owned === state.owned));
+    poSetUnlocked(emuAccess.hasAccess);
     navigate(state.page);
   } catch (err) {
     toast(`Vault startup failed: ${err.message}`, true);

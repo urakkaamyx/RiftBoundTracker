@@ -28,6 +28,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<RuleConceptEntity> RuleConcepts => Set<RuleConceptEntity>();
     public DbSet<RuleConceptKeywordEntity> RuleConceptKeywords => Set<RuleConceptKeywordEntity>();
     public DbSet<RuleConceptPhraseEntity> RuleConceptPhrases => Set<RuleConceptPhraseEntity>();
+    public DbSet<EmulatorAccessEntity> EmulatorAccess => Set<EmulatorAccessEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -217,6 +218,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .WithMany()
             .HasForeignKey(x => x.KeywordId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<EmulatorAccessEntity>().HasKey(s => s.Id);
 
         var ruleConceptPhrase = modelBuilder.Entity<RuleConceptPhraseEntity>();
         ruleConceptPhrase.HasKey(x => x.Id);

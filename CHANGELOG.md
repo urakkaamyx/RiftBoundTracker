@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.29.0 — Emulator: private online play with friends
+
+- New "Emulator" feature: host or join a private room with your two friends over a live connection, reusing the existing Remote Access (ngrok) flow to expose a hosted room to the internet — whoever hosts runs it from their own copy of the app, no separate server involved.
+- Locked behind a RiftCode: type the rune type for today (Fury, Calm, Order, Mind, Body, Chaos, or Colorless, cycling Sunday through Saturday) into the field next to Connect — only the three of you know the scheme. Checked server-side on every room action, not just in the browser, and only holds for the day it was entered — it resets at midnight, it isn't a permanent unlock.
+- Deck legality is checked server-side before a deck can be selected for a room: exactly 1 Champion Legend, a 40+ card Main Deck, exactly 12 Rune Cards, at most 3 copies of any named card, at most 3 Signature cards.
+- Starting a match shuffles each player's Main Deck and Rune Deck separately and deals an opening hand of 4, matching the real Setup Process. Draw and Channel Rune pull one card at a time from your own deck; a Move tool moves any of your own cards between Hand, Board, Battlefield, Trash, Banishment, and your Rune Pool. Hidden information is enforced on the server — your hand is never sent to anyone else's browser, only how many cards are in it.
+- Not in this release: automatic cost/legality checking for individual plays, combat, the Chain/priority system, or any card-specific ability text. That's real rules automation and a much larger project on its own — this release is the shared board and hosting foundation it would sit on top of.
+
 ## v1.28.30 — Rules tab hidden again
 
 Not quite right yet — back to hidden while it gets more work.

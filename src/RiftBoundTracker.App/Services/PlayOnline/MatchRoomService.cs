@@ -1,0 +1,254 @@
+using RiftBoundTracker.App.Services;
+
+namespace RiftBoundTracker.App.Services.PlayOnline;
+
+/// <summary>
+/// Owns every room this host instance is running, entirely in memory - see MatchRoom's own note
+/// on why nothing here is persisted. A singleton (one instance per running app, not per request),
+/// so MatchHub calls straight into it rather than each hub invocation getting its own state.
+/// All room mutation and reads that need a consistent snapshot go through this one lock; for three
+/// people's private games this is simplicity over throughput, which is the right trade here.
+/// </summary>
+public sealed class MatchRoomService(DeckLegalityService legality)
+{
+    private const string CodeAlphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // no 0/O/1/I/L - easy to read aloud
+    private readonly Dictionary<string, MatchRoom> _rooms = [];
+    private readonly Lock _lock = new();
+
+    public MatchRoom CreateRoom(string hostConnectionId, string hostName)
+    {
+        lock (_lock)
+        {
+            string code;
+            do { code = GenerateRoomCode(); } while (_rooms.ContainsKey(code));
+            var room = new MatchRoom { RoomCode = code, HostConnectionId = hostConnectionId };
+            room.Players.Add(new MatchPlayer { ConnectionId = hostConnectionId, Name = hostName, IsHost = true });
+            _rooms[code] = room;
+            return room;
+        }
+    }
+
+    public MatchRoom? GetRoom(string code)
+    {
+        lock (_lock)
+            return _rooms.GetValueOrDefault(code.Trim().ToUpperInvariant());
+    }
+
+    public (MatchRoom? Room, string? Error) TryJoin(string code, string connectionId, string name)
+    {
+        lock (_lock)
+        {
+            if (!_rooms.TryGetValue(code.Trim().ToUpperInvariant(), out var room))
+                return (null, "Room not found.");
+            if (room.Players.Count >= MatchRoom.MaxPlayers)
+                return (null, "Room is full.");
+            room.Players.Add(new MatchPlayer { ConnectionId = connectionId, Name = name, IsHost = false });
+            return (room, null);
+        }
+    }
+
+    /// <summary>Host disconnecting ends the room outright - no reconnect/resume in Phase 1, per the
+    /// plan's explicit scope cut. Returns the room's code if a room was actually removed, so the
+    /// hub knows whether to notify anyone.</summary>
+    public string? RemoveConnection(string connectionId)
+    {
+        lock (_lock)
+        {
+            foreach (var room in _rooms.Values)
+            {
+                if (room.HostConnectionId == connectionId)
+                {
+                    _rooms.Remove(room.RoomCode);
+                    return room.RoomCode;
+                }
+                if (room.Players.RemoveAll(p => p.ConnectionId == connectionId) > 0)
+                    return room.RoomCode;
+            }
+            return null;
+        }
+    }
+
+    /// <summary>Takes an already-fetched deck rather than a deckId + fetching it here itself -
+    /// DeckService is scoped (per-request), this service is a singleton, so the caller (MatchHub,
+    /// which is safely per-invocation) resolves the deck and hands it in rather than this service
+    /// holding a captive scoped dependency.</summary>
+    public DeckLegalityResult SelectDeck(MatchRoom room, string connectionId, int deckId, DeckDetailDto deck)
+    {
+        var result = legality.Check(deck);
+        if (result.Legal)
+            lock (_lock)
+            {
+                var player = room.Players.FirstOrDefault(p => p.ConnectionId == connectionId);
+                if (player is not null) player.DeckId = deckId;
+            }
+        return result;
+    }
+
+    public void SetReady(MatchRoom room, string connectionId, bool ready)
+    {
+        lock (_lock)
+        {
+            var player = room.Players.FirstOrDefault(p => p.ConnectionId == connectionId);
+            if (player is not null) player.Ready = ready;
+        }
+    }
+
+    public void PassTurn(MatchRoom room, string connectionId)
+    {
+        lock (_lock)
+        {
+            if (room.Board.ActivePlayerConnectionId != connectionId) return; // only the active player can pass
+            var order = room.Players.Select(p => p.ConnectionId).ToList();
+            var currentIndex = order.IndexOf(connectionId);
+            room.Board.ActivePlayerConnectionId = order[(currentIndex + 1) % order.Count];
+            if (currentIndex == order.Count - 1) room.Board.TurnNumber++;
+        }
+    }
+
+    public void UpdateCounter(MatchRoom room, string connectionId, string counterName, int delta)
+    {
+        lock (_lock)
+        {
+            var zones = room.Board.GetOrAddZones(connectionId);
+            zones.Counters[counterName] = zones.Counters.GetValueOrDefault(counterName) + delta;
+        }
+    }
+
+    /// <summary>
+    /// Deals the game in per Core Rules 111/114/116: separates each player's Legend, shuffles their
+    /// Main and Rune Decks separately, and draws an opening hand of 4. Same captive-dependency shape
+    /// as SelectDeck - the host (via MatchHub, which owns a scoped DeckService) resolves every
+    /// ready player's deck and hands the lookup in rather than this singleton fetching it itself.
+    /// Mulligans (Core Rule 117) aren't automated - players judge their own opening hand manually.
+    /// </summary>
+    public (bool Ok, string? Error) StartMatch(MatchRoom room, string connectionId, IReadOnlyDictionary<string, DeckDetailDto> decksByConnection)
+    {
+        lock (_lock)
+        {
+            if (room.HostConnectionId != connectionId) return (false, "Only the host can start the match.");
+            if (room.Players.Count < 2) return (false, "Need at least 2 players.");
+            if (room.Players.Any(p => !p.Ready || p.DeckId is null)) return (false, "Every player needs a legal deck and must be ready.");
+
+            foreach (var player in room.Players)
+            {
+                if (!decksByConnection.TryGetValue(player.ConnectionId, out var deck)) continue;
+                var zones = room.Board.GetOrAddZones(player.ConnectionId);
+                zones.LegendCardId = deck.Cards.FirstOrDefault(c => c.Card.Type == "Legend")?.CardId;
+
+                var main = Expand(deck.Cards.Where(c => c.Section == "main" && c.Card.Type is not ("Legend" or "Rune" or "Battlefield")));
+                var runes = Expand(deck.Cards.Where(c => c.Card.Type == "Rune"));
+                Shuffle(main);
+                Shuffle(runes);
+                zones.MainDeck.AddRange(main);
+                zones.RuneDeck.AddRange(runes);
+                for (var i = 0; i < 4 && zones.MainDeck.Count > 0; i++) DrawTopCard(zones);
+            }
+
+            room.Board.TurnNumber = 1;
+            room.Board.ActivePlayerConnectionId = room.HostConnectionId;
+            return (true, null);
+        }
+    }
+
+    /// <summary>Core Rule 315.4: "The Turn Player draws 1." Player-invoked rather than automatic on
+    /// a turn/phase transition, since there's no phase engine in Phase 1 - the effect is the same.</summary>
+    public void DrawCard(MatchRoom room, string connectionId)
+    {
+        lock (_lock)
+        {
+            var zones = room.Board.GetOrAddZones(connectionId);
+            if (zones.MainDeck.Count > 0) DrawTopCard(zones);
+        }
+    }
+
+    /// <summary>Core Rule 315.3: "The Turn Player channels 2 runes from their Rune Deck." One rune
+    /// per call so a player can channel exactly as many as they're due.</summary>
+    public void ChannelRune(MatchRoom room, string connectionId)
+    {
+        lock (_lock)
+        {
+            var zones = room.Board.GetOrAddZones(connectionId);
+            if (zones.RuneDeck.Count == 0) return;
+            var top = zones.RuneDeck[^1];
+            zones.RuneDeck.RemoveAt(zones.RuneDeck.Count - 1);
+            zones.RunePool.Add(top);
+        }
+    }
+
+    private static readonly Dictionary<string, Func<PlayerZones, List<string>>> MovableZones = new()
+    {
+        ["hand"] = z => z.Hand, ["board"] = z => z.Board, ["battlefield"] = z => z.Battlefield,
+        ["trash"] = z => z.Trash, ["banishment"] = z => z.Banishment, ["runePool"] = z => z.RunePool,
+    };
+
+    /// <summary>
+    /// The one generic, manual zone-to-zone move Phase 1 offers in place of automating every
+    /// specific action (Play, Discard, Banish, Return...) - the plan's explicit "no card-specific
+    /// automation yet" scope. MainDeck/RuneDeck are deliberately not reachable here; they only move
+    /// via DrawCard/ChannelRune so a face-down zone's order can't be picked through by hand.
+    /// </summary>
+    public bool MoveCard(MatchRoom room, string connectionId, string cardId, string fromZone, string toZone)
+    {
+        lock (_lock)
+        {
+            if (!MovableZones.TryGetValue(fromZone, out var from) || !MovableZones.TryGetValue(toZone, out var to)) return false;
+            var zones = room.Board.GetOrAddZones(connectionId);
+            if (!from(zones).Remove(cardId)) return false;
+            to(zones).Add(cardId);
+            return true;
+        }
+    }
+
+    private static List<string> Expand(IEnumerable<DeckCardDto> rows) =>
+        rows.SelectMany(r => Enumerable.Repeat(r.CardId, r.Quantity)).ToList();
+
+    private static void Shuffle(List<string> cards)
+    {
+        for (var i = cards.Count - 1; i > 0; i--)
+        {
+            var j = Random.Shared.Next(i + 1);
+            (cards[i], cards[j]) = (cards[j], cards[i]);
+        }
+    }
+
+    private static void DrawTopCard(PlayerZones zones)
+    {
+        var top = zones.MainDeck[^1];
+        zones.MainDeck.RemoveAt(zones.MainDeck.Count - 1);
+        zones.Hand.Add(top);
+    }
+
+    /// <summary>The redaction boundary: only `viewerConnectionId`'s own Hand is ever populated in
+    /// the returned view. Every other player's Hand comes back null - only HandCount is visible.
+    /// This is what actually enforces hidden information, not anything client-side.</summary>
+    public RoomView ToView(MatchRoom room, string viewerConnectionId)
+    {
+        lock (_lock)
+        {
+            var zonesView = room.Board.ZonesByPlayer.ToDictionary(
+                kv => kv.Key,
+                kv => new PlayerZonesView(
+                    HandCount: kv.Value.Hand.Count,
+                    Hand: kv.Key == viewerConnectionId ? [..kv.Value.Hand] : null,
+                    MainDeckCount: kv.Value.MainDeck.Count,
+                    RuneDeckCount: kv.Value.RuneDeck.Count,
+                    RunePool: [..kv.Value.RunePool],
+                    Board: [..kv.Value.Board],
+                    Battlefield: [..kv.Value.Battlefield],
+                    Trash: [..kv.Value.Trash],
+                    Banishment: [..kv.Value.Banishment],
+                    LegendCardId: kv.Value.LegendCardId,
+                    ChampionCardId: kv.Value.ChampionCardId,
+                    Energy: kv.Value.Energy,
+                    Score: kv.Value.Score,
+                    Counters: new Dictionary<string, int>(kv.Value.Counters)));
+            return new RoomView(
+                room.RoomCode,
+                room.Players.Select(p => new PlayerView(p.ConnectionId, p.Name, p.IsHost, p.Ready, p.DeckId)).ToList(),
+                new BoardStateView(room.Board.TurnNumber, room.Board.ActivePlayerConnectionId, zonesView));
+        }
+    }
+
+    private static string GenerateRoomCode() =>
+        new(Enumerable.Range(0, 5).Select(_ => CodeAlphabet[Random.Shared.Next(CodeAlphabet.Length)]).ToArray());
+}

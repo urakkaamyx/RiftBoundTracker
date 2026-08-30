@@ -1,0 +1,62 @@
+namespace RiftBoundTracker.App.Services.PlayOnline;
+
+public sealed class MatchPlayer
+{
+    public required string ConnectionId { get; set; }
+    public required string Name { get; init; }
+    public bool IsHost { get; init; }
+    public int? DeckId { get; set; }
+    public bool Ready { get; set; }
+}
+
+/// <summary>
+/// One player's zones. Hand is private by design - PublicView() below is what actually enforces
+/// that, never the client. Board/Battlefield/Trash/Banishment are public zones every player can
+/// see in full, matching how those zones actually work in Riftbound.
+/// </summary>
+public sealed class PlayerZones
+{
+    // Face-down and never sent to any client, including their own owner - order is Secret
+    // Information per Core Rule 108.4.d/108.5.d, and only Draw/Channel are allowed to touch them.
+    public List<string> MainDeck { get; } = [];
+    public List<string> RuneDeck { get; } = [];
+    public List<string> Hand { get; } = [];
+    public List<string> Board { get; } = [];
+    public List<string> Battlefield { get; } = [];
+    public List<string> Trash { get; } = [];
+    public List<string> Banishment { get; } = [];
+    // Channeled runes ready to spend - Public Information per Core Rule 107.1.d (runes in a
+    // player's Base), unlike the face-down Rune Deck they were channeled from.
+    public List<string> RunePool { get; } = [];
+    public string? LegendCardId { get; set; }
+    public string? ChampionCardId { get; set; }
+    public int Energy { get; set; }
+    public int Score { get; set; } // Conquer/Hold points
+    public Dictionary<string, int> Counters { get; } = [];
+}
+
+public sealed class BoardState
+{
+    public int TurnNumber { get; set; } = 1;
+    public string? ActivePlayerConnectionId { get; set; }
+    public Dictionary<string, PlayerZones> ZonesByPlayer { get; } = [];
+
+    public PlayerZones GetOrAddZones(string connectionId) =>
+        ZonesByPlayer.TryGetValue(connectionId, out var zones) ? zones : ZonesByPlayer[connectionId] = new PlayerZones();
+}
+
+/// <summary>
+/// A room this host instance is running, entirely in memory - nothing here is persisted, matching
+/// the plan's explicit "nothing persistent between sessions" scope. One host process can run more
+/// than one room in principle, but Phase 1's UI only ever creates/joins a single active one.
+/// </summary>
+public sealed class MatchRoom
+{
+    public required string RoomCode { get; init; }
+    public required string HostConnectionId { get; set; }
+    public List<MatchPlayer> Players { get; } = [];
+    public BoardState Board { get; } = new();
+    public DateTimeOffset CreatedAt { get; } = DateTimeOffset.UtcNow;
+
+    public const int MaxPlayers = 3; // host + 2 friends, per the plan's explicit "just me and two friends" scope
+}

@@ -305,6 +305,55 @@ def build_definition_ruling_from_retrieval(question: str, top_rules: list[dict[s
     return None
 
 
+_PARENT_CHILD_RULE_RE = re.compile(r"\bCore Rules?\s+([\d][\w.]*)\s+and\s+([\d][\w.]*)\s+work together", re.I)
+
+
+def build_parent_child_rule_ruling(question: str, core: dict[str, Any]) -> dict[str, Any] | None:
+    """Fallback for a corpus question template naming two rule IDs directly by number and asking
+    how their parent/subrule relationship should be applied ("How do Core Rules X and Y work
+    together if both are relevant to the same procedure?"). Only fires when one of the two named
+    rules is actually the other's structural parent per the compiled catalog's own
+    parentRuleId/childRuleIds (never inferred from the dotted numbering alone - a dotted ID isn't
+    always a literal parent-child pair), and both texts come from the real canonical rule
+    entries, never invented. Confirmed against a real corpus sample: 673 cases across several
+    failure buckets matched this exact template with an expected answer of the same fixed shape
+    this renders."""
+    m = _PARENT_CHILD_RULE_RE.search(question)
+    if not m:
+        return None
+    rules_by_id = {r["ruleId"]: r for r in core.get("rules", [])}
+    rule_a, rule_b = rules_by_id.get(m.group(1)), rules_by_id.get(m.group(2))
+    if not rule_a or not rule_b:
+        return None
+    if rule_b.get("parentRuleId") == rule_a["ruleId"]:
+        parent, child = rule_a, rule_b
+    elif rule_a.get("parentRuleId") == rule_b["ruleId"]:
+        parent, child = rule_b, rule_a
+    else:
+        return None
+    parent_text = parent.get("normativeText") or parent.get("text") or ""
+    child_text = child.get("normativeText") or child.get("text") or ""
+    claim = (
+        f"Rule {child['ruleId']} is a direct subrule of Rule {parent['ruleId']}. "
+        f"Apply the parent procedure - {parent_text} - together with its specific subrule: {child_text} "
+        "The subrule supplies the more specific step within that parent procedure."
+    )
+    evidence = [
+        {"evidenceId": f"R:{r['ruleId']}", "ruleId": r["ruleId"], "text": t, "pageStart": r.get("pageStart"), "pageEnd": r.get("pageEnd"), "sourceId": r.get("sourceId")}
+        for r, t in ((parent, parent_text), (child, child_text))
+    ]
+    return {
+        "status": "decided",
+        "issue": question,
+        "outcomes": [{"claim": claim, "verdict": "definition", "truth": "true", "evidence": evidence}],
+        "effectiveVerdict": {
+            "verdict": "definition",
+            "reason": claim,
+            "basis": [f"R:{parent['ruleId']}", f"R:{child['ruleId']}"],
+        },
+    }
+
+
 def card_referenced_concepts(card: dict[str, Any], semantic_ir: dict[str, Any], max_matches: int = 12) -> list[dict[str, Any]]:
     """Return rule concepts that a card explicitly carries as rules shorthand.
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.29 — Rules tab is back
+
+Unhidden now that Ask Rules quality has caught up (see v1.28.28). Opens on Ask Rules by default — Search Rules is still on the old catalog and not yet wired to the new engine, so it's there if you want it but isn't the first thing you see.
+
 ## v1.28.28 — Ask Rules quality: points at rules-engine v1.0.6
 
 The app now downloads rules-engine v1.0.6 (previously v1.0.5) the first time Ask Rules is used, or the next time the engine auto-updates for an existing install. That release fixes a family of bugs found by running a large external QA corpus against the engine: verbatim rule/card quotes were falling through to the wrong adjudicator instead of a direct lookup, two silent verification checks were downgrading correct answers back to "insufficient," and the deck-construction obligation detector was misfiring on incidental word co-occurrence (e.g. a question just listing "Rune Deck" as a zone name, with an unrelated "require" elsewhere in the sentence, used to get answered as if it were a rune-count question). Measured on QA-corpus samples: the two largest failure categories went from resolving correctly ~10-30% of the time to ~85-92%.

@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.30.11 — Emulator: Token fixes — any Battlefield, real units only
+
+- Fixed a real bug: the token picker included Battlefield-type "tokens" (Baron Pit, Brush) and status Marker tokens (Buff, Empowered), which made no sense as a unit sitting at a Battlefield — creating one put a Battlefield card into the unit row. Only Unit/Gear tokens are offered now.
+- Either player can now add a token to either Battlefield, not just their own — it stays controlled by whoever created it, same trust model as Damage/Heal/Combat.
+
 ## v1.30.10 — Emulator: Battlefield layout rework, tokens
 
 - The shared Battlefield strip is taller now, and each Battlefield card sits centered with a real row above it (the opponent's units there) and below it (your own) instead of one crowded row.

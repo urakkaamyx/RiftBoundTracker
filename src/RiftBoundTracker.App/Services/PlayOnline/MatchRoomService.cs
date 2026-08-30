@@ -213,18 +213,18 @@ public sealed class MatchRoomService(DeckLegalityService legality)
     /// <summary>
     /// Represents a Token (Core Rule 108.2.c: Created Game Objects, not part of either deck) being
     /// put directly into play - the manual stand-in for whatever effect would have created it, since
-    /// this engine has no card-effect execution. Always lands at the CALLER's own Battlefield,
-    /// controlled by them - "in respect to which player did it," not something the caller picks a
-    /// destination for, keeping this a one-click action instead of another zone/target chooser.
+    /// this engine has no card-effect execution. Either player can put a Token at either Battlefield
+    /// (same any-unit-targetable trust model as Damage/Heal/Combat) - it's controlled by whoever
+    /// created it regardless of whose Battlefield it landed on, same as any other unit there.
     /// </summary>
-    public (bool Ok, string? Error) CreateToken(MatchRoom room, string connectionId, string cardId)
+    public (bool Ok, string? Error) CreateToken(MatchRoom room, string connectionId, string cardId, string battlefieldOwnerConnectionId)
     {
         lock (_lock)
         {
-            var slot = room.Board.Battlefields.FirstOrDefault(b => b.OwnerConnectionId == connectionId);
-            if (slot is null) return (false, "You haven't chosen a Battlefield yet.");
+            var slot = room.Board.Battlefields.FirstOrDefault(b => b.OwnerConnectionId == battlefieldOwnerConnectionId);
+            if (slot is null) return (false, "That Battlefield isn't in play.");
             slot.Units.Add(new UnitInstance { InstanceId = Guid.NewGuid().ToString("N"), CardId = cardId, ControllerConnectionId = connectionId });
-            AddLog(room, connectionId, "created a token at their Battlefield.");
+            AddLog(room, connectionId, "created a token at a Battlefield.");
             return (true, null);
         }
     }

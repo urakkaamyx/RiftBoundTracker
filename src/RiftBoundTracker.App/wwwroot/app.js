@@ -3428,15 +3428,20 @@ async function poSelectBattlefield(cardId) {
 }
 
 // --- Tokens (Core Rule 108.2.c: Created Game Objects) - the manual stand-in for whatever effect
-// would have created one, since there's no card-effect execution engine here. Always lands at the
-// creating player's own Battlefield (see MatchRoomService.CreateToken), so this is a one-click
-// picker, not another zone/target chooser. ---
-async function poShowTokenPicker() {
+// would have created one, since there's no card-effect execution engine here. Either player can put
+// one at either Battlefield (same any-unit-targetable trust model as Damage/Heal/Combat - see
+// MatchRoomService.CreateToken), so the "+" button just needs to know which Battlefield it's next
+// to, not who's clicking it. ---
+async function poShowTokenPicker(battlefieldOwnerConnectionId) {
   document.getElementById("poTokenModalBody").innerHTML = `<div class="loading-line">Loading tokens...</div>`;
   showModal("poTokenModal");
   let cards;
   try { cards = await api(`/api/cards?${queryString({ owned: "tokens", sort: "name-asc" })}`); }
   catch (err) { document.getElementById("poTokenModalBody").innerHTML = `<p class="settings-hint">${escapeHtml(err.message)}</p>`; return; }
+  // Battlefield/Marker-type "tokens" (Baron Pit, Brush, Buff, Empowered...) aren't standalone units -
+  // creating one wouldn't mean anything as a unit sitting at a Battlefield, so only Unit/Gear tokens
+  // (the ones that actually work as a UnitInstance here, same as PlayCard treats them) are offered.
+  cards = cards.filter(c => c.type === "Unit" || c.type === "Gear");
   registerCards(cards);
   document.getElementById("poTokenModalBody").innerHTML = cards.length
     ? `<div class="po-zone-modal-grid">${cards.map(c => `
@@ -3444,11 +3449,12 @@ async function poShowTokenPicker() {
           ${poCardTile(c.id, "lg")}<span>${escapeHtml(c.name)}</span>
         </button>`).join("")}</div>`
     : `<p class="settings-hint">No token cards found.</p>`;
+  document.getElementById("poTokenModalBody").dataset.poTokenTarget = battlefieldOwnerConnectionId;
   renderIcons(document.getElementById("poTokenModalBody"));
 }
 
-async function poCreateToken(cardId) {
-  const result = await state.playOnline.connection.invoke("CreateToken", state.playOnline.room.roomCode, cardId);
+async function poCreateToken(cardId, battlefieldOwnerConnectionId) {
+  const result = await state.playOnline.connection.invoke("CreateToken", state.playOnline.room.roomCode, cardId, battlefieldOwnerConnectionId);
   if (!result.ok) toast(result.error || "Could not create that token.", true);
 }
 
@@ -3532,15 +3538,16 @@ function poRenderRoom() {
   // The shared Battlefield Zone (Core Rule 486.5) - rendered once, not per-player, since a
   // Battlefield holds whichever player's units are actually At it. Ordered by player seat (not
   // insertion order) so Player 1's Battlefield is consistently the left one - a "+" token button
-  // flanks each outer edge, enabled only for the player whose side it's on (Core Rule 108.2.c: a
-  // Token is Created straight into play, always at ITS creator's own Battlefield - see
-  // MatchRoomService.CreateToken). Each slot stacks vertically - the card centered, the opponent's
-  // Units in the row above it (away from the viewer, matching the opponent board's position at the
-  // top) and the viewer's own Units in the row below (nearest their own board at the bottom).
+  // flanks each outer edge. Either player can use either button (Core Rule 108.2.c: a Token is
+  // Created straight into play, controlled by whoever created it - see MatchRoomService.CreateToken;
+  // "any Battlefield" mirrors the existing Damage/Heal/Combat trust model, not a self-only action).
+  // Each slot stacks vertically - the card centered, the opponent's Units in the row above it (away
+  // from the viewer, matching the opponent board's position at the top) and the viewer's own Units
+  // in the row below (nearest their own board at the bottom).
   const battlefieldSlotsInSeatOrder = room.players.map(p => room.board.battlefields.find(b => b.ownerConnectionId === p.connectionId)).filter(Boolean);
   const battlefieldZoneHtml = battlefieldSlotsInSeatOrder.length ? `
     <div class="po-shared-battlefield">
-      <button type="button" class="po-bf-token-btn" data-po-add-token ${room.players[0]?.connectionId === state.playOnline.myConnectionId ? "" : "disabled"} title="Add a token to your Battlefield"><i data-icon="list-plus"></i></button>
+      <button type="button" class="po-bf-token-btn" data-po-add-token="${escapeHtml(battlefieldSlotsInSeatOrder[0].ownerConnectionId)}" title="Add a token to ${escapeHtml(room.players[0]?.name || "")}'s Battlefield"><i data-icon="list-plus"></i></button>
       ${battlefieldSlotsInSeatOrder.map(slot => {
         const ownerName = room.players.find(p => p.connectionId === slot.ownerConnectionId)?.name || "";
         const unitTile = u => {
@@ -3564,7 +3571,7 @@ function poRenderRoom() {
           <div class="po-card-row po-bf-units po-bf-units-near">${nearUnits.length ? nearUnits.map(unitTile).join("") : `<span class="po-zone-empty">—</span>`}</div>
         </div>`;
       }).join("")}
-      <button type="button" class="po-bf-token-btn" data-po-add-token ${room.players[1]?.connectionId === state.playOnline.myConnectionId ? "" : "disabled"} title="Add a token to your Battlefield"><i data-icon="list-plus"></i></button>
+      ${battlefieldSlotsInSeatOrder[1] ? `<button type="button" class="po-bf-token-btn" data-po-add-token="${escapeHtml(battlefieldSlotsInSeatOrder[1].ownerConnectionId)}" title="Add a token to ${escapeHtml(room.players[1]?.name || "")}'s Battlefield"><i data-icon="list-plus"></i></button>` : ""}
     </div>` : "";
 
   const playerCards = room.players.map(player => {
@@ -5512,7 +5519,7 @@ function wireEvents() {
   document.getElementById("poTokenModalBody").addEventListener("click", event => {
     const btn = event.target.closest("[data-po-create-token]");
     if (!btn) return;
-    poCreateToken(btn.dataset.poCreateToken).catch(err => toast(err.message, true));
+    poCreateToken(btn.dataset.poCreateToken, event.currentTarget.dataset.poTokenTarget).catch(err => toast(err.message, true));
     closeModal("poTokenModal");
   });
   document.getElementById("poBoard").addEventListener("click", event => {
@@ -5530,7 +5537,8 @@ function wireEvents() {
     if (event.target.closest("[data-po-draw]")) { poDrawCard().catch(err => toast(err.message, true)); return; }
     if (event.target.closest("[data-po-channel]")) { poChannelRune().catch(err => toast(err.message, true)); return; }
     if (event.target.closest("[data-po-exhaust]")) { poExhaustRune().catch(err => toast(err.message, true)); return; }
-    if (event.target.closest("[data-po-add-token]")) { poShowTokenPicker(); return; }
+    const addTokenBtn = event.target.closest("[data-po-add-token]");
+    if (addTokenBtn) { poShowTokenPicker(addTokenBtn.dataset.poAddToken); return; }
     const playBtn = event.target.closest("[data-po-play]");
     if (playBtn) { poPlayCard(playBtn.dataset.poPlay).catch(err => toast(err.message, true)); return; }
     const scoreBtn = event.target.closest("[data-po-score-delta]");

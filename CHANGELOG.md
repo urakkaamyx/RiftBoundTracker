@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.30.4 — Fix: Battlefield cards were silently dropped at match start
+
+- Found and fixed a real bug while working toward Combat: Battlefield-type cards in a deck (a deck's third pile alongside the Main and Rune decks) were being filtered out during setup and never placed anywhere — they just vanished at the start of every match. They're now correctly set aside and shown on the board, matching the real Setup Process. This isn't full Battlefield-location Combat yet (there's still no discrete-location movement or control), just the missing first step of it.
+
 ## v1.30.3 — Emulator: Resolve Combat (1v1)
 
 - Added a Resolve Combat tool: pick one of your units and one enemy unit, and both sides deal their Might to the other simultaneously — matching the real Combat Damage Step's math (Core Rule 465.2), including a correct mutual kill when both sides have lethal Might. Scoped to exactly one attacker and one defender for now; multi-unit combats leave damage-assignment order up to player choice in the real rules too, so this doesn't guess at it.

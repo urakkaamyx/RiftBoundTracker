@@ -163,6 +163,8 @@ public sealed class MatchRoomService(DeckLegalityService legality)
                 if (!decksByConnection.TryGetValue(player.ConnectionId, out var deck)) continue;
                 var zones = room.Board.GetOrAddZones(player.ConnectionId);
                 zones.LegendCardId = deck.Cards.FirstOrDefault(c => c.Card.Type == "Legend")?.CardId;
+                // Core Rule 113: each player sets aside their Battlefields at Setup.
+                zones.BattlefieldCards.AddRange(Expand(deck.Cards.Where(c => c.Card.Type == "Battlefield")));
 
                 var main = Expand(deck.Cards.Where(c => c.Section == "main" && c.Card.Type is not ("Legend" or "Rune" or "Battlefield")));
                 var runes = Expand(deck.Cards.Where(c => c.Card.Type == "Rune"));
@@ -543,6 +545,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
                     ExhaustedRuneCount: kv.Value.ExhaustedRuneCount,
                     Board: kv.Value.Board.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted, u.Damage, u.AttachedToInstanceId)).ToList(),
                     Battlefield: kv.Value.Battlefield.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted, u.Damage, u.AttachedToInstanceId)).ToList(),
+                    BattlefieldCards: [..kv.Value.BattlefieldCards],
                     Trash: [..kv.Value.Trash],
                     Banishment: [..kv.Value.Banishment],
                     LegendCardId: kv.Value.LegendCardId,

@@ -3165,8 +3165,8 @@ function poRenderRoom() {
       </div>`;
     // Board/Battlefield hold unit instances (Core Rule 415 Ready/Exhausted state), not bare card
     // ids - exhausted units are dimmed and rotated, and the caller can click their own to toggle it.
-    const unitRow = (units, label) => `
-      <div class="po-zone po-zone-${label.toLowerCase()}">
+    const unitRow = (units, label, cls = "") => `
+      <div class="po-zone po-zone-${cls || label.toLowerCase().replace(/\s+/g, "-")}">
         <span class="po-zone-label">${label} <b>${units.length}</b></span>
         <div class="po-card-row">${units.length ? units.map(u => {
           const might = cardsById.get(u.cardId)?.might;
@@ -3239,12 +3239,13 @@ function poRenderRoom() {
           </select>
           <button class="command-btn${player.ready ? " quiet" : " gold"}" data-po-ready="${!player.ready}" ${player.deckId ? "" : "disabled"}>${player.ready ? "Not Ready" : "Ready Up"}</button>
         ` : `<p class="settings-hint">${player.deckId ? "Deck selected." : "Choosing a deck..."}</p>`) : `
+          ${zones.battlefieldCards.length ? cardRow(zones.battlefieldCards, "Battlefields") : ""}
           <div class="po-battlefield">
             <button class="po-pile po-pile-main"${isMe && zones.mainDeckCount ? " data-po-draw" : " disabled"} title="Main Deck — ${isMe ? "click for an extra draw (1 is automatic at the start of your turn)" : `${zones.mainDeckCount} left`}">
               <i data-icon="layers"></i><span class="po-pile-count">${zones.mainDeckCount}</span>
             </button>
             <div class="po-battlefield-zones">
-              ${unitRow(zones.battlefield, "Battlefield")}
+              ${unitRow(zones.battlefield, "At Battlefield")}
               ${unitRow(zones.board, "Board")}
             </div>
             <button class="po-pile po-pile-rune"${isMe && zones.runeDeckCount ? " data-po-channel" : " disabled"} title="Rune Deck — ${isMe ? "click to channel an extra rune (2 are automatic at the start of your turn)" : `${zones.runeDeckCount} left`}">

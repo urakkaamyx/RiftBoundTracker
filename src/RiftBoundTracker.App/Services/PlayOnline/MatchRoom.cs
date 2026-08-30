@@ -84,4 +84,8 @@ public sealed class UnitInstance
     public required string InstanceId { get; init; }
     public required string CardId { get; init; }
     public bool Exhausted { get; set; }
+    // Core Rule 142: Damage is a marked value, not a permanent reduction to Might - it's compared
+    // against the unit's Might to check Lethal Damage (142.4.a), and heals off at specific times
+    // (143.3.b), it doesn't subtract from Might directly.
+    public int Damage { get; set; }
 }

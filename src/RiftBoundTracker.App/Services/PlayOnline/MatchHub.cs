@@ -124,6 +124,18 @@ public sealed class MatchHub(MatchRoomService rooms, EmulatorAccessService acces
         return new HubResult(true, null);
     }
 
+    public async Task<HubResult> DealDamage(string roomCode, string instanceId, int amount)
+    {
+        var room = rooms.GetRoom(roomCode);
+        if (room is null) return new HubResult(false, "Room not found.");
+        var cardId = rooms.FindUnitCardId(room, instanceId);
+        if (cardId is null) return new HubResult(false, "Could not find that unit.");
+        var card = await db.Cards.FindAsync(cardId);
+        if (!rooms.DealDamage(room, Context.ConnectionId, instanceId, amount, card?.Might)) return new HubResult(false, "Could not find that unit.");
+        await BroadcastAsync(room);
+        return new HubResult(true, null);
+    }
+
     public async Task ReadyUp(string roomCode, bool ready)
     {
         var room = rooms.GetRoom(roomCode);

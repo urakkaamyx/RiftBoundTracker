@@ -3013,6 +3013,11 @@ async function poPlayCard(cardId) {
   if (!result.ok) toast(result.error || "Could not play that card.", true);
 }
 
+async function poDealDamage(instanceId, amount) {
+  const result = await state.playOnline.connection.invoke("DealDamage", state.playOnline.room.roomCode, instanceId, amount);
+  if (!result.ok) toast(result.error || "Could not deal damage.", true);
+}
+
 async function poToggleUnitReady(instanceId) {
   const result = await state.playOnline.connection.invoke("ToggleUnitReady", state.playOnline.room.roomCode, instanceId);
   if (!result.ok) toast(result.error || "Could not toggle that unit.", true);
@@ -3084,6 +3089,16 @@ function poHandTile(cardId, energyAvailable) {
     </div>`;
 }
 
+// Every unit any player controls, across Board and Battlefield alike - the pool the Deal Damage
+// tool targets from, since damage has to be assignable to an opponent's unit, not just your own.
+function poAllUnits(room) {
+  return room.players.flatMap(p => {
+    const zones = room.board.zonesByPlayer[p.connectionId];
+    if (!zones) return [];
+    return [...zones.board, ...zones.battlefield].map(u => ({ ...u, ownerName: p.name, might: cardsById.get(u.cardId)?.might }));
+  });
+}
+
 function poRenderRoom() {
   const room = state.playOnline.room;
   if (!room) return;
@@ -3132,8 +3147,14 @@ function poRenderRoom() {
     const unitRow = (units, label) => `
       <div class="po-zone po-zone-${label.toLowerCase()}">
         <span class="po-zone-label">${label} <b>${units.length}</b></span>
-        <div class="po-card-row">${units.length ? units.map(u => `
-          <span class="po-unit-slot${u.exhausted ? " po-unit-exhausted" : ""}"${isMe ? ` data-po-toggle-ready="${escapeHtml(u.instanceId)}" title="${u.exhausted ? "Exhausted - click to ready" : "Ready - click to exhaust"}"` : ` title="${u.exhausted ? "Exhausted" : "Ready"}"`}>${poCardTile(u.cardId, "sm")}</span>`).join("") : `<span class="po-zone-empty">—</span>`}</div>
+        <div class="po-card-row">${units.length ? units.map(u => {
+          const might = cardsById.get(u.cardId)?.might;
+          return `
+          <span class="po-unit-slot${u.exhausted ? " po-unit-exhausted" : ""}"${isMe ? ` data-po-toggle-ready="${escapeHtml(u.instanceId)}" title="${u.exhausted ? "Exhausted - click to ready" : "Ready - click to exhaust"}"` : ` title="${u.exhausted ? "Exhausted" : "Ready"}"`}>
+            ${poCardTile(u.cardId, "sm")}
+            ${u.damage || might != null ? `<b class="po-unit-damage${u.damage ? " po-unit-damage-marked" : ""}">${u.damage}${might != null ? `/${might}` : ""}</b>` : ""}
+          </span>`;
+        }).join("") : `<span class="po-zone-empty">—</span>`}</div>
       </div>`;
     // Every one of the caller's own cards, tagged with which zone it's currently in, so the move
     // tool's single dropdown can address any of them without a separate control per zone.
@@ -3236,6 +3257,14 @@ function poRenderRoom() {
                 ${PO_MOVABLE_ZONES.map(([key, label]) => `<option value="${key}">→ ${label}</option>`).join("")}
               </select>
               <button class="command-btn quiet" data-po-move="${escapeHtml(player.connectionId)}">Move</button>
+            </div>` : ""}
+          ${isMe && poAllUnits(room).length ? `
+            <div class="po-move-tool">
+              <select id="poDamageTarget-${escapeHtml(player.connectionId)}">
+                ${poAllUnits(room).map(u => `<option value="${escapeHtml(u.instanceId)}">${escapeHtml(u.ownerName)} — ${poCardLabel(u.cardId)} (${u.damage}${u.might != null ? `/${u.might}` : ""})</option>`).join("")}
+              </select>
+              <input id="poDamageAmount-${escapeHtml(player.connectionId)}" type="number" min="1" value="1" />
+              <button class="command-btn quiet" data-po-deal-damage="${escapeHtml(player.connectionId)}"><i data-icon="alert-triangle"></i>Deal Damage</button>
             </div>` : ""}
           ${isMe ? `
             <div class="po-add-counter">
@@ -5053,6 +5082,14 @@ function wireEvents() {
     if (recycleBtn) { poRecycleRune(recycleBtn.dataset.poRecycle).catch(err => toast(err.message, true)); return; }
     const readyToggle = event.target.closest("[data-po-toggle-ready]");
     if (readyToggle) { poToggleUnitReady(readyToggle.dataset.poToggleReady).catch(err => toast(err.message, true)); return; }
+    const damageBtn = event.target.closest("[data-po-deal-damage]");
+    if (damageBtn) {
+      const targetSelect = document.getElementById(`poDamageTarget-${damageBtn.dataset.poDealDamage}`);
+      const amountInput = document.getElementById(`poDamageAmount-${damageBtn.dataset.poDealDamage}`);
+      const amount = Number(amountInput?.value);
+      if (targetSelect?.value && amount > 0) poDealDamage(targetSelect.value, amount).catch(err => toast(err.message, true));
+      return;
+    }
     const moveBtn = event.target.closest("[data-po-move]");
     if (moveBtn) {
       const cardSelect = document.getElementById(`poMoveCard-${moveBtn.dataset.poMove}`);

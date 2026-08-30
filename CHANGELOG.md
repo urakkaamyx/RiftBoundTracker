@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.30.0 — Emulator: real Damage and Kill
+
+- Added a Deal Damage tool that can target any unit on the board, yours or an opponent's. Damage is marked on the unit (shown as a red badge, e.g. "3/4") rather than reducing its stats directly, and the moment marked damage reaches its Might, it's Killed — moved straight to its controller's Trash, automatically. Damage heals off a unit at the end of its controller's turn, so it doesn't carry over.
+- This is a real combat primitive (Core Rules 142/428), not yet full Combat - there's still no Attacker/Defender designation, Battlefield-location control, or automatic damage from units fighting each other. For now, damage is something a player assigns by hand, same as everything else Phase 2 hasn't automated yet.
+
 ## v1.29.9 — Emulator: Ready/Exhausted units, layout fix
 
 - Units on the Board and at Battlefields now have real Ready/Exhausted state, matching how the physical game actually works: a unit you play enters ready, click it to exhaust or ready it by hand, and every unit you control readies automatically at the start of your turn. An exhausted unit tilts and dims so it reads at a glance. This is genuine foundational groundwork - several keywords (Accelerate, Equip, Weaponmaster, and others) key off Ready/Exhausted, and none of those are wired up yet.

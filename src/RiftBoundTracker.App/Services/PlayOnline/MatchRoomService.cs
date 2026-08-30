@@ -102,6 +102,10 @@ public sealed class MatchRoomService(DeckLegalityService legality)
         lock (_lock)
         {
             if (room.Board.ActivePlayerConnectionId != connectionId) return; // only the active player can pass
+            // Core Rule 143.3.b.1: damage heals off at the end of each player's own turn.
+            var endingZones = room.Board.GetOrAddZones(connectionId);
+            foreach (var unit in endingZones.Board) unit.Damage = 0;
+            foreach (var unit in endingZones.Battlefield) unit.Damage = 0;
             var order = room.Players.Select(p => p.ConnectionId).ToList();
             var currentIndex = order.IndexOf(connectionId);
             room.Board.ActivePlayerConnectionId = order[(currentIndex + 1) % order.Count];
@@ -360,6 +364,55 @@ public sealed class MatchRoomService(DeckLegalityService legality)
         }
     }
 
+    /// <summary>Card id of any unit on the board, regardless of who controls it - used by the caller
+    /// (MatchHub) to resolve the target's Might before calling DealDamage, since this service has no
+    /// card-database access of its own.</summary>
+    public string? FindUnitCardId(MatchRoom room, string instanceId)
+    {
+        lock (_lock)
+        {
+            foreach (var zones in room.Board.ZonesByPlayer.Values)
+            {
+                var unit = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId) ?? zones.Battlefield.FirstOrDefault(u => u.InstanceId == instanceId);
+                if (unit is not null) return unit.CardId;
+            }
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Core Rule 142/465.2.d: Damage is marked on a unit (not a Might reduction), and Lethal Damage
+    /// (marked Damage >= Might) Kills it (428.1.a.2, moved straight to its controller's Trash). No
+    /// Combat/targeting automation exists yet, so this is a manual "assign N damage to any unit"
+    /// tool standing in for real Combat Damage assignment and Kill instructions alike - the two most
+    /// common ways damage actually gets applied on a real board. Any player can target any unit,
+    /// same trust model as the rest of Phase 1's manual tools.
+    /// </summary>
+    public bool DealDamage(MatchRoom room, string connectionId, string instanceId, int amount, int? might)
+    {
+        lock (_lock)
+        {
+            foreach (var (ownerId, zones) in room.Board.ZonesByPlayer)
+            {
+                var fromBoard = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId);
+                var fromBattlefield = fromBoard is null ? zones.Battlefield.FirstOrDefault(u => u.InstanceId == instanceId) : null;
+                var unit = fromBoard ?? fromBattlefield;
+                if (unit is null) continue;
+
+                unit.Damage += amount;
+                AddLog(room, connectionId, $"dealt {amount} damage to a unit ({unit.Damage} marked).");
+                if (might is int m && unit.Damage >= m)
+                {
+                    (fromBoard is not null ? zones.Board : zones.Battlefield).Remove(unit);
+                    zones.Trash.Add(unit.CardId);
+                    AddLog(room, connectionId, "killed that unit with lethal damage.");
+                }
+                return true;
+            }
+            return false;
+        }
+    }
+
     private static List<string> Expand(IEnumerable<DeckCardDto> rows) =>
         rows.SelectMany(r => Enumerable.Repeat(r.CardId, r.Quantity)).ToList();
 
@@ -395,8 +448,8 @@ public sealed class MatchRoomService(DeckLegalityService legality)
                     RuneDeckCount: kv.Value.RuneDeck.Count,
                     Base: [..kv.Value.Base],
                     ExhaustedRuneCount: kv.Value.ExhaustedRuneCount,
-                    Board: kv.Value.Board.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted)).ToList(),
-                    Battlefield: kv.Value.Battlefield.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted)).ToList(),
+                    Board: kv.Value.Board.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted, u.Damage)).ToList(),
+                    Battlefield: kv.Value.Battlefield.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted, u.Damage)).ToList(),
                     Trash: [..kv.Value.Trash],
                     Banishment: [..kv.Value.Banishment],
                     LegendCardId: kv.Value.LegendCardId,

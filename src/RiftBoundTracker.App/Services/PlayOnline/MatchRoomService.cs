@@ -178,15 +178,18 @@ public sealed class MatchRoomService(DeckLegalityService legality)
     }
 
     /// <summary>
-    /// Core Rules 315.1/315.3/315.4 for the player whose turn is beginning: their runes ready (they
-    /// can be exhausted for Energy again), they channel up to 2 runes, and they draw 1. Also empties
-    /// their Rune Pool per Core Rule 167 ("empties at the start of each player's Main Phase") - this
-    /// engine has no separate Main Phase step, so it happens right here instead.
+    /// Core Rules 315.1/315.3/315.4 for the player whose turn is beginning: their runes AND every
+    /// unit they control readies (Core Rule 415, "The Turn Player readies all Game Objects they
+    /// control that are able to be readied"), they channel up to 2 runes, and they draw 1. Also
+    /// empties their Rune Pool per Core Rule 167 - this engine has no separate Main Phase step, so
+    /// it happens right here instead.
     /// </summary>
     private void RunStartOfTurn(MatchRoom room, string connectionId)
     {
         var zones = room.Board.GetOrAddZones(connectionId);
         zones.ExhaustedRuneCount = 0;
+        foreach (var unit in zones.Board) unit.Exhausted = false;
+        foreach (var unit in zones.Battlefield) unit.Exhausted = false;
         zones.Counters.Remove("Energy");
         zones.Counters.Remove("Power");
         var channeled = 0;
@@ -279,7 +282,8 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             if (available < energyCost) return (false, $"Not enough Energy - have {available}, need {energyCost}.");
             zones.Hand.Remove(cardId);
             zones.Counters["Energy"] = available - energyCost;
-            (cardType == "Spell" ? zones.Trash : zones.Board).Add(cardId);
+            if (cardType == "Spell") zones.Trash.Add(cardId);
+            else zones.Board.Add(new UnitInstance { InstanceId = Guid.NewGuid().ToString("N"), CardId = cardId });
             AddLog(room, connectionId, $"played {cardName ?? "a card"}.");
             return (true, null);
         }
@@ -287,8 +291,11 @@ public sealed class MatchRoomService(DeckLegalityService legality)
 
     private static readonly Dictionary<string, Func<PlayerZones, List<string>>> MovableZones = new()
     {
-        ["hand"] = z => z.Hand, ["board"] = z => z.Board, ["battlefield"] = z => z.Battlefield,
-        ["trash"] = z => z.Trash, ["banishment"] = z => z.Banishment,
+        ["hand"] = z => z.Hand, ["trash"] = z => z.Trash, ["banishment"] = z => z.Banishment,
+    };
+    private static readonly Dictionary<string, Func<PlayerZones, List<UnitInstance>>> UnitZones = new()
+    {
+        ["board"] = z => z.Board, ["battlefield"] = z => z.Battlefield,
     };
 
     /// <summary>
@@ -297,18 +304,58 @@ public sealed class MatchRoomService(DeckLegalityService legality)
     /// automation yet" scope. MainDeck/RuneDeck are deliberately not reachable here; they only move
     /// via DrawCard/ChannelRune so a face-down zone's order can't be picked through by hand. Hand to
     /// Board specifically is excluded too - that's Playing a Card (see PlayCard above), which has a
-    /// cost to pay, not a free move.
+    /// cost to pay, not a free move. Board/Battlefield are unit-instance zones (see UnitInstance) so
+    /// moving into one wraps the plain card id into a fresh ready instance, and moving out of one
+    /// unwraps it back down to a plain card id - the instance's own identity (and Exhausted state)
+    /// doesn't survive leaving the board, same as a real unit ceasing to exist once it's not a
+    /// Permanent anymore.
     /// </summary>
     public bool MoveCard(MatchRoom room, string connectionId, string cardId, string fromZone, string toZone)
     {
         lock (_lock)
         {
             if (fromZone == "hand" && toZone == "board") return false;
-            if (!MovableZones.TryGetValue(fromZone, out var from) || !MovableZones.TryGetValue(toZone, out var to)) return false;
             var zones = room.Board.GetOrAddZones(connectionId);
-            if (!from(zones).Remove(cardId)) return false;
-            to(zones).Add(cardId);
+
+            string movedCardId;
+            if (UnitZones.TryGetValue(fromZone, out var fromUnits))
+            {
+                var list = fromUnits(zones);
+                var unit = list.FirstOrDefault(u => u.CardId == cardId);
+                if (unit is null) return false;
+                list.Remove(unit);
+                movedCardId = unit.CardId;
+            }
+            else if (MovableZones.TryGetValue(fromZone, out var from))
+            {
+                if (!from(zones).Remove(cardId)) return false;
+                movedCardId = cardId;
+            }
+            else return false;
+
+            if (UnitZones.TryGetValue(toZone, out var toUnits))
+                toUnits(zones).Add(new UnitInstance { InstanceId = Guid.NewGuid().ToString("N"), CardId = movedCardId });
+            else if (MovableZones.TryGetValue(toZone, out var to))
+                to(zones).Add(movedCardId);
+            else return false;
+
             AddLog(room, connectionId, $"moved a card from {fromZone} to {toZone}.");
+            return true;
+        }
+    }
+
+    /// <summary>Core Rule 415/416's Ready/Exhausted state, toggled by hand for now - no keyword or
+    /// combat automation triggers this yet, but many Keywords (Accelerate, Equip, Weaponmaster,
+    /// Tank interactions...) check or change it, so it has to exist before any of those can.</summary>
+    public bool ToggleUnitReady(MatchRoom room, string connectionId, string instanceId)
+    {
+        lock (_lock)
+        {
+            var zones = room.Board.GetOrAddZones(connectionId);
+            var unit = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId)
+                ?? zones.Battlefield.FirstOrDefault(u => u.InstanceId == instanceId);
+            if (unit is null) return false;
+            unit.Exhausted = !unit.Exhausted;
             return true;
         }
     }
@@ -348,8 +395,8 @@ public sealed class MatchRoomService(DeckLegalityService legality)
                     RuneDeckCount: kv.Value.RuneDeck.Count,
                     Base: [..kv.Value.Base],
                     ExhaustedRuneCount: kv.Value.ExhaustedRuneCount,
-                    Board: [..kv.Value.Board],
-                    Battlefield: [..kv.Value.Battlefield],
+                    Board: kv.Value.Board.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted)).ToList(),
+                    Battlefield: kv.Value.Battlefield.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted)).ToList(),
                     Trash: [..kv.Value.Trash],
                     Banishment: [..kv.Value.Banishment],
                     LegendCardId: kv.Value.LegendCardId,

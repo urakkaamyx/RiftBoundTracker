@@ -21,8 +21,12 @@ public sealed class PlayerZones
     public List<string> MainDeck { get; } = [];
     public List<string> RuneDeck { get; } = [];
     public List<string> Hand { get; } = [];
-    public List<string> Board { get; } = [];
-    public List<string> Battlefield { get; } = [];
+    // Board/Battlefield are the only zones tracking per-object state (Ready/Exhausted, Core Rule
+    // 415/416-adjacent) rather than a bare card id - a unit's readiness is real game state that
+    // several Keywords (Accelerate, Equip, Weaponmaster...) check or change, and two copies of the
+    // same-named unit need to be distinguishable, which a plain List<string> of card ids can't do.
+    public List<UnitInstance> Board { get; } = [];
+    public List<UnitInstance> Battlefield { get; } = [];
     public List<string> Trash { get; } = [];
     public List<string> Banishment { get; } = [];
     // Channeled runes sitting in this player's Base - Public Information per Core Rule 107.1.d.
@@ -70,3 +74,14 @@ public sealed class MatchRoom
 }
 
 public sealed record LogEntry(DateTimeOffset At, string Message);
+
+/// <summary>A specific unit sitting on the Board or at a Battlefield - Core Rule 415 (Ready) / 416's
+/// neighborhood. Exhausted is the one piece of real per-object state Phase 2 tracks so far; more
+/// Keywords need more state than this (Assault's Attacker designation, Shield's counter, Attach
+/// relationships...), added as each is actually built rather than speculatively up front.</summary>
+public sealed class UnitInstance
+{
+    public required string InstanceId { get; init; }
+    public required string CardId { get; init; }
+    public bool Exhausted { get; set; }
+}

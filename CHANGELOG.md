@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.29.9 — Emulator: Ready/Exhausted units, layout fix
+
+- Units on the Board and at Battlefields now have real Ready/Exhausted state, matching how the physical game actually works: a unit you play enters ready, click it to exhaust or ready it by hand, and every unit you control readies automatically at the start of your turn. An exhausted unit tilts and dims so it reads at a glance. This is genuine foundational groundwork - several keywords (Accelerate, Equip, Weaponmaster, and others) key off Ready/Exhausted, and none of those are wired up yet.
+- Your own player card now stretches the full width of the board instead of being capped and centered, matching your opponent's.
+
 ## v1.29.8 — Fix: ornate frame ballooning on tall cards
 
 - The gold frame around each player card was stretching to the card's exact size, which blew the corner scrollwork up to a huge size on a tall card (a full hand plus the move tool and counters) and covered the controls underneath. The corners now stay a fixed size no matter how tall the card gets — only the thin connecting edge lines stretch.

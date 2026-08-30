@@ -4,10 +4,12 @@ namespace RiftBoundTracker.App.Services.PlayOnline;
 // redaction (see MatchRoomService.ToView) can never accidentally be bypassed by serializing the
 // real model. Hand is null for every player except the viewer themselves; HandCount is always
 // present so a viewer can see how many cards an opponent is holding without seeing what they are.
+public sealed record UnitInstanceView(string InstanceId, string CardId, bool Exhausted);
+
 public sealed record PlayerZonesView(
     int HandCount, List<string>? Hand,
     int MainDeckCount, int RuneDeckCount, List<string> Base, int ExhaustedRuneCount,
-    List<string> Board, List<string> Battlefield, List<string> Trash, List<string> Banishment,
+    List<UnitInstanceView> Board, List<UnitInstanceView> Battlefield, List<string> Trash, List<string> Banishment,
     string? LegendCardId, string? ChampionCardId, int Score, Dictionary<string, int> Counters);
 
 public sealed record BoardStateView(

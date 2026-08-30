@@ -3013,6 +3013,11 @@ async function poPlayCard(cardId) {
   if (!result.ok) toast(result.error || "Could not play that card.", true);
 }
 
+async function poToggleUnitReady(instanceId) {
+  const result = await state.playOnline.connection.invoke("ToggleUnitReady", state.playOnline.room.roomCode, instanceId);
+  if (!result.ok) toast(result.error || "Could not toggle that unit.", true);
+}
+
 async function poMoveCard(cardId, fromZone, toZone) {
   const result = await state.playOnline.connection.invoke("MoveCard", state.playOnline.room.roomCode, cardId, fromZone, toZone);
   if (!result.ok) toast(result.error || "Could not move that card.", true);
@@ -3122,10 +3127,19 @@ function poRenderRoom() {
         <span class="po-zone-label">${label} <b>${cards.length}</b></span>
         <div class="po-card-row">${cards.length ? cards.map(id => poCardTile(id, "sm")).join("") : `<span class="po-zone-empty">—</span>`}</div>
       </div>`;
+    // Board/Battlefield hold unit instances (Core Rule 415 Ready/Exhausted state), not bare card
+    // ids - exhausted units are dimmed and rotated, and the caller can click their own to toggle it.
+    const unitRow = (units, label) => `
+      <div class="po-zone po-zone-${label.toLowerCase()}">
+        <span class="po-zone-label">${label} <b>${units.length}</b></span>
+        <div class="po-card-row">${units.length ? units.map(u => `
+          <span class="po-unit-slot${u.exhausted ? " po-unit-exhausted" : ""}"${isMe ? ` data-po-toggle-ready="${escapeHtml(u.instanceId)}" title="${u.exhausted ? "Exhausted - click to ready" : "Ready - click to exhaust"}"` : ` title="${u.exhausted ? "Exhausted" : "Ready"}"`}>${poCardTile(u.cardId, "sm")}</span>`).join("") : `<span class="po-zone-empty">—</span>`}</div>
+      </div>`;
     // Every one of the caller's own cards, tagged with which zone it's currently in, so the move
     // tool's single dropdown can address any of them without a separate control per zone.
     const myMovableCards = isMe && zones ? PO_MOVABLE_ZONES.flatMap(([key, label]) =>
-      (key === "hand" ? zones.hand || [] : zones[key]).map(cardId => ({ cardId, key, label }))) : [];
+      (key === "board" || key === "battlefield" ? zones[key].map(u => u.cardId) : zones[key] || [])
+        .map(cardId => ({ cardId, key, label }))) : [];
     const legendCard = zones?.legendCardId ? cardsById.get(zones.legendCardId) : null;
     const legendImg = legendCard && cardImage(legendCard);
     const might = legendCard?.might;
@@ -3185,8 +3199,8 @@ function poRenderRoom() {
               <i data-icon="layers"></i><span class="po-pile-count">${zones.mainDeckCount}</span>
             </button>
             <div class="po-battlefield-zones">
-              ${cardRow(zones.battlefield, "Battlefield")}
-              ${cardRow(zones.board, "Board")}
+              ${unitRow(zones.battlefield, "Battlefield")}
+              ${unitRow(zones.board, "Board")}
             </div>
             <button class="po-pile po-pile-rune"${isMe && zones.runeDeckCount ? " data-po-channel" : " disabled"} title="Rune Deck — ${isMe ? "click to channel an extra rune (2 are automatic at the start of your turn)" : `${zones.runeDeckCount} left`}">
               <i data-icon="dollar"></i><span class="po-pile-count">${zones.runeDeckCount}</span>
@@ -5037,6 +5051,8 @@ function wireEvents() {
     if (scoreBtn) { poAdjustScore(Number(scoreBtn.dataset.poScoreDelta)).catch(err => toast(err.message, true)); return; }
     const recycleBtn = event.target.closest("[data-po-recycle]");
     if (recycleBtn) { poRecycleRune(recycleBtn.dataset.poRecycle).catch(err => toast(err.message, true)); return; }
+    const readyToggle = event.target.closest("[data-po-toggle-ready]");
+    if (readyToggle) { poToggleUnitReady(readyToggle.dataset.poToggleReady).catch(err => toast(err.message, true)); return; }
     const moveBtn = event.target.closest("[data-po-move]");
     if (moveBtn) {
       const cardSelect = document.getElementById(`poMoveCard-${moveBtn.dataset.poMove}`);

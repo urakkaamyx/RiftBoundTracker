@@ -1166,7 +1166,7 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-board-mine { background-image: linear-gradient(0deg, rgba(4,6,10,.55), rgba(4,6,10,.75)), url("emulator-art/battlefield-bg-mine.jpg"); }
 .po-board-opponents:empty { display: none; padding: 0; box-shadow: none; background: none; }
 .po-board-opponents .po-player-card { flex: 1; min-width: 360px; transform: rotate(180deg); }
-.po-board-mine .po-player-card { max-width: 640px; margin: 0 auto; }
+.po-board-mine .po-player-card { width: 100%; }
 .po-player-card {
   padding: 3px; border-radius: 16px; display: flex; gap: 0; position: relative; overflow: visible;
   background:
@@ -1285,6 +1285,12 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-zone-base > .command-btn { align-self: flex-start; }
 .po-card-row { display: flex; flex-wrap: wrap; gap: 6px; min-height: 46px; padding: 6px; border: 1px dashed var(--border-soft); border-radius: 7px; background: color-mix(in srgb, var(--panel-2) 60%, transparent); }
 .po-zone-empty { align-self: center; margin: auto; color: var(--faint); font-size: 10px; }
+/* Core Rule 415/416 Ready/Exhausted, shown as a real tilt+dim rather than just a label - reads at a
+   glance the same way a physically-tapped card would. */
+.po-unit-slot { display: inline-flex; transition: transform .12s ease, opacity .12s ease; border-radius: 5px; }
+.po-unit-slot[data-po-toggle-ready] { cursor: pointer; }
+.po-unit-slot[data-po-toggle-ready]:hover { box-shadow: 0 0 0 2px var(--gold-soft); }
+.po-unit-exhausted { transform: rotate(90deg); opacity: .55; }
 
 .po-card-art { border-radius: 5px; overflow: hidden; border: 1px solid var(--border); background: var(--panel-2); box-shadow: 0 3px 8px rgba(0,0,0,.3); transition: transform .12s ease; }
 .po-card-art:hover { transform: translateY(-3px); }

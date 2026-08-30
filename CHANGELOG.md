@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.29.3 — Emulator: Playing a card actually costs Energy, plus Score
+
+- Hand cards now have a real Play button showing their Energy cost — playing one pays that cost out of your current Energy and moves it to Board, and it's disabled (with a reason) when you can't afford it yet. The old free drag-to-Board move no longer works for Hand specifically, since that's Playing a Card, not a shuffle between zones.
+- Added a Score counter next to your name (★ x/8, matching the default Victory Score) with its own +/- buttons — can't go below 0. Reaching 8 doesn't end the room (Conquer/Hold and combat still aren't modeled), but everyone gets a toast the moment someone crosses it.
+
 ## v1.29.2 — Emulator: real Energy/Power, automatic turn start
 
 - Start of turn is now automatic, matching the real Setup/Turn sequence: your runes ready, you channel 2 from your Rune Deck, and you draw 1 — the moment your turn begins, not on manual clicks. Draw/Channel Rune are still there on their piles for an extra draw or rune beyond the automatic ones.

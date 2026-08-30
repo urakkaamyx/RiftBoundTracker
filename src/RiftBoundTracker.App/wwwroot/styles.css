@@ -1167,6 +1167,10 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-badge.po-badge-ready { border-color: var(--green); color: var(--green); }
 .po-badge.po-badge-turn { border-color: var(--accent); color: var(--accent-bright); background: var(--accent-soft); }
 
+.po-score { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border: 1px solid var(--gold); border-radius: 20px; background: var(--gold-soft); color: var(--gold-bright); font: 700 12px var(--mono); }
+.po-score i, .po-score svg { width: 13px; height: 13px; }
+.po-score span { color: var(--faint); font-weight: 500; font-size: 10px; }
+.po-score .icon-btn { width: 18px; height: 18px; margin-left: 2px; }
 .po-counter-strip { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .po-counter-pill { display: flex; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid var(--border); border-radius: 20px; background: var(--panel-2); color: var(--faint); font: 600 9px var(--mono); text-transform: uppercase; }
 .po-counter-pill b { color: var(--gold-bright); font-size: 12px; }
@@ -1212,7 +1216,10 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-side-row .po-zone { flex: 1; min-width: 140px; }
 
 .po-hand-row { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; border-top: 1px solid var(--border-soft); }
-.po-hand-cards { min-height: 88px; background: color-mix(in srgb, var(--gold) 4%, transparent); border-color: var(--gold-soft); }
+.po-hand-cards { min-height: 88px; background: color-mix(in srgb, var(--gold) 4%, transparent); border-color: var(--gold-soft); align-items: flex-end; }
+.po-hand-tile { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
+.po-play-btn { height: 22px; padding: 0 6px; font-size: 9px; white-space: nowrap; }
+.po-play-btn:disabled { opacity: .4; cursor: default; }
 .po-hand-count { color: var(--faint); font: 600 9px var(--mono); text-transform: uppercase; letter-spacing: .06em; }
 .po-hand-count b { color: var(--muted); font-size: 10px; }
 

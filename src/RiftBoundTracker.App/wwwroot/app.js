@@ -72,7 +72,7 @@ const state = {
   vaultFacetCache: { setId: undefined, cards: [] },
   legendPicker: { cards: [], search: "", ownedOnly: false, selectedBase: null, selectedVariantId: null, mode: "create" },
   cardTextSymbols: new Map(),
-  playOnline: { unlocked: false, connection: null, myConnectionId: null, room: null, lobbyTab: "host", lastWanUrl: null },
+  playOnline: { unlocked: false, connection: null, myConnectionId: null, room: null, lobbyTab: "host", lastWanUrl: null, announcedWinner: null },
   riftCodeTimer: null,
   priceQueue: { items: [], batchSize: 20, configured: false, provider: "JustTCG" },
   priceQueueIds: new Set(),
@@ -2956,6 +2956,11 @@ async function poRecycleRune(cardId) {
   if (!result.ok) toast(result.error || "Could not recycle that rune.", true);
 }
 
+async function poPlayCard(cardId) {
+  const result = await state.playOnline.connection.invoke("PlayCard", state.playOnline.room.roomCode, cardId);
+  if (!result.ok) toast(result.error || "Could not play that card.", true);
+}
+
 async function poMoveCard(cardId, fromZone, toZone) {
   const result = await state.playOnline.connection.invoke("MoveCard", state.playOnline.room.roomCode, cardId, fromZone, toZone);
   if (!result.ok) toast(result.error || "Could not move that card.", true);
@@ -2969,6 +2974,10 @@ async function poPassTurn() {
   await state.playOnline.connection.invoke("PassTurn", state.playOnline.room.roomCode);
 }
 
+async function poAdjustScore(delta) {
+  await state.playOnline.connection.invoke("AdjustScore", state.playOnline.room.roomCode, delta);
+}
+
 async function poAdjustCounter(name, delta) {
   await state.playOnline.connection.invoke("UpdateCounter", state.playOnline.room.roomCode, name, delta);
 }
@@ -2978,6 +2987,7 @@ function poLeaveRoom() {
   state.playOnline.connection = null;
   state.playOnline.room = null;
   state.playOnline.myConnectionId = null;
+  state.playOnline.announcedWinner = null;
   poShowView("lobby");
   poSetLobbyTab(state.playOnline.lobbyTab);
   renderPoWanConnection();
@@ -3003,6 +3013,20 @@ function poCardTile(cardId, size) {
     : `<span class="po-card-chip po-card-chip-${size}">${label}</span>`;
 }
 
+// A Hand card gets its own tile: the art plus a Play button showing its Energy cost, disabled when
+// the player can't currently afford it (compared against their live Energy counter).
+function poHandTile(cardId, energyAvailable) {
+  const cost = cardsById.get(cardId)?.energy;
+  const affordable = cost == null || cost <= energyAvailable;
+  return `
+    <div class="po-hand-tile">
+      ${poCardTile(cardId, "lg")}
+      <button class="command-btn gold po-play-btn" data-po-play="${escapeHtml(cardId)}" ${affordable ? "" : "disabled"} title="${affordable ? "Play this card" : `Needs ${cost} Energy, you have ${energyAvailable}`}">
+        Play${cost != null ? ` (${cost})` : ""}
+      </button>
+    </div>`;
+}
+
 function poRenderRoom() {
   const room = state.playOnline.room;
   if (!room) return;
@@ -3016,6 +3040,14 @@ function poRenderRoom() {
   const startBtn = document.getElementById("poStartMatchBtn");
   startBtn.hidden = !me?.isHost || matchStarted;
   startBtn.disabled = !canStart;
+
+  // Core Rule 194.3's default Victory Score (8) - purely informational, doesn't end the room, since
+  // ties/alternate Victory Scores and the real Conquer/Hold path to get there aren't modeled.
+  const winner = room.players.find(p => (room.board.zonesByPlayer[p.connectionId]?.score || 0) >= 8);
+  if (winner && state.playOnline.announcedWinner !== winner.connectionId) {
+    state.playOnline.announcedWinner = winner.connectionId;
+    toast(`${winner.name} has reached 8 points — Victory Score!`);
+  }
 
   const wanUrl = state.playOnline.lastWanUrl;
   const shareBox = document.getElementById("poShareBox");
@@ -3053,6 +3085,14 @@ function poRenderRoom() {
               ${player.ready ? `<span class="po-badge po-badge-ready">Ready</span>` : ""}
             </div>
           </div>
+          ${zones ? `
+            <div class="po-score">
+              <i data-icon="star"></i><b>${zones.score}</b><span>/ 8</span>
+              ${isMe ? `
+                <button class="icon-btn" data-po-score-delta="-1">−</button>
+                <button class="icon-btn" data-po-score-delta="1">+</button>
+              ` : ""}
+            </div>` : ""}
           ${counters.length ? `<div class="po-counter-strip">${counters.map(([n, v]) => `<span class="po-counter-pill"><b>${v}</b>${escapeHtml(n)}</span>`).join("")}</div>` : ""}
         </div>
         ${!zones ? (isMe ? `
@@ -3092,7 +3132,7 @@ function poRenderRoom() {
           ${isMe ? `
             <div class="po-hand-row">
               <span class="po-zone-label">Hand <b>${(zones.hand || []).length}</b></span>
-              <div class="po-card-row po-hand-cards">${(zones.hand || []).map(id => poCardTile(id, "lg")).join("") || `<span class="po-zone-empty">—</span>`}</div>
+              <div class="po-card-row po-hand-cards">${(zones.hand || []).map(id => poHandTile(id, zones.counters.Energy || 0)).join("") || `<span class="po-zone-empty">—</span>`}</div>
             </div>
           ` : `<div class="po-zone-label po-hand-count">Hand <b>${zones.handCount}</b></div>`}
           ${isMe && myMovableCards.length ? `
@@ -4901,6 +4941,10 @@ function wireEvents() {
     if (event.target.closest("[data-po-draw]")) { poDrawCard().catch(err => toast(err.message, true)); return; }
     if (event.target.closest("[data-po-channel]")) { poChannelRune().catch(err => toast(err.message, true)); return; }
     if (event.target.closest("[data-po-exhaust]")) { poExhaustRune().catch(err => toast(err.message, true)); return; }
+    const playBtn = event.target.closest("[data-po-play]");
+    if (playBtn) { poPlayCard(playBtn.dataset.poPlay).catch(err => toast(err.message, true)); return; }
+    const scoreBtn = event.target.closest("[data-po-score-delta]");
+    if (scoreBtn) { poAdjustScore(Number(scoreBtn.dataset.poScoreDelta)).catch(err => toast(err.message, true)); return; }
     const recycleBtn = event.target.closest("[data-po-recycle]");
     if (recycleBtn) { poRecycleRune(recycleBtn.dataset.poRecycle).catch(err => toast(err.message, true)); return; }
     const moveBtn = event.target.closest("[data-po-move]");

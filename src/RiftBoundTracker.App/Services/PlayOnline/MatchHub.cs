@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using RiftBoundTracker.App.Data;
 
 namespace RiftBoundTracker.App.Services.PlayOnline;
 
@@ -10,8 +11,19 @@ public sealed record HubResult(bool Ok, string? Error, object? View = null, List
 /// room is hosted this server is reachable from the public internet via the existing ngrok WAN flow
 /// (see NgrokService). A rejection here never hands out any room state.
 /// </summary>
-public sealed class MatchHub(MatchRoomService rooms, EmulatorAccessService access, DeckService decks) : Hub
+public sealed class MatchHub(MatchRoomService rooms, EmulatorAccessService access, DeckService decks, AppDbContext db) : Hub
 {
+    public async Task<HubResult> PlayCard(string roomCode, string cardId)
+    {
+        var room = rooms.GetRoom(roomCode);
+        if (room is null) return new HubResult(false, "Room not found.");
+        var card = await db.Cards.FindAsync(cardId);
+        var (ok, error) = rooms.PlayCard(room, Context.ConnectionId, cardId, card?.Energy ?? 0);
+        if (!ok) return new HubResult(false, error);
+        await BroadcastAsync(room);
+        return new HubResult(true, null);
+    }
+
     public async Task<HubResult> HostRoom(string hostName)
     {
         if (!await access.HasAccessTodayAsync()) return new HubResult(false, "Enter today's RiftCode first.");
@@ -95,7 +107,10 @@ public sealed class MatchHub(MatchRoomService rooms, EmulatorAccessService acces
     {
         var room = rooms.GetRoom(roomCode);
         if (room is null) return new HubResult(false, "Room not found.");
-        if (!rooms.MoveCard(room, Context.ConnectionId, cardId, fromZone, toZone)) return new HubResult(false, "Could not move that card.");
+        if (!rooms.MoveCard(room, Context.ConnectionId, cardId, fromZone, toZone))
+            return new HubResult(false, fromZone == "hand" && toZone == "board"
+                ? "That's Playing a Card - use the Play button on the card instead, so its cost gets paid."
+                : "Could not move that card.");
         await BroadcastAsync(room);
         return new HubResult(true, null);
     }
@@ -121,6 +136,14 @@ public sealed class MatchHub(MatchRoomService rooms, EmulatorAccessService acces
         var room = rooms.GetRoom(roomCode);
         if (room is null) return;
         rooms.UpdateCounter(room, Context.ConnectionId, counterName, delta);
+        await BroadcastAsync(room);
+    }
+
+    public async Task AdjustScore(string roomCode, int delta)
+    {
+        var room = rooms.GetRoom(roomCode);
+        if (room is null) return;
+        rooms.AdjustScore(room, Context.ConnectionId, delta);
         await BroadcastAsync(room);
     }
 

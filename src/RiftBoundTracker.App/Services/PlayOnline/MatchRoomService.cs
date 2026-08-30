@@ -116,6 +116,23 @@ public sealed class MatchRoomService(DeckLegalityService legality)
     }
 
     /// <summary>
+    /// Core Rule 194: how a player actually wins is Conquer/Hold at a Battlefield, which needs a
+    /// Combat/control model this engine doesn't have yet - so Score here is player-adjusted by hand,
+    /// same as any other counter, except it's a dedicated field (always visible, never removed by
+    /// the free-form Add Counter UI) and clamped at 0 per Core Rule 194.4. Whether someone has hit
+    /// the default Victory Score of 8 (Core Rule 194.3) is left for ToView's caller to notice and
+    /// announce - this doesn't end the room, since ties/alternate Victory Scores aren't modeled.
+    /// </summary>
+    public void AdjustScore(MatchRoom room, string connectionId, int delta)
+    {
+        lock (_lock)
+        {
+            var zones = room.Board.GetOrAddZones(connectionId);
+            zones.Score = Math.Max(0, zones.Score + delta);
+        }
+    }
+
+    /// <summary>
     /// Deals the game in per Core Rules 111/114/116: separates each player's Legend, shuffles their
     /// Main and Rune Decks separately, and draws an opening hand of 4. Same captive-dependency shape
     /// as SelectDeck - the host (via MatchHub, which owns a scoped DeckService) resolves every
@@ -226,6 +243,27 @@ public sealed class MatchRoomService(DeckLegalityService legality)
         }
     }
 
+    /// <summary>
+    /// Core Rule 349, Playing a Card - moves a card from Hand to Board, paying its printed Energy
+    /// cost out of the caller's Rune Pool first. Takes the cost as a parameter rather than looking
+    /// the card up itself - same captive-dependency shape as SelectDeck/StartMatch, MatchHub (with
+    /// its own scoped AppDbContext) resolves the card and hands the cost in.
+    /// </summary>
+    public (bool Ok, string? Error) PlayCard(MatchRoom room, string connectionId, string cardId, int energyCost)
+    {
+        lock (_lock)
+        {
+            var zones = room.Board.GetOrAddZones(connectionId);
+            if (!zones.Hand.Contains(cardId)) return (false, "That card isn't in your hand.");
+            var available = zones.Counters.GetValueOrDefault("Energy");
+            if (available < energyCost) return (false, $"Not enough Energy - have {available}, need {energyCost}.");
+            zones.Hand.Remove(cardId);
+            zones.Counters["Energy"] = available - energyCost;
+            zones.Board.Add(cardId);
+            return (true, null);
+        }
+    }
+
     private static readonly Dictionary<string, Func<PlayerZones, List<string>>> MovableZones = new()
     {
         ["hand"] = z => z.Hand, ["board"] = z => z.Board, ["battlefield"] = z => z.Battlefield,
@@ -234,14 +272,17 @@ public sealed class MatchRoomService(DeckLegalityService legality)
 
     /// <summary>
     /// The one generic, manual zone-to-zone move Phase 1 offers in place of automating every
-    /// specific action (Play, Discard, Banish, Return...) - the plan's explicit "no card-specific
+    /// specific action (Discard, Banish, Return...) - the plan's explicit "no card-specific
     /// automation yet" scope. MainDeck/RuneDeck are deliberately not reachable here; they only move
-    /// via DrawCard/ChannelRune so a face-down zone's order can't be picked through by hand.
+    /// via DrawCard/ChannelRune so a face-down zone's order can't be picked through by hand. Hand to
+    /// Board specifically is excluded too - that's Playing a Card (see PlayCard above), which has a
+    /// cost to pay, not a free move.
     /// </summary>
     public bool MoveCard(MatchRoom room, string connectionId, string cardId, string fromZone, string toZone)
     {
         lock (_lock)
         {
+            if (fromZone == "hand" && toZone == "board") return false;
             if (!MovableZones.TryGetValue(fromZone, out var from) || !MovableZones.TryGetValue(toZone, out var to)) return false;
             var zones = room.Board.GetOrAddZones(connectionId);
             if (!from(zones).Remove(cardId)) return false;

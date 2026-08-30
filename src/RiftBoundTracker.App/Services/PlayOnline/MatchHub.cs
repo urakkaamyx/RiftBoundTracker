@@ -136,6 +136,15 @@ public sealed class MatchHub(MatchRoomService rooms, EmulatorAccessService acces
         return new HubResult(true, null);
     }
 
+    public async Task<HubResult> HealUnit(string roomCode, string instanceId, int amount)
+    {
+        var room = rooms.GetRoom(roomCode);
+        if (room is null) return new HubResult(false, "Room not found.");
+        if (!rooms.HealUnit(room, Context.ConnectionId, instanceId, amount)) return new HubResult(false, "Could not find that unit.");
+        await BroadcastAsync(room);
+        return new HubResult(true, null);
+    }
+
     public async Task<HubResult> AttachCard(string roomCode, string cardInstanceId, string targetInstanceId)
     {
         var room = rooms.GetRoom(roomCode);

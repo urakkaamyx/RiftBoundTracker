@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.30.2 — Emulator: Heal
+
+- Added a Heal tool next to Deal Damage — clears marked damage from any unit (never below 0), completing the Damage/Heal/Kill loop from v1.30.0.
+
 ## v1.30.1 — Emulator: Attach/Detach
 
 - Added a real Attach tool - link any card you control to another unit on the board (yours or an opponent's), matching how Gear actually works. Attached cards show a gold ring and can be detached by hand at any time. When the unit something's attached to dies or leaves the board, everything attached to it detaches automatically and stays where it is, same as the real rule.

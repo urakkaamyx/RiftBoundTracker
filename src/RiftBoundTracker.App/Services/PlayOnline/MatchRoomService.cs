@@ -415,6 +415,24 @@ public sealed class MatchRoomService(DeckLegalityService legality)
         }
     }
 
+    /// <summary>Core Rule 418, Heal - clears marked Damage from a unit (never below 0). Same manual,
+    /// any-unit-targetable trust model as DealDamage.</summary>
+    public bool HealUnit(MatchRoom room, string connectionId, string instanceId, int amount)
+    {
+        lock (_lock)
+        {
+            foreach (var zones in room.Board.ZonesByPlayer.Values)
+            {
+                var unit = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId) ?? zones.Battlefield.FirstOrDefault(u => u.InstanceId == instanceId);
+                if (unit is null) continue;
+                unit.Damage = Math.Max(0, unit.Damage - amount);
+                AddLog(room, connectionId, $"healed {amount} damage from a unit ({unit.Damage} marked).");
+                return true;
+            }
+            return false;
+        }
+    }
+
     /// <summary>Core Rule 719.5: when a Top-Most Card leaves the board, everything Attached to it
     /// Detaches and stays where it is - always called right after removing a unit from Board or
     /// Battlefield, from within the same lock. Attached cards can have a different Controller than

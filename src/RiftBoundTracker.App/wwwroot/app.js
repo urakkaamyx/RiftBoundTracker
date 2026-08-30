@@ -3028,6 +3028,11 @@ async function poDealDamage(instanceId, amount) {
   if (!result.ok) toast(result.error || "Could not deal damage.", true);
 }
 
+async function poHealUnit(instanceId, amount) {
+  const result = await state.playOnline.connection.invoke("HealUnit", state.playOnline.room.roomCode, instanceId, amount);
+  if (!result.ok) toast(result.error || "Could not heal that unit.", true);
+}
+
 async function poToggleUnitReady(instanceId) {
   const result = await state.playOnline.connection.invoke("ToggleUnitReady", state.playOnline.room.roomCode, instanceId);
   if (!result.ok) toast(result.error || "Could not toggle that unit.", true);
@@ -3278,7 +3283,8 @@ function poRenderRoom() {
                 ${poAllUnits(room).map(u => `<option value="${escapeHtml(u.instanceId)}">${escapeHtml(u.ownerName)} — ${poCardLabel(u.cardId)} (${u.damage}${u.might != null ? `/${u.might}` : ""})</option>`).join("")}
               </select>
               <input id="poDamageAmount-${escapeHtml(player.connectionId)}" type="number" min="1" value="1" />
-              <button class="command-btn quiet" data-po-deal-damage="${escapeHtml(player.connectionId)}"><i data-icon="alert-triangle"></i>Deal Damage</button>
+              <button class="command-btn quiet" data-po-deal-damage="${escapeHtml(player.connectionId)}"><i data-icon="alert-triangle"></i>Damage</button>
+              <button class="command-btn quiet" data-po-heal="${escapeHtml(player.connectionId)}"><i data-icon="heart"></i>Heal</button>
             </div>` : ""}
           ${isMe && zones && (zones.board.length || zones.battlefield.length) && poAllUnits(room).length > 1 ? `
             <div class="po-move-tool">
@@ -5114,6 +5120,14 @@ function wireEvents() {
       const amountInput = document.getElementById(`poDamageAmount-${damageBtn.dataset.poDealDamage}`);
       const amount = Number(amountInput?.value);
       if (targetSelect?.value && amount > 0) poDealDamage(targetSelect.value, amount).catch(err => toast(err.message, true));
+      return;
+    }
+    const healBtn = event.target.closest("[data-po-heal]");
+    if (healBtn) {
+      const targetSelect = document.getElementById(`poDamageTarget-${healBtn.dataset.poHeal}`);
+      const amountInput = document.getElementById(`poDamageAmount-${healBtn.dataset.poHeal}`);
+      const amount = Number(amountInput?.value);
+      if (targetSelect?.value && amount > 0) poHealUnit(targetSelect.value, amount).catch(err => toast(err.message, true));
       return;
     }
     const attachBtn = event.target.closest("[data-po-attach]");

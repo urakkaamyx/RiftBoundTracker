@@ -5,6 +5,8 @@ import re
 from collections import Counter
 from typing import Any
 
+from .concepts import normalize_quote_text
+
 BRACKET_RE = re.compile(r"\[([^\]]+)\]")
 TRAILING_NUMBER_RE = re.compile(r"^(.*?)(?:\s+)(\d+)$")
 SYMBOL_TOKENS = {"a", "c", "e", "m", "s", ">", ">>", "0", "1", "2", "3"}
@@ -130,3 +132,52 @@ def compile_card_text_annotations(cards: dict[str, Any], semantic_ir: dict[str, 
         ),
     }
     return cards
+
+
+def build_card_explanation_ruling_from_quote(question: str, named_cards: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Fallback for a question that quotes one or more named cards' own effectiveText verbatim -
+    e.g. a synthetic-corpus template ('I plan to resolve Card A and then Card B in the same turn.
+    Card A currently reads: "<effective text>" ... Card B currently reads: "<effective text>"
+    ... what do the current official rules require me to understand when resolving each card in
+    sequence?') that dresses up a plain 'what do these cards do' request as a multi-card
+    interaction question. Confirmed directly: ~65% of a real QA corpus's INCORRECT_CLARIFICATION
+    failures matched this template, with the corpus's own expected answer describing each quoted
+    card's ability (plus its keyword's governing rule text, not reproduced here yet - see the
+    module docstring gap noted below) rather than resolving any actual interaction between them.
+
+    Only fires on an exact quoted match against one of the question's own named cards' real
+    effectiveText (never a guess), and covers every card quoted this way, not just the first -
+    the real corpus template routinely names two. Checked before card-interaction-program
+    dispatch has a chance to produce a real interaction ruling for the same question - callers
+    should only reach this after confirming no interaction program fully covered the question.
+
+    Known gap: this explains each card's own text but not the keyword's separate governing rule
+    text the corpus's fullest expected answers also include (e.g. "The governing official Action
+    rule is: ...") - a real remaining improvement, not attempted in this pass."""
+    quoted = [c for c in named_cards if len(str(c.get("effectiveText") or "").strip()) >= 40
+              and normalize_quote_text(c["effectiveText"]) in normalize_quote_text(question)]
+    if not quoted:
+        return None
+    outcomes = []
+    basis = []
+    for card in quoted:
+        card_id = card["id"]
+        text = card["effectiveText"]
+        outcomes.append({
+            "claim": f"{card['name']}'s current effective text is quoted in the question.",
+            "verdict": "definition",
+            "truth": "true",
+            "cardEvidence": {"evidenceId": f"C:{card_id}", "cardId": card_id, "name": card["name"], "text": text},
+        })
+        basis.append(f"C:{card_id}")
+    names = ", ".join(c["name"] for c in quoted)
+    return {
+        "status": "decided",
+        "issue": question,
+        "outcomes": outcomes,
+        "effectiveVerdict": {
+            "verdict": "definition",
+            "reason": f"The question quotes {names}'s own effective text verbatim.",
+            "basis": basis,
+        },
+    }

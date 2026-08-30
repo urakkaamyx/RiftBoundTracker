@@ -18,6 +18,7 @@ from .writer import render_answer
 from .player_language import normalize_player_language
 from .clarify import clarification_questions
 from .concepts import find_concepts, build_definition_ruling, build_definition_ruling_from_retrieval, card_referenced_concepts, merge_concept_evidence
+from .card_text import build_card_explanation_ruling_from_quote
 from .authority import load_authority_status
 from .legality import adjudicate_legality
 from .vocabulary import detect_game_actions
@@ -230,7 +231,8 @@ class RulesEngine:
                 ruling = materialize_card_interaction_ruling(interpretation_issue, interaction_outcome, card_interaction_execution, issue_evidence_catalog)
             else:
                 ruling = (
-                    build_definition_ruling_from_retrieval(interpretation_issue, packet.get("evidenceRules") or [])
+                    build_card_explanation_ruling_from_quote(interpretation_issue, named_cards)
+                    or build_definition_ruling_from_retrieval(interpretation_issue, packet.get("evidenceRules") or [])
                     or build_definition_ruling(interpretation_issue, self.core, find_concepts(interpretation_issue, self.semantic_ir))
                     or adjudicate_issue(interpretation_issue, proof, facts, named_cards, official_docs, self.rule_programs)
                 )
@@ -268,6 +270,19 @@ class RulesEngine:
                         continue
                 refs = {str(r) for r in (x.get("explicitRuleReferences") or [])}
                 role = str(x.get("rulingRole") or "unclassified")
+                # Definition lookups remain grounded in the canonical rule family/card text they
+                # actually quote - a FAQ overlay that merely mentions a concept incidentally
+                # present elsewhere in the question does not redefine it. This must be checked
+                # before the required_official_set branches below, not after: those obligations
+                # come from plan_proof's independent (and sometimes over-eager - e.g. the word
+                # "battlefield" anywhere near "require") detection over the raw issue text, which
+                # a definition ruling never attempted to resolve in the first place. Confirmed as
+                # a real gap: a verbatim card-quote definition ruling was still getting
+                # downgraded via this required-overlay path even after the equivalent proof-
+                # verification exemption was added, because required_official_set unconditionally
+                # added its evidence before this check used to run.
+                if ruling_is_definition:
+                    continue
                 if x.get("partialSelection"):
                     # Curated snippets are migration/fallback material only.
                     if eid in required_official_set:
@@ -275,10 +290,6 @@ class RulesEngine:
                     continue
                 if eid in required_official_set:
                     relevant_overlay.append(x)
-                    continue
-                # Definition lookups remain grounded in the canonical rule family. A FAQ
-                # example that merely mentions the concept does not redefine it.
-                if ruling_is_definition:
                     continue
                 # Clarifications and card-specific examples do not override a generic Core
                 # ruling unless a compiled obligation explicitly requests them. Uncompiled

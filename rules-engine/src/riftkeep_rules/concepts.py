@@ -241,7 +241,7 @@ def build_definition_ruling(question: str, core: dict[str, Any], concepts: list[
     }
 
 
-def _normalize_quote_text(s: str) -> str:
+def normalize_quote_text(s: str) -> str:
     return re.sub(r"\s+", " ", (s or "").replace("’", "'").replace("‘", "'")).strip().rstrip(".").casefold()
 
 
@@ -265,7 +265,7 @@ def _question_quotes_rule_verbatim(question: str, rule: dict[str, Any]) -> bool:
     text = rule.get("normativeText") or rule.get("text") or ""
     if len(text.strip()) < 40:
         return False
-    return _normalize_quote_text(text) in _normalize_quote_text(question)
+    return normalize_quote_text(text) in normalize_quote_text(question)
 
 
 def build_definition_ruling_from_retrieval(question: str, top_rules: list[dict[str, Any]]) -> dict[str, Any] | None:

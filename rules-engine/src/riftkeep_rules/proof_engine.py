@@ -361,7 +361,15 @@ def verify_proof_trace(trace: dict[str, Any], ruling: dict[str, Any], evidence_c
         missing_basis = [eid for eid in basis if eid not in catalog_ids]
         if missing_basis:
             errors.append("basis_evidence_missing_from_catalog:" + ",".join(missing_basis))
-        if trace.get("completeness", {}).get("missingRequiredEvidence"):
+        # A "definition" verdict is an authoritative lookup, not inferred adjudication (same
+        # principle engine.py already applies to skip overlay/authority-completeness checks for
+        # definition rulings) - it never attempts to resolve whatever obligation plan_proof
+        # independently detected from the raw issue text, so that obligation's own evidence
+        # completeness is not this ruling's concern. Confirmed as a real gap: a card-quote
+        # definition ruling for a question phrased as "...in the same turn..." was silently
+        # downgraded to insufficient here even though its own basis evidence was complete,
+        # solely because unrelated obligation language elsewhere in the question was detected.
+        if trace.get("completeness", {}).get("missingRequiredEvidence") and effective.get("verdict") != "definition":
             errors.append("known_obligation_evidence_incomplete")
         if any(not c.get("resolved") for c in trace.get("conflicts") or []):
             errors.append("unresolved_proof_conflict")

@@ -210,6 +210,25 @@ public sealed class MatchRoomService(DeckLegalityService legality)
         }
     }
 
+    /// <summary>
+    /// Represents a Token (Core Rule 108.2.c: Created Game Objects, not part of either deck) being
+    /// put directly into play - the manual stand-in for whatever effect would have created it, since
+    /// this engine has no card-effect execution. Always lands at the CALLER's own Battlefield,
+    /// controlled by them - "in respect to which player did it," not something the caller picks a
+    /// destination for, keeping this a one-click action instead of another zone/target chooser.
+    /// </summary>
+    public (bool Ok, string? Error) CreateToken(MatchRoom room, string connectionId, string cardId)
+    {
+        lock (_lock)
+        {
+            var slot = room.Board.Battlefields.FirstOrDefault(b => b.OwnerConnectionId == connectionId);
+            if (slot is null) return (false, "You haven't chosen a Battlefield yet.");
+            slot.Units.Add(new UnitInstance { InstanceId = Guid.NewGuid().ToString("N"), CardId = cardId, ControllerConnectionId = connectionId });
+            AddLog(room, connectionId, "created a token at their Battlefield.");
+            return (true, null);
+        }
+    }
+
     /// <summary>Every unit `connectionId` currently controls at any shared Battlefield - used
     /// wherever "ready/heal all my stuff" needs to reach past the caller's own Board.</summary>
     private static IEnumerable<UnitInstance> ControlledBattlefieldUnits(MatchRoom room, string connectionId) =>

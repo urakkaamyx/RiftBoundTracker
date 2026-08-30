@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.30.10 — Emulator: Battlefield layout rework, tokens
+
+- The shared Battlefield strip is taller now, and each Battlefield card sits centered with a real row above it (the opponent's units there) and below it (your own) instead of one crowded row.
+- Added a way to create Tokens directly — a "+" button on the left/right edge of the Battlefield strip (yours only clickable) opens a picker of Token cards; picking one puts it into play at your own Battlefield, controlled by you.
+- Battlefields are now consistently ordered left-to-right by seat instead of whoever picked first.
+
 ## v1.30.9 — Emulator: Battlefields are actually shared, popout follows the card, hover fixes
 
 - Real fix: Battlefields were wrongly modeled as belonging to whichever player picked them. They're a shared zone (Core Rule 486.5) — both players' units can be at either Battlefield at once, and it's now rendered as one shared strip between the two boards instead of duplicated inside each player's own card.

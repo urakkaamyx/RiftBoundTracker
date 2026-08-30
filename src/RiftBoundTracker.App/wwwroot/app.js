@@ -3427,6 +3427,31 @@ async function poSelectBattlefield(cardId) {
   if (!result.ok) toast(result.error || "Could not select that Battlefield.", true);
 }
 
+// --- Tokens (Core Rule 108.2.c: Created Game Objects) - the manual stand-in for whatever effect
+// would have created one, since there's no card-effect execution engine here. Always lands at the
+// creating player's own Battlefield (see MatchRoomService.CreateToken), so this is a one-click
+// picker, not another zone/target chooser. ---
+async function poShowTokenPicker() {
+  document.getElementById("poTokenModalBody").innerHTML = `<div class="loading-line">Loading tokens...</div>`;
+  showModal("poTokenModal");
+  let cards;
+  try { cards = await api(`/api/cards?${queryString({ owned: "tokens", sort: "name-asc" })}`); }
+  catch (err) { document.getElementById("poTokenModalBody").innerHTML = `<p class="settings-hint">${escapeHtml(err.message)}</p>`; return; }
+  registerCards(cards);
+  document.getElementById("poTokenModalBody").innerHTML = cards.length
+    ? `<div class="po-zone-modal-grid">${cards.map(c => `
+        <button type="button" class="po-zone-modal-card" data-po-create-token="${escapeHtml(c.id)}">
+          ${poCardTile(c.id, "lg")}<span>${escapeHtml(c.name)}</span>
+        </button>`).join("")}</div>`
+    : `<p class="settings-hint">No token cards found.</p>`;
+  renderIcons(document.getElementById("poTokenModalBody"));
+}
+
+async function poCreateToken(cardId) {
+  const result = await state.playOnline.connection.invoke("CreateToken", state.playOnline.room.roomCode, cardId);
+  if (!result.ok) toast(result.error || "Could not create that token.", true);
+}
+
 // --- Trash/Banishment: shown as a single top-card preview + count on the board (they used to be a
 // full always-expanded row, which ate a lot of vertical space for zones you rarely need to see in
 // full) - click it to view the whole zone in a modal. Both players' Trash/Banishment are public
@@ -3505,31 +3530,41 @@ function poRenderRoom() {
   const unitCardIdByInstance = Object.fromEntries(poAllUnits(room).map(u => [u.instanceId, u.cardId]));
 
   // The shared Battlefield Zone (Core Rule 486.5) - rendered once, not per-player, since a
-  // Battlefield holds whichever player's units are actually At it. Each unit is tagged with its
-  // real controller (po-unit-mine/po-unit-theirs) so it's still clear at a glance whose is whose.
-  const battlefieldZoneHtml = room.board.battlefields.length ? `
+  // Battlefield holds whichever player's units are actually At it. Ordered by player seat (not
+  // insertion order) so Player 1's Battlefield is consistently the left one - a "+" token button
+  // flanks each outer edge, enabled only for the player whose side it's on (Core Rule 108.2.c: a
+  // Token is Created straight into play, always at ITS creator's own Battlefield - see
+  // MatchRoomService.CreateToken). Each slot stacks vertically - the card centered, the opponent's
+  // Units in the row above it (away from the viewer, matching the opponent board's position at the
+  // top) and the viewer's own Units in the row below (nearest their own board at the bottom).
+  const battlefieldSlotsInSeatOrder = room.players.map(p => room.board.battlefields.find(b => b.ownerConnectionId === p.connectionId)).filter(Boolean);
+  const battlefieldZoneHtml = battlefieldSlotsInSeatOrder.length ? `
     <div class="po-shared-battlefield">
-      ${room.board.battlefields.map(slot => {
+      <button type="button" class="po-bf-token-btn" data-po-add-token ${room.players[0]?.connectionId === state.playOnline.myConnectionId ? "" : "disabled"} title="Add a token to your Battlefield"><i data-icon="list-plus"></i></button>
+      ${battlefieldSlotsInSeatOrder.map(slot => {
         const ownerName = room.players.find(p => p.connectionId === slot.ownerConnectionId)?.name || "";
+        const unitTile = u => {
+          const cardMight = cardsById.get(u.cardId)?.might;
+          const attachedToCard = u.attachedToInstanceId ? unitCardIdByInstance[u.attachedToInstanceId] : null;
+          const isMineHere = u.controllerConnectionId === state.playOnline.myConnectionId;
+          const controllerName = room.players.find(p => p.connectionId === u.controllerConnectionId)?.name || "";
+          const slotTitle = `${controllerName} - ${attachedToCard ? `Attached to ${poCardLabel(attachedToCard)}` : (u.exhausted ? "Exhausted" : "Ready")}`;
+          return `
+          <span class="po-unit-slot${u.exhausted ? " po-unit-exhausted" : ""}${attachedToCard ? " po-unit-attached" : ""}${isMineHere ? " po-unit-mine" : " po-unit-theirs"}${poSelClass(u.controllerConnectionId, "battlefield", u.instanceId)}" data-po-select-conn="${escapeHtml(u.controllerConnectionId)}" data-po-select-zone="battlefield" data-po-select-instance="${escapeHtml(u.instanceId)}" title="${escapeHtml(slotTitle)}">
+            ${poCardTile(u.cardId, "sm")}
+            ${u.damage || cardMight != null ? `<b class="po-unit-damage${u.damage ? " po-unit-damage-marked" : ""}">${u.damage}${cardMight != null ? `/${cardMight}` : ""}</b>` : ""}
+          </span>`;
+        };
+        const farUnits = slot.units.filter(u => u.controllerConnectionId !== state.playOnline.myConnectionId);
+        const nearUnits = slot.units.filter(u => u.controllerConnectionId === state.playOnline.myConnectionId);
         return `
         <div class="po-bf-slot">
+          <div class="po-card-row po-bf-units po-bf-units-far">${farUnits.length ? farUnits.map(unitTile).join("") : `<span class="po-zone-empty">—</span>`}</div>
           <div class="po-bf-slot-card">${poCardTile(slot.cardId, "sm")}<span>${poCardLabel(slot.cardId)}<em>${escapeHtml(ownerName)}'s Battlefield</em></span></div>
-          <div class="po-card-row po-bf-units">
-            ${slot.units.length ? slot.units.map(u => {
-              const cardMight = cardsById.get(u.cardId)?.might;
-              const attachedToCard = u.attachedToInstanceId ? unitCardIdByInstance[u.attachedToInstanceId] : null;
-              const isMineHere = u.controllerConnectionId === state.playOnline.myConnectionId;
-              const controllerName = room.players.find(p => p.connectionId === u.controllerConnectionId)?.name || "";
-              const slotTitle = `${controllerName} - ${attachedToCard ? `Attached to ${poCardLabel(attachedToCard)}` : (u.exhausted ? "Exhausted" : "Ready")}`;
-              return `
-              <span class="po-unit-slot${u.exhausted ? " po-unit-exhausted" : ""}${attachedToCard ? " po-unit-attached" : ""}${isMineHere ? " po-unit-mine" : " po-unit-theirs"}${poSelClass(u.controllerConnectionId, "battlefield", u.instanceId)}" data-po-select-conn="${escapeHtml(u.controllerConnectionId)}" data-po-select-zone="battlefield" data-po-select-instance="${escapeHtml(u.instanceId)}" title="${escapeHtml(slotTitle)}">
-                ${poCardTile(u.cardId, "sm")}
-                ${u.damage || cardMight != null ? `<b class="po-unit-damage${u.damage ? " po-unit-damage-marked" : ""}">${u.damage}${cardMight != null ? `/${cardMight}` : ""}</b>` : ""}
-              </span>`;
-            }).join("") : `<span class="po-zone-empty">—</span>`}
-          </div>
+          <div class="po-card-row po-bf-units po-bf-units-near">${nearUnits.length ? nearUnits.map(unitTile).join("") : `<span class="po-zone-empty">—</span>`}</div>
         </div>`;
       }).join("")}
+      <button type="button" class="po-bf-token-btn" data-po-add-token ${room.players[1]?.connectionId === state.playOnline.myConnectionId ? "" : "disabled"} title="Add a token to your Battlefield"><i data-icon="list-plus"></i></button>
     </div>` : "";
 
   const playerCards = room.players.map(player => {
@@ -3664,7 +3699,8 @@ function poRenderRoom() {
   });
   // The opponent(s) sit across the table, upside down, at the top; your own side is always the
   // right-way-up row at the bottom - the same convention the physical/reference layout uses, so
-  // "your side of the table" reads instantly instead of everyone looking like a flat list.
+  // "your side of the table" reads instantly instead of everyone looking like a flat list. The
+  // shared Battlefield strip sits between the two, its own slots ordered left-to-right by seat.
   document.getElementById("poBoard").innerHTML = `
     <div class="po-board-opponents">${room.players.map((p, i) => p.connectionId === state.playOnline.myConnectionId ? "" : playerCards[i]).join("")}</div>
     ${battlefieldZoneHtml}
@@ -5473,6 +5509,12 @@ function wireEvents() {
     }, event);
     closeModal("poZoneModal");
   });
+  document.getElementById("poTokenModalBody").addEventListener("click", event => {
+    const btn = event.target.closest("[data-po-create-token]");
+    if (!btn) return;
+    poCreateToken(btn.dataset.poCreateToken).catch(err => toast(err.message, true));
+    closeModal("poTokenModal");
+  });
   document.getElementById("poBoard").addEventListener("click", event => {
     const readyBtn = event.target.closest("[data-po-ready]");
     if (readyBtn) { poReadyUp(readyBtn.dataset.poReady === "true").catch(err => toast(err.message, true)); return; }
@@ -5488,6 +5530,7 @@ function wireEvents() {
     if (event.target.closest("[data-po-draw]")) { poDrawCard().catch(err => toast(err.message, true)); return; }
     if (event.target.closest("[data-po-channel]")) { poChannelRune().catch(err => toast(err.message, true)); return; }
     if (event.target.closest("[data-po-exhaust]")) { poExhaustRune().catch(err => toast(err.message, true)); return; }
+    if (event.target.closest("[data-po-add-token]")) { poShowTokenPicker(); return; }
     const playBtn = event.target.closest("[data-po-play]");
     if (playBtn) { poPlayCard(playBtn.dataset.poPlay).catch(err => toast(err.message, true)); return; }
     const scoreBtn = event.target.closest("[data-po-score-delta]");

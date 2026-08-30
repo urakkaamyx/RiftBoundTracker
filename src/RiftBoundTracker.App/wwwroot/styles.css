@@ -1178,14 +1178,23 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-board-mine .po-player-card { width: 100%; }
 
 /* Core Rule 486.5: the Battlefield Zone is shared between both players, not one per player - a
-   compact strip between the two boards rather than duplicated inside each player's own card.
-   flex:none so it takes only the room its content needs, leaving the two boards flex:1 as before. */
-.po-shared-battlefield { flex: none; display: flex; gap: 8px; padding: 4px 6px; }
-.po-bf-slot { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 3px 6px; border: 1px solid var(--border-soft); border-radius: 8px; background: color-mix(in srgb, var(--panel) 80%, transparent); }
+   strip across the top of the board, between the two players' own areas below it. Tall enough for
+   a real near/far unit row above and below each Battlefield card, not just a thin ribbon. */
+.po-shared-battlefield { flex: none; display: flex; align-items: stretch; gap: 6px; min-height: 92px; }
+.po-bf-token-btn {
+  flex: none; width: 30px; border: 1px dashed var(--border-soft); border-radius: 8px; background: color-mix(in srgb, var(--panel-2) 60%, transparent);
+  color: var(--gold-bright); display: grid; place-items: center; cursor: pointer;
+}
+.po-bf-token-btn:hover:not(:disabled) { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 8%, var(--panel-2)); }
+.po-bf-token-btn:disabled { opacity: .35; cursor: default; }
+.po-bf-slot {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  padding: 4px 6px; border: 1px solid var(--border-soft); border-radius: 8px; background: color-mix(in srgb, var(--panel) 80%, transparent);
+}
 .po-bf-slot-card { flex: none; display: flex; align-items: center; gap: 5px; }
-.po-bf-slot-card span { display: flex; flex-direction: column; font: 700 10px var(--font); max-width: 90px; }
+.po-bf-slot-card span { display: flex; flex-direction: column; font: 700 10px var(--font); max-width: 110px; }
 .po-bf-slot-card em { color: var(--faint); font: 600 8px var(--mono); text-transform: uppercase; letter-spacing: .04em; font-style: normal; }
-.po-bf-units { flex: 1; min-height: 0; border-style: dashed; }
+.po-bf-units { flex: 1; width: 100%; min-height: 24px; border-style: dashed; justify-content: center; }
 /* Whose unit is whose, at a glance, since both players' units can share one Battlefield. */
 .po-unit-mine { box-shadow: 0 0 0 1px var(--gold); }
 .po-unit-theirs { box-shadow: 0 0 0 1px var(--accent); }

@@ -115,6 +115,16 @@ public sealed class MatchHub(MatchRoomService rooms, EmulatorAccessService acces
         return new HubResult(true, null);
     }
 
+    public async Task<HubResult> CreateToken(string roomCode, string cardId)
+    {
+        var room = rooms.GetRoom(roomCode);
+        if (room is null) return new HubResult(false, "Room not found.");
+        var (ok, error) = rooms.CreateToken(room, Context.ConnectionId, cardId);
+        if (!ok) return new HubResult(false, error);
+        await BroadcastAsync(room);
+        return new HubResult(true, null);
+    }
+
     public async Task<HubResult> SelectBattlefield(string roomCode, string cardId)
     {
         var room = rooms.GetRoom(roomCode);

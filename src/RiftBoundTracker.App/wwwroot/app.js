@@ -2947,6 +2947,15 @@ async function poChannelRune() {
   await state.playOnline.connection.invoke("ChannelRune", state.playOnline.room.roomCode);
 }
 
+async function poExhaustRune() {
+  await state.playOnline.connection.invoke("ExhaustRune", state.playOnline.room.roomCode);
+}
+
+async function poRecycleRune(cardId) {
+  const result = await state.playOnline.connection.invoke("RecycleRune", state.playOnline.room.roomCode, cardId);
+  if (!result.ok) toast(result.error || "Could not recycle that rune.", true);
+}
+
 async function poMoveCard(cardId, fromZone, toZone) {
   const result = await state.playOnline.connection.invoke("MoveCard", state.playOnline.room.roomCode, cardId, fromZone, toZone);
   if (!result.ok) toast(result.error || "Could not move that card.", true);
@@ -2979,7 +2988,7 @@ function poLeaveRoom() {
 // excluded there too, since they're face-down and only move via DrawCard/ChannelRune).
 const PO_MOVABLE_ZONES = [
   ["hand", "Hand"], ["board", "Board"], ["battlefield", "Battlefield"],
-  ["trash", "Trash"], ["banishment", "Banishment"], ["runePool", "Rune Pool"],
+  ["trash", "Trash"], ["banishment", "Banishment"],
 ];
 
 // A card as real art when it's registered locally (see poSelectDeck/registerCards), falling back
@@ -3054,19 +3063,29 @@ function poRenderRoom() {
           <button class="command-btn${player.ready ? " quiet" : " gold"}" data-po-ready="${!player.ready}" ${player.deckId ? "" : "disabled"}>${player.ready ? "Not Ready" : "Ready Up"}</button>
         ` : `<p class="settings-hint">${player.deckId ? "Deck selected." : "Choosing a deck..."}</p>`) : `
           <div class="po-battlefield">
-            <button class="po-pile po-pile-main"${isMe && zones.mainDeckCount ? " data-po-draw" : " disabled"} title="Main Deck — ${isMe ? "click to draw" : `${zones.mainDeckCount} left`}">
+            <button class="po-pile po-pile-main"${isMe && zones.mainDeckCount ? " data-po-draw" : " disabled"} title="Main Deck — ${isMe ? "click for an extra draw (1 is automatic at the start of your turn)" : `${zones.mainDeckCount} left`}">
               <i data-icon="layers"></i><span class="po-pile-count">${zones.mainDeckCount}</span>
             </button>
             <div class="po-battlefield-zones">
               ${cardRow(zones.battlefield, "Battlefield")}
               ${cardRow(zones.board, "Board")}
             </div>
-            <button class="po-pile po-pile-rune"${isMe && zones.runeDeckCount ? " data-po-channel" : " disabled"} title="Rune Deck — ${isMe ? "click to channel" : `${zones.runeDeckCount} left`}">
+            <button class="po-pile po-pile-rune"${isMe && zones.runeDeckCount ? " data-po-channel" : " disabled"} title="Rune Deck — ${isMe ? "click to channel an extra rune (2 are automatic at the start of your turn)" : `${zones.runeDeckCount} left`}">
               <i data-icon="dollar"></i><span class="po-pile-count">${zones.runeDeckCount}</span>
             </button>
           </div>
+          <div class="po-zone po-zone-base">
+            <span class="po-zone-label">Base <b>${zones.base.length}</b>${isMe ? ` <em>${Math.max(0, zones.base.length - zones.exhaustedRuneCount)} ready</em>` : ""}</span>
+            <div class="po-card-row">
+              ${zones.base.length ? zones.base.map(id => `
+                <div class="po-rune-slot">
+                  ${poCardTile(id, "sm")}
+                  ${isMe ? `<button class="icon-btn po-rune-recycle" data-po-recycle="${escapeHtml(id)}" title="Recycle for +1 Power"><i data-icon="repeat"></i></button>` : ""}
+                </div>`).join("") : `<span class="po-zone-empty">—</span>`}
+            </div>
+            ${isMe ? `<button class="command-btn quiet" data-po-exhaust ${zones.base.length - zones.exhaustedRuneCount > 0 ? "" : "disabled"}><i data-icon="dollar"></i>Exhaust a Rune for +1 Energy</button>` : ""}
+          </div>
           <div class="po-side-row">
-            ${cardRow(zones.runePool, "Rune Pool", "rune-pool")}
             ${cardRow(zones.trash, "Trash")}
             ${cardRow(zones.banishment, "Banishment")}
           </div>
@@ -4881,6 +4900,9 @@ function wireEvents() {
     }
     if (event.target.closest("[data-po-draw]")) { poDrawCard().catch(err => toast(err.message, true)); return; }
     if (event.target.closest("[data-po-channel]")) { poChannelRune().catch(err => toast(err.message, true)); return; }
+    if (event.target.closest("[data-po-exhaust]")) { poExhaustRune().catch(err => toast(err.message, true)); return; }
+    const recycleBtn = event.target.closest("[data-po-recycle]");
+    if (recycleBtn) { poRecycleRune(recycleBtn.dataset.poRecycle).catch(err => toast(err.message, true)); return; }
     const moveBtn = event.target.closest("[data-po-move]");
     if (moveBtn) {
       const cardSelect = document.getElementById(`poMoveCard-${moveBtn.dataset.poMove}`);

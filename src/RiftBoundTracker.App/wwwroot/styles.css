@@ -1189,6 +1189,13 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-zone { display: flex; flex-direction: column; gap: 5px; }
 .po-zone-label { color: var(--faint); font: 600 9px var(--mono); text-transform: uppercase; letter-spacing: .06em; }
 .po-zone-label b { color: var(--muted); font-size: 10px; }
+.po-zone-label em { margin-left: 6px; color: var(--green); font-style: normal; text-transform: none; letter-spacing: 0; }
+.po-zone-base { gap: 8px; }
+.po-rune-slot { position: relative; }
+.po-rune-recycle { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; padding: 0; border-radius: 50%; background: var(--bg); border-color: var(--border); opacity: 0; transition: opacity .1s ease; }
+.po-rune-recycle i, .po-rune-recycle svg { width: 10px; height: 10px; }
+.po-rune-slot:hover .po-rune-recycle { opacity: 1; }
+.po-zone-base > .command-btn { align-self: flex-start; }
 .po-card-row { display: flex; flex-wrap: wrap; gap: 6px; min-height: 46px; padding: 6px; border: 1px dashed var(--border-soft); border-radius: 7px; background: color-mix(in srgb, var(--panel-2) 60%, transparent); }
 .po-zone-empty { align-self: center; margin: auto; color: var(--faint); font-size: 10px; }
 

@@ -102,6 +102,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             var currentIndex = order.IndexOf(connectionId);
             room.Board.ActivePlayerConnectionId = order[(currentIndex + 1) % order.Count];
             if (currentIndex == order.Count - 1) room.Board.TurnNumber++;
+            RunStartOfTurn(room.Board.GetOrAddZones(room.Board.ActivePlayerConnectionId));
         }
     }
 
@@ -146,12 +147,34 @@ public sealed class MatchRoomService(DeckLegalityService legality)
 
             room.Board.TurnNumber = 1;
             room.Board.ActivePlayerConnectionId = room.HostConnectionId;
+            RunStartOfTurn(room.Board.GetOrAddZones(room.HostConnectionId));
             return (true, null);
         }
     }
 
-    /// <summary>Core Rule 315.4: "The Turn Player draws 1." Player-invoked rather than automatic on
-    /// a turn/phase transition, since there's no phase engine in Phase 1 - the effect is the same.</summary>
+    /// <summary>
+    /// Core Rules 315.1/315.3/315.4 for the player whose turn is beginning: their runes ready (they
+    /// can be exhausted for Energy again), they channel up to 2 runes, and they draw 1. Also empties
+    /// their Rune Pool per Core Rule 167 ("empties at the start of each player's Main Phase") - this
+    /// engine has no separate Main Phase step, so it happens right here instead.
+    /// </summary>
+    private static void RunStartOfTurn(PlayerZones zones)
+    {
+        zones.ExhaustedRuneCount = 0;
+        zones.Counters.Remove("Energy");
+        zones.Counters.Remove("Power");
+        for (var i = 0; i < 2 && zones.RuneDeck.Count > 0; i++)
+        {
+            var top = zones.RuneDeck[^1];
+            zones.RuneDeck.RemoveAt(zones.RuneDeck.Count - 1);
+            zones.Base.Add(top);
+        }
+        if (zones.MainDeck.Count > 0) DrawTopCard(zones);
+    }
+
+    /// <summary>Player-invoked extra Draw/Channel on top of the automatic Start of Turn - for
+    /// effects that grant an additional draw/channel, which aren't automated yet (Phase 1 has no
+    /// card-specific ability execution), so the player applies them manually.</summary>
     public void DrawCard(MatchRoom room, string connectionId)
     {
         lock (_lock)
@@ -161,8 +184,6 @@ public sealed class MatchRoomService(DeckLegalityService legality)
         }
     }
 
-    /// <summary>Core Rule 315.3: "The Turn Player channels 2 runes from their Rune Deck." One rune
-    /// per call so a player can channel exactly as many as they're due.</summary>
     public void ChannelRune(MatchRoom room, string connectionId)
     {
         lock (_lock)
@@ -171,14 +192,44 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             if (zones.RuneDeck.Count == 0) return;
             var top = zones.RuneDeck[^1];
             zones.RuneDeck.RemoveAt(zones.RuneDeck.Count - 1);
-            zones.RunePool.Add(top);
+            zones.Base.Add(top);
+        }
+    }
+
+    /// <summary>Core Rule 164.2.a, a Basic Rune's "[E]: Add [1]" ability - exhausts one of this
+    /// player's ready Base runes (tracked as a count, not per-card, since they're fungible for this)
+    /// to add 1 Energy to their Rune Pool (Counters["Energy"]).</summary>
+    public void ExhaustRuneForEnergy(MatchRoom room, string connectionId)
+    {
+        lock (_lock)
+        {
+            var zones = room.Board.GetOrAddZones(connectionId);
+            if (zones.ExhaustedRuneCount >= zones.Base.Count) return;
+            zones.ExhaustedRuneCount++;
+            zones.Counters["Energy"] = zones.Counters.GetValueOrDefault("Energy") + 1;
+        }
+    }
+
+    /// <summary>Core Rule 164.2.b, a Basic Rune's "Recycle this: Add [Domain]" ability - returns one
+    /// specific Base rune to its owner's Rune Deck and adds 1 Power to their Rune Pool. Power isn't
+    /// tracked per-Domain (Core Rule 163.2.a) since nothing yet spends it against a Domain cost.</summary>
+    public bool RecycleRuneForPower(MatchRoom room, string connectionId, string cardId)
+    {
+        lock (_lock)
+        {
+            var zones = room.Board.GetOrAddZones(connectionId);
+            if (!zones.Base.Remove(cardId)) return false;
+            if (zones.ExhaustedRuneCount > zones.Base.Count) zones.ExhaustedRuneCount = zones.Base.Count;
+            zones.RuneDeck.Add(cardId);
+            zones.Counters["Power"] = zones.Counters.GetValueOrDefault("Power") + 1;
+            return true;
         }
     }
 
     private static readonly Dictionary<string, Func<PlayerZones, List<string>>> MovableZones = new()
     {
         ["hand"] = z => z.Hand, ["board"] = z => z.Board, ["battlefield"] = z => z.Battlefield,
-        ["trash"] = z => z.Trash, ["banishment"] = z => z.Banishment, ["runePool"] = z => z.RunePool,
+        ["trash"] = z => z.Trash, ["banishment"] = z => z.Banishment,
     };
 
     /// <summary>
@@ -232,14 +283,14 @@ public sealed class MatchRoomService(DeckLegalityService legality)
                     Hand: kv.Key == viewerConnectionId ? [..kv.Value.Hand] : null,
                     MainDeckCount: kv.Value.MainDeck.Count,
                     RuneDeckCount: kv.Value.RuneDeck.Count,
-                    RunePool: [..kv.Value.RunePool],
+                    Base: [..kv.Value.Base],
+                    ExhaustedRuneCount: kv.Value.ExhaustedRuneCount,
                     Board: [..kv.Value.Board],
                     Battlefield: [..kv.Value.Battlefield],
                     Trash: [..kv.Value.Trash],
                     Banishment: [..kv.Value.Banishment],
                     LegendCardId: kv.Value.LegendCardId,
                     ChampionCardId: kv.Value.ChampionCardId,
-                    Energy: kv.Value.Energy,
                     Score: kv.Value.Score,
                     Counters: new Dictionary<string, int>(kv.Value.Counters)));
             return new RoomView(

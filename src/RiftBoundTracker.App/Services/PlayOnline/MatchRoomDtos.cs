@@ -6,9 +6,9 @@ namespace RiftBoundTracker.App.Services.PlayOnline;
 // present so a viewer can see how many cards an opponent is holding without seeing what they are.
 public sealed record PlayerZonesView(
     int HandCount, List<string>? Hand,
-    int MainDeckCount, int RuneDeckCount, List<string> RunePool,
+    int MainDeckCount, int RuneDeckCount, List<string> Base, int ExhaustedRuneCount,
     List<string> Board, List<string> Battlefield, List<string> Trash, List<string> Banishment,
-    string? LegendCardId, string? ChampionCardId, int Energy, int Score, Dictionary<string, int> Counters);
+    string? LegendCardId, string? ChampionCardId, int Score, Dictionary<string, int> Counters);
 
 public sealed record BoardStateView(
     int TurnNumber, string? ActivePlayerConnectionId, Dictionary<string, PlayerZonesView> ZonesByPlayer);

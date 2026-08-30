@@ -74,6 +74,23 @@ public sealed class MatchHub(MatchRoomService rooms, EmulatorAccessService acces
         await BroadcastAsync(room);
     }
 
+    public async Task ExhaustRune(string roomCode)
+    {
+        var room = rooms.GetRoom(roomCode);
+        if (room is null) return;
+        rooms.ExhaustRuneForEnergy(room, Context.ConnectionId);
+        await BroadcastAsync(room);
+    }
+
+    public async Task<HubResult> RecycleRune(string roomCode, string cardId)
+    {
+        var room = rooms.GetRoom(roomCode);
+        if (room is null) return new HubResult(false, "Room not found.");
+        if (!rooms.RecycleRuneForPower(room, Context.ConnectionId, cardId)) return new HubResult(false, "Could not recycle that rune.");
+        await BroadcastAsync(room);
+        return new HubResult(true, null);
+    }
+
     public async Task<HubResult> MoveCard(string roomCode, string cardId, string fromZone, string toZone)
     {
         var room = rooms.GetRoom(roomCode);

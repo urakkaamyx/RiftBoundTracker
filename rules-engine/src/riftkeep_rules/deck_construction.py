@@ -105,35 +105,63 @@ def _not_exactly(qty: tuple[str, int] | None, exact: int) -> bool | None:
 # Obligation detection - mirrors proof.py's detect_obligations() regex style.
 # ---------------------------------------------------------------------------
 
+_PROXIMITY_CHARS = 40
+
+
+def _near(q: str, pattern_a: str, pattern_b: str, max_distance: int = _PROXIMITY_CHARS) -> bool:
+    """True if a match of pattern_a and a match of pattern_b occur within max_distance
+    characters of each other anywhere in q. Co-occurrence anywhere in a long question is not
+    enough on its own: an anchor word can appear incidentally (a zone-name list mentioning "Rune
+    Deck", a card quoted verbatim mentioning "Champion Legend") while a common trigger word like
+    "require"/"deck"/"need" shows up unrelated, far away, in a completely different clause.
+    Confirmed as a real false positive before this guard existed: a question listing zone names
+    including "Rune Deck" plus an unrelated closing "What does the rule require?" incorrectly
+    fired rune_deck_count, and a question just describing where a Champion Legend starts the game
+    incorrectly fired champion_legend_count. Requiring the two signals to actually sit near each
+    other keeps genuine quantity questions ("Can I use 13 runes?", "How many Legends can my deck
+    contain?") matching while rejecting incidental co-occurrence."""
+    a_spans = [m.start() for m in re.finditer(pattern_a, q)]
+    if not a_spans:
+        return False
+    b_spans = [m.start() for m in re.finditer(pattern_b, q)]
+    if not b_spans:
+        return False
+    return any(abs(a - b) <= max_distance for a in a_spans for b in b_spans)
+
+
 def detect_deck_obligations(q: str) -> list[str]:
     out: list[str] = []
     if (
-        re.search(r"\b(?:champion )?legends?\b", q)
-        and "control" not in q
-        and re.search(r"\bplay|have|run|use|put|include|allow|need|contain|multiple|deck\b", q)
+        "control" not in q
+        and _near(q, r"\b(?:champion )?legends?\b", r"\bplay|have|run|use|put|include|allow|need|contain|multiple|deck\b")
     ):
         out.append("champion_legend_count")
-    if re.search(r"\bmain deck\b", q) or (
-        re.search(r"\bcards?\b", q)
-        and re.search(r"\b\d+\b|\bthirty|forty\b", q)
-        and not re.search(r"\bsignature|rune|battlefield|cop(?:y|ies)\b", q)
+    if (
+        _near(q, r"\bmain deck\b", r"\bhow many\b|\d+|\bthirty\b|\bforty\b|\bat least\b|\bat most\b|\bmore than\b|\bfewer than\b|\bless than\b|\bmultiple\b|\bonly\b|\bexactly\b")
+        or (
+            re.search(r"\bcards?\b", q)
+            and not re.search(r"\bsignature|rune|battlefield|cop(?:y|ies)\b", q)
+            and _near(q, r"\bcards?\b", r"\b\d+\b|\bthirty\b|\bforty\b")
+        )
     ):
         out.append("main_deck_minimum")
     if (
         re.search(r"\bcop(?:y|ies)\b", q)
-        and re.search(r"\bcard\b|\bchosen champion\b|\bsame name\b|\bsame-named\b|\bnamed card\b", q)
+        and _near(q, r"\bcop(?:y|ies)\b", r"\bcard\b|\bchosen champion\b|\bsame name\b|\bsame-named\b|\bnamed card\b")
         and not re.search(r"\bempowered|buff|temporary|trait|might\b", q)
         and "battlefield" not in q
     ):
         out.append("same_name_copy_limit")
-    if "signature" in q and re.search(r"\bcard|limit|champion|zone|chosen\b", q):
+    if "signature" in q and _near(q, r"\bsignature\b", r"\bcard|limit|champion|zone|chosen\b"):
         out.append("signature_limit")
-    if re.search(r"\brunes?\b", q) and (re.search(r"\d", q) or re.search(r"\bhow many|deck|need|require|contain\b", q)):
+    if re.search(r"\brunes?\b", q) and _near(q, r"\brunes?\b", r"\bhow many\b|\bneed\b|\brequire\b|\bcontain\b|\d"):
         out.append("rune_deck_count")
-    if "battlefield" in q and re.search(r"\bcop(?:y|ies)\b|\bsame name\b|\bsame-named\b|\bduplicate\b|\btwo of the same\b", q):
+    if "battlefield" in q and _near(q, r"\bbattlefields?\b", r"\bcop(?:y|ies)\b|\bsame name\b|\bsame-named\b|\bduplicate\b|\btwo of the same\b"):
         out.append("battlefield_duplicate_limit")
-    elif "battlefield" in q and re.search(r"\bhow many\b|\bneed\b|\brequire\b|\bdeck\b", q) and not re.search(
-        r"\btarget|contested|score|control|lose|losing\b", q
+    elif (
+        "battlefield" in q
+        and _near(q, r"\bbattlefields?\b", r"\bhow many\b|\bneed\b|\brequire\b")
+        and not re.search(r"\btarget|contested|score|control|lose|losing\b", q)
     ):
         out.append("battlefield_count_requirement")
     return out

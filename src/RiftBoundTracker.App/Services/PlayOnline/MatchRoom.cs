@@ -88,4 +88,9 @@ public sealed class UnitInstance
     // against the unit's Might to check Lethal Damage (142.4.a), and heals off at specific times
     // (143.3.b), it doesn't subtract from Might directly.
     public int Damage { get; set; }
+    // Core Rules 717-719 (Attachment): a Gear attached to a unit is still its own object in the
+    // same zone list, just linked to a "Top-Most Card" - null means this instance isn't Attached to
+    // anything (it may still be a Top-Most Card that other instances point at). Detaching (the
+    // target leaving the board, rule 719.5) is handled wherever an instance leaves Board/Battlefield.
+    public string? AttachedToInstanceId { get; set; }
 }

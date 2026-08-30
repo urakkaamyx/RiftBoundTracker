@@ -329,6 +329,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
                 if (unit is null) return false;
                 list.Remove(unit);
                 movedCardId = unit.CardId;
+                DetachAllPointingTo(room, unit.InstanceId); // Core Rule 719.5
             }
             else if (MovableZones.TryGetValue(fromZone, out var from))
             {
@@ -405,11 +406,59 @@ public sealed class MatchRoomService(DeckLegalityService legality)
                 {
                     (fromBoard is not null ? zones.Board : zones.Battlefield).Remove(unit);
                     zones.Trash.Add(unit.CardId);
+                    DetachAllPointingTo(room, unit.InstanceId);
                     AddLog(room, connectionId, "killed that unit with lethal damage.");
                 }
                 return true;
             }
             return false;
+        }
+    }
+
+    /// <summary>Core Rule 719.5: when a Top-Most Card leaves the board, everything Attached to it
+    /// Detaches and stays where it is - always called right after removing a unit from Board or
+    /// Battlefield, from within the same lock. Attached cards can have a different Controller than
+    /// their Top-Most card (718.5.e), so this has to search every player's zones, not just the
+    /// Top-Most card's own controller.</summary>
+    private static void DetachAllPointingTo(MatchRoom room, string topMostInstanceId)
+    {
+        foreach (var zones in room.Board.ZonesByPlayer.Values)
+        {
+            foreach (var unit in zones.Board.Where(u => u.AttachedToInstanceId == topMostInstanceId)) unit.AttachedToInstanceId = null;
+            foreach (var unit in zones.Battlefield.Where(u => u.AttachedToInstanceId == topMostInstanceId)) unit.AttachedToInstanceId = null;
+        }
+    }
+
+    /// <summary>Core Rules 717-719, Attaching - links a Gear (or any card) to a Top-Most Card in the
+    /// same zone. No Might Bonus math or ability-text appending happens here (that needs the
+    /// card-effect execution this engine doesn't have) - this only tracks the structural
+    /// relationship, which is itself real, checkable game state (718.5.b, 719.3).</summary>
+    public bool AttachCard(MatchRoom room, string connectionId, string cardInstanceId, string targetInstanceId)
+    {
+        lock (_lock)
+        {
+            if (cardInstanceId == targetInstanceId) return false;
+            var zones = room.Board.GetOrAddZones(connectionId);
+            var card = zones.Board.FirstOrDefault(u => u.InstanceId == cardInstanceId) ?? zones.Battlefield.FirstOrDefault(u => u.InstanceId == cardInstanceId);
+            if (card is null) return false;
+            var targetExists = room.Board.ZonesByPlayer.Values.Any(z => z.Board.Any(u => u.InstanceId == targetInstanceId) || z.Battlefield.Any(u => u.InstanceId == targetInstanceId));
+            if (!targetExists) return false;
+            card.AttachedToInstanceId = targetInstanceId;
+            AddLog(room, connectionId, "attached a card to another.");
+            return true;
+        }
+    }
+
+    public bool DetachCard(MatchRoom room, string connectionId, string instanceId)
+    {
+        lock (_lock)
+        {
+            var zones = room.Board.GetOrAddZones(connectionId);
+            var unit = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId) ?? zones.Battlefield.FirstOrDefault(u => u.InstanceId == instanceId);
+            if (unit?.AttachedToInstanceId is null) return false;
+            unit.AttachedToInstanceId = null;
+            AddLog(room, connectionId, "detached a card.");
+            return true;
         }
     }
 
@@ -448,8 +497,8 @@ public sealed class MatchRoomService(DeckLegalityService legality)
                     RuneDeckCount: kv.Value.RuneDeck.Count,
                     Base: [..kv.Value.Base],
                     ExhaustedRuneCount: kv.Value.ExhaustedRuneCount,
-                    Board: kv.Value.Board.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted, u.Damage)).ToList(),
-                    Battlefield: kv.Value.Battlefield.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted, u.Damage)).ToList(),
+                    Board: kv.Value.Board.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted, u.Damage, u.AttachedToInstanceId)).ToList(),
+                    Battlefield: kv.Value.Battlefield.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted, u.Damage, u.AttachedToInstanceId)).ToList(),
                     Trash: [..kv.Value.Trash],
                     Banishment: [..kv.Value.Banishment],
                     LegendCardId: kv.Value.LegendCardId,

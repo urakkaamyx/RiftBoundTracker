@@ -136,6 +136,24 @@ public sealed class MatchHub(MatchRoomService rooms, EmulatorAccessService acces
         return new HubResult(true, null);
     }
 
+    public async Task<HubResult> AttachCard(string roomCode, string cardInstanceId, string targetInstanceId)
+    {
+        var room = rooms.GetRoom(roomCode);
+        if (room is null) return new HubResult(false, "Room not found.");
+        if (!rooms.AttachCard(room, Context.ConnectionId, cardInstanceId, targetInstanceId)) return new HubResult(false, "Could not attach that card.");
+        await BroadcastAsync(room);
+        return new HubResult(true, null);
+    }
+
+    public async Task<HubResult> DetachCard(string roomCode, string instanceId)
+    {
+        var room = rooms.GetRoom(roomCode);
+        if (room is null) return new HubResult(false, "Room not found.");
+        if (!rooms.DetachCard(room, Context.ConnectionId, instanceId)) return new HubResult(false, "Could not detach that card.");
+        await BroadcastAsync(room);
+        return new HubResult(true, null);
+    }
+
     public async Task ReadyUp(string roomCode, bool ready)
     {
         var room = rooms.GetRoom(roomCode);

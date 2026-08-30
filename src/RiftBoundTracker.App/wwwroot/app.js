@@ -3013,6 +3013,16 @@ async function poPlayCard(cardId) {
   if (!result.ok) toast(result.error || "Could not play that card.", true);
 }
 
+async function poAttachCard(cardInstanceId, targetInstanceId) {
+  const result = await state.playOnline.connection.invoke("AttachCard", state.playOnline.room.roomCode, cardInstanceId, targetInstanceId);
+  if (!result.ok) toast(result.error || "Could not attach that card.", true);
+}
+
+async function poDetachCard(instanceId) {
+  const result = await state.playOnline.connection.invoke("DetachCard", state.playOnline.room.roomCode, instanceId);
+  if (!result.ok) toast(result.error || "Could not detach that card.", true);
+}
+
 async function poDealDamage(instanceId, amount) {
   const result = await state.playOnline.connection.invoke("DealDamage", state.playOnline.room.roomCode, instanceId, amount);
   if (!result.ok) toast(result.error || "Could not deal damage.", true);
@@ -3131,6 +3141,7 @@ function poRenderRoom() {
     : "";
 
   const deckOptions = state.decks.map(deck => `<option value="${deck.id}">${escapeHtml(deck.name)}</option>`).join("");
+  const unitCardIdByInstance = Object.fromEntries(poAllUnits(room).map(u => [u.instanceId, u.cardId]));
 
   const playerCards = room.players.map(player => {
     const zones = room.board.zonesByPlayer[player.connectionId];
@@ -3149,10 +3160,13 @@ function poRenderRoom() {
         <span class="po-zone-label">${label} <b>${units.length}</b></span>
         <div class="po-card-row">${units.length ? units.map(u => {
           const might = cardsById.get(u.cardId)?.might;
+          const attachedToCard = u.attachedToInstanceId ? unitCardIdByInstance[u.attachedToInstanceId] : null;
+          const slotTitle = attachedToCard ? `Attached to ${poCardLabel(attachedToCard)}` : (u.exhausted ? "Exhausted" : "Ready");
           return `
-          <span class="po-unit-slot${u.exhausted ? " po-unit-exhausted" : ""}"${isMe ? ` data-po-toggle-ready="${escapeHtml(u.instanceId)}" title="${u.exhausted ? "Exhausted - click to ready" : "Ready - click to exhaust"}"` : ` title="${u.exhausted ? "Exhausted" : "Ready"}"`}>
+          <span class="po-unit-slot${u.exhausted ? " po-unit-exhausted" : ""}${attachedToCard ? " po-unit-attached" : ""}"${isMe ? ` data-po-toggle-ready="${escapeHtml(u.instanceId)}" title="${slotTitle}${isMe ? " - click to toggle ready" : ""}"` : ` title="${slotTitle}"`}>
             ${poCardTile(u.cardId, "sm")}
             ${u.damage || might != null ? `<b class="po-unit-damage${u.damage ? " po-unit-damage-marked" : ""}">${u.damage}${might != null ? `/${might}` : ""}</b>` : ""}
+            ${isMe && u.attachedToInstanceId ? `<button class="icon-btn po-unit-detach" data-po-detach="${escapeHtml(u.instanceId)}" title="Detach"><i data-icon="x"></i></button>` : ""}
           </span>`;
         }).join("") : `<span class="po-zone-empty">—</span>`}</div>
       </div>`;
@@ -3265,6 +3279,16 @@ function poRenderRoom() {
               </select>
               <input id="poDamageAmount-${escapeHtml(player.connectionId)}" type="number" min="1" value="1" />
               <button class="command-btn quiet" data-po-deal-damage="${escapeHtml(player.connectionId)}"><i data-icon="alert-triangle"></i>Deal Damage</button>
+            </div>` : ""}
+          ${isMe && zones && (zones.board.length || zones.battlefield.length) && poAllUnits(room).length > 1 ? `
+            <div class="po-move-tool">
+              <select id="poAttachCard-${escapeHtml(player.connectionId)}">
+                ${[...zones.board, ...zones.battlefield].map(u => `<option value="${escapeHtml(u.instanceId)}">${poCardLabel(u.cardId)}</option>`).join("")}
+              </select>
+              <select id="poAttachTarget-${escapeHtml(player.connectionId)}">
+                ${poAllUnits(room).map(u => `<option value="${escapeHtml(u.instanceId)}">→ ${escapeHtml(u.ownerName)} — ${poCardLabel(u.cardId)}</option>`).join("")}
+              </select>
+              <button class="command-btn quiet" data-po-attach="${escapeHtml(player.connectionId)}">Attach</button>
             </div>` : ""}
           ${isMe ? `
             <div class="po-add-counter">
@@ -5080,6 +5104,8 @@ function wireEvents() {
     if (scoreBtn) { poAdjustScore(Number(scoreBtn.dataset.poScoreDelta)).catch(err => toast(err.message, true)); return; }
     const recycleBtn = event.target.closest("[data-po-recycle]");
     if (recycleBtn) { poRecycleRune(recycleBtn.dataset.poRecycle).catch(err => toast(err.message, true)); return; }
+    const detachBtn = event.target.closest("[data-po-detach]");
+    if (detachBtn) { poDetachCard(detachBtn.dataset.poDetach).catch(err => toast(err.message, true)); return; }
     const readyToggle = event.target.closest("[data-po-toggle-ready]");
     if (readyToggle) { poToggleUnitReady(readyToggle.dataset.poToggleReady).catch(err => toast(err.message, true)); return; }
     const damageBtn = event.target.closest("[data-po-deal-damage]");
@@ -5088,6 +5114,13 @@ function wireEvents() {
       const amountInput = document.getElementById(`poDamageAmount-${damageBtn.dataset.poDealDamage}`);
       const amount = Number(amountInput?.value);
       if (targetSelect?.value && amount > 0) poDealDamage(targetSelect.value, amount).catch(err => toast(err.message, true));
+      return;
+    }
+    const attachBtn = event.target.closest("[data-po-attach]");
+    if (attachBtn) {
+      const cardSelect = document.getElementById(`poAttachCard-${attachBtn.dataset.poAttach}`);
+      const targetSelect = document.getElementById(`poAttachTarget-${attachBtn.dataset.poAttach}`);
+      if (cardSelect?.value && targetSelect?.value) poAttachCard(cardSelect.value, targetSelect.value).catch(err => toast(err.message, true));
       return;
     }
     const moveBtn = event.target.closest("[data-po-move]");

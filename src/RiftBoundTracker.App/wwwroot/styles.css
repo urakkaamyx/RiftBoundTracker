@@ -1293,6 +1293,10 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-unit-exhausted { transform: rotate(90deg); opacity: .55; }
 .po-unit-damage { position: absolute; left: -4px; bottom: -4px; min-width: 18px; height: 16px; padding: 0 3px; border-radius: 4px; background: var(--bg); border: 1px solid var(--border); color: var(--faint); font: 700 9px var(--mono); display: grid; place-items: center; }
 .po-unit-damage-marked { border-color: var(--red); color: var(--red); }
+.po-unit-attached { box-shadow: 0 0 0 2px var(--gold); border-radius: 5px; }
+.po-unit-detach { position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; padding: 0; border-radius: 50%; background: var(--bg); border-color: var(--red); color: var(--red); opacity: 0; transition: opacity .1s ease; }
+.po-unit-detach i, .po-unit-detach svg { width: 9px; height: 9px; }
+.po-unit-slot:hover .po-unit-detach { opacity: 1; }
 
 .po-card-art { border-radius: 5px; overflow: hidden; border: 1px solid var(--border); background: var(--panel-2); box-shadow: 0 3px 8px rgba(0,0,0,.3); transition: transform .12s ease; }
 .po-card-art:hover { transform: translateY(-3px); }

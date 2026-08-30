@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.30.1 — Emulator: Attach/Detach
+
+- Added a real Attach tool - link any card you control to another unit on the board (yours or an opponent's), matching how Gear actually works. Attached cards show a gold ring and can be detached by hand at any time. When the unit something's attached to dies or leaves the board, everything attached to it detaches automatically and stays where it is, same as the real rule.
+
 ## v1.30.0 — Emulator: real Damage and Kill
 
 - Added a Deal Damage tool that can target any unit on the board, yours or an opponent's. Damage is marked on the unit (shown as a red badge, e.g. "3/4") rather than reducing its stats directly, and the moment marked damage reaches its Might, it's Killed — moved straight to its controller's Trash, automatically. Damage heals off a unit at the end of its controller's turn, so it doesn't carry over.

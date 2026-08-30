@@ -1261,9 +1261,10 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-point-spacer { height: 15px; }
 
 /* The deck "piles" - the generated rune card-back art, stacked via layered box-shadows so it reads
-   as a deck rather than a single card. */
+   as a deck rather than a single card. Wider than a plain card tile on purpose - at card proportions
+   this reads as a thin sliver, not a stack you'd click. */
 .po-pile {
-  flex: none; width: 36px; aspect-ratio: 744 / 1039; border: 0; border-radius: 4px; cursor: pointer;
+  flex: none; width: 46px; aspect-ratio: 5 / 6; border: 0; border-radius: 4px; cursor: pointer;
   background: url("emulator-art/rune-back.png") center / cover;
   border: 1px solid var(--gold); position: relative; display: grid; place-items: center; color: var(--gold-bright);
   box-shadow: 2px 2px 0 -1px var(--panel), 2px 2px 0 0 var(--border-soft), 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--border-soft);
@@ -1280,28 +1281,30 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-zone-label { color: var(--faint); font: 600 8px var(--mono); text-transform: uppercase; letter-spacing: .06em; }
 .po-zone-label b { color: var(--muted); font-size: 9px; }
 .po-zone-label em { margin-left: 6px; color: var(--green); font-style: normal; text-transform: none; letter-spacing: 0; }
-.po-zone-base { gap: 3px; }
-.po-rune-slot { position: relative; }
-.po-rune-recycle { position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; padding: 0; border-radius: 50%; background: var(--bg); border-color: var(--border); opacity: 0; transition: opacity .1s ease; }
-.po-rune-recycle i, .po-rune-recycle svg { width: 9px; height: 9px; }
-.po-rune-slot:hover .po-rune-recycle { opacity: 1; }
-.po-zone-base > .command-btn { align-self: flex-start; height: 22px; font-size: 10px; padding: 0 8px; }
+/* The Base/rune stack: starts sized to ~5 cards instead of stretching the full row width when
+   there are only 1-2 runes, and grows (wrapping, not just stretching) as more are channeled in. The
+   Exhaust button sits on the same line as the zone label/count rather than its own row below. */
+.po-zone-base-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+.po-zone-base-head > .command-btn { flex: none; height: 22px; font-size: 10px; padding: 0 8px; }
+.po-base-row { width: fit-content; min-width: calc(5 * 27px); max-width: 100%; }
+.po-rune-slot { position: relative; cursor: pointer; border-radius: 4px; transition: transform .12s ease, opacity .12s ease; }
+/* Core Rule 164.2.a: exhausting a Base rune for Energy tips it sideways, same tilt+dim language as
+   an exhausted unit - reads honestly instead of only being visible via the "X ready" count. */
+.po-rune-exhausted { transform: rotate(90deg); opacity: .55; }
 .po-card-row { display: flex; flex-wrap: wrap; gap: 3px; min-height: 20px; padding: 2px; border: 1px dashed var(--border-soft); border-radius: 5px; background: color-mix(in srgb, var(--panel-2) 60%, transparent); }
 .po-zone-empty { align-self: center; margin: auto; color: var(--faint); font-size: 9px; }
 /* Core Rule 415/416 Ready/Exhausted, shown as a real tilt+dim rather than just a label - reads at a
-   glance the same way a physically-tapped card would. */
-.po-unit-slot { display: inline-flex; position: relative; transition: transform .12s ease, opacity .12s ease; border-radius: 4px; }
-.po-unit-slot[data-po-toggle-ready] { cursor: pointer; }
-.po-unit-slot[data-po-toggle-ready]:hover { box-shadow: 0 0 0 2px var(--gold-soft); }
+   glance the same way a physically-tapped card would. Selectable (see poHandleCardClick) - the
+   contextual popout is where its actions live now, not icon buttons crowded onto the slot itself. */
+.po-unit-slot { display: inline-flex; position: relative; cursor: pointer; transition: transform .12s ease, opacity .12s ease; border-radius: 4px; }
+.po-unit-slot:hover { box-shadow: 0 0 0 2px var(--gold-soft); }
 .po-unit-exhausted { transform: rotate(90deg); opacity: .55; }
 .po-unit-damage { position: absolute; left: -3px; bottom: -3px; min-width: 13px; height: 12px; padding: 0 2px; border-radius: 3px; background: var(--bg); border: 1px solid var(--border); color: var(--faint); font: 700 7px var(--mono); display: grid; place-items: center; }
 .po-unit-damage-marked { border-color: var(--red); color: var(--red); }
 .po-unit-attached { box-shadow: 0 0 0 2px var(--gold); border-radius: 4px; }
-.po-unit-detach { position: absolute; top: -5px; right: -5px; width: 13px; height: 13px; padding: 0; border-radius: 50%; background: var(--bg); border-color: var(--red); color: var(--red); opacity: 0; transition: opacity .1s ease; }
-.po-unit-detach i, .po-unit-detach svg { width: 8px; height: 8px; }
-.po-unit-move { position: absolute; top: -5px; left: -5px; width: 13px; height: 13px; padding: 0; border-radius: 50%; background: var(--bg); border-color: var(--gold); color: var(--gold-bright); opacity: 0; transition: opacity .1s ease; }
-.po-unit-move i, .po-unit-move svg { width: 8px; height: 8px; }
-.po-unit-slot:hover .po-unit-detach, .po-unit-slot:hover .po-unit-move { opacity: 1; }
+/* Selection highlight, shared by every selectable card type (unit/rune/hand/zone-modal). */
+.po-selected-primary { box-shadow: 0 0 0 2px var(--accent-bright), 0 0 14px -2px var(--accent-soft) !important; }
+.po-selected-secondary { box-shadow: 0 0 0 2px var(--gold-bright), 0 0 14px -2px var(--gold-soft) !important; }
 
 .po-card-art { border-radius: 4px; overflow: hidden; border: 1px solid var(--border); background: var(--panel-2); box-shadow: 0 2px 5px rgba(0,0,0,.3); transition: transform .12s ease; }
 .po-card-art:hover { transform: translateY(-3px); }
@@ -1311,35 +1314,84 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-card-art-legend { width: 30px; aspect-ratio: 744 / 1039; border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold-soft); flex: none; }
 .po-card-chip { padding: 3px 5px; border: 1px solid var(--border); border-radius: 4px; background: var(--panel-2); color: var(--muted); font-size: 8px; align-self: flex-start; }
 .po-card-chip-lg { padding: 5px; font-size: 9px; }
+/* Core Rule 108.5.d: an opponent's hand is Secret Information - shown as real face-down objects
+   (not just a bare count) so it reads honestly the way a real hand across the table would, but with
+   no art, no hover preview and nothing clickable. */
+.po-card-back {
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--gold) 18%, var(--panel-2)) 0 4px, var(--panel-2) 4px 8px);
+  border-color: var(--gold-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 35%, transparent), 0 2px 5px rgba(0,0,0,.3);
+}
+.po-card-back:hover { transform: none; }
+
+/* Trash/Banishment: a single top-card preview + count instead of the full row, since these zones
+   are rarely worth permanent board space - click to open the full list in a modal. */
+.po-zone-compact .po-zone-preview {
+  border: 1px dashed var(--border-soft); border-radius: 5px; background: color-mix(in srgb, var(--panel-2) 60%, transparent);
+  padding: 2px; display: flex; align-items: center; position: relative; cursor: pointer; width: fit-content;
+}
+.po-zone-preview:disabled { cursor: default; opacity: .6; }
+.po-zone-preview:not(:disabled):hover { border-color: var(--gold-soft); }
+.po-zone-more { position: absolute; bottom: -4px; right: -4px; min-width: 14px; height: 13px; padding: 0 2px; border-radius: 3px; background: var(--bg); border: 1px solid var(--gold); color: var(--gold-bright); font: 700 7px var(--mono); display: grid; place-items: center; }
 
 .po-side-row { display: flex; gap: 4px; flex-wrap: wrap; }
-.po-side-row .po-zone { flex: 1; min-width: 110px; }
+.po-side-row .po-zone { flex: 1; min-width: 60px; }
 
 .po-hand-row { display: flex; flex-direction: column; gap: 2px; padding-top: 3px; border-top: 1px solid var(--border-soft); }
 .po-hand-cards { min-height: 42px; background: color-mix(in srgb, var(--gold) 4%, transparent); border-color: var(--gold-soft); align-items: flex-end; }
-.po-hand-tile { display: flex; flex-direction: column; align-items: stretch; gap: 2px; }
+.po-hand-tile { display: flex; flex-direction: column; align-items: stretch; gap: 2px; cursor: pointer; border-radius: 4px; }
 .po-play-btn { height: 16px; padding: 0 4px; font-size: 8px; white-space: nowrap; }
 .po-play-btn:disabled { opacity: .4; cursor: default; }
 .po-hand-count { color: var(--faint); font: 600 9px var(--mono); text-transform: uppercase; letter-spacing: .06em; }
 .po-hand-count b { color: var(--muted); font-size: 10px; }
 
-/* Every action row (Move/Damage/Combat/Attach/Counters) lives collapsed behind one summary by
-   default - the biggest single space cost otherwise, and rarely all needed at once. */
-.po-actions { padding-top: 3px; border-top: 1px solid var(--border-soft); }
-.po-actions summary { cursor: pointer; color: var(--gold-bright); font: 700 9px var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 3px 0; }
-.po-actions[open] summary { margin-bottom: 4px; }
-.po-actions > div { margin-top: 4px; }
-.po-move-tool { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-.po-move-tool select { flex: 1; min-width: 100px; height: 22px; font-size: 10px; }
-.po-move-tool input[type="number"] { width: 44px; height: 22px; font-size: 10px; }
-.po-move-tool .command-btn { min-height: 22px; height: 22px; padding: 0 8px; font-size: 9px; gap: 4px; }
-.po-move-tool .command-btn i, .po-move-tool .command-btn svg { width: 11px; height: 11px; }
 .po-add-counter .command-btn { min-height: 22px; height: 22px; padding: 0 8px; font-size: 9px; }
 .po-counter-edit .icon-btn { width: 16px; height: 16px; border-radius: 50%; }
 .po-counter-edit .icon-btn .icon { width: 8px; height: 8px; }
-.po-add-counter { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.po-add-counter { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-top: 4px; padding-top: 3px; border-top: 1px solid var(--border-soft); }
 .po-add-counter input { width: 110px; height: 22px; font-size: 10px; }
 .po-counter-edit { display: flex; align-items: center; gap: 3px; padding: 2px 2px 2px 6px; border: 1px solid var(--border); border-radius: 20px; font-size: 9px; color: var(--muted); }
+
+/* The contextual action popout: select a card and this appears docked to whichever side of the
+   screen has more room (see poHandleCardClick's clientX check), instead of a permanently-visible
+   or collapsed-behind-a-<details> block of dropdowns. */
+.po-action-popout {
+  position: fixed; top: 90px; width: 220px; max-height: calc(100vh - 140px); overflow-y: auto; z-index: 40;
+  display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 10px;
+  border: 1px solid var(--gold-soft); background: var(--panel); box-shadow: 0 18px 40px -12px rgba(0,0,0,.6);
+}
+.po-popout-right { right: 16px; }
+.po-popout-left { left: 16px; }
+.po-popout-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+.po-popout-card { display: flex; align-items: center; gap: 8px; }
+.po-popout-card > .po-card-art, .po-popout-card > .po-card-chip { flex: none; }
+.po-popout-card span { display: flex; flex-direction: column; font: 700 11px var(--font); }
+.po-popout-card em { color: var(--faint); font: 600 8px var(--mono); text-transform: uppercase; letter-spacing: .04em; font-style: normal; }
+.po-popout-actions { display: flex; flex-direction: column; gap: 4px; }
+.po-popout-actions .command-btn { justify-content: flex-start; height: 24px; font-size: 10px; }
+.po-popout-amount { display: flex; align-items: center; gap: 4px; }
+.po-popout-amount input { width: 44px; height: 24px; font-size: 10px; }
+.po-popout-amount .command-btn { flex: 1; height: 24px; font-size: 10px; }
+.po-popout-secondary { padding-top: 6px; border-top: 1px solid var(--border-soft); font-size: 10px; color: var(--muted); }
+.po-popout-secondary em { color: var(--faint); font-style: normal; }
+
+/* Battlefield Setup (Core Rule 486.5): a full-viewport overlay so a choice actually has to be made
+   before the board underneath is usable - only visible to a player who still has pending choices,
+   driven straight off the redacted view rather than an imperative show/hide call. */
+.po-bf-overlay { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 24px; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: blur(3px); }
+.po-bf-panel { max-width: 560px; padding: 24px; border-radius: 14px; border: 1px solid var(--gold-soft); background: var(--panel); box-shadow: 0 30px 60px -20px rgba(0,0,0,.7); text-align: center; }
+.po-bf-panel h2 { margin-bottom: 6px; }
+.po-bf-choices { display: flex; justify-content: center; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
+.po-bf-choice { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel-2); cursor: pointer; transition: border-color .12s ease, transform .12s ease; }
+.po-bf-choice:hover { border-color: var(--gold); transform: translateY(-3px); }
+.po-bf-choice .po-card-art { width: 110px; }
+.po-bf-choice span { font: 700 11px var(--font); max-width: 120px; }
+
+.po-zone-modal-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.po-zone-modal-card { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 90px; }
+.po-zone-modal-card[data-po-select-conn] { cursor: pointer; border-radius: 6px; padding: 4px; }
+.po-zone-modal-card[data-po-select-conn]:hover { background: var(--panel-2); }
+.po-zone-modal-card .po-card-art { width: 70px; }
+.po-zone-modal-card span { font-size: 9px; text-align: center; color: var(--muted); }
 
 @media (max-width: 720px) {
   .mass-add-body { grid-template-columns: 1fr; }

@@ -306,6 +306,8 @@
               <div class="po-board" id="poBoard"></div>
               <aside class="po-log" id="poLog" aria-label="Match log"></aside>
             </div>
+            <div class="po-action-popout" id="poActionPopout" hidden></div>
+            <div class="po-bf-overlay" id="poBattlefieldOverlay" hidden></div>
           </div>
         </section>
 
@@ -340,6 +342,8 @@
   </div>
 
   <div class="modal-layer" id="cardDetailModal" hidden><div class="modal detail-modal"><button class="modal-close" data-close="cardDetailModal"><i data-icon="x"></i></button><div id="mobileCardDetail"></div></div></div>
+
+  <div class="modal-layer" id="poZoneModal" hidden><div class="modal"><div class="modal-head"><div><span>Emulator</span><h2 id="poZoneModalTitle">Zone</h2></div><button class="icon-btn" data-close="poZoneModal"><i data-icon="x"></i></button></div><div class="po-zone-modal-body" id="poZoneModalBody"></div></div></div>
 
 
   <div class="modal-layer" id="purgeDataModal" hidden>

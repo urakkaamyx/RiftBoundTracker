@@ -9,7 +9,8 @@ public sealed record UnitInstanceView(string InstanceId, string CardId, bool Exh
 public sealed record PlayerZonesView(
     int HandCount, List<string>? Hand,
     int MainDeckCount, int RuneDeckCount, List<string> Base, int ExhaustedRuneCount,
-    List<UnitInstanceView> Board, List<UnitInstanceView> Battlefield, List<string> BattlefieldCards, List<string> Trash, List<string> Banishment,
+    List<UnitInstanceView> Board, List<UnitInstanceView> Battlefield, List<string> BattlefieldCards,
+    List<string>? BattlefieldChoices, List<string> Trash, List<string> Banishment,
     string? LegendCardId, string? ChampionCardId, int Score, Dictionary<string, int> Counters);
 
 public sealed record BoardStateView(

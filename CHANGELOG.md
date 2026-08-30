@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.30.8 — Emulator: Battlefield Setup, and a UI overhaul
+
+- Battlefield Setup (Core Rule 486.5): starting a match now deals each player 3 Battlefield candidates in a popup and makes them pick one — that becomes your Battlefield Zone for the rest of the game. Can't be changed mid-game.
+- Runes actually rotate sideways when exhausted for Energy now, same as an exhausted unit.
+- Hover any card anywhere on the board for a full-size preview with its real printed text — reuses the same popup the Deck Builder already has.
+- An opponent's hand is shown as real face-down cards (not just a bare count) — no art, no hover, matching what a real hand across the table looks like.
+- Trash and Banishment are now a single top-card preview + count instead of a full always-expanded row — click to see the whole zone (either player's) in a popup.
+- The Main/Rune deck piles are noticeably wider — they were reading as thin slivers rather than a stack of cards.
+- The Base/rune row starts sized to about 5 cards instead of stretching the full board width, and the "Exhaust for +1 Energy" button now sits on the same line as the zone label instead of its own row below.
+- Replaced the collapsed, dropdown-based Actions panel entirely: select any card and a narrow panel of just the actions that apply to it pops out beside the board, docked to whichever side has more room. Select a second card to Attach or resolve Combat between the two.
+
 ## v1.30.7 — Emulator: Solo Game
 
 - New "Solo" tab in the Emulator lobby — practice a matchup by playing both sides yourself on one screen, no friends required. Pick a deck for each seat, then switch between "Player 1" / "Player 2" to act as either side.

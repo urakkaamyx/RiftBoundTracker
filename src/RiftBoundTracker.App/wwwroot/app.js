@@ -72,7 +72,7 @@ const state = {
   vaultFacetCache: { setId: undefined, cards: [] },
   legendPicker: { cards: [], search: "", ownedOnly: false, selectedBase: null, selectedVariantId: null, mode: "create" },
   cardTextSymbols: new Map(),
-  playOnline: { unlocked: false, serverGranted: false, autoLaunch: false, connection: null, myConnectionId: null, room: null, lobbyTab: "host", lastWanUrl: null, announcedWinner: null, solo: null },
+  playOnline: { unlocked: false, serverGranted: false, autoLaunch: false, connection: null, myConnectionId: null, room: null, lobbyTab: "host", lastWanUrl: null, announcedWinner: null, solo: null, selection: null },
   riftCodeTimer: null,
   priceQueue: { items: [], batchSize: 20, configured: false, provider: "JustTCG" },
   priceQueueIds: new Set(),
@@ -2955,6 +2955,7 @@ function poSoloSwitchSeat(seat) {
   solo.seat = seat;
   state.playOnline.connection = solo.connections[seat];
   state.playOnline.myConnectionId = solo.connections[seat].connectionId;
+  state.playOnline.selection = null;
   if (solo.views[seat]) state.playOnline.room = solo.views[seat];
   poRenderRoom();
 }
@@ -3133,6 +3134,7 @@ function poLeaveRoom() {
   state.playOnline.room = null;
   state.playOnline.myConnectionId = null;
   state.playOnline.announcedWinner = null;
+  state.playOnline.selection = null;
   poShowView("lobby");
   poSetLobbyTab(state.playOnline.lobbyTab);
   renderPoWanConnection();
@@ -3148,23 +3150,27 @@ const PO_MOVABLE_ZONES = [
 
 // A card as real art when it's registered locally (see poSelectDeck/registerCards), falling back
 // to a plain text tile otherwise - public zones can hold an opponent's cards, whose printings this
-// browser may never have loaded.
+// browser may never have loaded. data-hover-card plugs into the deck builder's existing hover
+// popup (see wireEvents' document-level mouseover/mousemove/mouseout on [data-hover-card]) so
+// hovering any card on the board shows the same full-size, real-text preview for free.
 function poCardTile(cardId, size) {
   const card = cardsById.get(cardId);
   const img = card && cardImage(card);
   const label = poCardLabel(cardId);
   return img
-    ? `<div class="po-card-art po-card-art-${size}" title="${label}"><img src="${escapeHtml(img)}" alt="${label}" loading="lazy" /></div>`
-    : `<span class="po-card-chip po-card-chip-${size}">${label}</span>`;
+    ? `<div class="po-card-art po-card-art-${size}" data-hover-card="${escapeHtml(cardId)}" title="${label}"><img src="${escapeHtml(img)}" alt="${label}" loading="lazy" /></div>`
+    : `<span class="po-card-chip po-card-chip-${size}" data-hover-card="${escapeHtml(cardId)}">${label}</span>`;
 }
 
 // A Hand card gets its own tile: the art plus a Play button showing its Energy cost, disabled when
-// the player can't currently afford it (compared against their live Energy counter).
-function poHandTile(cardId, energyAvailable) {
+// the player can't currently afford it (compared against their live Energy counter). Also
+// selectable (see poHandleCardClick) so a hand card can be Moved to Trash/Banishment via the
+// popout - the Play button itself stops that click short (data-po-play is checked first).
+function poHandTile(cardId, energyAvailable, connectionId, selClass) {
   const cost = cardsById.get(cardId)?.energy;
   const affordable = cost == null || cost <= energyAvailable;
   return `
-    <div class="po-hand-tile">
+    <div class="po-hand-tile${selClass || ""}" data-po-select-conn="${escapeHtml(connectionId)}" data-po-select-zone="hand" data-po-select-card="${escapeHtml(cardId)}">
       ${poCardTile(cardId, "lg")}
       <button class="command-btn gold po-play-btn" data-po-play="${escapeHtml(cardId)}" ${affordable ? "" : "disabled"} title="${affordable ? "Play this card" : `Needs ${cost} Energy, you have ${energyAvailable}`}">
         Play${cost != null ? ` (${cost})` : ""}
@@ -3172,14 +3178,220 @@ function poHandTile(cardId, energyAvailable) {
     </div>`;
 }
 
-// Every unit any player controls, across Board and Battlefield alike - the pool the Deal Damage
-// tool targets from, since damage has to be assignable to an opponent's unit, not just your own.
+// A face-down card back for an opponent's hand - Core Rule 108.5.d Secret Information, so this
+// deliberately carries no card id, no data-hover-card, and isn't selectable. Just a count made
+// visible as physical objects, matching how a real opponent's hand actually looks across the table.
+function poHandBack(count) {
+  return Array.from({ length: count }, () => `<div class="po-card-art po-card-art-lg po-card-back"></div>`).join("");
+}
+
+// Every unit any player controls, across Board and Battlefield alike - the pool Damage/Heal/Combat
+// can target, since those apply to any unit in play, not just your own.
 function poAllUnits(room) {
   return room.players.flatMap(p => {
     const zones = room.board.zonesByPlayer[p.connectionId];
     if (!zones) return [];
     return [...zones.board, ...zones.battlefield].map(u => ({ ...u, ownerName: p.name, ownerConnectionId: p.connectionId, might: cardsById.get(u.cardId)?.might }));
   });
+}
+
+// --- Card selection + the contextual action popout that replaces the old always-hidden, dropdown-
+// based Actions panel. Select any of your own cards (or, for Damage/Heal/Combat, any card at all)
+// and a narrow panel of just the actions that apply to it pops out beside the board. Selecting a
+// second card additionally offers whatever connects the two (Attach, Combat). ---
+function poSelKey(sel) { return sel ? `${sel.connectionId}|${sel.zone}|${sel.instanceId || sel.cardId}` : ""; }
+
+function poSelClass(connectionId, zone, id) {
+  const sel = state.playOnline.selection;
+  if (!sel) return "";
+  const key = `${connectionId}|${zone}|${id}`;
+  if (poSelKey(sel.primary) === key) return " po-selected-primary";
+  if (sel.secondary && poSelKey(sel.secondary) === key) return " po-selected-secondary";
+  return "";
+}
+
+function poHandleCardClick(sel, event) {
+  const current = state.playOnline.selection;
+  const key = poSelKey(sel);
+  if (current) {
+    if (poSelKey(current.primary) === key) { state.playOnline.selection = null; poRenderActionPopout(); return; }
+    if (current.secondary && poSelKey(current.secondary) === key) { state.playOnline.selection = { ...current, secondary: null }; poRenderActionPopout(); return; }
+    if (!current.secondary) { state.playOnline.selection = { ...current, secondary: sel }; poRenderActionPopout(); return; }
+  }
+  const side = event.clientX < window.innerWidth / 2 ? "right" : "left";
+  state.playOnline.selection = { primary: sel, secondary: null, side };
+  poRenderActionPopout();
+}
+
+// Mirrors MatchRoomService.MoveCard's own allowed-combination checks exactly - Hand can't reach
+// Board/Battlefield for free (that's Playing a Card) and Board/Battlefield only trade with each
+// other via the costed Standard Move, never this generic tool.
+function poMoveDestinations(fromZone) {
+  return PO_MOVABLE_ZONES.filter(([key]) => {
+    if (key === fromZone) return false;
+    if (fromZone === "hand" && (key === "board" || key === "battlefield")) return false;
+    if ((fromZone === "board" && key === "battlefield") || (fromZone === "battlefield" && key === "board")) return false;
+    return true;
+  });
+}
+
+function poRenderActionPopout() {
+  const popout = document.getElementById("poActionPopout");
+  const sel = state.playOnline.selection;
+  if (!sel) { popout.hidden = true; return; }
+  const room = state.playOnline.room;
+  const resolve = s => {
+    const zones = room.board.zonesByPlayer[s.connectionId];
+    if (!zones) return null;
+    if (s.instanceId) {
+      const unit = zones.board.find(u => u.instanceId === s.instanceId) || zones.battlefield.find(u => u.instanceId === s.instanceId);
+      return unit ? { ...s, cardId: unit.cardId, exhausted: unit.exhausted, attachedToInstanceId: unit.attachedToInstanceId, isMine: s.connectionId === state.playOnline.myConnectionId } : null;
+    }
+    return { ...s, isMine: s.connectionId === state.playOnline.myConnectionId };
+  };
+  const primary = resolve(sel.primary);
+  if (!primary) { state.playOnline.selection = null; popout.hidden = true; return; } // it left play mid-selection
+  let secondary = sel.secondary ? resolve(sel.secondary) : null;
+  if (sel.secondary && !secondary) { state.playOnline.selection = { ...sel, secondary: null }; secondary = null; }
+
+  const ownerName = room.players.find(p => p.connectionId === primary.connectionId)?.name || "";
+  const rows = [`
+    <div class="po-popout-head">
+      <div class="po-popout-card">${poCardTile(primary.cardId, "lg")}<span>${poCardLabel(primary.cardId)}<em>${escapeHtml(ownerName)} · ${primary.zone}</em></span></div>
+      <button class="icon-btn" data-po-clear-selection title="Clear selection"><i data-icon="x"></i></button>
+    </div>`];
+
+  const isUnit = primary.zone === "board" || primary.zone === "battlefield";
+  if (primary.isMine && (primary.zone === "hand" || primary.zone === "trash" || primary.zone === "banishment")) {
+    rows.push(`<div class="po-popout-actions">${poMoveDestinations(primary.zone).map(([key, label]) => `<button class="command-btn quiet" data-po-act="move" data-po-move-zone="${key}">→ ${label}</button>`).join("")}</div>`);
+  }
+  if (primary.isMine && primary.zone === "base") {
+    rows.push(`<div class="po-popout-actions"><button class="command-btn quiet" data-po-act="recycle"><i data-icon="repeat"></i>Recycle for +1 Power</button></div>`);
+  }
+  if (isUnit) {
+    const unitActions = [];
+    if (primary.isMine) {
+      unitActions.push(`<button class="command-btn quiet" data-po-act="standard-move"><i data-icon="repeat"></i>Standard Move to ${primary.zone === "board" ? "a Battlefield" : "your Base"}</button>`);
+      unitActions.push(`<button class="command-btn quiet" data-po-act="toggle-ready">${primary.exhausted ? "Ready this unit" : "Exhaust this unit"}</button>`);
+      if (primary.attachedToInstanceId) unitActions.push(`<button class="command-btn quiet" data-po-act="detach">Detach</button>`);
+    }
+    if (unitActions.length) rows.push(`<div class="po-popout-actions">${unitActions.join("")}</div>`);
+    rows.push(`
+      <div class="po-popout-amount">
+        <input type="number" min="1" value="1" id="poPopoutAmount" />
+        <button class="command-btn quiet" data-po-act="damage"><i data-icon="alert-triangle"></i>Damage</button>
+        <button class="command-btn quiet" data-po-act="heal"><i data-icon="heart"></i>Heal</button>
+      </div>`);
+  }
+
+  if (secondary) {
+    const secOwnerName = room.players.find(p => p.connectionId === secondary.connectionId)?.name || "";
+    const secIsUnit = secondary.zone === "board" || secondary.zone === "battlefield";
+    const pairActions = [];
+    if (isUnit && secIsUnit) pairActions.push(`<button class="command-btn gold" data-po-act="combat"><i data-icon="shield"></i>Resolve Combat</button>`);
+    if (isUnit && secIsUnit && primary.isMine) pairActions.push(`<button class="command-btn gold" data-po-act="attach">Attach to this</button>`);
+    rows.push(`
+      <div class="po-popout-secondary">Second: <b>${poCardLabel(secondary.cardId)}</b> <em>${escapeHtml(secOwnerName)}</em></div>
+      ${pairActions.length ? `<div class="po-popout-actions">${pairActions.join("")}</div>` : `<p class="settings-hint">No action connects these two.</p>`}`);
+  } else {
+    rows.push(`<p class="settings-hint">Select a second card for Combat or Attach.</p>`);
+  }
+
+  popout.innerHTML = rows.join("");
+  popout.hidden = false;
+  popout.classList.toggle("po-popout-left", sel.side === "left");
+  popout.classList.toggle("po-popout-right", sel.side !== "left");
+  renderIcons(popout);
+}
+
+async function poHandlePopoutMove(toZone) {
+  const sel = state.playOnline.selection?.primary;
+  if (!sel) return;
+  state.playOnline.selection = null;
+  poRenderActionPopout();
+  await poMoveCard(sel.cardId, sel.zone, toZone).catch(err => toast(err.message, true));
+}
+
+async function poHandlePopoutAction(act) {
+  const sel = state.playOnline.selection;
+  if (!sel) return;
+  const primary = sel.primary;
+  const amount = Number(document.getElementById("poPopoutAmount")?.value) || 0;
+  state.playOnline.selection = null;
+  poRenderActionPopout();
+  try {
+    if (act === "standard-move") await poStandardMove(primary.instanceId, primary.zone === "board" ? "battlefield" : "board");
+    else if (act === "toggle-ready") await poToggleUnitReady(primary.instanceId);
+    else if (act === "detach") await poDetachCard(primary.instanceId);
+    else if (act === "recycle") await poRecycleRune(primary.cardId);
+    else if (act === "damage" && amount > 0) await poDealDamage(primary.instanceId, amount);
+    else if (act === "heal" && amount > 0) await poHealUnit(primary.instanceId, amount);
+    else if (act === "combat" && sel.secondary) await poResolveCombat(primary.instanceId, sel.secondary.instanceId);
+    else if (act === "attach" && sel.secondary) await poAttachCard(primary.instanceId, sel.secondary.instanceId);
+  } catch (err) { toast(err.message, true); }
+}
+
+// --- Battlefield Setup (Core Rule 486.4.a/486.5): each player is dealt 3 candidates when the match
+// starts and must pick exactly one before their Battlefield Zone has anything in it. Rendered as a
+// state-driven overlay (visible whenever the viewer's own zones still have pending choices) rather
+// than an imperative show/hide modal, so it reappears correctly across seat switches in Solo mode. ---
+function poRenderBattlefieldOverlay(myZones) {
+  const overlay = document.getElementById("poBattlefieldOverlay");
+  const choices = myZones?.battlefieldChoices;
+  if (!choices || !choices.length) { overlay.hidden = true; overlay.innerHTML = ""; return; }
+  overlay.hidden = false;
+  overlay.innerHTML = `
+    <div class="po-bf-panel">
+      <h2>Choose Your Battlefield</h2>
+      <p class="settings-hint">Pick one of your three Battlefields for this game. You can't change it once picked - you'll get a fresh choice next game.</p>
+      <div class="po-bf-choices">
+        ${choices.map(id => `
+          <button class="po-bf-choice" data-po-choose-battlefield="${escapeHtml(id)}">
+            ${poCardTile(id, "lg")}
+            <span>${poCardLabel(id)}</span>
+          </button>`).join("")}
+      </div>
+    </div>`;
+  renderIcons(overlay);
+}
+
+async function poSelectBattlefield(cardId) {
+  const result = await state.playOnline.connection.invoke("SelectBattlefield", state.playOnline.room.roomCode, cardId);
+  if (!result.ok) toast(result.error || "Could not select that Battlefield.", true);
+}
+
+// --- Trash/Banishment: shown as a single top-card preview + count on the board (they used to be a
+// full always-expanded row, which ate a lot of vertical space for zones you rarely need to see in
+// full) - click it to view the whole zone in a modal. Both players' Trash/Banishment are public
+// information (Core Rule 108.1.a), so anyone can open anyone's. ---
+function poZoneCompact(cards, label, cls, connectionId) {
+  const top = cards.length ? cards[cards.length - 1] : null;
+  return `
+    <div class="po-zone po-zone-compact po-zone-${cls}">
+      <span class="po-zone-label">${label} <b>${cards.length}</b></span>
+      <button class="po-zone-preview" data-po-view-zone="${escapeHtml(connectionId)}|${cls}" ${cards.length ? "" : "disabled"} title="View ${label}">
+        ${top ? poCardTile(top, "sm") : `<span class="po-zone-empty">—</span>`}
+        ${cards.length > 1 ? `<span class="po-zone-more">+${cards.length - 1}</span>` : ""}
+      </button>
+    </div>`;
+}
+
+function poShowZoneModal(connectionId, cls) {
+  const room = state.playOnline.room;
+  const zones = room.board.zonesByPlayer[connectionId];
+  const player = room.players.find(p => p.connectionId === connectionId);
+  const cards = cls === "trash" ? zones?.trash : zones?.banishment;
+  const label = cls === "trash" ? "Trash" : "Banishment";
+  const isMine = connectionId === state.playOnline.myConnectionId;
+  document.getElementById("poZoneModalTitle").textContent = `${escapeHtml(player?.name || "")}'s ${label}`;
+  document.getElementById("poZoneModalBody").innerHTML = (cards || []).length
+    ? `<div class="po-zone-modal-grid">${cards.map(id => `
+        <div class="po-zone-modal-card${poSelClass(connectionId, cls, id)}"${isMine ? ` data-po-select-conn="${escapeHtml(connectionId)}" data-po-select-zone="${cls}" data-po-select-card="${escapeHtml(id)}"` : ""}>
+          ${poCardTile(id, "lg")}<span>${poCardLabel(id)}</span>
+        </div>`).join("")}</div>`
+    : `<p class="settings-hint">Empty.</p>`;
+  showModal("poZoneModal");
+  renderIcons(document.getElementById("poZoneModalBody"));
 }
 
 function poRenderRoom() {
@@ -3200,6 +3412,8 @@ function poRenderRoom() {
   document.getElementById("poPassTurnBtn").disabled = room.board.activePlayerConnectionId !== state.playOnline.myConnectionId;
 
   const me = room.players.find(p => p.connectionId === state.playOnline.myConnectionId);
+  const myZones = room.board.zonesByPlayer[state.playOnline.myConnectionId];
+  poRenderBattlefieldOverlay(myZones);
   const matchStarted = room.players.some(p => room.board.zonesByPlayer[p.connectionId]);
   const canStart = !matchStarted && room.players.length >= 2 && room.players.every(p => p.ready && p.deckId);
   const startBtn = document.getElementById("poStartMatchBtn");
@@ -3234,7 +3448,8 @@ function poRenderRoom() {
         <div class="po-card-row">${cards.length ? cards.map(id => poCardTile(id, "sm")).join("") : `<span class="po-zone-empty">—</span>`}</div>
       </div>`;
     // Board/Battlefield hold unit instances (Core Rule 415 Ready/Exhausted state), not bare card
-    // ids - exhausted units are dimmed and rotated, and the caller can click their own to toggle it.
+    // ids - exhausted units are dimmed and rotated. Selectable (see poHandleCardClick) rather than
+    // carrying their own icon buttons - the popout shows whatever actions apply once selected.
     const unitRow = (units, label, zoneKey, cls = "") => `
       <div class="po-zone po-zone-${cls || label.toLowerCase().replace(/\s+/g, "-")}">
         <span class="po-zone-label">${label} <b>${units.length}</b></span>
@@ -3242,21 +3457,13 @@ function poRenderRoom() {
           const might = cardsById.get(u.cardId)?.might;
           const attachedToCard = u.attachedToInstanceId ? unitCardIdByInstance[u.attachedToInstanceId] : null;
           const slotTitle = attachedToCard ? `Attached to ${poCardLabel(attachedToCard)}` : (u.exhausted ? "Exhausted" : "Ready");
-          const moveTarget = zoneKey === "board" ? "battlefield" : "board";
           return `
-          <span class="po-unit-slot${u.exhausted ? " po-unit-exhausted" : ""}${attachedToCard ? " po-unit-attached" : ""}"${isMe ? ` data-po-toggle-ready="${escapeHtml(u.instanceId)}" title="${slotTitle}${isMe ? " - click to toggle ready" : ""}"` : ` title="${slotTitle}"`}>
+          <span class="po-unit-slot${u.exhausted ? " po-unit-exhausted" : ""}${attachedToCard ? " po-unit-attached" : ""}${poSelClass(player.connectionId, zoneKey, u.instanceId)}" data-po-select-conn="${escapeHtml(player.connectionId)}" data-po-select-zone="${zoneKey}" data-po-select-instance="${escapeHtml(u.instanceId)}" title="${slotTitle}">
             ${poCardTile(u.cardId, "sm")}
             ${u.damage || might != null ? `<b class="po-unit-damage${u.damage ? " po-unit-damage-marked" : ""}">${u.damage}${might != null ? `/${might}` : ""}</b>` : ""}
-            ${isMe && u.attachedToInstanceId ? `<button class="icon-btn po-unit-detach" data-po-detach="${escapeHtml(u.instanceId)}" title="Detach"><i data-icon="x"></i></button>` : ""}
-            ${isMe && !u.exhausted ? `<button class="icon-btn po-unit-move" data-po-standard-move="${escapeHtml(u.instanceId)}" data-po-move-to="${moveTarget}" title="Standard Move to ${moveTarget === "battlefield" ? "a Battlefield" : "your Base"} (exhausts this unit)"><i data-icon="repeat"></i></button>` : ""}
           </span>`;
         }).join("") : `<span class="po-zone-empty">—</span>`}</div>
       </div>`;
-    // Every one of the caller's own cards, tagged with which zone it's currently in, so the move
-    // tool's single dropdown can address any of them without a separate control per zone.
-    const myMovableCards = isMe && zones ? PO_MOVABLE_ZONES.flatMap(([key, label]) =>
-      (key === "board" || key === "battlefield" ? zones[key].map(u => u.cardId) : zones[key] || [])
-        .map(cardId => ({ cardId, key, label }))) : [];
     const legendCard = zones?.legendCardId ? cardsById.get(zones.legendCardId) : null;
     const legendImg = legendCard && cardImage(legendCard);
     const might = legendCard?.might;
@@ -3311,7 +3518,7 @@ function poRenderRoom() {
           </select>
           <button class="command-btn${player.ready ? " quiet" : " gold"}" data-po-ready="${!player.ready}" ${player.deckId ? "" : "disabled"}>${player.ready ? "Not Ready" : "Ready Up"}</button>
         ` : `<p class="settings-hint">${player.deckId ? "Deck selected." : "Choosing a deck..."}</p>`) : `
-          ${zones.battlefieldCards.length ? cardRow(zones.battlefieldCards, "Battlefields") : ""}
+          ${zones.battlefieldCards.length ? cardRow(zones.battlefieldCards, "Battlefield") : ""}
           <div class="po-battlefield">
             <button class="po-pile po-pile-main"${isMe && zones.mainDeckCount ? " data-po-draw" : " disabled"} title="Main Deck — ${isMe ? "click for an extra draw (1 is automatic at the start of your turn)" : `${zones.mainDeckCount} left`}">
               <i data-icon="layers"></i><span class="po-pile-count">${zones.mainDeckCount}</span>
@@ -3325,78 +3532,42 @@ function poRenderRoom() {
             </button>
           </div>
           <div class="po-zone po-zone-base">
-            <span class="po-zone-label">Base <b>${zones.base.length}</b>${isMe ? ` <em>${Math.max(0, zones.base.length - zones.exhaustedRuneCount)} ready</em>` : ""}</span>
-            <div class="po-card-row">
-              ${zones.base.length ? zones.base.map(id => `
-                <div class="po-rune-slot">
+            <div class="po-zone-base-head">
+              <span class="po-zone-label">Base <b>${zones.base.length}</b>${isMe ? ` <em>${Math.max(0, zones.base.length - zones.exhaustedRuneCount)} ready</em>` : ""}</span>
+              ${isMe ? `<button class="command-btn quiet" data-po-exhaust ${zones.base.length - zones.exhaustedRuneCount > 0 ? "" : "disabled"}><i data-icon="dollar"></i>Exhaust for +1 Energy</button>` : ""}
+            </div>
+            <div class="po-card-row po-base-row">
+              ${zones.base.length ? zones.base.map((id, idx) => `
+                <div class="po-rune-slot${idx >= zones.base.length - zones.exhaustedRuneCount ? " po-rune-exhausted" : ""}${poSelClass(player.connectionId, "base", id)}" data-po-select-conn="${escapeHtml(player.connectionId)}" data-po-select-zone="base" data-po-select-card="${escapeHtml(id)}">
                   ${poCardTile(id, "sm")}
-                  ${isMe ? `<button class="icon-btn po-rune-recycle" data-po-recycle="${escapeHtml(id)}" title="Recycle for +1 Power"><i data-icon="repeat"></i></button>` : ""}
                 </div>`).join("") : `<span class="po-zone-empty">—</span>`}
             </div>
-            ${isMe ? `<button class="command-btn quiet" data-po-exhaust ${zones.base.length - zones.exhaustedRuneCount > 0 ? "" : "disabled"}><i data-icon="dollar"></i>Exhaust a Rune for +1 Energy</button>` : ""}
           </div>
           <div class="po-side-row">
-            ${cardRow(zones.trash, "Trash")}
-            ${cardRow(zones.banishment, "Banishment")}
+            ${poZoneCompact(zones.trash, "Trash", "trash", player.connectionId)}
+            ${poZoneCompact(zones.banishment, "Banishment", "banishment", player.connectionId)}
           </div>
           ${isMe ? `
             <div class="po-hand-row">
               <span class="po-zone-label">Hand <b>${(zones.hand || []).length}</b></span>
-              <div class="po-card-row po-hand-cards">${(zones.hand || []).map(id => poHandTile(id, zones.counters.Energy || 0)).join("") || `<span class="po-zone-empty">—</span>`}</div>
+              <div class="po-card-row po-hand-cards">${(zones.hand || []).map(id => poHandTile(id, zones.counters.Energy || 0, player.connectionId, poSelClass(player.connectionId, "hand", id))).join("") || `<span class="po-zone-empty">—</span>`}</div>
             </div>
-          ` : `<div class="po-zone-label po-hand-count">Hand <b>${zones.handCount}</b></div>`}
+          ` : `
+            <div class="po-hand-row">
+              <span class="po-zone-label">Hand <b>${zones.handCount}</b></span>
+              <div class="po-card-row po-hand-cards">${zones.handCount ? poHandBack(zones.handCount) : `<span class="po-zone-empty">—</span>`}</div>
+            </div>
+          `}
           ${isMe ? `
-            <details class="po-actions">
-              <summary>Actions</summary>
-              ${myMovableCards.length ? `
-                <div class="po-move-tool">
-                  <select id="poMoveCard-${escapeHtml(player.connectionId)}">
-                    ${myMovableCards.map(c => `<option value="${escapeHtml(c.cardId)}|${c.key}">${poCardLabel(c.cardId)} — ${c.label}</option>`).join("")}
-                  </select>
-                  <select id="poMoveTo-${escapeHtml(player.connectionId)}">
-                    ${PO_MOVABLE_ZONES.map(([key, label]) => `<option value="${key}">→ ${label}</option>`).join("")}
-                  </select>
-                  <button class="command-btn quiet" data-po-move="${escapeHtml(player.connectionId)}">Move</button>
-                </div>` : ""}
-              ${poAllUnits(room).length ? `
-                <div class="po-move-tool">
-                  <select id="poDamageTarget-${escapeHtml(player.connectionId)}">
-                    ${poAllUnits(room).map(u => `<option value="${escapeHtml(u.instanceId)}">${escapeHtml(u.ownerName)} — ${poCardLabel(u.cardId)} (${u.damage}${u.might != null ? `/${u.might}` : ""})</option>`).join("")}
-                  </select>
-                  <input id="poDamageAmount-${escapeHtml(player.connectionId)}" type="number" min="1" value="1" />
-                  <button class="command-btn quiet" data-po-deal-damage="${escapeHtml(player.connectionId)}"><i data-icon="alert-triangle"></i>Damage</button>
-                  <button class="command-btn quiet" data-po-heal="${escapeHtml(player.connectionId)}"><i data-icon="heart"></i>Heal</button>
-                </div>` : ""}
-              ${zones && (zones.board.length || zones.battlefield.length) && poAllUnits(room).length > 1 ? `
-                <div class="po-move-tool">
-                  <select id="poCombatAttacker-${escapeHtml(player.connectionId)}">
-                    ${[...zones.board, ...zones.battlefield].map(u => `<option value="${escapeHtml(u.instanceId)}">${poCardLabel(u.cardId)} (${cardsById.get(u.cardId)?.might ?? "?"} Might)</option>`).join("")}
-                  </select>
-                  <select id="poCombatDefender-${escapeHtml(player.connectionId)}">
-                    ${poAllUnits(room).filter(u => u.ownerConnectionId !== player.connectionId).map(u => `<option value="${escapeHtml(u.instanceId)}">${escapeHtml(u.ownerName)} — ${poCardLabel(u.cardId)} (${u.might ?? "?"} Might)</option>`).join("")}
-                  </select>
-                  <button class="command-btn quiet" data-po-resolve-combat="${escapeHtml(player.connectionId)}">Resolve Combat</button>
-                </div>` : ""}
-              ${zones && (zones.board.length || zones.battlefield.length) && poAllUnits(room).length > 1 ? `
-                <div class="po-move-tool">
-                  <select id="poAttachCard-${escapeHtml(player.connectionId)}">
-                    ${[...zones.board, ...zones.battlefield].map(u => `<option value="${escapeHtml(u.instanceId)}">${poCardLabel(u.cardId)}</option>`).join("")}
-                  </select>
-                  <select id="poAttachTarget-${escapeHtml(player.connectionId)}">
-                    ${poAllUnits(room).map(u => `<option value="${escapeHtml(u.instanceId)}">→ ${escapeHtml(u.ownerName)} — ${poCardLabel(u.cardId)}</option>`).join("")}
-                  </select>
-                  <button class="command-btn quiet" data-po-attach="${escapeHtml(player.connectionId)}">Attach</button>
-                </div>` : ""}
-              <div class="po-add-counter">
-                <input id="poNewCounterName-${escapeHtml(player.connectionId)}" type="text" placeholder="New counter (e.g. Life)" autocomplete="off" />
-                <button class="command-btn" data-po-add-counter="${escapeHtml(player.connectionId)}">Add</button>
-                ${counters.map(([n]) => `
-                  <span class="po-counter-edit"><span>${escapeHtml(n)}</span>
-                    <button class="icon-btn" data-po-counter-delta="-1" data-po-counter-name="${escapeHtml(n)}">−</button>
-                    <button class="icon-btn" data-po-counter-delta="1" data-po-counter-name="${escapeHtml(n)}">+</button>
-                  </span>`).join("")}
-              </div>
-            </details>` : ""}
+            <div class="po-add-counter">
+              <input id="poNewCounterName-${escapeHtml(player.connectionId)}" type="text" placeholder="New counter (e.g. Life)" autocomplete="off" />
+              <button class="command-btn" data-po-add-counter="${escapeHtml(player.connectionId)}">Add</button>
+              ${counters.map(([n]) => `
+                <span class="po-counter-edit"><span>${escapeHtml(n)}</span>
+                  <button class="icon-btn" data-po-counter-delta="-1" data-po-counter-name="${escapeHtml(n)}">−</button>
+                  <button class="icon-btn" data-po-counter-delta="1" data-po-counter-name="${escapeHtml(n)}">+</button>
+                </span>`).join("")}
+            </div>` : ""}
         `}
         </div>
       </div>`;
@@ -3409,6 +3580,7 @@ function poRenderRoom() {
     <div class="po-board-mine">${room.players.map((p, i) => p.connectionId === state.playOnline.myConnectionId ? playerCards[i] : "").join("")}</div>
   `;
   renderIcons(document.getElementById("poBoard"));
+  poRenderActionPopout();
 }
 
 function renderChangelog(notes) {
@@ -5185,6 +5357,31 @@ function wireEvents() {
   document.getElementById("poStartMatchBtn").addEventListener("click", () => poStartMatch().catch(err => toast(err.message, true)));
   document.getElementById("poPassTurnBtn").addEventListener("click", () => poPassTurn().catch(err => toast(err.message, true)));
   document.getElementById("poLeaveRoomBtn").addEventListener("click", poLeaveRoom);
+  document.getElementById("poBattlefieldOverlay").addEventListener("click", event => {
+    const button = event.target.closest("[data-po-choose-battlefield]");
+    if (button) poSelectBattlefield(button.dataset.poChooseBattlefield).catch(err => toast(err.message, true));
+  });
+  document.getElementById("poActionPopout").addEventListener("click", event => {
+    if (event.target.closest("[data-po-clear-selection]")) { state.playOnline.selection = null; poRenderActionPopout(); return; }
+    const moveBtn = event.target.closest("[data-po-move-zone]");
+    if (moveBtn) { poHandlePopoutMove(moveBtn.dataset.poMoveZone); return; }
+    const actBtn = event.target.closest("[data-po-act]");
+    if (actBtn) poHandlePopoutAction(actBtn.dataset.poAct);
+  });
+  // The Trash/Banishment zone-viewer modal doubles as a selection surface for your own cards in
+  // those zones (there's no room for it in the compact board preview) - reuses the exact same
+  // data-po-select-* contract and poHandleCardClick the board itself uses.
+  document.getElementById("poZoneModalBody").addEventListener("click", event => {
+    const selectable = event.target.closest("[data-po-select-conn]");
+    if (!selectable) return;
+    poHandleCardClick({
+      connectionId: selectable.dataset.poSelectConn,
+      zone: selectable.dataset.poSelectZone,
+      cardId: selectable.dataset.poSelectCard || undefined,
+      instanceId: selectable.dataset.poSelectInstance || undefined,
+    }, event);
+    closeModal("poZoneModal");
+  });
   document.getElementById("poBoard").addEventListener("click", event => {
     const readyBtn = event.target.closest("[data-po-ready]");
     if (readyBtn) { poReadyUp(readyBtn.dataset.poReady === "true").catch(err => toast(err.message, true)); return; }
@@ -5204,52 +5401,22 @@ function wireEvents() {
     if (playBtn) { poPlayCard(playBtn.dataset.poPlay).catch(err => toast(err.message, true)); return; }
     const scoreBtn = event.target.closest("[data-po-score-delta]");
     if (scoreBtn) { poAdjustScore(Number(scoreBtn.dataset.poScoreDelta)).catch(err => toast(err.message, true)); return; }
-    const recycleBtn = event.target.closest("[data-po-recycle]");
-    if (recycleBtn) { poRecycleRune(recycleBtn.dataset.poRecycle).catch(err => toast(err.message, true)); return; }
-    const detachBtn = event.target.closest("[data-po-detach]");
-    if (detachBtn) { poDetachCard(detachBtn.dataset.poDetach).catch(err => toast(err.message, true)); return; }
-    const standardMoveBtn = event.target.closest("[data-po-standard-move]");
-    if (standardMoveBtn) { poStandardMove(standardMoveBtn.dataset.poStandardMove, standardMoveBtn.dataset.poMoveTo).catch(err => toast(err.message, true)); return; }
-    const readyToggle = event.target.closest("[data-po-toggle-ready]");
-    if (readyToggle) { poToggleUnitReady(readyToggle.dataset.poToggleReady).catch(err => toast(err.message, true)); return; }
-    const damageBtn = event.target.closest("[data-po-deal-damage]");
-    if (damageBtn) {
-      const targetSelect = document.getElementById(`poDamageTarget-${damageBtn.dataset.poDealDamage}`);
-      const amountInput = document.getElementById(`poDamageAmount-${damageBtn.dataset.poDealDamage}`);
-      const amount = Number(amountInput?.value);
-      if (targetSelect?.value && amount > 0) poDealDamage(targetSelect.value, amount).catch(err => toast(err.message, true));
+    const viewZoneBtn = event.target.closest("[data-po-view-zone]");
+    if (viewZoneBtn) {
+      const [connId, cls] = viewZoneBtn.dataset.poViewZone.split("|");
+      poShowZoneModal(connId, cls);
       return;
     }
-    const healBtn = event.target.closest("[data-po-heal]");
-    if (healBtn) {
-      const targetSelect = document.getElementById(`poDamageTarget-${healBtn.dataset.poHeal}`);
-      const amountInput = document.getElementById(`poDamageAmount-${healBtn.dataset.poHeal}`);
-      const amount = Number(amountInput?.value);
-      if (targetSelect?.value && amount > 0) poHealUnit(targetSelect.value, amount).catch(err => toast(err.message, true));
-      return;
-    }
-    const combatBtn = event.target.closest("[data-po-resolve-combat]");
-    if (combatBtn) {
-      const attackerSelect = document.getElementById(`poCombatAttacker-${combatBtn.dataset.poResolveCombat}`);
-      const defenderSelect = document.getElementById(`poCombatDefender-${combatBtn.dataset.poResolveCombat}`);
-      if (attackerSelect?.value && defenderSelect?.value) poResolveCombat(attackerSelect.value, defenderSelect.value).catch(err => toast(err.message, true));
-      return;
-    }
-    const attachBtn = event.target.closest("[data-po-attach]");
-    if (attachBtn) {
-      const cardSelect = document.getElementById(`poAttachCard-${attachBtn.dataset.poAttach}`);
-      const targetSelect = document.getElementById(`poAttachTarget-${attachBtn.dataset.poAttach}`);
-      if (cardSelect?.value && targetSelect?.value) poAttachCard(cardSelect.value, targetSelect.value).catch(err => toast(err.message, true));
-      return;
-    }
-    const moveBtn = event.target.closest("[data-po-move]");
-    if (moveBtn) {
-      const cardSelect = document.getElementById(`poMoveCard-${moveBtn.dataset.poMove}`);
-      const toSelect = document.getElementById(`poMoveTo-${moveBtn.dataset.poMove}`);
-      if (cardSelect?.value && toSelect?.value) {
-        const [cardId, fromZone] = cardSelect.value.split("|");
-        poMoveCard(cardId, fromZone, toSelect.value).catch(err => toast(err.message, true));
-      }
+    // Selecting a card (yours, or - for Damage/Heal/Combat targeting - anyone's) drives the
+    // contextual action popout instead of a bunch of always-there dropdowns; see poHandleCardClick.
+    const selectable = event.target.closest("[data-po-select-conn]");
+    if (selectable) {
+      poHandleCardClick({
+        connectionId: selectable.dataset.poSelectConn,
+        zone: selectable.dataset.poSelectZone,
+        cardId: selectable.dataset.poSelectCard || undefined,
+        instanceId: selectable.dataset.poSelectInstance || undefined,
+      }, event);
     }
   });
   document.getElementById("poBoard").addEventListener("change", event => {

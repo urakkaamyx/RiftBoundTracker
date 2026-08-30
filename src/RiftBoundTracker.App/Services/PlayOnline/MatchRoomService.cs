@@ -163,8 +163,9 @@ public sealed class MatchRoomService(DeckLegalityService legality)
                 if (!decksByConnection.TryGetValue(player.ConnectionId, out var deck)) continue;
                 var zones = room.Board.GetOrAddZones(player.ConnectionId);
                 zones.LegendCardId = deck.Cards.FirstOrDefault(c => c.Card.Type == "Legend")?.CardId;
-                // Core Rule 113: each player sets aside their Battlefields at Setup.
-                zones.BattlefieldCards.AddRange(Expand(deck.Cards.Where(c => c.Card.Type == "Battlefield")));
+                // Core Rule 486.4.a/486.5: each player is dealt their 3 Battlefields at Setup and
+                // picks one via SelectBattlefield below - BattlefieldCards stays empty until then.
+                zones.BattlefieldChoices.AddRange(Expand(deck.Cards.Where(c => c.Card.Type == "Battlefield")));
 
                 var main = Expand(deck.Cards.Where(c => c.Section == "main" && c.Card.Type is not ("Legend" or "Rune" or "Battlefield")));
                 var runes = Expand(deck.Cards.Where(c => c.Card.Type == "Rune"));
@@ -180,6 +181,28 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             AddLog(room, connectionId, "started the match.");
             RunStartOfTurn(room, room.HostConnectionId);
             return (true, null);
+        }
+    }
+
+    /// <summary>
+    /// Core Rule 486.5's Setup choice: picks one of the 3 dealt Battlefield candidates as the one
+    /// actually used this game, discarding the other two (they're simply never added anywhere -
+    /// 486.5 says they're "set aside", and this engine has no multi-game Match/Bo3 structure yet for
+    /// them to be re-offered in a later game of the same match, so there's nowhere for them to go).
+    /// Can only be called once per game - BattlefieldChoices is empty afterward, so a second call
+    /// finds nothing to pick from and fails, matching "cannot change your selected battlefield during
+    /// a game."
+    /// </summary>
+    public bool SelectBattlefield(MatchRoom room, string connectionId, string cardId)
+    {
+        lock (_lock)
+        {
+            var zones = room.Board.GetOrAddZones(connectionId);
+            if (!zones.BattlefieldChoices.Remove(cardId)) return false;
+            zones.BattlefieldChoices.Clear();
+            zones.BattlefieldCards.Add(cardId);
+            AddLog(room, connectionId, "chose their Battlefield.");
+            return true;
         }
     }
 
@@ -575,6 +598,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
                     Board: kv.Value.Board.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted, u.Damage, u.AttachedToInstanceId)).ToList(),
                     Battlefield: kv.Value.Battlefield.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted, u.Damage, u.AttachedToInstanceId)).ToList(),
                     BattlefieldCards: [..kv.Value.BattlefieldCards],
+                    BattlefieldChoices: kv.Key == viewerConnectionId ? [..kv.Value.BattlefieldChoices] : null,
                     Trash: [..kv.Value.Trash],
                     Banishment: [..kv.Value.Banishment],
                     LegendCardId: kv.Value.LegendCardId,

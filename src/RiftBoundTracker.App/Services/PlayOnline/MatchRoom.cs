@@ -27,14 +27,17 @@ public sealed class PlayerZones
     // same-named unit need to be distinguishable, which a plain List<string> of card ids can't do.
     public List<UnitInstance> Board { get; } = [];
     public List<UnitInstance> Battlefield { get; } = [];
-    // The player's own Battlefield cards, set aside at Setup (Core Rule 113) - previously silently
-    // dropped entirely, since StartMatch filtered Battlefield-type cards out of the Main Deck and
-    // never put them anywhere. Static reference objects, not Permanents (Core Rule 170.3/170.4:
-    // cannot be Killed or Moved), so a plain id list is correct - no Ready/Exhausted/Damage state.
-    // This does not yet model Battlefields as discrete locations units can move to and contest -
-    // that's real future work; this only stops the card-count bug. Named distinctly from Battlefield
-    // above (the zone units currently sit in) to avoid confusing the two.
+    // The player's chosen Battlefield for this game - Core Rule 486.5 (1v1 Match): each player is
+    // dealt 3 Battlefield candidates at Setup (see BattlefieldChoices below) and picks exactly one;
+    // the other two are set aside for the rest of THIS game (not shown, not usable). At most 1 item.
+    // Static reference objects, not Permanents (Core Rule 170.3/170.4: cannot be Killed or Moved), so
+    // a plain id list is correct - no Ready/Exhausted/Damage state. This does not yet model
+    // Battlefields as discrete locations units can move to and contest - that's real future work.
     public List<string> BattlefieldCards { get; } = [];
+    // The 3 candidates dealt at Setup, before the player has chosen one - Secret Information until
+    // chosen (only the owner should see what their unchosen options were), cleared once
+    // BattlefieldCards is set. See MatchRoomService.SelectBattlefield.
+    public List<string> BattlefieldChoices { get; } = [];
     public List<string> Trash { get; } = [];
     public List<string> Banishment { get; } = [];
     // Channeled runes sitting in this player's Base - Public Information per Core Rule 107.1.d.

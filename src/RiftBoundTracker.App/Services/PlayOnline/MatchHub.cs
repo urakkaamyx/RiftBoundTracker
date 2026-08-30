@@ -115,6 +115,15 @@ public sealed class MatchHub(MatchRoomService rooms, EmulatorAccessService acces
         return new HubResult(true, null);
     }
 
+    public async Task<HubResult> SelectBattlefield(string roomCode, string cardId)
+    {
+        var room = rooms.GetRoom(roomCode);
+        if (room is null) return new HubResult(false, "Room not found.");
+        if (!rooms.SelectBattlefield(room, Context.ConnectionId, cardId)) return new HubResult(false, "Could not select that Battlefield.");
+        await BroadcastAsync(room);
+        return new HubResult(true, null);
+    }
+
     public async Task<HubResult> StandardMove(string roomCode, string instanceId, string toZone)
     {
         var room = rooms.GetRoom(roomCode);

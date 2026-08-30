@@ -3057,7 +3057,7 @@ function poRenderRoom() {
 
   const deckOptions = state.decks.map(deck => `<option value="${deck.id}">${escapeHtml(deck.name)}</option>`).join("");
 
-  document.getElementById("poBoard").innerHTML = room.players.map(player => {
+  const playerCards = room.players.map(player => {
     const zones = room.board.zonesByPlayer[player.connectionId];
     const isMe = player.connectionId === state.playOnline.myConnectionId;
     const isActiveTurn = player.connectionId === room.board.activePlayerConnectionId;
@@ -3074,7 +3074,7 @@ function poRenderRoom() {
     const legend = zones?.legendCardId ? poCardTile(zones.legendCardId, "legend") : "";
 
     return `
-      <div class="po-player-card${isActiveTurn ? " po-active-turn" : ""}${isMe ? " po-mine" : ""}">
+      <div class="po-player-card${isActiveTurn ? " po-active-turn" : ""}${isMe ? " po-mine" : " po-opponent"}">
         <div class="po-player-head">
           ${legend}
           <div class="po-player-id">
@@ -3157,7 +3157,14 @@ function poRenderRoom() {
             </div>` : ""}
         `}
       </div>`;
-  }).join("");
+  });
+  // The opponent(s) sit across the table, upside down, at the top; your own side is always the
+  // right-way-up row at the bottom - the same convention the physical/reference layout uses, so
+  // "your side of the table" reads instantly instead of everyone looking like a flat list.
+  document.getElementById("poBoard").innerHTML = `
+    <div class="po-board-opponents">${room.players.map((p, i) => p.connectionId === state.playOnline.myConnectionId ? "" : playerCards[i]).join("")}</div>
+    <div class="po-board-mine">${room.players.map((p, i) => p.connectionId === state.playOnline.myConnectionId ? playerCards[i] : "").join("")}</div>
+  `;
   renderIcons(document.getElementById("poBoard"));
 }
 

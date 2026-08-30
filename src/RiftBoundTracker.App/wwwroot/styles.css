@@ -1147,7 +1147,13 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-share-box .connection-url { flex: 1; }
 
 /* ---- Emulator battlefield ---- */
-.po-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; }
+/* Across-the-table layout: opponent(s) upside down at the top, your own side right-way up at the
+   bottom - matches how the physical/reference board reads at a glance instead of a flat list. */
+.po-board { display: flex; flex-direction: column; gap: 22px; }
+.po-board-opponents { display: flex; gap: 16px; }
+.po-board-opponents:empty { display: none; }
+.po-board-opponents .po-player-card { flex: 1; min-width: 360px; transform: rotate(180deg); }
+.po-board-mine .po-player-card { max-width: 640px; margin: 0 auto; }
 .po-player-card {
   padding: 18px; border: 1px solid var(--border-soft); border-radius: 12px;
   background: radial-gradient(120% 140% at 15% 0%, color-mix(in srgb, var(--accent) 7%, var(--panel)) 0%, var(--panel) 55%);

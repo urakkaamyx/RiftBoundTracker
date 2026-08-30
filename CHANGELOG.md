@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.29.4 — Emulator: across-the-table layout, Spells go to the Trash
+
+- The board is no longer a side-by-side split — your opponent's side sits upside down at the top of the table, and your own side is right-way up at the bottom, same as sitting across a real table from them.
+- Playing a Spell now sends it to the Trash once it resolves instead of leaving it on the Board — Units and Gear still stay in play.
+
 ## v1.29.3 — Emulator: Playing a card actually costs Energy, plus Score
 
 - Hand cards now have a real Play button showing their Energy cost — playing one pays that cost out of your current Energy and moves it to Board, and it's disabled (with a reason) when you can't afford it yet. The old free drag-to-Board move no longer works for Hand specifically, since that's Playing a Card, not a shuffle between zones.

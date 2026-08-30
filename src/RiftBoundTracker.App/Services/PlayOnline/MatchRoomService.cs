@@ -244,12 +244,14 @@ public sealed class MatchRoomService(DeckLegalityService legality)
     }
 
     /// <summary>
-    /// Core Rule 349, Playing a Card - moves a card from Hand to Board, paying its printed Energy
-    /// cost out of the caller's Rune Pool first. Takes the cost as a parameter rather than looking
-    /// the card up itself - same captive-dependency shape as SelectDeck/StartMatch, MatchHub (with
-    /// its own scoped AppDbContext) resolves the card and hands the cost in.
+    /// Core Rule 349, Playing a Card - pays the card's printed Energy cost out of the caller's Rune
+    /// Pool, then moves it from Hand to wherever it actually ends up: a Spell finishes executing and
+    /// goes straight to the Trash (Core Rule 108.2.b), everything else (Unit, Gear, ...) is a
+    /// Permanent and stays on the Board. Takes the cost/type as parameters rather than looking the
+    /// card up itself - same captive-dependency shape as SelectDeck/StartMatch, MatchHub (with its
+    /// own scoped AppDbContext) resolves the card and hands them in.
     /// </summary>
-    public (bool Ok, string? Error) PlayCard(MatchRoom room, string connectionId, string cardId, int energyCost)
+    public (bool Ok, string? Error) PlayCard(MatchRoom room, string connectionId, string cardId, int energyCost, string? cardType)
     {
         lock (_lock)
         {
@@ -259,7 +261,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             if (available < energyCost) return (false, $"Not enough Energy - have {available}, need {energyCost}.");
             zones.Hand.Remove(cardId);
             zones.Counters["Energy"] = available - energyCost;
-            zones.Board.Add(cardId);
+            (cardType == "Spell" ? zones.Trash : zones.Board).Add(cardId);
             return (true, null);
         }
     }

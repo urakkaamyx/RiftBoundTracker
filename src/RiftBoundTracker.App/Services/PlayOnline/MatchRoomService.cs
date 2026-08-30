@@ -102,10 +102,11 @@ public sealed class MatchRoomService(DeckLegalityService legality)
         lock (_lock)
         {
             if (room.Board.ActivePlayerConnectionId != connectionId) return; // only the active player can pass
-            // Core Rule 143.3.b.1: damage heals off at the end of each player's own turn.
+            // Core Rule 143.3.b.1: damage heals off at the end of each player's own turn, wherever
+            // their units are - their own Board, or any Battlefield they've got units sitting at.
             var endingZones = room.Board.GetOrAddZones(connectionId);
             foreach (var unit in endingZones.Board) unit.Damage = 0;
-            foreach (var unit in endingZones.Battlefield) unit.Damage = 0;
+            foreach (var unit in ControlledBattlefieldUnits(room, connectionId)) unit.Damage = 0;
             var order = room.Players.Select(p => p.ConnectionId).ToList();
             var currentIndex = order.IndexOf(connectionId);
             room.Board.ActivePlayerConnectionId = order[(currentIndex + 1) % order.Count];
@@ -189,6 +190,9 @@ public sealed class MatchRoomService(DeckLegalityService legality)
     /// actually used this game, discarding the other two (they're simply never added anywhere -
     /// 486.5 says they're "set aside", and this engine has no multi-game Match/Bo3 structure yet for
     /// them to be re-offered in a later game of the same match, so there's nowhere for them to go).
+    /// The chosen card goes into the SHARED Battlefield Zone (BoardState.Battlefields), not anything
+    /// per-player - "The selected Battlefields are placed simultaneously in the Battlefield Zone"
+    /// (singular), and either player's units can be At either Battlefield once play starts.
     /// Can only be called once per game - BattlefieldChoices is empty afterward, so a second call
     /// finds nothing to pick from and fails, matching "cannot change your selected battlefield during
     /// a game."
@@ -200,11 +204,16 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             var zones = room.Board.GetOrAddZones(connectionId);
             if (!zones.BattlefieldChoices.Remove(cardId)) return false;
             zones.BattlefieldChoices.Clear();
-            zones.BattlefieldCards.Add(cardId);
+            room.Board.Battlefields.Add(new BattlefieldSlot { CardId = cardId, OwnerConnectionId = connectionId });
             AddLog(room, connectionId, "chose their Battlefield.");
             return true;
         }
     }
+
+    /// <summary>Every unit `connectionId` currently controls at any shared Battlefield - used
+    /// wherever "ready/heal all my stuff" needs to reach past the caller's own Board.</summary>
+    private static IEnumerable<UnitInstance> ControlledBattlefieldUnits(MatchRoom room, string connectionId) =>
+        room.Board.Battlefields.SelectMany(b => b.Units).Where(u => u.ControllerConnectionId == connectionId);
 
     /// <summary>
     /// Core Rules 315.1/315.3/315.4 for the player whose turn is beginning: their runes AND every
@@ -218,7 +227,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
         var zones = room.Board.GetOrAddZones(connectionId);
         zones.ExhaustedRuneCount = 0;
         foreach (var unit in zones.Board) unit.Exhausted = false;
-        foreach (var unit in zones.Battlefield) unit.Exhausted = false;
+        foreach (var unit in ControlledBattlefieldUnits(room, connectionId)) unit.Exhausted = false;
         zones.Counters.Remove("Energy");
         zones.Counters.Remove("Power");
         var channeled = 0;
@@ -312,7 +321,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             zones.Hand.Remove(cardId);
             zones.Counters["Energy"] = available - energyCost;
             if (cardType == "Spell") zones.Trash.Add(cardId);
-            else zones.Board.Add(new UnitInstance { InstanceId = Guid.NewGuid().ToString("N"), CardId = cardId });
+            else zones.Board.Add(new UnitInstance { InstanceId = Guid.NewGuid().ToString("N"), CardId = cardId, ControllerConnectionId = connectionId });
             AddLog(room, connectionId, $"played {cardName ?? "a card"}.");
             return (true, null);
         }
@@ -322,40 +331,33 @@ public sealed class MatchRoomService(DeckLegalityService legality)
     {
         ["hand"] = z => z.Hand, ["trash"] = z => z.Trash, ["banishment"] = z => z.Banishment,
     };
-    private static readonly Dictionary<string, Func<PlayerZones, List<UnitInstance>>> UnitZones = new()
-    {
-        ["board"] = z => z.Board, ["battlefield"] = z => z.Battlefield,
-    };
 
     /// <summary>
     /// The one generic, manual zone-to-zone move Phase 1 offers in place of automating every
     /// specific action (Discard, Banish, Return...) - the plan's explicit "no card-specific
     /// automation yet" scope. MainDeck/RuneDeck are deliberately not reachable here; they only move
     /// via DrawCard/ChannelRune so a face-down zone's order can't be picked through by hand. Hand to
-    /// Board specifically is excluded too - that's Playing a Card (see PlayCard above), which has a
-    /// cost to pay, not a free move. Board/Battlefield are unit-instance zones (see UnitInstance) so
-    /// moving into one wraps the plain card id into a fresh ready instance, and moving out of one
-    /// unwraps it back down to a plain card id - the instance's own identity (and Exhausted state)
-    /// doesn't survive leaving the board, same as a real unit ceasing to exist once it's not a
-    /// Permanent anymore.
+    /// Board is excluded too - that's Playing a Card (PlayCard above), which has a cost to pay, not
+    /// a free move. Board itself is reachable (wraps the plain card id into a fresh ready instance,
+    /// or unwraps one back down to a plain id when leaving it - the instance's own identity and
+    /// Exhausted state don't survive leaving the board). A Battlefield is NOT reachable through this
+    /// generic tool at all - since there can be more than one in play, "move to battlefield" needs
+    /// to say WHICH one, which a same-shaped-for-every-zone tool like this can't express; that's
+    /// StandardMove below (Board Battlefield) instead.
     /// </summary>
     public bool MoveCard(MatchRoom room, string connectionId, string cardId, string fromZone, string toZone)
     {
         lock (_lock)
         {
-            if (fromZone == "hand" && toZone is "board" or "battlefield") return false; // Playing a Card (PlayCard) or not a legal destination
-            // Core Rule 144.2: moving between Base (Board) and a Battlefield costs Exhausting the
-            // unit - that's StandardMove below, not a free move through this generic tool.
-            if ((fromZone == "board" && toZone == "battlefield") || (fromZone == "battlefield" && toZone == "board")) return false;
+            if (fromZone == "hand" && toZone == "board") return false; // Playing a Card (PlayCard), not a free move
             var zones = room.Board.GetOrAddZones(connectionId);
 
             string movedCardId;
-            if (UnitZones.TryGetValue(fromZone, out var fromUnits))
+            if (fromZone == "board")
             {
-                var list = fromUnits(zones);
-                var unit = list.FirstOrDefault(u => u.CardId == cardId);
+                var unit = zones.Board.FirstOrDefault(u => u.CardId == cardId);
                 if (unit is null) return false;
-                list.Remove(unit);
+                zones.Board.Remove(unit);
                 movedCardId = unit.CardId;
                 DetachAllPointingTo(room, unit.InstanceId); // Core Rule 719.5
             }
@@ -366,8 +368,8 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             }
             else return false;
 
-            if (UnitZones.TryGetValue(toZone, out var toUnits))
-                toUnits(zones).Add(new UnitInstance { InstanceId = Guid.NewGuid().ToString("N"), CardId = movedCardId });
+            if (toZone == "board")
+                zones.Board.Add(new UnitInstance { InstanceId = Guid.NewGuid().ToString("N"), CardId = movedCardId, ControllerConnectionId = connectionId });
             else if (MovableZones.TryGetValue(toZone, out var to))
                 to(zones).Add(movedCardId);
             else return false;
@@ -383,23 +385,38 @@ public sealed class MatchRoomService(DeckLegalityService legality)
     /// Unlike the free generic MoveCard, this enforces the actual cost and precondition: only a
     /// Ready unit can pay it, and it arrives at the destination already Exhausted, matching how
     /// paying a Cost works everywhere else in this engine (compare PlayCard's Energy cost).
+    /// `battlefieldOwnerConnectionId` picks WHICH Battlefield (Core Rule 486.4: up to 2 in a 1v1) -
+    /// required when moving there, ignored (there's only ever one destination - your own Board)
+    /// when moving back.
     /// </summary>
-    public bool StandardMove(MatchRoom room, string connectionId, string instanceId, string toZone)
+    public bool StandardMove(MatchRoom room, string connectionId, string instanceId, string toZone, string? battlefieldOwnerConnectionId)
     {
         lock (_lock)
         {
-            if (toZone is not ("board" or "battlefield")) return false;
-            var fromZone = toZone == "board" ? "battlefield" : "board";
             var zones = room.Board.GetOrAddZones(connectionId);
-            var fromList = fromZone == "board" ? zones.Board : zones.Battlefield;
-            var toList = toZone == "board" ? zones.Board : zones.Battlefield;
-            var unit = fromList.FirstOrDefault(u => u.InstanceId == instanceId);
-            if (unit is null || unit.Exhausted) return false;
-            fromList.Remove(unit);
-            unit.Exhausted = true;
-            toList.Add(unit);
-            AddLog(room, connectionId, $"moved a unit to {(toZone == "battlefield" ? "a Battlefield" : "their Base")} (exhausting it).");
-            return true;
+            if (toZone == "battlefield")
+            {
+                var slot = room.Board.Battlefields.FirstOrDefault(b => b.OwnerConnectionId == battlefieldOwnerConnectionId);
+                var unit = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId);
+                if (slot is null || unit is null || unit.Exhausted) return false;
+                zones.Board.Remove(unit);
+                unit.Exhausted = true;
+                slot.Units.Add(unit);
+                AddLog(room, connectionId, "moved a unit to a Battlefield (exhausting it).");
+                return true;
+            }
+            if (toZone == "board")
+            {
+                var slot = room.Board.Battlefields.FirstOrDefault(b => b.Units.Any(u => u.InstanceId == instanceId && u.ControllerConnectionId == connectionId));
+                var unit = slot?.Units.FirstOrDefault(u => u.InstanceId == instanceId);
+                if (unit is null || unit.Exhausted) return false;
+                slot!.Units.Remove(unit);
+                unit.Exhausted = true;
+                zones.Board.Add(unit);
+                AddLog(room, connectionId, "moved a unit to their Base (exhausting it).");
+                return true;
+            }
+            return false;
         }
     }
 
@@ -412,23 +429,28 @@ public sealed class MatchRoomService(DeckLegalityService legality)
         {
             var zones = room.Board.GetOrAddZones(connectionId);
             var unit = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId)
-                ?? zones.Battlefield.FirstOrDefault(u => u.InstanceId == instanceId);
+                ?? ControlledBattlefieldUnits(room, connectionId).FirstOrDefault(u => u.InstanceId == instanceId);
             if (unit is null) return false;
             unit.Exhausted = !unit.Exhausted;
             return true;
         }
     }
 
-    /// <summary>Card id of any unit on the board, regardless of who controls it - used by the caller
-    /// (MatchHub) to resolve the target's Might before calling DealDamage, since this service has no
-    /// card-database access of its own.</summary>
+    /// <summary>Card id of any unit anywhere in play - your own Board, anyone's, or any shared
+    /// Battlefield - used by the caller (MatchHub) to resolve the target's Might before calling
+    /// DealDamage, since this service has no card-database access of its own.</summary>
     public string? FindUnitCardId(MatchRoom room, string instanceId)
     {
         lock (_lock)
         {
             foreach (var zones in room.Board.ZonesByPlayer.Values)
             {
-                var unit = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId) ?? zones.Battlefield.FirstOrDefault(u => u.InstanceId == instanceId);
+                var unit = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId);
+                if (unit is not null) return unit.CardId;
+            }
+            foreach (var slot in room.Board.Battlefields)
+            {
+                var unit = slot.Units.FirstOrDefault(u => u.InstanceId == instanceId);
                 if (unit is not null) return unit.CardId;
             }
             return null;
@@ -474,25 +496,33 @@ public sealed class MatchRoomService(DeckLegalityService legality)
 
     private bool MarkDamageAndMaybeKill(MatchRoom room, string connectionId, string instanceId, int amount, int? might)
     {
+        UnitInstance? unit = null;
+        List<UnitInstance>? containingList = null;
         foreach (var zones in room.Board.ZonesByPlayer.Values)
         {
-            var fromBoard = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId);
-            var fromBattlefield = fromBoard is null ? zones.Battlefield.FirstOrDefault(u => u.InstanceId == instanceId) : null;
-            var unit = fromBoard ?? fromBattlefield;
-            if (unit is null) continue;
-
-            unit.Damage += amount;
-            AddLog(room, connectionId, $"dealt {amount} damage to a unit ({unit.Damage} marked).");
-            if (might is int m && unit.Damage >= m)
-            {
-                (fromBoard is not null ? zones.Board : zones.Battlefield).Remove(unit);
-                zones.Trash.Add(unit.CardId);
-                DetachAllPointingTo(room, unit.InstanceId);
-                AddLog(room, connectionId, "killed that unit with lethal damage.");
-            }
-            return true;
+            unit = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId);
+            if (unit is not null) { containingList = zones.Board; break; }
         }
-        return false;
+        if (unit is null)
+            foreach (var slot in room.Board.Battlefields)
+            {
+                unit = slot.Units.FirstOrDefault(u => u.InstanceId == instanceId);
+                if (unit is not null) { containingList = slot.Units; break; }
+            }
+        if (unit is null) return false;
+
+        unit.Damage += amount;
+        AddLog(room, connectionId, $"dealt {amount} damage to a unit ({unit.Damage} marked).");
+        if (might is int m && unit.Damage >= m)
+        {
+            containingList!.Remove(unit);
+            // Core Rule 428.1.a.2: a Killed unit goes to its CONTROLLER's Trash - not whoever dealt
+            // the damage, and not tied to which list it was removed from once that list is shared.
+            room.Board.GetOrAddZones(unit.ControllerConnectionId).Trash.Add(unit.CardId);
+            DetachAllPointingTo(room, unit.InstanceId);
+            AddLog(room, connectionId, "killed that unit with lethal damage.");
+        }
+        return true;
     }
 
     /// <summary>Core Rule 418, Heal - clears marked Damage from a unit (never below 0). Same manual,
@@ -501,46 +531,48 @@ public sealed class MatchRoomService(DeckLegalityService legality)
     {
         lock (_lock)
         {
-            foreach (var zones in room.Board.ZonesByPlayer.Values)
-            {
-                var unit = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId) ?? zones.Battlefield.FirstOrDefault(u => u.InstanceId == instanceId);
-                if (unit is null) continue;
-                unit.Damage = Math.Max(0, unit.Damage - amount);
-                AddLog(room, connectionId, $"healed {amount} damage from a unit ({unit.Damage} marked).");
-                return true;
-            }
-            return false;
+            var unit = AnyUnit(room, instanceId);
+            if (unit is null) return false;
+            unit.Damage = Math.Max(0, unit.Damage - amount);
+            AddLog(room, connectionId, $"healed {amount} damage from a unit ({unit.Damage} marked).");
+            return true;
         }
     }
 
+    /// <summary>Any unit anywhere in play, regardless of who controls it or which Battlefield (if
+    /// any) it's at - the shared lookup behind Heal/Attach's "any unit" targeting.</summary>
+    private static UnitInstance? AnyUnit(MatchRoom room, string instanceId) =>
+        room.Board.ZonesByPlayer.Values.Select(z => z.Board.FirstOrDefault(u => u.InstanceId == instanceId)).FirstOrDefault(u => u is not null)
+        ?? room.Board.Battlefields.Select(b => b.Units.FirstOrDefault(u => u.InstanceId == instanceId)).FirstOrDefault(u => u is not null);
+
     /// <summary>Core Rule 719.5: when a Top-Most Card leaves the board, everything Attached to it
-    /// Detaches and stays where it is - always called right after removing a unit from Board or
+    /// Detaches and stays where it is - always called right after removing a unit from Board or a
     /// Battlefield, from within the same lock. Attached cards can have a different Controller than
-    /// their Top-Most card (718.5.e), so this has to search every player's zones, not just the
-    /// Top-Most card's own controller.</summary>
+    /// their Top-Most card (718.5.e), so this has to search every player's Board AND every shared
+    /// Battlefield, not just the Top-Most card's own controller.</summary>
     private static void DetachAllPointingTo(MatchRoom room, string topMostInstanceId)
     {
         foreach (var zones in room.Board.ZonesByPlayer.Values)
-        {
             foreach (var unit in zones.Board.Where(u => u.AttachedToInstanceId == topMostInstanceId)) unit.AttachedToInstanceId = null;
-            foreach (var unit in zones.Battlefield.Where(u => u.AttachedToInstanceId == topMostInstanceId)) unit.AttachedToInstanceId = null;
-        }
+        foreach (var slot in room.Board.Battlefields)
+            foreach (var unit in slot.Units.Where(u => u.AttachedToInstanceId == topMostInstanceId)) unit.AttachedToInstanceId = null;
     }
 
-    /// <summary>Core Rules 717-719, Attaching - links a Gear (or any card) to a Top-Most Card in the
-    /// same zone. No Might Bonus math or ability-text appending happens here (that needs the
+    /// <summary>Core Rules 717-719, Attaching - links a Gear (or any card) to a Top-Most Card
+    /// anywhere in play. No Might Bonus math or ability-text appending happens here (that needs the
     /// card-effect execution this engine doesn't have) - this only tracks the structural
-    /// relationship, which is itself real, checkable game state (718.5.b, 719.3).</summary>
+    /// relationship, which is itself real, checkable game state (718.5.b, 719.3). The attaching card
+    /// must be yours (your Board or a Battlefield unit you control); the target can be anyone's.</summary>
     public bool AttachCard(MatchRoom room, string connectionId, string cardInstanceId, string targetInstanceId)
     {
         lock (_lock)
         {
             if (cardInstanceId == targetInstanceId) return false;
             var zones = room.Board.GetOrAddZones(connectionId);
-            var card = zones.Board.FirstOrDefault(u => u.InstanceId == cardInstanceId) ?? zones.Battlefield.FirstOrDefault(u => u.InstanceId == cardInstanceId);
+            var card = zones.Board.FirstOrDefault(u => u.InstanceId == cardInstanceId)
+                ?? ControlledBattlefieldUnits(room, connectionId).FirstOrDefault(u => u.InstanceId == cardInstanceId);
             if (card is null) return false;
-            var targetExists = room.Board.ZonesByPlayer.Values.Any(z => z.Board.Any(u => u.InstanceId == targetInstanceId) || z.Battlefield.Any(u => u.InstanceId == targetInstanceId));
-            if (!targetExists) return false;
+            if (AnyUnit(room, targetInstanceId) is null) return false;
             card.AttachedToInstanceId = targetInstanceId;
             AddLog(room, connectionId, "attached a card to another.");
             return true;
@@ -552,7 +584,8 @@ public sealed class MatchRoomService(DeckLegalityService legality)
         lock (_lock)
         {
             var zones = room.Board.GetOrAddZones(connectionId);
-            var unit = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId) ?? zones.Battlefield.FirstOrDefault(u => u.InstanceId == instanceId);
+            var unit = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId)
+                ?? ControlledBattlefieldUnits(room, connectionId).FirstOrDefault(u => u.InstanceId == instanceId);
             if (unit?.AttachedToInstanceId is null) return false;
             unit.AttachedToInstanceId = null;
             AddLog(room, connectionId, "detached a card.");
@@ -595,9 +628,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
                     RuneDeckCount: kv.Value.RuneDeck.Count,
                     Base: [..kv.Value.Base],
                     ExhaustedRuneCount: kv.Value.ExhaustedRuneCount,
-                    Board: kv.Value.Board.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted, u.Damage, u.AttachedToInstanceId)).ToList(),
-                    Battlefield: kv.Value.Battlefield.Select(u => new UnitInstanceView(u.InstanceId, u.CardId, u.Exhausted, u.Damage, u.AttachedToInstanceId)).ToList(),
-                    BattlefieldCards: [..kv.Value.BattlefieldCards],
+                    Board: kv.Value.Board.Select(ToUnitView).ToList(),
                     BattlefieldChoices: kv.Key == viewerConnectionId ? [..kv.Value.BattlefieldChoices] : null,
                     Trash: [..kv.Value.Trash],
                     Banishment: [..kv.Value.Banishment],
@@ -605,13 +636,19 @@ public sealed class MatchRoomService(DeckLegalityService legality)
                     ChampionCardId: kv.Value.ChampionCardId,
                     Score: kv.Value.Score,
                     Counters: new Dictionary<string, int>(kv.Value.Counters)));
+            var battlefieldsView = room.Board.Battlefields
+                .Select(b => new BattlefieldSlotView(b.CardId, b.OwnerConnectionId, b.Units.Select(ToUnitView).ToList()))
+                .ToList();
             return new RoomView(
                 room.RoomCode,
                 room.Players.Select(p => new PlayerView(p.ConnectionId, p.Name, p.IsHost, p.Ready, p.DeckId)).ToList(),
-                new BoardStateView(room.Board.TurnNumber, room.Board.ActivePlayerConnectionId, zonesView),
+                new BoardStateView(room.Board.TurnNumber, room.Board.ActivePlayerConnectionId, zonesView, battlefieldsView),
                 room.Log.Select(l => new LogEntryView(l.At, l.Message)).ToList());
         }
     }
+
+    private static UnitInstanceView ToUnitView(UnitInstance u) =>
+        new(u.InstanceId, u.CardId, u.ControllerConnectionId, u.Exhausted, u.Damage, u.AttachedToInstanceId);
 
     private static string GenerateRoomCode() =>
         new(Enumerable.Range(0, 5).Select(_ => CodeAlphabet[Random.Shared.Next(CodeAlphabet.Length)]).ToArray());

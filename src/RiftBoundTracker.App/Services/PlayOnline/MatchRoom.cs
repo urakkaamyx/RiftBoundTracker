@@ -21,22 +21,14 @@ public sealed class PlayerZones
     public List<string> MainDeck { get; } = [];
     public List<string> RuneDeck { get; } = [];
     public List<string> Hand { get; } = [];
-    // Board/Battlefield are the only zones tracking per-object state (Ready/Exhausted, Core Rule
-    // 415/416-adjacent) rather than a bare card id - a unit's readiness is real game state that
-    // several Keywords (Accelerate, Equip, Weaponmaster...) check or change, and two copies of the
-    // same-named unit need to be distinguishable, which a plain List<string> of card ids can't do.
+    // Board is this player's own Base (Core Rule 107.1.d) - private to their control, tracking
+    // per-object state (Ready/Exhausted) since several Keywords check or change it and two copies
+    // of the same-named unit need to be distinguishable, which a plain List<string> can't do.
+    // "At a Battlefield" is NOT here - see BoardState.Battlefields below.
     public List<UnitInstance> Board { get; } = [];
-    public List<UnitInstance> Battlefield { get; } = [];
-    // The player's chosen Battlefield for this game - Core Rule 486.5 (1v1 Match): each player is
-    // dealt 3 Battlefield candidates at Setup (see BattlefieldChoices below) and picks exactly one;
-    // the other two are set aside for the rest of THIS game (not shown, not usable). At most 1 item.
-    // Static reference objects, not Permanents (Core Rule 170.3/170.4: cannot be Killed or Moved), so
-    // a plain id list is correct - no Ready/Exhausted/Damage state. This does not yet model
-    // Battlefields as discrete locations units can move to and contest - that's real future work.
-    public List<string> BattlefieldCards { get; } = [];
     // The 3 candidates dealt at Setup, before the player has chosen one - Secret Information until
-    // chosen (only the owner should see what their unchosen options were), cleared once
-    // BattlefieldCards is set. See MatchRoomService.SelectBattlefield.
+    // chosen (only the owner should see what their unchosen options were), cleared once chosen.
+    // See MatchRoomService.SelectBattlefield, which moves the pick into BoardState.Battlefields.
     public List<string> BattlefieldChoices { get; } = [];
     public List<string> Trash { get; } = [];
     public List<string> Banishment { get; } = [];
@@ -54,11 +46,28 @@ public sealed class PlayerZones
     public Dictionary<string, int> Counters { get; } = [];
 }
 
+/// <summary>
+/// One Battlefield actually in play this game (Core Rule 486.5: "The selected Battlefields are
+/// placed simultaneously in the Battlefield Zone" - singular, shared zone, not one per player).
+/// Keyed by which player picked it (OwnerConnectionId) since Core Rule 486.4 gives 1v1 exactly one
+/// Battlefield per player (Battlefield Count: 2) - that's a stable, unambiguous address for it, and
+/// simpler than inventing a separate slot id. Units from EITHER player can be Units here at once;
+/// each tracks its own ControllerConnectionId since list membership alone can't say whose it is
+/// anymore the way PlayerZones.Board's list membership still does.
+/// </summary>
+public sealed class BattlefieldSlot
+{
+    public required string CardId { get; init; }
+    public required string OwnerConnectionId { get; init; }
+    public List<UnitInstance> Units { get; } = [];
+}
+
 public sealed class BoardState
 {
     public int TurnNumber { get; set; } = 1;
     public string? ActivePlayerConnectionId { get; set; }
     public Dictionary<string, PlayerZones> ZonesByPlayer { get; } = [];
+    public List<BattlefieldSlot> Battlefields { get; } = [];
 
     public PlayerZones GetOrAddZones(string connectionId) =>
         ZonesByPlayer.TryGetValue(connectionId, out var zones) ? zones : ZonesByPlayer[connectionId] = new PlayerZones();
@@ -94,6 +103,11 @@ public sealed class UnitInstance
 {
     public required string InstanceId { get; init; }
     public required string CardId { get; init; }
+    // Redundant while sitting in PlayerZones.Board (list membership already says whose it is), but
+    // required once a unit is at a shared Battlefield (BoardState.Battlefields), where units from
+    // both players can sit in the same list. Set on every unit regardless of zone, for one uniform
+    // "whose is this" check everywhere instead of two different rules depending on zone.
+    public required string ControllerConnectionId { get; init; }
     public bool Exhausted { get; set; }
     // Core Rule 142: Damage is a marked value, not a permanent reduction to Might - it's compared
     // against the unit's Might to check Lethal Damage (142.4.a), and heals off at specific times

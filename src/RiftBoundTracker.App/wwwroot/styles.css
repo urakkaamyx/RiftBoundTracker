@@ -97,6 +97,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .app-shell.sidebar-collapsed .sidebar-footer b { display: none; }
 .app-shell.sidebar-collapsed .sidebar-bug-btn { justify-content: center; padding: 8px; }
 .app-shell.sidebar-collapsed .sidebar-footer { justify-content: center; }
+/* The board wants the whole screen while a game is actually being played - RiftCode field, theme
+   toggle and Connect button are setup-time controls with nothing to do once you're in a room. */
+.app-shell.sidebar-collapsed .topbar { display: none; }
 .sidebar { position: sticky; top: 0; height: 100vh; z-index: 30; display: flex; flex-direction: column; background: var(--sidebar); border-right: 1px solid var(--border-soft); overflow: hidden; }
 
 .primary-nav { display: flex; flex-direction: column; gap: 3px; padding: 14px 10px 8px; }
@@ -979,6 +982,10 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .card-context-menu { position: fixed; z-index: 250; width: 232px; padding: 5px; border: 1px solid var(--border); border-radius: 7px; background: var(--panel); box-shadow: 0 18px 48px rgba(0,0,0,.46); }
 .deck-row-popup { position: fixed; z-index: 400; width: 260px; pointer-events: none; overflow: hidden; border: 1px solid var(--gold); border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,.5); }
 .deck-row-popup img { display: block; width: 100%; aspect-ratio: 744 / 1039; object-fit: cover; }
+/* Battlefields are printed in a wide format - a standalone preview (unlike the uniform-grid card
+   tiles) has no reason to force it into a portrait box, so it just goes wide instead, same as
+   .inspector-card-art.landscape does for the single-card detail view. */
+.deck-row-popup.deck-row-popup--landscape img { aspect-ratio: 1039 / 744; }
 .deck-row-popup.deck-row-popup--list { width: 240px; max-height: 90vh; overflow-y: auto; background: var(--panel); padding: 7px 9px; }
 .cost-breakdown-popup { display: flex; flex-direction: column; gap: 1px; }
 .cost-breakdown-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 1.5px 0; }
@@ -1169,6 +1176,19 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-board-opponents:empty { display: none; padding: 0; box-shadow: none; background: none; }
 .po-board-opponents .po-player-card { flex: 1; min-width: 300px; min-height: 0; transform: rotate(180deg); }
 .po-board-mine .po-player-card { width: 100%; }
+
+/* Core Rule 486.5: the Battlefield Zone is shared between both players, not one per player - a
+   compact strip between the two boards rather than duplicated inside each player's own card.
+   flex:none so it takes only the room its content needs, leaving the two boards flex:1 as before. */
+.po-shared-battlefield { flex: none; display: flex; gap: 8px; padding: 4px 6px; }
+.po-bf-slot { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 3px 6px; border: 1px solid var(--border-soft); border-radius: 8px; background: color-mix(in srgb, var(--panel) 80%, transparent); }
+.po-bf-slot-card { flex: none; display: flex; align-items: center; gap: 5px; }
+.po-bf-slot-card span { display: flex; flex-direction: column; font: 700 10px var(--font); max-width: 90px; }
+.po-bf-slot-card em { color: var(--faint); font: 600 8px var(--mono); text-transform: uppercase; letter-spacing: .04em; font-style: normal; }
+.po-bf-units { flex: 1; min-height: 0; border-style: dashed; }
+/* Whose unit is whose, at a glance, since both players' units can share one Battlefield. */
+.po-unit-mine { box-shadow: 0 0 0 1px var(--gold); }
+.po-unit-theirs { box-shadow: 0 0 0 1px var(--accent); }
 .po-player-card {
   padding: 3px; border-radius: 16px; display: flex; gap: 0; position: relative; overflow: visible; min-height: 0;
   background:
@@ -1351,16 +1371,15 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-add-counter input { width: 110px; height: 22px; font-size: 10px; }
 .po-counter-edit { display: flex; align-items: center; gap: 3px; padding: 2px 2px 2px 6px; border: 1px solid var(--border); border-radius: 20px; font-size: 9px; color: var(--muted); }
 
-/* The contextual action popout: select a card and this appears docked to whichever side of the
-   screen has more room (see poHandleCardClick's clientX check), instead of a permanently-visible
-   or collapsed-behind-a-<details> block of dropdowns. */
+/* The contextual action popout: select a card and this appears docked right beside it, flipping
+   to whichever side has room (see poPositionPopout, which sets top/left directly) - not a
+   permanently-visible or collapsed-behind-a-<details> block of dropdowns. */
 .po-action-popout {
-  position: fixed; top: 90px; width: 220px; max-height: calc(100vh - 140px); overflow-y: auto; z-index: 40;
+  position: fixed; width: 220px; max-height: calc(100vh - 140px); overflow-y: auto; z-index: 40;
   display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 10px;
   border: 1px solid var(--gold-soft); background: var(--panel); box-shadow: 0 18px 40px -12px rgba(0,0,0,.6);
 }
-.po-popout-right { right: 16px; }
-.po-popout-left { left: 16px; }
+.po-action-popout[hidden] { display: none; }
 .po-popout-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
 .po-popout-card { display: flex; align-items: center; gap: 8px; }
 .po-popout-card > .po-card-art, .po-popout-card > .po-card-chip { flex: none; }

@@ -1446,6 +1446,10 @@ function showDeckRowPopup(cardId, event) {
   const card = cardsById.get(cardId);
   if (!card) return;
   const popup = document.getElementById("deckRowPopup");
+  // Battlefields are printed sideways on their physical card - same rotate-to-upright treatment
+  // as the deck grid/inspector/price queue (see .landscape elsewhere in styles.css), so the text
+  // reads right-side up here too instead of running along the popup's short edge.
+  popup.classList.toggle("deck-row-popup--landscape", card.orientation === "landscape");
   popup.innerHTML = `<img src="${escapeHtml(cardImage(card))}" alt="" />`;
   popup.hidden = false;
   positionDeckRowPopup(event);
@@ -2846,8 +2850,9 @@ async function loadPlayOnline() {
 function poShowView(view) {
   document.getElementById("poLobby").hidden = view !== "lobby";
   document.getElementById("poRoom").hidden = view !== "room";
-  // The board wants the room, not the file cabinet - collapse the sidebar to icons only while it's
-  // showing, same as RiftAtlas's own borderless table. Restored the moment you leave the room.
+  // The board wants the room, not the file cabinet - collapse the sidebar to icons only and hide
+  // the topbar entirely (RiftCode/theme/Connect are setup-time controls) while it's showing, same
+  // as RiftAtlas's own borderless table. Restored the moment you leave the room.
   document.querySelector(".app-shell").classList.toggle("sidebar-collapsed", view === "room");
 }
 
@@ -3093,8 +3098,8 @@ async function poHealUnit(instanceId, amount) {
   if (!result.ok) toast(result.error || "Could not heal that unit.", true);
 }
 
-async function poStandardMove(instanceId, toZone) {
-  const result = await state.playOnline.connection.invoke("StandardMove", state.playOnline.room.roomCode, instanceId, toZone);
+async function poStandardMove(instanceId, toZone, battlefieldOwnerConnectionId) {
+  const result = await state.playOnline.connection.invoke("StandardMove", state.playOnline.room.roomCode, instanceId, toZone, battlefieldOwnerConnectionId ?? null);
   if (!result.ok) toast(result.error || "Could not make that move.", true);
 }
 
@@ -3143,8 +3148,11 @@ function poLeaveRoom() {
 // Zones a player can freely move their own cards between via the generic MoveCard action - kept
 // in sync with MatchRoomService.MovableZones server-side (MainDeck/RuneDeck are deliberately
 // excluded there too, since they're face-down and only move via DrawCard/ChannelRune).
+// Battlefield is deliberately absent here - it's not reachable through the generic Move tool since
+// there can be more than one in play (see poMoveDestinations/MatchRoomService.MoveCard); getting a
+// unit there is always the costed Standard Move, which asks which Battlefield.
 const PO_MOVABLE_ZONES = [
-  ["hand", "Hand"], ["board", "Board"], ["battlefield", "Battlefield"],
+  ["hand", "Hand"], ["board", "Board"],
   ["trash", "Trash"], ["banishment", "Banishment"],
 ];
 
@@ -3185,14 +3193,18 @@ function poHandBack(count) {
   return Array.from({ length: count }, () => `<div class="po-card-art po-card-art-lg po-card-back"></div>`).join("");
 }
 
-// Every unit any player controls, across Board and Battlefield alike - the pool Damage/Heal/Combat
-// can target, since those apply to any unit in play, not just your own.
+// Every unit in play - each player's own Board, plus every shared Battlefield's Units (Core Rule
+// 486.5: the Battlefield Zone is shared, not one per player) - used for "Attached to X" labels and
+// wherever a lookup needs to find a unit anywhere without caring whose Board/Battlefield it's on.
 function poAllUnits(room) {
-  return room.players.flatMap(p => {
+  const nameByConn = Object.fromEntries(room.players.map(p => [p.connectionId, p.name]));
+  const onBoard = room.players.flatMap(p => {
     const zones = room.board.zonesByPlayer[p.connectionId];
-    if (!zones) return [];
-    return [...zones.board, ...zones.battlefield].map(u => ({ ...u, ownerName: p.name, ownerConnectionId: p.connectionId, might: cardsById.get(u.cardId)?.might }));
+    return zones ? zones.board.map(u => ({ ...u, ownerName: p.name, ownerConnectionId: p.connectionId, might: cardsById.get(u.cardId)?.might })) : [];
   });
+  const atBattlefields = room.board.battlefields.flatMap(b =>
+    b.units.map(u => ({ ...u, ownerName: nameByConn[u.controllerConnectionId] || "", ownerConnectionId: u.controllerConnectionId, might: cardsById.get(u.cardId)?.might })));
+  return [...onBoard, ...atBattlefields];
 }
 
 // --- Card selection + the contextual action popout that replaces the old always-hidden, dropdown-
@@ -3218,9 +3230,49 @@ function poHandleCardClick(sel, event) {
     if (current.secondary && poSelKey(current.secondary) === key) { state.playOnline.selection = { ...current, secondary: null }; poRenderActionPopout(); return; }
     if (!current.secondary) { state.playOnline.selection = { ...current, secondary: sel }; poRenderActionPopout(); return; }
   }
-  const side = event.clientX < window.innerWidth / 2 ? "right" : "left";
-  state.playOnline.selection = { primary: sel, secondary: null, side };
+  // clickX/clickY are only a fallback anchor (see poPositionPopout) for when the primary card has
+  // no live element to measure against - e.g. it was picked from the Trash/Banishment modal, which
+  // closes itself the moment a card is selected.
+  state.playOnline.selection = { primary: sel, secondary: null, clickX: event.clientX, clickY: event.clientY };
   poRenderActionPopout();
+}
+
+// Finds the actual on-board element for a selection, if one is currently rendered - a Trash/
+// Banishment card selected from the zone-viewer modal has none (the board only shows a compact
+// top-card preview, not one element per card), so callers need to handle a null result.
+function poFindSelectableEl(sel) {
+  if (!sel) return null;
+  const esc = v => (window.CSS?.escape ? CSS.escape(v) : v);
+  const key = sel.instanceId ? `[data-po-select-instance="${esc(sel.instanceId)}"]` : `[data-po-select-card="${esc(sel.cardId)}"]`;
+  return document.querySelector(`#poBoard [data-po-select-conn="${esc(sel.connectionId)}"][data-po-select-zone="${esc(sel.zone)}"]${key}`);
+}
+
+// Docks the popout right next to whatever's actually selected, flipping to the other side when
+// there isn't room - not a fixed screen-corner position, so it reads as "here are this card's
+// actions" rather than a detached side panel.
+function poPositionPopout(popout, sel) {
+  const margin = 10;
+  const popW = popout.offsetWidth || 220;
+  const popH = popout.offsetHeight || 200;
+  const anchor = poFindSelectableEl(sel.primary);
+  let left, top, side;
+  if (anchor) {
+    const rect = anchor.getBoundingClientRect();
+    side = rect.right + margin + popW <= window.innerWidth - 8 ? "right" : "left";
+    left = side === "right" ? rect.right + margin : rect.left - margin - popW;
+    top = rect.top;
+  } else {
+    const cx = sel.clickX ?? window.innerWidth / 2, cy = sel.clickY ?? 100;
+    side = cx + margin + popW <= window.innerWidth - 8 ? "right" : "left";
+    left = side === "right" ? cx + margin : cx - margin - popW;
+    top = cy;
+  }
+  left = Math.max(8, Math.min(left, window.innerWidth - popW - 8));
+  top = Math.max(8, Math.min(top, window.innerHeight - popH - 8));
+  popout.style.left = `${left}px`;
+  popout.style.top = `${top}px`;
+  popout.classList.toggle("po-popout-left", side === "left");
+  popout.classList.toggle("po-popout-right", side === "right");
 }
 
 // Mirrors MatchRoomService.MoveCard's own allowed-combination checks exactly - Hand can't reach
@@ -3240,11 +3292,21 @@ function poRenderActionPopout() {
   const sel = state.playOnline.selection;
   if (!sel) { popout.hidden = true; return; }
   const room = state.playOnline.room;
+  // A Battlefield unit is looked up by instanceId alone (not connectionId) since it's shared - the
+  // "connectionId" a battlefield selection carries is actually the unit's controller, resolved here
+  // by finding the unit rather than assumed from the click target the way Board/Hand selections are.
   const resolve = s => {
+    if (s.zone === "battlefield") {
+      for (const slot of room.board.battlefields) {
+        const unit = slot.units.find(u => u.instanceId === s.instanceId);
+        if (unit) return { ...s, connectionId: unit.controllerConnectionId, cardId: unit.cardId, exhausted: unit.exhausted, attachedToInstanceId: unit.attachedToInstanceId, isMine: unit.controllerConnectionId === state.playOnline.myConnectionId };
+      }
+      return null;
+    }
     const zones = room.board.zonesByPlayer[s.connectionId];
     if (!zones) return null;
     if (s.instanceId) {
-      const unit = zones.board.find(u => u.instanceId === s.instanceId) || zones.battlefield.find(u => u.instanceId === s.instanceId);
+      const unit = zones.board.find(u => u.instanceId === s.instanceId);
       return unit ? { ...s, cardId: unit.cardId, exhausted: unit.exhausted, attachedToInstanceId: unit.attachedToInstanceId, isMine: s.connectionId === state.playOnline.myConnectionId } : null;
     }
     return { ...s, isMine: s.connectionId === state.playOnline.myConnectionId };
@@ -3271,7 +3333,13 @@ function poRenderActionPopout() {
   if (isUnit) {
     const unitActions = [];
     if (primary.isMine) {
-      unitActions.push(`<button class="command-btn quiet" data-po-act="standard-move"><i data-icon="repeat"></i>Standard Move to ${primary.zone === "board" ? "a Battlefield" : "your Base"}</button>`);
+      if (primary.zone === "board") {
+        // Core Rule 486.4: up to 2 Battlefields in play (1v1) - Standard Move has to say which one.
+        room.board.battlefields.forEach(slot => unitActions.push(
+          `<button class="command-btn quiet" data-po-act="standard-move" data-po-bf-owner="${escapeHtml(slot.ownerConnectionId)}"><i data-icon="repeat"></i>Move to ${poCardLabel(slot.cardId)}</button>`));
+      } else {
+        unitActions.push(`<button class="command-btn quiet" data-po-act="standard-move"><i data-icon="repeat"></i>Standard Move to your Base</button>`);
+      }
       unitActions.push(`<button class="command-btn quiet" data-po-act="toggle-ready">${primary.exhausted ? "Ready this unit" : "Exhaust this unit"}</button>`);
       if (primary.attachedToInstanceId) unitActions.push(`<button class="command-btn quiet" data-po-act="detach">Detach</button>`);
     }
@@ -3299,8 +3367,7 @@ function poRenderActionPopout() {
 
   popout.innerHTML = rows.join("");
   popout.hidden = false;
-  popout.classList.toggle("po-popout-left", sel.side === "left");
-  popout.classList.toggle("po-popout-right", sel.side !== "left");
+  poPositionPopout(popout, sel);
   renderIcons(popout);
 }
 
@@ -3312,7 +3379,7 @@ async function poHandlePopoutMove(toZone) {
   await poMoveCard(sel.cardId, sel.zone, toZone).catch(err => toast(err.message, true));
 }
 
-async function poHandlePopoutAction(act) {
+async function poHandlePopoutAction(act, battlefieldOwnerConnectionId) {
   const sel = state.playOnline.selection;
   if (!sel) return;
   const primary = sel.primary;
@@ -3320,7 +3387,7 @@ async function poHandlePopoutAction(act) {
   state.playOnline.selection = null;
   poRenderActionPopout();
   try {
-    if (act === "standard-move") await poStandardMove(primary.instanceId, primary.zone === "board" ? "battlefield" : "board");
+    if (act === "standard-move") await poStandardMove(primary.instanceId, primary.zone === "board" ? "battlefield" : "board", battlefieldOwnerConnectionId);
     else if (act === "toggle-ready") await poToggleUnitReady(primary.instanceId);
     else if (act === "detach") await poDetachCard(primary.instanceId);
     else if (act === "recycle") await poRecycleRune(primary.cardId);
@@ -3437,19 +3504,44 @@ function poRenderRoom() {
   const deckOptions = state.decks.map(deck => `<option value="${deck.id}">${escapeHtml(deck.name)}</option>`).join("");
   const unitCardIdByInstance = Object.fromEntries(poAllUnits(room).map(u => [u.instanceId, u.cardId]));
 
+  // The shared Battlefield Zone (Core Rule 486.5) - rendered once, not per-player, since a
+  // Battlefield holds whichever player's units are actually At it. Each unit is tagged with its
+  // real controller (po-unit-mine/po-unit-theirs) so it's still clear at a glance whose is whose.
+  const battlefieldZoneHtml = room.board.battlefields.length ? `
+    <div class="po-shared-battlefield">
+      ${room.board.battlefields.map(slot => {
+        const ownerName = room.players.find(p => p.connectionId === slot.ownerConnectionId)?.name || "";
+        return `
+        <div class="po-bf-slot">
+          <div class="po-bf-slot-card">${poCardTile(slot.cardId, "sm")}<span>${poCardLabel(slot.cardId)}<em>${escapeHtml(ownerName)}'s Battlefield</em></span></div>
+          <div class="po-card-row po-bf-units">
+            ${slot.units.length ? slot.units.map(u => {
+              const cardMight = cardsById.get(u.cardId)?.might;
+              const attachedToCard = u.attachedToInstanceId ? unitCardIdByInstance[u.attachedToInstanceId] : null;
+              const isMineHere = u.controllerConnectionId === state.playOnline.myConnectionId;
+              const controllerName = room.players.find(p => p.connectionId === u.controllerConnectionId)?.name || "";
+              const slotTitle = `${controllerName} - ${attachedToCard ? `Attached to ${poCardLabel(attachedToCard)}` : (u.exhausted ? "Exhausted" : "Ready")}`;
+              return `
+              <span class="po-unit-slot${u.exhausted ? " po-unit-exhausted" : ""}${attachedToCard ? " po-unit-attached" : ""}${isMineHere ? " po-unit-mine" : " po-unit-theirs"}${poSelClass(u.controllerConnectionId, "battlefield", u.instanceId)}" data-po-select-conn="${escapeHtml(u.controllerConnectionId)}" data-po-select-zone="battlefield" data-po-select-instance="${escapeHtml(u.instanceId)}" title="${escapeHtml(slotTitle)}">
+                ${poCardTile(u.cardId, "sm")}
+                ${u.damage || cardMight != null ? `<b class="po-unit-damage${u.damage ? " po-unit-damage-marked" : ""}">${u.damage}${cardMight != null ? `/${cardMight}` : ""}</b>` : ""}
+              </span>`;
+            }).join("") : `<span class="po-zone-empty">—</span>`}
+          </div>
+        </div>`;
+      }).join("")}
+    </div>` : "";
+
   const playerCards = room.players.map(player => {
     const zones = room.board.zonesByPlayer[player.connectionId];
     const isMe = player.connectionId === state.playOnline.myConnectionId;
     const isActiveTurn = player.connectionId === room.board.activePlayerConnectionId;
     const counters = zones ? Object.entries(zones.counters) : [];
-    const cardRow = (cards, label, cls = "") => `
-      <div class="po-zone po-zone-${cls || label.toLowerCase()}">
-        <span class="po-zone-label">${label} <b>${cards.length}</b></span>
-        <div class="po-card-row">${cards.length ? cards.map(id => poCardTile(id, "sm")).join("") : `<span class="po-zone-empty">—</span>`}</div>
-      </div>`;
-    // Board/Battlefield hold unit instances (Core Rule 415 Ready/Exhausted state), not bare card
-    // ids - exhausted units are dimmed and rotated. Selectable (see poHandleCardClick) rather than
+    // Board holds unit instances (Core Rule 415 Ready/Exhausted state), not bare card ids -
+    // exhausted units are dimmed and rotated. Selectable (see poHandleCardClick) rather than
     // carrying their own icon buttons - the popout shows whatever actions apply once selected.
+    // (The shared Battlefield Zone uses this same markup shape but is rendered once, separately -
+    // see battlefieldZoneHtml below, not per-player, since either player's units can be there.)
     const unitRow = (units, label, zoneKey, cls = "") => `
       <div class="po-zone po-zone-${cls || label.toLowerCase().replace(/\s+/g, "-")}">
         <span class="po-zone-label">${label} <b>${units.length}</b></span>
@@ -3518,13 +3610,11 @@ function poRenderRoom() {
           </select>
           <button class="command-btn${player.ready ? " quiet" : " gold"}" data-po-ready="${!player.ready}" ${player.deckId ? "" : "disabled"}>${player.ready ? "Not Ready" : "Ready Up"}</button>
         ` : `<p class="settings-hint">${player.deckId ? "Deck selected." : "Choosing a deck..."}</p>`) : `
-          ${zones.battlefieldCards.length ? cardRow(zones.battlefieldCards, "Battlefield") : ""}
           <div class="po-battlefield">
             <button class="po-pile po-pile-main"${isMe && zones.mainDeckCount ? " data-po-draw" : " disabled"} title="Main Deck — ${isMe ? "click for an extra draw (1 is automatic at the start of your turn)" : `${zones.mainDeckCount} left`}">
               <i data-icon="layers"></i><span class="po-pile-count">${zones.mainDeckCount}</span>
             </button>
             <div class="po-battlefield-zones">
-              ${unitRow(zones.battlefield, "At Battlefield", "battlefield")}
               ${unitRow(zones.board, "Board", "board")}
             </div>
             <button class="po-pile po-pile-rune"${isMe && zones.runeDeckCount ? " data-po-channel" : " disabled"} title="Rune Deck — ${isMe ? "click to channel an extra rune (2 are automatic at the start of your turn)" : `${zones.runeDeckCount} left`}">
@@ -3577,6 +3667,7 @@ function poRenderRoom() {
   // "your side of the table" reads instantly instead of everyone looking like a flat list.
   document.getElementById("poBoard").innerHTML = `
     <div class="po-board-opponents">${room.players.map((p, i) => p.connectionId === state.playOnline.myConnectionId ? "" : playerCards[i]).join("")}</div>
+    ${battlefieldZoneHtml}
     <div class="po-board-mine">${room.players.map((p, i) => p.connectionId === state.playOnline.myConnectionId ? playerCards[i] : "").join("")}</div>
   `;
   renderIcons(document.getElementById("poBoard"));
@@ -5366,7 +5457,7 @@ function wireEvents() {
     const moveBtn = event.target.closest("[data-po-move-zone]");
     if (moveBtn) { poHandlePopoutMove(moveBtn.dataset.poMoveZone); return; }
     const actBtn = event.target.closest("[data-po-act]");
-    if (actBtn) poHandlePopoutAction(actBtn.dataset.poAct);
+    if (actBtn) poHandlePopoutAction(actBtn.dataset.poAct, actBtn.dataset.poBfOwner);
   });
   // The Trash/Banishment zone-viewer modal doubles as a selection surface for your own cards in
   // those zones (there's no room for it in the compact board preview) - reuses the exact same

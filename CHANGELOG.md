@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.30.9 — Emulator: Battlefields are actually shared, popout follows the card, hover fixes
+
+- Real fix: Battlefields were wrongly modeled as belonging to whichever player picked them. They're a shared zone (Core Rule 486.5) — both players' units can be at either Battlefield at once, and it's now rendered as one shared strip between the two boards instead of duplicated inside each player's own card.
+- The action popout now docks right next to the card you clicked (flipping side if there's no room), instead of a fixed spot on the screen edge.
+- Battlefield card art in the hover preview now shows wide instead of getting force-cropped into a portrait box.
+- The whole top bar (RiftCode, theme toggle, Connect) hides while a game is being played, same as the sidebar already did — the board gets the full screen.
+
 ## v1.30.8 — Emulator: Battlefield Setup, and a UI overhaul
 
 - Battlefield Setup (Core Rule 486.5): starting a match now deals each player 3 Battlefield candidates in a popup and makes them pick one — that becomes your Battlefield Zone for the rest of the game. Can't be changed mid-game.

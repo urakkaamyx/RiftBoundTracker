@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.29.7 — Emulator: real illustrated art
+
+- Replaced the plain CSS gradients and placeholder circles with actual illustrated art: a moody mountain-vista backdrop behind each side of the battlefield (your side and your opponent's are tinted differently so they read apart at a glance), an ornate gold filigree frame around every player card, a real engraved rune card-back on every deck pile, a gold ring frame around each Legend portrait, and real glowing glyph icons for the six Domain pips instead of plain colored dots.
+
 ## v1.29.6 — Emulator: never on mobile, launches in its own window, real stat block
 
 - The Emulator is now completely inaccessible on a phone-sized screen — the nav item, the RiftCode gate, all of it. This also applies live if you shrink a desktop window narrow enough, not just an actual phone.

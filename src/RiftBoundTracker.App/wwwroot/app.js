@@ -3135,7 +3135,7 @@ function poRenderRoom() {
     const domainOrder = ["Fury", "Calm", "Order", "Mind", "Body", "Chaos"];
     const domainCounts = Object.fromEntries(domainOrder.map(d => [d, 0]));
     (zones?.base || []).forEach(id => (cardsById.get(id)?.domains || []).forEach(d => { if (d in domainCounts) domainCounts[d]++; }));
-    const domainPips = zones ? `<div class="po-domain-pips">${domainOrder.map(d => `<span class="po-domain-pip" style="--pip-color: var(--c-${d.toLowerCase()})" title="${d} Runes">${domainCounts[d]}</span>`).join("")}</div>` : "";
+    const domainPips = zones ? `<div class="po-domain-pips">${domainOrder.map(d => `<span class="po-domain-pip po-domain-${d.toLowerCase()}" style="--pip-color: var(--c-${d.toLowerCase()})" title="${d} Runes"><b>${domainCounts[d]}</b></span>`).join("")}</div>` : "";
     // A vertical Victory Score track (0-8) run down the edge of the card, separate from the name
     // header - a direct child of .po-player-card, so it inherits that card's own 180deg flip on the
     // opponent's side automatically and reads upside down there, same as everything else about them.

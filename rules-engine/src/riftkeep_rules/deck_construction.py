@@ -137,11 +137,18 @@ def detect_deck_obligations(q: str) -> list[str]:
     ):
         out.append("champion_legend_count")
     if (
-        _near(q, r"\bmain deck\b", r"\bhow many\b|\d+|\bthirty\b|\bforty\b|\bat least\b|\bat most\b|\bmore than\b|\bfewer than\b|\bless than\b|\bmultiple\b|\bonly\b|\bexactly\b")
+        _near(q, r"\bmain deck\b", r"\bhow many\b|\d+(?!\.)|\bthirty\b|\bforty\b|\bat least\b|\bat most\b|\bmore than\b|\bfewer than\b|\bless than\b|\bmultiple\b|\bonly\b|\bexactly\b")
         or (
-            re.search(r"\bcards?\b", q)
+            re.search(r"\bcards?\b(?!\s*[.:])", q)
             and not re.search(r"\bsignature|rune|battlefield|cop(?:y|ies)\b", q)
-            and _near(q, r"\bcards?\b", r"\b\d+\b|\bthirty\b|\bforty\b")
+            # (?!\s*[.:]) excludes "cards" used as a section-label word ("...resolving Playing
+            # Cards.", "Rules question about Cards:") rather than a countable noun - confirmed
+            # as a real false positive source across the corpus's own question-template
+            # prefixes. \d+(?!\.) excludes a numbered-list marker like "4. Pay the card's costs"
+            # - a step number sitting right next to the word "card" is not a deck-size quantity,
+            # also confirmed directly: a question quoting rule text with a numbered procedure
+            # step next to "card's" fired main_deck_minimum via this exact adjacency.
+            and _near(q, r"\bcards?\b(?!\s*[.:])", r"\b\d+(?!\.)\b|\bthirty\b|\bforty\b")
         )
     ):
         out.append("main_deck_minimum")
@@ -154,7 +161,7 @@ def detect_deck_obligations(q: str) -> list[str]:
         out.append("same_name_copy_limit")
     if "signature" in q and _near(q, r"\bsignature\b", r"\bcard|limit|champion|zone|chosen\b"):
         out.append("signature_limit")
-    if re.search(r"\brunes?\b", q) and _near(q, r"\brunes?\b", r"\bhow many\b|\bneed\b|\brequire\b|\bcontain\b|\d"):
+    if re.search(r"\brunes?\b", q) and _near(q, r"\brunes?\b", r"\bhow many\b|\bneed\b|\brequire\b|\bcontain\b|\d(?!\.)"):
         out.append("rune_deck_count")
     if "battlefield" in q and _near(q, r"\bbattlefields?\b", r"\bcop(?:y|ies)\b|\bsame name\b|\bsame-named\b|\bduplicate\b|\btwo of the same\b"):
         out.append("battlefield_duplicate_limit")

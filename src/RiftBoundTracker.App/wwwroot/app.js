@@ -3023,6 +3023,11 @@ async function poDetachCard(instanceId) {
   if (!result.ok) toast(result.error || "Could not detach that card.", true);
 }
 
+async function poResolveCombat(attackerInstanceId, defenderInstanceId) {
+  const result = await state.playOnline.connection.invoke("ResolveCombat", state.playOnline.room.roomCode, attackerInstanceId, defenderInstanceId);
+  if (!result.ok) toast(result.error || "Could not resolve combat.", true);
+}
+
 async function poDealDamage(instanceId, amount) {
   const result = await state.playOnline.connection.invoke("DealDamage", state.playOnline.room.roomCode, instanceId, amount);
   if (!result.ok) toast(result.error || "Could not deal damage.", true);
@@ -3110,7 +3115,7 @@ function poAllUnits(room) {
   return room.players.flatMap(p => {
     const zones = room.board.zonesByPlayer[p.connectionId];
     if (!zones) return [];
-    return [...zones.board, ...zones.battlefield].map(u => ({ ...u, ownerName: p.name, might: cardsById.get(u.cardId)?.might }));
+    return [...zones.board, ...zones.battlefield].map(u => ({ ...u, ownerName: p.name, ownerConnectionId: p.connectionId, might: cardsById.get(u.cardId)?.might }));
   });
 }
 
@@ -3285,6 +3290,16 @@ function poRenderRoom() {
               <input id="poDamageAmount-${escapeHtml(player.connectionId)}" type="number" min="1" value="1" />
               <button class="command-btn quiet" data-po-deal-damage="${escapeHtml(player.connectionId)}"><i data-icon="alert-triangle"></i>Damage</button>
               <button class="command-btn quiet" data-po-heal="${escapeHtml(player.connectionId)}"><i data-icon="heart"></i>Heal</button>
+            </div>` : ""}
+          ${isMe && zones && (zones.board.length || zones.battlefield.length) && poAllUnits(room).length > 1 ? `
+            <div class="po-move-tool">
+              <select id="poCombatAttacker-${escapeHtml(player.connectionId)}">
+                ${[...zones.board, ...zones.battlefield].map(u => `<option value="${escapeHtml(u.instanceId)}">${poCardLabel(u.cardId)} (${cardsById.get(u.cardId)?.might ?? "?"} Might)</option>`).join("")}
+              </select>
+              <select id="poCombatDefender-${escapeHtml(player.connectionId)}">
+                ${poAllUnits(room).filter(u => u.ownerConnectionId !== player.connectionId).map(u => `<option value="${escapeHtml(u.instanceId)}">${escapeHtml(u.ownerName)} — ${poCardLabel(u.cardId)} (${u.might ?? "?"} Might)</option>`).join("")}
+              </select>
+              <button class="command-btn quiet" data-po-resolve-combat="${escapeHtml(player.connectionId)}">Resolve Combat</button>
             </div>` : ""}
           ${isMe && zones && (zones.board.length || zones.battlefield.length) && poAllUnits(room).length > 1 ? `
             <div class="po-move-tool">
@@ -5128,6 +5143,13 @@ function wireEvents() {
       const amountInput = document.getElementById(`poDamageAmount-${healBtn.dataset.poHeal}`);
       const amount = Number(amountInput?.value);
       if (targetSelect?.value && amount > 0) poHealUnit(targetSelect.value, amount).catch(err => toast(err.message, true));
+      return;
+    }
+    const combatBtn = event.target.closest("[data-po-resolve-combat]");
+    if (combatBtn) {
+      const attackerSelect = document.getElementById(`poCombatAttacker-${combatBtn.dataset.poResolveCombat}`);
+      const defenderSelect = document.getElementById(`poCombatDefender-${combatBtn.dataset.poResolveCombat}`);
+      if (attackerSelect?.value && defenderSelect?.value) poResolveCombat(attackerSelect.value, defenderSelect.value).catch(err => toast(err.message, true));
       return;
     }
     const attachBtn = event.target.closest("[data-po-attach]");

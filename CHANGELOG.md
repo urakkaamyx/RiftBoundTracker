@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.30.3 — Emulator: Resolve Combat (1v1)
+
+- Added a Resolve Combat tool: pick one of your units and one enemy unit, and both sides deal their Might to the other simultaneously — matching the real Combat Damage Step's math (Core Rule 465.2), including a correct mutual kill when both sides have lethal Might. Scoped to exactly one attacker and one defender for now; multi-unit combats leave damage-assignment order up to player choice in the real rules too, so this doesn't guess at it.
+
 ## v1.30.2 — Emulator: Heal
 
 - Added a Heal tool next to Deal Damage — clears marked damage from any unit (never below 0), completing the Damage/Heal/Kill loop from v1.30.0.

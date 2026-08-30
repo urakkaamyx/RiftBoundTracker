@@ -392,27 +392,53 @@ public sealed class MatchRoomService(DeckLegalityService legality)
     public bool DealDamage(MatchRoom room, string connectionId, string instanceId, int amount, int? might)
     {
         lock (_lock)
-        {
-            foreach (var (ownerId, zones) in room.Board.ZonesByPlayer)
-            {
-                var fromBoard = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId);
-                var fromBattlefield = fromBoard is null ? zones.Battlefield.FirstOrDefault(u => u.InstanceId == instanceId) : null;
-                var unit = fromBoard ?? fromBattlefield;
-                if (unit is null) continue;
+            return MarkDamageAndMaybeKill(room, connectionId, instanceId, amount, might);
+    }
 
-                unit.Damage += amount;
-                AddLog(room, connectionId, $"dealt {amount} damage to a unit ({unit.Damage} marked).");
-                if (might is int m && unit.Damage >= m)
-                {
-                    (fromBoard is not null ? zones.Board : zones.Battlefield).Remove(unit);
-                    zones.Trash.Add(unit.CardId);
-                    DetachAllPointingTo(room, unit.InstanceId);
-                    AddLog(room, connectionId, "killed that unit with lethal damage.");
-                }
-                return true;
-            }
-            return false;
+    /// <summary>
+    /// Core Rule 465.2: a simplified stand-in for the Combat Damage Step, scoped to exactly one
+    /// attacker and one defender - the common case, and the one that avoids the multi-unit damage
+    /// ordering rules (465.2.c.3-c.10) that the real rules explicitly leave to player choice anyway
+    /// (no UI could automate that choice without asking the player, so this doesn't pretend to).
+    /// Both sides' Might is summed and dealt to the other, computed before either is applied, so a
+    /// mutual kill happens correctly (465.2.c.1.a: assigning damage isn't the same as dealing it -
+    /// both are assigned, then both are dealt simultaneously).
+    /// </summary>
+    public bool ResolveCombat(MatchRoom room, string connectionId, string attackerInstanceId, int? attackerMight, string defenderInstanceId, int? defenderMight)
+    {
+        lock (_lock)
+        {
+            if (attackerInstanceId == defenderInstanceId) return false;
+            var attackerDamage = defenderMight ?? 0;
+            var defenderDamage = attackerMight ?? 0;
+            var attackerFound = MarkDamageAndMaybeKill(room, connectionId, attackerInstanceId, attackerDamage, attackerMight);
+            var defenderFound = MarkDamageAndMaybeKill(room, connectionId, defenderInstanceId, defenderDamage, defenderMight);
+            if (attackerFound || defenderFound) AddLog(room, connectionId, "resolved combat between two units.");
+            return attackerFound && defenderFound;
         }
+    }
+
+    private bool MarkDamageAndMaybeKill(MatchRoom room, string connectionId, string instanceId, int amount, int? might)
+    {
+        foreach (var zones in room.Board.ZonesByPlayer.Values)
+        {
+            var fromBoard = zones.Board.FirstOrDefault(u => u.InstanceId == instanceId);
+            var fromBattlefield = fromBoard is null ? zones.Battlefield.FirstOrDefault(u => u.InstanceId == instanceId) : null;
+            var unit = fromBoard ?? fromBattlefield;
+            if (unit is null) continue;
+
+            unit.Damage += amount;
+            AddLog(room, connectionId, $"dealt {amount} damage to a unit ({unit.Damage} marked).");
+            if (might is int m && unit.Damage >= m)
+            {
+                (fromBoard is not null ? zones.Board : zones.Battlefield).Remove(unit);
+                zones.Trash.Add(unit.CardId);
+                DetachAllPointingTo(room, unit.InstanceId);
+                AddLog(room, connectionId, "killed that unit with lethal damage.");
+            }
+            return true;
+        }
+        return false;
     }
 
     /// <summary>Core Rule 418, Heal - clears marked Damage from a unit (never below 0). Same manual,

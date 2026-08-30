@@ -136,6 +136,21 @@ public sealed class MatchHub(MatchRoomService rooms, EmulatorAccessService acces
         return new HubResult(true, null);
     }
 
+    public async Task<HubResult> ResolveCombat(string roomCode, string attackerInstanceId, string defenderInstanceId)
+    {
+        var room = rooms.GetRoom(roomCode);
+        if (room is null) return new HubResult(false, "Room not found.");
+        var attackerCardId = rooms.FindUnitCardId(room, attackerInstanceId);
+        var defenderCardId = rooms.FindUnitCardId(room, defenderInstanceId);
+        if (attackerCardId is null || defenderCardId is null) return new HubResult(false, "Could not find both units.");
+        var attackerCard = await db.Cards.FindAsync(attackerCardId);
+        var defenderCard = await db.Cards.FindAsync(defenderCardId);
+        if (!rooms.ResolveCombat(room, Context.ConnectionId, attackerInstanceId, attackerCard?.Might, defenderInstanceId, defenderCard?.Might))
+            return new HubResult(false, "Could not resolve combat between those units.");
+        await BroadcastAsync(room);
+        return new HubResult(true, null);
+    }
+
     public async Task<HubResult> HealUnit(string roomCode, string instanceId, int amount)
     {
         var room = rooms.GetRoom(roomCode);

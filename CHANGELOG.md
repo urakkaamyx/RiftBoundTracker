@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.29.1 — Emulator: real battlefield layout
+
+- The Emulator board now renders actual card art instead of plain text tiles — Battlefield, Board, Rune Pool, Trash, Banishment, and your own Hand all show real card images where the printing is known locally.
+- Main Deck and Rune Deck are now stacked card-pile buttons (click to Draw/Channel) instead of a separate row of buttons, and each player's Champion Legend art shows next to their name.
+- Life/score-style counters now show as pills next to the player's name instead of a separate list.
+- The sidebar collapses to icons-only while a room's board is on screen, so the battlefield gets the width instead of sharing it with the vault navigation — restores automatically the moment you leave the room.
+
 ## v1.29.0 — Emulator: private online play with friends
 
 - New "Emulator" feature: host or join a private room with your two friends over a live connection, reusing the existing Remote Access (ngrok) flow to expose a hosted room to the internet — whoever hosts runs it from their own copy of the app, no separate server involved.

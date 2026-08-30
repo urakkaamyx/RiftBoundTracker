@@ -41,7 +41,7 @@ const PAGE_LABELS = {
   favorites: ["Saved Cards", "Favorites"], binder: ["Collection", "Trade Binder"],
   "price-checker": ["Pricing", "Price Checker"],
   analytics: ["Collection Insights", "Analytics"], rules: ["Reference", "Rules"],
-  "play-online": ["Multiplayer", "Play Online"],
+  "play-online": ["Multiplayer", "Emulator"],
   settings: ["Vault", "Settings"]
 };
 
@@ -506,6 +506,7 @@ function restoreNavState() {
 function navigate(page) {
   if (!PAGE_LABELS[page]) return;
   state.page = page;
+  if (page !== "play-online") document.querySelector(".app-shell").classList.remove("sidebar-collapsed");
   document.querySelectorAll(".page").forEach(el => el.classList.toggle("active", el.id === `page-${page}`));
   document.querySelectorAll(".nav-item").forEach(el => el.classList.toggle("active", el.dataset.page === page));
   document.getElementById("globalSearchWrap").hidden = page !== "vault";
@@ -2829,6 +2830,9 @@ async function loadPlayOnline() {
 function poShowView(view) {
   document.getElementById("poLobby").hidden = view !== "lobby";
   document.getElementById("poRoom").hidden = view !== "room";
+  // The board wants the room, not the file cabinet - collapse the sidebar to icons only while it's
+  // showing, same as RiftAtlas's own borderless table. Restored the moment you leave the room.
+  document.querySelector(".app-shell").classList.toggle("sidebar-collapsed", view === "room");
 }
 
 function poSetLobbyTab(tab) {
@@ -2978,6 +2982,18 @@ const PO_MOVABLE_ZONES = [
   ["trash", "Trash"], ["banishment", "Banishment"], ["runePool", "Rune Pool"],
 ];
 
+// A card as real art when it's registered locally (see poSelectDeck/registerCards), falling back
+// to a plain text tile otherwise - public zones can hold an opponent's cards, whose printings this
+// browser may never have loaded.
+function poCardTile(cardId, size) {
+  const card = cardsById.get(cardId);
+  const img = card && cardImage(card);
+  const label = poCardLabel(cardId);
+  return img
+    ? `<div class="po-card-art po-card-art-${size}" title="${label}"><img src="${escapeHtml(img)}" alt="${label}" loading="lazy" /></div>`
+    : `<span class="po-card-chip po-card-chip-${size}">${label}</span>`;
+}
+
 function poRenderRoom() {
   const room = state.playOnline.room;
   if (!room) return;
@@ -3005,44 +3021,61 @@ function poRenderRoom() {
     const isMe = player.connectionId === state.playOnline.myConnectionId;
     const isActiveTurn = player.connectionId === room.board.activePlayerConnectionId;
     const counters = zones ? Object.entries(zones.counters) : [];
-    const chip = cardId => `<span class="po-card-chip">${poCardLabel(cardId)}</span>`;
-    const zoneChips = (cards, label) => `<div class="po-zone-block"><span class="po-zone-label">${label} ${cards.length}</span><div class="po-zone-chips">${cards.map(chip).join("") || "—"}</div></div>`;
+    const cardRow = (cards, label, cls = "") => `
+      <div class="po-zone po-zone-${cls || label.toLowerCase()}">
+        <span class="po-zone-label">${label} <b>${cards.length}</b></span>
+        <div class="po-card-row">${cards.length ? cards.map(id => poCardTile(id, "sm")).join("") : `<span class="po-zone-empty">—</span>`}</div>
+      </div>`;
     // Every one of the caller's own cards, tagged with which zone it's currently in, so the move
     // tool's single dropdown can address any of them without a separate control per zone.
     const myMovableCards = isMe && zones ? PO_MOVABLE_ZONES.flatMap(([key, label]) =>
       (key === "hand" ? zones.hand || [] : zones[key]).map(cardId => ({ cardId, key, label }))) : [];
+    const legend = zones?.legendCardId ? poCardTile(zones.legendCardId, "legend") : "";
+
     return `
-      <div class="po-player-card${isActiveTurn ? " po-active-turn" : ""}">
+      <div class="po-player-card${isActiveTurn ? " po-active-turn" : ""}${isMe ? " po-mine" : ""}">
         <div class="po-player-head">
-          <strong>${escapeHtml(player.name)}${isMe ? " (You)" : ""}</strong>
-          ${player.isHost ? `<span class="po-badge po-badge-host">Host</span>` : ""}
-          ${isActiveTurn ? `<span class="po-badge po-badge-turn">Turn</span>` : ""}
-          ${player.ready ? `<span class="po-badge po-badge-ready">Ready</span>` : ""}
+          ${legend}
+          <div class="po-player-id">
+            <strong>${escapeHtml(player.name)}${isMe ? " (You)" : ""}</strong>
+            <div class="po-badges">
+              ${player.isHost ? `<span class="po-badge po-badge-host">Host</span>` : ""}
+              ${isActiveTurn ? `<span class="po-badge po-badge-turn">Turn</span>` : ""}
+              ${player.ready ? `<span class="po-badge po-badge-ready">Ready</span>` : ""}
+            </div>
+          </div>
+          ${counters.length ? `<div class="po-counter-strip">${counters.map(([n, v]) => `<span class="po-counter-pill"><b>${v}</b>${escapeHtml(n)}</span>`).join("")}</div>` : ""}
         </div>
-        ${isMe ? `
+        ${!zones ? (isMe ? `
           <select data-po-deck-select>
             <option value="">${player.deckId ? "Change deck..." : "Select a deck..."}</option>
             ${deckOptions}
           </select>
           <button class="command-btn${player.ready ? " quiet" : " gold"}" data-po-ready="${!player.ready}" ${player.deckId ? "" : "disabled"}>${player.ready ? "Not Ready" : "Ready Up"}</button>
-        ` : `<p class="settings-hint">${player.deckId ? "Deck selected." : "Choosing a deck..."}</p>`}
-        ${zones ? `
-          <div class="po-zone-strip">
-            <span>Main Deck ${zones.mainDeckCount}</span>
-            <span>Rune Deck ${zones.runeDeckCount}</span>
+        ` : `<p class="settings-hint">${player.deckId ? "Deck selected." : "Choosing a deck..."}</p>`) : `
+          <div class="po-battlefield">
+            <button class="po-pile po-pile-main"${isMe && zones.mainDeckCount ? " data-po-draw" : " disabled"} title="Main Deck — ${isMe ? "click to draw" : `${zones.mainDeckCount} left`}">
+              <i data-icon="layers"></i><span class="po-pile-count">${zones.mainDeckCount}</span>
+            </button>
+            <div class="po-battlefield-zones">
+              ${cardRow(zones.battlefield, "Battlefield")}
+              ${cardRow(zones.board, "Board")}
+            </div>
+            <button class="po-pile po-pile-rune"${isMe && zones.runeDeckCount ? " data-po-channel" : " disabled"} title="Rune Deck — ${isMe ? "click to channel" : `${zones.runeDeckCount} left`}">
+              <i data-icon="dollar"></i><span class="po-pile-count">${zones.runeDeckCount}</span>
+            </button>
+          </div>
+          <div class="po-side-row">
+            ${cardRow(zones.runePool, "Rune Pool", "rune-pool")}
+            ${cardRow(zones.trash, "Trash")}
+            ${cardRow(zones.banishment, "Banishment")}
           </div>
           ${isMe ? `
-            <div class="settings-actions">
-              <button class="command-btn quiet" data-po-draw ${zones.mainDeckCount ? "" : "disabled"}><i data-icon="download"></i>Draw</button>
-              <button class="command-btn quiet" data-po-channel ${zones.runeDeckCount ? "" : "disabled"}><i data-icon="repeat"></i>Channel Rune</button>
+            <div class="po-hand-row">
+              <span class="po-zone-label">Hand <b>${(zones.hand || []).length}</b></span>
+              <div class="po-card-row po-hand-cards">${(zones.hand || []).map(id => poCardTile(id, "lg")).join("") || `<span class="po-zone-empty">—</span>`}</div>
             </div>
-            ${zoneChips(zones.hand || [], "Hand")}
-          ` : `<div class="po-zone-strip"><span>Hand ${zones.handCount}</span></div>`}
-          ${zoneChips(zones.runePool, "Rune Pool")}
-          ${zoneChips(zones.board, "Board")}
-          ${zoneChips(zones.battlefield, "Battlefield")}
-          ${zoneChips(zones.trash, "Trash")}
-          ${zoneChips(zones.banishment, "Banishment")}
+          ` : `<div class="po-zone-label po-hand-count">Hand <b>${zones.handCount}</b></div>`}
           ${isMe && myMovableCards.length ? `
             <div class="po-move-tool">
               <select id="poMoveCard-${escapeHtml(player.connectionId)}">
@@ -3053,23 +3086,17 @@ function poRenderRoom() {
               </select>
               <button class="command-btn quiet" data-po-move="${escapeHtml(player.connectionId)}">Move</button>
             </div>` : ""}
-          <div class="po-counters">
-            ${counters.map(([counterName, value]) => `
-              <div class="po-counter-row">
-                <span>${escapeHtml(counterName)}</span>
-                <b>${value}</b>
-                ${isMe ? `
-                  <button class="icon-btn" data-po-counter-delta="-1" data-po-counter-name="${escapeHtml(counterName)}">−</button>
-                  <button class="icon-btn" data-po-counter-delta="1" data-po-counter-name="${escapeHtml(counterName)}">+</button>
-                ` : ""}
-              </div>`).join("")}
-          </div>
           ${isMe ? `
             <div class="po-add-counter">
               <input id="poNewCounterName-${escapeHtml(player.connectionId)}" type="text" placeholder="New counter (e.g. Life)" autocomplete="off" />
               <button class="command-btn" data-po-add-counter="${escapeHtml(player.connectionId)}">Add</button>
+              ${counters.map(([n]) => `
+                <span class="po-counter-edit"><span>${escapeHtml(n)}</span>
+                  <button class="icon-btn" data-po-counter-delta="-1" data-po-counter-name="${escapeHtml(n)}">−</button>
+                  <button class="icon-btn" data-po-counter-delta="1" data-po-counter-name="${escapeHtml(n)}">+</button>
+                </span>`).join("")}
             </div>` : ""}
-        ` : `<p class="settings-hint">Waiting for the match to start...</p>`}
+        `}
       </div>`;
   }).join("");
   renderIcons(document.getElementById("poBoard"));

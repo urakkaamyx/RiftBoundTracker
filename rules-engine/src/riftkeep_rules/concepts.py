@@ -241,6 +241,68 @@ def build_definition_ruling(question: str, core: dict[str, Any], concepts: list[
     }
 
 
+def _normalize_quote_text(s: str) -> str:
+    return re.sub(r"\s+", " ", (s or "").replace("’", "'").replace("‘", "'")).strip().rstrip(".").casefold()
+
+
+def _question_quotes_rule_verbatim(question: str, rule: dict[str, Any]) -> bool:
+    """True when a rule's own normativeText appears verbatim (post-normalization) inside the
+    question. A synthetic-corpus pattern ("The situation involves this rule concept: <rule
+    text>. How is that supposed to work?") embeds the real rule sentence directly - full-text
+    retrieval finds the right rule for these far more reliably than concept-name substring
+    matching does (a keyword like "Play" or "Action" appearing incidentally in unrelated
+    phrasing can otherwise hijack the concept match; confirmed directly against real failing
+    questions). Requiring an exact quoted substring rather than topical similarity keeps this
+    from ever guessing: either the question is quoting this specific rule's own words or it
+    isn't - a bare section title (e.g. "Beginning Phase", 15 chars, no terminal punctuation) is
+    excluded since it trivially appears inside any ordinary scenario question that mentions that
+    phase/section by name; confirmed directly as a real false positive against gold-corpus
+    regression case GA-041 ("During my Beginning Phase..." hijacked by rule 315.2's bare title
+    "Beginning Phase" before this guard existed). Requiring both real sentence length and
+    terminal punctuation keeps this to actual defining sentences, not section headings."""
+    text = rule.get("normativeText") or rule.get("text") or ""
+    if len(text.strip()) < 40 or not text.strip().endswith((".", "?", "!")):
+        return False
+    return _normalize_quote_text(text) in _normalize_quote_text(question)
+
+
+def build_definition_ruling_from_retrieval(question: str, top_rules: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Fallback definition lookup for a question that quotes a rule's own text verbatim but
+    doesn't name a catalog concept (or would otherwise match the wrong one via
+    build_definition_ruling's concept-name search). Only fires on an exact quoted match against
+    one of retrieval's own top-ranked rules for this question - never a topical guess, and
+    independent of is_definition_intent's phrase patterns since directly quoting a rule's text
+    is itself unambiguous evidence of a rule-lookup regardless of how the question is phrased
+    around it."""
+    for rule in top_rules:
+        if _question_quotes_rule_verbatim(question, rule):
+            rule_id = rule["ruleId"]
+            evidence = [{
+                "evidenceId": f"R:{rule_id}",
+                "ruleId": rule_id,
+                "text": rule.get("normativeText") or rule.get("text") or "",
+                "pageStart": rule.get("pageStart"),
+                "pageEnd": rule.get("pageEnd"),
+                "sourceId": rule.get("sourceId"),
+            }]
+            return {
+                "status": "decided",
+                "issue": question,
+                "outcomes": [{
+                    "claim": f"Official rule text quoted in the question (Rule {rule_id}).",
+                    "verdict": "definition",
+                    "truth": "true",
+                    "evidence": evidence,
+                }],
+                "effectiveVerdict": {
+                    "verdict": "definition",
+                    "reason": f"The question quotes Rule {rule_id} verbatim.",
+                    "basis": [f"R:{rule_id}"],
+                },
+            }
+    return None
+
+
 def card_referenced_concepts(card: dict[str, Any], semantic_ir: dict[str, Any], max_matches: int = 12) -> list[dict[str, Any]]:
     """Return rule concepts that a card explicitly carries as rules shorthand.
 

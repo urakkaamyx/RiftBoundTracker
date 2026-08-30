@@ -3,7 +3,7 @@
   "checkCount": 74,
   "runtimeArtifactCount": 18,
   "indexSchemaVersion": 1,
-  "startupValidationSeconds": 0.22,
+  "startupValidationSeconds": 0.2167,
   "searchCache": {
     "maxEntries": 256,
     "entries": 3,

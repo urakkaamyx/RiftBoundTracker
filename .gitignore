@@ -68,3 +68,8 @@ __pycache__/
 # Large corpus/training data dropped at repo root, not part of the app itself.
 /RiftKeep_Full_MNT_Reset/
 /RiftKeep_Full_MNT_Reset_PARTS_MANIFEST_v2.md
+
+# Extracted RiftKeep_Corpus_Checkpoint_*.zip working copy (1GB+) - a QA/evaluation corpus used
+# to diagnose and fix the engine, not something the engine loads or ships with. The zip itself
+# stays wherever it's dropped (already covered by the blanket *.zip rule above).
+/rules-engine/data/corpus_law/

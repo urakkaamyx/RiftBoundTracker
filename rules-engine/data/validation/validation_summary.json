@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-08-22T15:26:56.951916+00:00",
-  "passed": true,
+  "generatedAt": "2026-08-30T00:04:34.847414+00:00",
+  "passed": false,
   "parserValidation": {
     "core": true,
     "tournament": true
@@ -118,8 +118,8 @@
     "core": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/core_test_report.json",
-      "modifiedAt": "2026-08-22T15:23:28.374610+00:00",
+      "path": "data\\validation\\core_test_report.json",
+      "modifiedAt": "2026-08-29T23:56:14.189343+00:00",
       "report": {
         "passed": true,
         "checkCount": 164,
@@ -131,16 +131,16 @@
     "definitions": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/definition_lookup_test_report.json",
-      "modifiedAt": "2026-08-22T15:23:46.844692+00:00",
+      "path": "data\\validation\\definition_lookup_test_report.json",
+      "modifiedAt": "2026-08-29T23:58:37.325721+00:00",
       "report": {
         "passed": true,
-        "checkCount": 120,
+        "checkCount": 131,
         "failureCount": 0,
         "metrics": {
           "keywordCount": 25,
           "gameActionCount": 32,
-          "ruleConceptCount": 52,
+          "ruleConceptCount": 63,
           "naturalDoPhraseCoverage": true,
           "singularPluralAliasCoverage": true,
           "proofVerifiedDefinitions": true,
@@ -153,8 +153,8 @@
     "regressions": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/regression_report.json",
-      "modifiedAt": "2026-08-22T15:24:17.343961+00:00",
+      "path": "data\\validation\\regression_report.json",
+      "modifiedAt": "2026-08-29T23:56:25.364636+00:00",
       "report": {
         "passed": true,
         "caseCount": 99,
@@ -1165,8 +1165,8 @@
     "language": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/language_test_report.json",
-      "modifiedAt": "2026-08-22T15:24:24.487953+00:00",
+      "path": "data\\validation\\language_test_report.json",
+      "modifiedAt": "2026-08-29T23:56:26.828336+00:00",
       "report": {
         "passed": true,
         "checkCount": 42,
@@ -1178,8 +1178,8 @@
     "scenarioLanguage": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/scenario_language_test_report.json",
-      "modifiedAt": "2026-08-22T15:24:25.660765+00:00",
+      "path": "data\\validation\\scenario_language_test_report.json",
+      "modifiedAt": "2026-08-29T23:56:27.510131+00:00",
       "report": {
         "passed": true,
         "checkCount": 43,
@@ -1191,8 +1191,8 @@
     "scenarioModel": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/scenario_model_test_report.json",
-      "modifiedAt": "2026-08-22T15:24:27.555010+00:00",
+      "path": "data\\validation\\scenario_model_test_report.json",
+      "modifiedAt": "2026-08-29T23:56:28.866475+00:00",
       "report": {
         "passed": true,
         "checkCount": 58,
@@ -1204,8 +1204,8 @@
     "compiler": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/compiler_test_report.json",
-      "modifiedAt": "2026-08-22T15:24:29.930711+00:00",
+      "path": "data\\validation\\compiler_test_report.json",
+      "modifiedAt": "2026-08-29T23:56:30.705606+00:00",
       "report": {
         "passed": true,
         "checkCount": 42,
@@ -1217,8 +1217,8 @@
     "proofEngine": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/proof_engine_test_report.json",
-      "modifiedAt": "2026-08-22T15:24:38.262850+00:00",
+      "path": "data\\validation\\proof_engine_test_report.json",
+      "modifiedAt": "2026-08-29T23:56:32.858238+00:00",
       "report": {
         "passed": true,
         "checkCount": 72,
@@ -1230,8 +1230,8 @@
     "llmInterpretation": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/llm_interpretation_test_report.json",
-      "modifiedAt": "2026-08-22T15:24:41.588185+00:00",
+      "path": "data\\validation\\llm_interpretation_test_report.json",
+      "modifiedAt": "2026-08-29T23:56:41.646023+00:00",
       "report": {
         "passed": true,
         "checkCount": 84,
@@ -1243,8 +1243,8 @@
     "llmExplanation": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/llm_explanation_test_report.json",
-      "modifiedAt": "2026-08-22T15:24:45.040412+00:00",
+      "path": "data\\validation\\llm_explanation_test_report.json",
+      "modifiedAt": "2026-08-29T23:56:44.364743+00:00",
       "report": {
         "passed": true,
         "checkCount": 80,
@@ -1256,8 +1256,8 @@
     "goldCorpus": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/gold_corpus_report.json",
-      "modifiedAt": "2026-08-22T15:25:02.988006+00:00",
+      "path": "data\\validation\\gold_corpus_report.json",
+      "modifiedAt": "2026-08-29T23:55:56.531811+00:00",
       "report": {
         "schemaVersion": 1,
         "passed": true,
@@ -1461,8 +1461,8 @@
     "cardInteractions": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/card_interaction_test_report.json",
-      "modifiedAt": "2026-08-22T15:25:23.541423+00:00",
+      "path": "data\\validation\\card_interaction_test_report.json",
+      "modifiedAt": "2026-08-29T23:58:08.795493+00:00",
       "report": {
         "schemaVersion": 1,
         "passed": true,
@@ -1524,8 +1524,8 @@
     "productApi": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/product_api_test_report.json",
-      "modifiedAt": "2026-08-22T15:25:26.890200+00:00",
+      "path": "data\\validation\\product_api_test_report.json",
+      "modifiedAt": "2026-08-29T23:56:47.224598+00:00",
       "report": {
         "schemaVersion": 1,
         "passed": true,
@@ -1566,8 +1566,8 @@
     "uiIntegration": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/ui_integration_test_report.json",
-      "modifiedAt": "2026-08-22T15:25:29.011468+00:00",
+      "path": "data\\validation\\ui_integration_test_report.json",
+      "modifiedAt": "2026-08-29T23:58:51.769665+00:00",
       "report": {
         "passed": true,
         "checkCount": 148,
@@ -1598,8 +1598,8 @@
     "updateAutomation": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/update_automation_test_report.json",
-      "modifiedAt": "2026-08-22T15:26:25.034768+00:00",
+      "path": "data\\validation\\update_automation_test_report.json",
+      "modifiedAt": "2026-08-30T00:03:17.939188+00:00",
       "report": {
         "passed": true,
         "checkCount": 70,
@@ -1629,8 +1629,8 @@
     "productionHardening": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/production_hardening_test_report.json",
-      "modifiedAt": "2026-08-22T15:26:35.892192+00:00",
+      "path": "data\\validation\\production_hardening_test_report.json",
+      "modifiedAt": "2026-08-30T00:04:01.885549+00:00",
       "report": {
         "passed": true,
         "checkCount": 74,
@@ -1641,7 +1641,7 @@
           "checkCount": 74,
           "runtimeArtifactCount": 18,
           "indexSchemaVersion": 1,
-          "startupValidationSeconds": 0.2691,
+          "startupValidationSeconds": 0.2167,
           "searchCache": {
             "maxEntries": 256,
             "entries": 3,
@@ -1653,7 +1653,7 @@
             "requests": 21,
             "errors": 1,
             "active": 0,
-            "maxConcurrent": 10,
+            "maxConcurrent": 8,
             "statusCounts": {
               "200": 20,
               "404": 1
@@ -1672,8 +1672,8 @@
     "releaseCandidateAudit": {
       "exists": true,
       "passed": true,
-      "path": "data/validation/release_candidate_audit_test_report.json",
-      "modifiedAt": "2026-08-22T15:26:43.748904+00:00",
+      "path": "data\\validation\\release_candidate_audit_test_report.json",
+      "modifiedAt": "2026-08-22T19:26:42+00:00",
       "report": {
         "passed": true,
         "checkCount": 48,
@@ -1692,22 +1692,500 @@
           "productParityPassed": true
         }
       },
-      "freshForCurrentBuild": true
+      "freshForCurrentBuild": false
     },
     "stableRelease": {
       "exists": true,
-      "passed": true,
-      "path": "data/validation/stable_release_test_report.json",
-      "modifiedAt": "2026-08-22T15:26:48.186447+00:00",
+      "passed": false,
+      "path": "data\\validation\\stable_release_test_report.json",
+      "modifiedAt": "2026-08-30T00:04:17.220469+00:00",
       "report": {
-        "passed": true,
+        "passed": false,
         "checkCount": 191,
-        "failureCount": 0,
-        "failures": [],
+        "failureCount": 3,
+        "failures": [
+          {
+            "check": "M18 independent audit inherited",
+            "detail": {
+              "schemaVersion": 1,
+              "passed": false,
+              "releaseCandidateReady": false,
+              "blockingFindingCount": 8,
+              "findingCounts": {
+                "Critical": 4,
+                "High": 4,
+                "Medium": 1,
+                "Low": 0
+              },
+              "architecturePromises": [
+                {
+                  "milestone": "M1",
+                  "name": "Authoritative Corpus Foundation",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "M2",
+                  "name": "Deterministic Retrieval & Basic Adjudication",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "M3",
+                  "name": "Hard Interaction Families",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "M4",
+                  "name": "Full Current Authority Overlay",
+                  "passed": false,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": [
+                    "update_test_report.json"
+                  ]
+                },
+                {
+                  "milestone": "M5",
+                  "name": "Player Language & Clarification",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "M6",
+                  "name": "Audit, Update Lifecycle & Scenario Understanding",
+                  "passed": false,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": [
+                    "update_test_report.json"
+                  ]
+                },
+                {
+                  "milestone": "M7",
+                  "name": "Generalized Scenario Model",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "M8",
+                  "name": "Generalized Rule Compiler",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "M9",
+                  "name": "Proof Engine / Complete Adjudication",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "M10",
+                  "name": "LLM Interpretation Layer",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "M11",
+                  "name": "LLM Explanation Layer",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "M12",
+                  "name": "Large Gold Test Corpus",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "M13",
+                  "name": "Card Interaction Engine",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "M14",
+                  "name": "Search / Ask-Rules Product API",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "M15",
+                  "name": "RiftKeep UI Integration",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "M16",
+                  "name": "Update Automation",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "M17",
+                  "name": "Production Hardening",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                },
+                {
+                  "milestone": "P17-D",
+                  "name": "Definition Lookup Hotfix",
+                  "passed": true,
+                  "missingArtifacts": [],
+                  "missingReports": [],
+                  "failedReports": []
+                }
+              ],
+              "certifiedReports": {
+                "core_test_report.json": {
+                  "passed": true,
+                  "expected": 164,
+                  "actual": 164
+                },
+                "definition_lookup_test_report.json": {
+                  "passed": false,
+                  "expected": 120,
+                  "actual": 131
+                },
+                "regression_report.json": {
+                  "passed": true,
+                  "expected": 99,
+                  "actual": 99
+                },
+                "language_test_report.json": {
+                  "passed": true,
+                  "expected": 42,
+                  "actual": 42
+                },
+                "scenario_language_test_report.json": {
+                  "passed": true,
+                  "expected": 43,
+                  "actual": 43
+                },
+                "scenario_model_test_report.json": {
+                  "passed": true,
+                  "expected": 58,
+                  "actual": 58
+                },
+                "compiler_test_report.json": {
+                  "passed": true,
+                  "expected": 42,
+                  "actual": 42
+                },
+                "proof_engine_test_report.json": {
+                  "passed": true,
+                  "expected": 72,
+                  "actual": 72
+                },
+                "llm_interpretation_test_report.json": {
+                  "passed": true,
+                  "expected": 84,
+                  "actual": 84
+                },
+                "llm_explanation_test_report.json": {
+                  "passed": true,
+                  "expected": 80,
+                  "actual": 80
+                },
+                "gold_corpus_report.json": {
+                  "passed": true,
+                  "expected": 34,
+                  "actual": 34
+                },
+                "card_interaction_test_report.json": {
+                  "passed": true,
+                  "expected": 74,
+                  "actual": 74
+                },
+                "product_api_test_report.json": {
+                  "passed": true,
+                  "expected": 132,
+                  "actual": 132
+                },
+                "ui_integration_test_report.json": {
+                  "passed": true,
+                  "expected": 148,
+                  "actual": 148
+                },
+                "update_test_report.json": {
+                  "passed": false,
+                  "expected": 29,
+                  "actual": 29
+                },
+                "update_automation_test_report.json": {
+                  "passed": true,
+                  "expected": 70,
+                  "actual": 70
+                },
+                "production_hardening_test_report.json": {
+                  "passed": true,
+                  "expected": 74,
+                  "actual": 74
+                }
+              },
+              "authorityChecks": {
+                "coreRuleCount": {
+                  "actual": 2381,
+                  "expected": 2381,
+                  "passed": true
+                },
+                "tournamentRuleCount": {
+                  "actual": 935,
+                  "expected": 935,
+                  "passed": true
+                },
+                "cardCount": {
+                  "actual": 1304,
+                  "expected": 1304,
+                  "passed": true
+                },
+                "faqSectionCount": {
+                  "actual": 35,
+                  "expected": 35,
+                  "passed": true
+                },
+                "errataEventCount": {
+                  "actual": 63,
+                  "expected": 63,
+                  "passed": true
+                },
+                "errataAffectedPrintings": {
+                  "actual": 91,
+                  "expected": 91,
+                  "passed": true
+                },
+                "coreSourceId": {
+                  "actual": "core-rules-2026-07-16",
+                  "expected": "core-rules-2026-07-16",
+                  "passed": true
+                },
+                "tournamentSourceId": {
+                  "actual": "tournament-rules-2026-07-16",
+                  "expected": "tournament-rules-2026-07-16",
+                  "passed": true
+                },
+                "faqSourceId": {
+                  "actual": "vendetta-faq-2026-08-14",
+                  "expected": "vendetta-faq-2026-08-14",
+                  "passed": true
+                },
+                "cardSourceSha256": {
+                  "actual": "9c1c5f762a999ecb96d033dca5c1b2b782b8eb2b57960acaad170b337feaed83",
+                  "expected": "9c1c5f762a999ecb96d033dca5c1b2b782b8eb2b57960acaad170b337feaed83",
+                  "passed": true
+                }
+              },
+              "sourceHashes": {
+                "coreSourceSha256": {
+                  "actual": "9c5fb8b8638f2cd19ceda237929fa2c37aac23c797cc7410294993470ba5a30b",
+                  "expected": "9c5fb8b8638f2cd19ceda237929fa2c37aac23c797cc7410294993470ba5a30b",
+                  "passed": true
+                },
+                "tournamentSourceSha256": {
+                  "actual": "6a5be5501c494ecc841fb2572e715d9006f611ff2e5c97023a5be1b5c884e61f",
+                  "expected": "6a5be5501c494ecc841fb2572e715d9006f611ff2e5c97023a5be1b5c884e61f",
+                  "passed": true
+                },
+                "faqSnapshotSha256": {
+                  "actual": "a68712057b00b3590e779ffdea024b1d5201891f12e94dfde3de49e09d323891",
+                  "expected": "a68712057b00b3590e779ffdea024b1d5201891f12e94dfde3de49e09d323891",
+                  "passed": true
+                }
+              },
+              "retention": {
+                "expected": [
+                  "RiftKeepRules_Engine_Milestone18.zip",
+                  "RiftKeepRules_Engine_Milestone19.zip"
+                ],
+                "actual": [],
+                "candidates": [],
+                "passed": false,
+                "hashes": {
+                  "RiftKeepRules_Engine_Milestone18.zip": null
+                },
+                "currentRelease": {
+                  "archive": "RiftKeepRules_Engine_Milestone19.zip",
+                  "sidecar": "RiftKeepRules_Engine_Milestone19.zip.sha256",
+                  "actualSha256": null,
+                  "sidecarSha256": null,
+                  "passed": false
+                }
+              },
+              "findings": [
+                {
+                  "code": "architecture_promise_missing",
+                  "severity": "Critical",
+                  "blocking": true,
+                  "detail": {
+                    "milestone": "M4",
+                    "name": "Full Current Authority Overlay",
+                    "passed": false,
+                    "missingArtifacts": [],
+                    "missingReports": [],
+                    "failedReports": [
+                      "update_test_report.json"
+                    ]
+                  }
+                },
+                {
+                  "code": "architecture_promise_missing",
+                  "severity": "Critical",
+                  "blocking": true,
+                  "detail": {
+                    "milestone": "M6",
+                    "name": "Audit, Update Lifecycle & Scenario Understanding",
+                    "passed": false,
+                    "missingArtifacts": [],
+                    "missingReports": [],
+                    "failedReports": [
+                      "update_test_report.json"
+                    ]
+                  }
+                },
+                {
+                  "code": "certified_report_mismatch",
+                  "severity": "Critical",
+                  "blocking": true,
+                  "detail": {
+                    "report": "definition_lookup_test_report.json",
+                    "expected": 120,
+                    "actual": 131,
+                    "reportedPassed": true
+                  }
+                },
+                {
+                  "code": "certified_report_mismatch",
+                  "severity": "Critical",
+                  "blocking": true,
+                  "detail": {
+                    "report": "update_test_report.json",
+                    "expected": 29,
+                    "actual": 29,
+                    "reportedPassed": false
+                  }
+                },
+                {
+                  "code": "gold_c_report_only_remaining",
+                  "severity": "Medium",
+                  "blocking": false,
+                  "detail": {
+                    "remaining": 18
+                  }
+                },
+                {
+                  "code": "definition_lookup_release_guarantee",
+                  "severity": "High",
+                  "blocking": true,
+                  "detail": {
+                    "passed": true,
+                    "checkCount": 131,
+                    "metrics": {
+                      "keywordCount": 25,
+                      "gameActionCount": 32,
+                      "ruleConceptCount": 63,
+                      "naturalDoPhraseCoverage": true,
+                      "singularPluralAliasCoverage": true,
+                      "proofVerifiedDefinitions": true,
+                      "scenarioFalsePositiveGuard": true
+                    }
+                  }
+                },
+                {
+                  "code": "actual_retention_mismatch",
+                  "severity": "High",
+                  "blocking": true,
+                  "detail": {
+                    "expected": [
+                      "RiftKeepRules_Engine_Milestone18.zip",
+                      "RiftKeepRules_Engine_Milestone19.zip"
+                    ],
+                    "actual": [],
+                    "candidates": [],
+                    "passed": false,
+                    "hashes": {
+                      "RiftKeepRules_Engine_Milestone18.zip": null
+                    },
+                    "currentRelease": {
+                      "archive": "RiftKeepRules_Engine_Milestone19.zip",
+                      "sidecar": "RiftKeepRules_Engine_Milestone19.zip.sha256",
+                      "actualSha256": null,
+                      "sidecarSha256": null,
+                      "passed": false
+                    }
+                  }
+                },
+                {
+                  "code": "retained_release_hash_mismatch",
+                  "severity": "High",
+                  "blocking": true,
+                  "detail": {
+                    "file": "RiftKeepRules_Engine_Milestone18.zip",
+                    "expected": "06eea3100cbced4190e8062ece7163e57882c41eb3a49414400a3a6e0c89a20b",
+                    "actual": null
+                  }
+                },
+                {
+                  "code": "current_release_sidecar_missing",
+                  "severity": "High",
+                  "blocking": true,
+                  "detail": {
+                    "archive": "RiftKeepRules_Engine_Milestone19.zip",
+                    "sidecar": "RiftKeepRules_Engine_Milestone19.zip.sha256",
+                    "actualSha256": null,
+                    "sidecarSha256": null,
+                    "passed": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "check": "inherited certified report update_test_report.json",
+            "detail": {
+              "actual": 29,
+              "expected": 29
+            }
+          },
+          {
+            "check": "stable launcher status product version",
+            "detail": {}
+          }
+        ],
         "metrics": {
           "schemaVersion": 1,
           "checkCount": 191,
-          "productVersion": "1.0.0",
+          "productVersion": "1.0.5",
           "productApiVersion": "v1",
           "criticalArtifactCount": 44,
           "certifiedReleaseSuiteCount": 19,
@@ -1721,111 +2199,116 @@
     },
     "updates": {
       "exists": true,
-      "passed": true,
-      "path": "data/validation/update_test_report.json",
-      "modifiedAt": "2026-08-22T15:26:02.726052+00:00",
+      "passed": false,
+      "path": "data\\validation\\update_test_report.json",
+      "modifiedAt": "2026-08-29T23:57:49.444460+00:00",
       "report": {
-        "passed": true,
+        "passed": false,
         "checkCount": 29,
-        "failureCount": 0,
-        "failures": []
+        "failureCount": 1,
+        "failures": [
+          {
+            "name": "future PDF parse validates",
+            "detail": "{'parserCount': 2381, 'independentLayoutCount': 1614, 'missingFromParser': [], 'extraInParser': ['050', '051', '053.3', '103.1.a', '103.1.b.1', '103.1.b.3', '103.1.b.5', '103.2.a', '103.2.a.3', '103.2.b.1', '103.2.d.1', '103.3.a', '103.3.b', '103.4.c', '107.1', '107.1.b', '107.1.d', '107.3.a', '107.3.b.2', '107.3.c', '107.4.b', '107.4.d', '108', '108.1.b', '108.2.a', '108.2.c', '108.3', '108.4.a', '108.5.c', '108.7.d', '108.7.f', '109', '109.2', '110', '113', '115', '115.1.a', '115.1.c', '115.2', '117', '117.2', '121', '128.2', '128.4', '128.6', '129.2', '129.4', '130.2', '130.6', '131.2', '131.3.a', '132', '132.2', '133.1', '133.4.a.1', '133.4.b.1', '133.6.a.1', '133.7.a', '133.8', '134', '134.2.a', '134.2.c', '134.2.f', '135.1', '135.2.a', '135.2.a.2', '135.2.b.2', '135.2.b.4', '135.2.c', '135.2.d', '135.2.d.2', '135.2.e', '135.2.e.2', '135.2.e.3', '135.2.e.5.a', '135.2.e.6.a', '135.4', '136.2', '136.2.b', '137.2', '137.3.a', '138.1', '141', '141.1.a', '141.1.a.3', '141.1.a.4', '141.1.b', '141.1.b.2', '141.2', '142.1', '142.3.a', '142.3.b', '142.4.b', '142.4.c', '143.1.a', '143.2.a', '143.2.b.1', '143.3.b.1', '144', '144.1.a', '144.1.c', '144.3', '144.3.a', '144.3.c', '144.4.a', '144.4.b', '144.4.c.1', '145', '146.1', '147', '148', '148.1.a', '148.1.a.2', '148.1.b.2', '148.2', '149', '150.1', '150.4', '151.1', '151.2.a.1', '152.2', '155', '157', '158.2', '159.2.a', '159.2.b', '159.2.b.2', '161.1', '161.2', '163', '163.1.a', '163.2.a', '163.2.b', '165', '166.2', '167', '170.1', '170.2.a', '170.5.b', '174.3', '174.7', '174.8', '176', '177', '178.1.a.1', '178.1.a.1.a', '178.2.a', '178.3', '179', '180', '182', '184.2', '185', '185.1.a', '185.2.a', '185.2.c', '185.3.a.1', '185.3.b.1', '186', '187.10', '187.3', '187.5', '190', '190.2', '190.2.b', '190.3.a', '190.3.b.1', '190.3.c', '190.4.a', '190.5', '191', '191.3', '191.4', '191.4.e', '193', '194.1', '194.2', '194.3', '194.4', '195', '195.1', '198', '199.1', '203.1', '203.3', '204.1.a', '204.2', '204.3.a', '204.3.b', '204.4.b.1', '206', '303.1', '306', '309.1', '310', '311', '312.1.a', '312.2.b', '313.1', '315.2.a.1', '315.2.b.1', '315.2.b.3', '315.3.a', '315.4', '315.4.b', '316.1', '316.3', '316.5', '316.6', '316.7.b', '316.7.d', '316.8.a', '316.9.a', '317.1', '317.2', '319.4', '319.6', '323', '323.10', '323.12', '323.2', '323.3', '323.7', '323.8.a', '324.1', '324.2', '326.1', '327', '328.1', '329', '329.2', '330.2', '331.1.a', '331.2', '333.1', '334.1', '335', '336', '337.2', '337.4', '338.1.a', '338.1.a.2', '338.1.a.5', '338.1.b.1', '339.1', '340.1', '340.2', '340.4', '342.1', '343.1', '344', '345', '346.1', '347.1', '347.2.a', '348', '348.2.a', '348.2.a.1', '349', '350', '350.2', '351', '352', '352.2', '354.1', '354.3', '355', '355.10.a', '355.10.a.1', '355.10.c', '355.10.d', '355.10.f', '355.11.b', '355.14.a', '355.14.d', '355.14.f', '355.14.h.1', '355.14.i', '355.2', '355.3', '355.4.a', '355.5.a', '355.5.b', '355.6', '355.8', '355.9.a', '355.9.a.2', '355.9.a.5', '356.1', '356.1.b', '356.1.b.3', '356.2', '356.4.a', '356.4.c', '356.4.d', '356.5.a', '357', '359.1', '359.2.d', '359.3.a', '359.3.c', '359.3.e.1', '359.3.e.14', '359.3.e.3', '359.3.e.7', '359.3.e.9.a', '359.3.f.2', '359.3.f.3', '363', '364.1', '364.2', '365.1', '366.1', '366.2', '368', '369', '370.1.a.1', '370.1.b.1', '370.3', '372.2', '375', '377', '377.3', '377.3.b.1', '377.3.b.3', '379', '382', '383.1', '383.1.b', '383.2.a', '383.3', '383.3.a.3', '383.3.b', '383.3.d', '383.4.a', '383.4.a.2', '383.4.b.2', '383.4.b.4', '383.4.c.2', '383.4.c.2.b', '383.4.c.3', '383.4.d.1', '383.4.e', '383.4.e.2.a', '383.4.e.3', '383.4.f.2', '383.4.g', '384.1', '385.1', '386', '387.1.b', '387.2', '388.1', '390.1', '390.5', '390.5.c', '391', '393', '398', '400.1', '401', '402.1', '402.2', '402.4.b', '403.1.a', '403.1.b.1', '403.3', '404.1', '405.1', '406.2', '406.5', '407', '408', '410.1', '410.1.b', '410.1.b.2', '410.2.a', '411.1', '411.5', '413', '413.2', '413.4.b', '414.1', '414.1.b', '414.3.a', '414.5', '415.1', '415.1.c', '415.3.a', '416.1.c', '416.2', '416.5.a', '417', '417.1.b', '417.1.e.1', '417.3', '417.6.b', '417.6.b.2.a', '417.6.c.1', '418.1', '418.3', '419.1', '419.3.a', '419.3.c', '419.4.a', '419.4.b', '420.1', '420.2.a', '420.3.a', '421.1', '421.2.a', '422.1', '422.1.b', '422.3', '423.1', '423.1.a.1', '423.1.a.2', '423.2', '424.1.a.1', '424.1.a.3', '424.2', '424.4.a', '425.1', '425.1.b', '425.2', '426', '426.1.a', '426.1.b.1', '426.1.c', '426.2', '426.3', '427.1', '427.2.a', '427.3', '427.4', '428.2', '428.2.b', '428.5.a', '428.5.d', '428.6', '429.2', '429.3', '430.1', '430.2.a', '430.4.a', '431', '431.1.a', '431.2.a', '431.3.b', '431.3.c.1', '431.5', '432.1.a', '433', '433.2.a', '434.1', '434.1.a', '434.1.b.1', '434.1.c', '434.1.e', '434.1.g', '434.3', '435', '435.1.a.1', '435.1.b.2', '435.1.d', '435.2.a', '435.4.a', '436.1.a', '436.2.a', '436.3.a', '436.4.a', '437.1', '437.1.a.1', '437.1.b.1', '437.1.b.1.b', '437.2.a', '437.3.b', '437.5', '437.6', '438.1', '438.2', '438.3.a', '438.7', '438.7.b', '438.7.c', '439.1', '439.2.a', '439.2.b', '439.2.b.2', '439.2.b.4', '439.2.c', '439.3', '439.4.a', '439.6', '440.1', '440.3', '441', '441.1.a', '441.1.c', '441.2.a', '442', '442.1.a.1', '443', '443.1.a', '443.1.a.1', '443.1.a.2', '443.2', '443.3', '443.4', '444.1.a', '444.3', '446.3', '446.3.c', '447.1', '451', '453', '456', '456.2', '457', '460', '461.1', '462', '462.2', '462.3', '463', '464.2', '464.2.b', '464.2.c.3', '465.1', '465.2.a', '465.2.c.1', '465.2.c.10', '465.2.c.7', '466', '466.3.d.1', '466.5.c', '466.5.e', '466.7.a', '469', '470', '471.1', '471.1.b', '471.2.a', '471.2.c', '474', '475.1', '476.2', '477', '477.1.b.1.b', '477.2', '477.2.b', '477.3.a', '477.3.b', '477.3.e.1.b', '477.3.e.2.b', '478.1', '478.1.b', '479.2', '480', '480.1.a', '481', '482', '483.2', '483.3', '485.7', '486.2', '486.3', '486.4.a', '486.6', '486.6.a', '486.6.a.2', '487.1', '487.7', '488', '488.3', '488.4.a', '488.5', '489.1', '489.4', '489.5', '489.5.c', '489.5.c.3', '489.6.a', '489.6.a.2', '489.7', '489.8', '489.8.b', '489.8.c', '489.8.d.1', '489.8.d.3', '489.8.f', '489.8.g', '489.8.g.2', '489.8.i', '649', '650', '651.1', '651.3', '651.4', '652', '652.2', '652.5', '652.5.a.1', '652.5.b', '652.5.b.2', '702.1', '702.2.a', '702.2.b', '702.3', '704', '705.1', '708', '714', '715', '715.4', '718.1', '718.3', '718.5.a', '718.5.d', '718.5.f', '719', '719.2', '719.3.a', '719.5.a', '720', '721.2', '722.1', '723', '725', '725.3', '726', '727.1.a.1', '727.1.b', '727.1.b.3', '727.1.c', '727.1.c.3', '728', '729.1.a', '730', '731', '733', '740.1', '740.2', '740.4', '742', '744', '745.1', '745.1.b', '746', '748', '750', '751', '752.1', '753.1', '755.1', '756', '757.1', '758.1', '758.2.a', '761', '762.2', '763.1', '801.3', '801.3.a.1', '801.3.b', '801.3.b.2', '802', '804', '805.1', '805.1.a.1', '805.1.a.2', '805.2', '805.3', '805.6.a', '806', '806.1.b', '806.1.c.2', '806.3', '806.4', '806.4.b', '806.5.a', '807.1', '807.1.b.1', '807.1.d', '808', '808.1.b', '808.1.c.1', '808.1.d.1', '808.1.d.2', '808.2.a', '809', '809.1.b', '809.1.c', '809.1.d', '810.1', '810.1.c', '810.1.c.2', '810.3', '811.1.a', '811.1.c.1', '811.1.c.3', '811.1.d.2', '811.1.d.2.a', '811.2', '811.5', '812.1', '812.1.b.2', '813', '813.1.b', '813.2', '813.3.a', '813.4.a', '813.4.b', '813.5', '813.5.c', '814.1', '814.1.b', '814.1.b.2', '814.1.c', '814.2', '814.3', '815', '815.1.a', '815.1.c', '815.2', '816', '818', '818.2.a', '818.3.a', '818.3.b', '818.4', '818.5', '819.1.a', '819.1.d', '819.3', '820', '820.1.a', '820.1.c.1', '820.1.c.2', '820.1.c.3', '820.2.a', '821.1', '821.1.c.2', '821.1.c.5', '821.1.c.7', '821.2', '822.1.a', '822.3.a', '824', '825.1', '826', '826.2', '826.4.a', '826.6', '827.1', '827.1.b.1', '827.1.c.1', '827.1.c.3', '827.1.c.4', '827.3', '828.1.a', '828.1.b.1', '828.1.d', '829', '829.1.a', '829.1.c.1', '829.2'], 'duplicateParserIds': [], 'emptyText': [], 'passed': False}"
+          }
+        ]
       },
       "freshForCurrentBuild": true
     }
   },
   "sourceIntegrity": {
     "coreRulesPdf": {
-      "path": "data/source/core_rules.pdf",
+      "path": "data\\source\\core_rules.pdf",
       "exists": true,
       "bytes": 42947831,
       "sha256": "9c5fb8b8638f2cd19ceda237929fa2c37aac23c797cc7410294993470ba5a30b"
     },
     "tournamentRulesPdf": {
-      "path": "data/source/tournament_rules.pdf",
+      "path": "data\\source\\tournament_rules.pdf",
       "exists": true,
       "bytes": 16697889,
       "sha256": "6a5be5501c494ecc841fb2572e715d9006f611ff2e5c97023a5be1b5c884e61f"
     },
     "cardsJson": {
-      "path": "data/source/riftbound_cards.json",
+      "path": "data\\source\\riftbound_cards.json",
       "exists": true,
       "bytes": 1104153,
       "sha256": "9c1c5f762a999ecb96d033dca5c1b2b782b8eb2b57960acaad170b337feaed83"
     },
     "officialSourceManifest": {
-      "path": "data/source/official_source_manifest.json",
+      "path": "data\\source\\official_source_manifest.json",
       "exists": true,
       "bytes": 9919,
       "sha256": "fc97de5da7d06018e365ddc988d9abaecd3aca2c22dc2203c920ccb40efcd7ba"
     }
   },
   "canonicalArtifactsPresent": {
-    "data/canonical/core_rules.json": true,
-    "data/canonical/tournament_rules.json": true,
-    "data/canonical/cards.json": true,
-    "data/canonical/official_errata_history.json": true,
-    "data/canonical/knowledge_graph.json": true,
-    "data/canonical/effective_rule_overrides.json": true,
-    "data/canonical/compiled_rule_catalog.json": true,
-    "data/canonical/rule_programs.json": true,
-    "data/canonical/card_interaction_catalog.json": true,
-    "data/canonical/card_interaction_programs.json": true,
-    "contracts/card_interaction_catalog.schema.json": true,
-    "contracts/card_interaction_programs.schema.json": true,
-    "src/riftkeep_rules/card_interactions.py": true,
-    "src/riftkeep_rules/card_interaction_executor.py": true,
-    "contracts/product_api_contract.json": true,
-    "src/riftkeep_rules/product_api.py": true,
-    "src/riftkeep_rules/api_http.py": true,
+    "data\\canonical\\core_rules.json": true,
+    "data\\canonical\\tournament_rules.json": true,
+    "data\\canonical\\cards.json": true,
+    "data\\canonical\\official_errata_history.json": true,
+    "data\\canonical\\knowledge_graph.json": true,
+    "data\\canonical\\effective_rule_overrides.json": true,
+    "data\\canonical\\compiled_rule_catalog.json": true,
+    "data\\canonical\\rule_programs.json": true,
+    "data\\canonical\\card_interaction_catalog.json": true,
+    "data\\canonical\\card_interaction_programs.json": true,
+    "contracts\\card_interaction_catalog.schema.json": true,
+    "contracts\\card_interaction_programs.schema.json": true,
+    "src\\riftkeep_rules\\card_interactions.py": true,
+    "src\\riftkeep_rules\\card_interaction_executor.py": true,
+    "contracts\\product_api_contract.json": true,
+    "src\\riftkeep_rules\\product_api.py": true,
+    "src\\riftkeep_rules\\api_http.py": true,
     "serve_api.py": true,
-    "contracts/ui_contract.json": true,
-    "web/index.html": true,
-    "web/styles.css": true,
-    "web/app.js": true,
-    "tests/run_ui_integration_tests.py": true,
-    "tests/run_definition_lookup_tests.py": true,
-    "contracts/update_automation.schema.json": true,
-    "src/riftkeep_rules/release_gate.py": true,
-    "src/riftkeep_rules/update_automation.py": true,
+    "contracts\\ui_contract.json": true,
+    "web\\index.html": true,
+    "web\\styles.css": true,
+    "web\\app.js": true,
+    "tests\\run_ui_integration_tests.py": true,
+    "tests\\run_definition_lookup_tests.py": true,
+    "contracts\\update_automation.schema.json": true,
+    "src\\riftkeep_rules\\release_gate.py": true,
+    "src\\riftkeep_rules\\update_automation.py": true,
     "update_automation.py": true,
-    "tests/run_update_automation_tests.py": true,
-    "contracts/runtime_hardening.schema.json": true,
-    "data/canonical/runtime_hardening_contract.json": true,
-    "src/riftkeep_rules/runtime_hardening.py": true,
-    "tests/run_production_hardening_tests.py": true,
-    "contracts/release_candidate_audit.schema.json": true,
-    "data/canonical/release_candidate_audit_contract.json": true,
-    "src/riftkeep_rules/release_candidate_audit.py": true,
-    "tests/run_release_candidate_audit_tests.py": true,
-    "contracts/stable_release_contract.schema.json": true,
-    "contracts/stable_release_manifest.schema.json": true,
-    "data/canonical/stable_release_contract.json": true,
-    "src/riftkeep_rules/release_identity.py": true,
+    "tests\\run_update_automation_tests.py": true,
+    "contracts\\runtime_hardening.schema.json": true,
+    "data\\canonical\\runtime_hardening_contract.json": true,
+    "src\\riftkeep_rules\\runtime_hardening.py": true,
+    "tests\\run_production_hardening_tests.py": true,
+    "contracts\\release_candidate_audit.schema.json": true,
+    "data\\canonical\\release_candidate_audit_contract.json": true,
+    "src\\riftkeep_rules\\release_candidate_audit.py": true,
+    "tests\\run_release_candidate_audit_tests.py": true,
+    "contracts\\stable_release_contract.schema.json": true,
+    "contracts\\stable_release_manifest.schema.json": true,
+    "data\\canonical\\stable_release_contract.json": true,
+    "src\\riftkeep_rules\\release_identity.py": true,
     "build_stable_release_manifest.py": true,
     "stable_clean_install.py": true,
     "riftkeep.py": true,
-    "tests/run_stable_release_tests.py": true,
+    "tests\\run_stable_release_tests.py": true,
     "RELEASE_NOTES_1.0.md": true,
     "KNOWN_LIMITATIONS_1.0.md": true,
-    "data/validation/runtime_hardening_integrity.json": true,
-    "data/validation/rule_compiler_metrics.json": true,
-    "contracts/llm_interpretation.schema.json": true,
-    "src/riftkeep_rules/llm_interpretation.py": true,
-    "contracts/llm_explanation.schema.json": true,
-    "src/riftkeep_rules/llm_explanation.py": true,
-    "contracts/gold_case.schema.json": true,
-    "data/gold/gold_corpus.json": true,
-    "data/gold/gold_manifest.json": true,
-    "data/gold/gold_c_promotions.json": true,
-    "data/validation/current_overlay_integrity.json": true,
-    "data/validation/rule_version_integrity.json": true,
-    "data/source/rule_versions/core/history.json": true,
-    "data/source/rule_versions/tournament/history.json": true,
-    "data/index/rules.sqlite": true
+    "data\\validation\\runtime_hardening_integrity.json": true,
+    "data\\validation\\rule_compiler_metrics.json": true,
+    "contracts\\llm_interpretation.schema.json": true,
+    "src\\riftkeep_rules\\llm_interpretation.py": true,
+    "contracts\\llm_explanation.schema.json": true,
+    "src\\riftkeep_rules\\llm_explanation.py": true,
+    "contracts\\gold_case.schema.json": true,
+    "data\\gold\\gold_corpus.json": true,
+    "data\\gold\\gold_manifest.json": true,
+    "data\\gold\\gold_c_promotions.json": true,
+    "data\\validation\\current_overlay_integrity.json": true,
+    "data\\validation\\rule_version_integrity.json": true,
+    "data\\source\\rule_versions\\core\\history.json": true,
+    "data\\source\\rule_versions\\tournament\\history.json": true,
+    "data\\index\\rules.sqlite": true
   },
   "stableGeneratedArtifactsPresent": {
-    "data/canonical/stable_release_manifest.json": true,
-    "data/validation/stable_clean_install_audit.json": true
+    "data\\canonical\\stable_release_manifest.json": true,
+    "data\\validation\\stable_clean_install_audit.json": true
   },
   "authorityStatus": {
     "status": "complete",
@@ -1914,7 +2397,7 @@
     "policy": "Current gameplay adjudication requires the current Core Rules and every active official overlay. Other source families report coverage independently rather than being collapsed into one boolean."
   },
   "operationalReadiness": {
-    "engineValidated": true,
+    "engineValidated": false,
     "currentGameplayAuthorityComplete": true,
     "currentGameplayBlockers": [],
     "note": "Engine validation and current-authority completeness are independent. Default gameplay adjudication fails closed when an active official override source is not locally mirrored."

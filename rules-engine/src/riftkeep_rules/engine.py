@@ -17,7 +17,7 @@ from .card_interaction_executor import evaluate_card_interaction_execution, mate
 from .writer import render_answer
 from .player_language import normalize_player_language
 from .clarify import clarification_questions
-from .concepts import find_concepts, build_definition_ruling, card_referenced_concepts, merge_concept_evidence
+from .concepts import find_concepts, build_definition_ruling, build_definition_ruling_from_retrieval, card_referenced_concepts, merge_concept_evidence
 from .authority import load_authority_status
 from .legality import adjudicate_legality
 from .vocabulary import detect_game_actions
@@ -229,7 +229,11 @@ class RulesEngine:
             if interaction_outcome is not None:
                 ruling = materialize_card_interaction_ruling(interpretation_issue, interaction_outcome, card_interaction_execution, issue_evidence_catalog)
             else:
-                ruling = build_definition_ruling(interpretation_issue, self.core, find_concepts(interpretation_issue, self.semantic_ir)) or adjudicate_issue(interpretation_issue, proof, facts, named_cards, official_docs, self.rule_programs)
+                ruling = (
+                    build_definition_ruling_from_retrieval(interpretation_issue, packet.get("evidenceRules") or [])
+                    or build_definition_ruling(interpretation_issue, self.core, find_concepts(interpretation_issue, self.semantic_ir))
+                    or adjudicate_issue(interpretation_issue, proof, facts, named_cards, official_docs, self.rule_programs)
+                )
             active_overlay_ids = set(self.authority_status.get("activeOverlays") or [])
             decisive_rule_ids = {str(r.get("ruleId")) for r in proof.get("decisiveRules", []) if r.get("ruleId")}
             required_official_set = set(required_official_ids)

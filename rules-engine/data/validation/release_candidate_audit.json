@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "passed": false,
   "releaseCandidateReady": false,
-  "blockingFindingCount": 6,
+  "blockingFindingCount": 8,
   "findingCounts": {
-    "Critical": 3,
-    "High": 3,
+    "Critical": 4,
+    "High": 4,
     "Medium": 1,
     "Low": 0
   },
@@ -166,9 +166,9 @@
       "actual": 164
     },
     "definition_lookup_test_report.json": {
-      "passed": true,
+      "passed": false,
       "expected": 120,
-      "actual": 120
+      "actual": 131
     },
     "regression_report.json": {
       "passed": true,
@@ -370,6 +370,17 @@
       "severity": "Critical",
       "blocking": true,
       "detail": {
+        "report": "definition_lookup_test_report.json",
+        "expected": 120,
+        "actual": 131,
+        "reportedPassed": true
+      }
+    },
+    {
+      "code": "certified_report_mismatch",
+      "severity": "Critical",
+      "blocking": true,
+      "detail": {
         "report": "update_test_report.json",
         "expected": 29,
         "actual": 29,
@@ -382,6 +393,24 @@
       "blocking": false,
       "detail": {
         "remaining": 18
+      }
+    },
+    {
+      "code": "definition_lookup_release_guarantee",
+      "severity": "High",
+      "blocking": true,
+      "detail": {
+        "passed": true,
+        "checkCount": 131,
+        "metrics": {
+          "keywordCount": 25,
+          "gameActionCount": 32,
+          "ruleConceptCount": 63,
+          "naturalDoPhraseCoverage": true,
+          "singularPluralAliasCoverage": true,
+          "proofVerifiedDefinitions": true,
+          "scenarioFalsePositiveGuard": true
+        }
       }
     },
     {

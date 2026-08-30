@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.29.8 — Fix: ornate frame ballooning on tall cards
+
+- The gold frame around each player card was stretching to the card's exact size, which blew the corner scrollwork up to a huge size on a tall card (a full hand plus the move tool and counters) and covered the controls underneath. The corners now stay a fixed size no matter how tall the card gets — only the thin connecting edge lines stretch.
+
 ## v1.29.7 — Emulator: real illustrated art
 
 - Replaced the plain CSS gradients and placeholder circles with actual illustrated art: a moody mountain-vista backdrop behind each side of the battlefield (your side and your opponent's are tinted differently so they read apart at a glance), an ornate gold filigree frame around every player card, a real engraved rune card-back on every deck pile, a gold ring frame around each Legend portrait, and real glowing glyph icons for the six Domain pips instead of plain colored dots.

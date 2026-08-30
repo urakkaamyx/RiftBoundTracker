@@ -1181,10 +1181,19 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 60%, transparent), 0 0 34px -6px var(--accent-soft), 0 18px 40px -20px rgba(0,0,0,.7);
 }
 /* The generated ornate corner frame overlaid on top of every player card - its own center is fully
-   transparent, so it only adds the gold filigree corners/edges without hiding any content. */
+   transparent, so it only adds the gold filigree corners/edges without hiding any content. A 9-slice
+   border-image (not background-size:100% 100%) is required here specifically because these cards
+   vary a lot in height (a full hand + move tool + counters vs. an empty pre-match card): stretching
+   the square 900x900 source to fit an arbitrarily tall box would blow the corner scrollwork up to
+   a huge size. border-image-width keeps the corners a fixed pixel size regardless of box height and
+   only stretches the thin connecting edge lines, which was the actual bug the user caught. */
 .po-player-card::after {
   content: ""; position: absolute; inset: -10px; pointer-events: none; z-index: 2;
-  background-image: url("emulator-art/panel-frame.png"); background-size: 100% 100%; background-repeat: no-repeat;
+  border-style: solid; border-width: 46px;
+  border-image-source: url("emulator-art/panel-frame.png");
+  border-image-slice: 300;
+  border-image-width: 46px;
+  border-image-repeat: stretch;
   opacity: .85;
 }
 .po-player-content {

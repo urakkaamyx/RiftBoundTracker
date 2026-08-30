@@ -254,14 +254,16 @@ def _question_quotes_rule_verbatim(question: str, rule: dict[str, Any]) -> bool:
     phrasing can otherwise hijack the concept match; confirmed directly against real failing
     questions). Requiring an exact quoted substring rather than topical similarity keeps this
     from ever guessing: either the question is quoting this specific rule's own words or it
-    isn't - a bare section title (e.g. "Beginning Phase", 15 chars, no terminal punctuation) is
-    excluded since it trivially appears inside any ordinary scenario question that mentions that
+    isn't - a bare section title (e.g. "Beginning Phase", 15 chars) is excluded by length alone
+    since it trivially appears inside any ordinary scenario question that mentions that
     phase/section by name; confirmed directly as a real false positive against gold-corpus
     regression case GA-041 ("During my Beginning Phase..." hijacked by rule 315.2's bare title
-    "Beginning Phase" before this guard existed). Requiring both real sentence length and
-    terminal punctuation keeps this to actual defining sentences, not section headings."""
+    "Beginning Phase" before this guard existed). Deliberately no terminal-punctuation
+    requirement on top of that: plenty of legitimate rule clauses are spec/table-style entries
+    with no trailing period (e.g. Rule 103.2's 94-char Main Deck clause), and requiring one
+    excluded those real matches without adding any actual safety over the length check alone."""
     text = rule.get("normativeText") or rule.get("text") or ""
-    if len(text.strip()) < 40 or not text.strip().endswith((".", "?", "!")):
+    if len(text.strip()) < 40:
         return False
     return _normalize_quote_text(text) in _normalize_quote_text(question)
 

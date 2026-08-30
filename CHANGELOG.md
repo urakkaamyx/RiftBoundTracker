@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.29.6 — Emulator: never on mobile, launches in its own window, real stat block
+
+- The Emulator is now completely inaccessible on a phone-sized screen — the nav item, the RiftCode gate, all of it. This also applies live if you shrink a desktop window narrow enough, not just an actual phone.
+- Hosting or joining now opens the board in its own window instead of taking over the one you were browsing the vault in, so the vault stays where you left it.
+- Redesigned the player card: a circular Legend portrait with a Might badge, a real Energy/Runes stat readout, and a live Domain-colored pip row for the runes currently in your Base. The Victory Score track moved out of the header into its own strip down the edge of the card — on the opponent's side it's upside down along with the rest of their card, same as everything else about them.
+
 ## v1.29.5 — Emulator: match log
 
 - Added a live match log next to the board — every draw, channel, exhaust, recycle, play, move, score change, ready-up, and turn pass shows up there with a timestamp as it happens, newest on top. Never reveals what's actually in anyone's hand, only that something moved.

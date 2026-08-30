@@ -72,7 +72,7 @@ const state = {
   vaultFacetCache: { setId: undefined, cards: [] },
   legendPicker: { cards: [], search: "", ownedOnly: false, selectedBase: null, selectedVariantId: null, mode: "create" },
   cardTextSymbols: new Map(),
-  playOnline: { unlocked: false, connection: null, myConnectionId: null, room: null, lobbyTab: "host", lastWanUrl: null, announcedWinner: null },
+  playOnline: { unlocked: false, serverGranted: false, autoLaunch: false, connection: null, myConnectionId: null, room: null, lobbyTab: "host", lastWanUrl: null, announcedWinner: null },
   riftCodeTimer: null,
   priceQueue: { items: [], batchSize: 20, configured: false, provider: "JustTCG" },
   priceQueueIds: new Set(),
@@ -2812,14 +2812,30 @@ async function checkRiftCode() {
   } catch { poSetUnlocked(false); }
 }
 
-function poSetUnlocked(unlocked) {
-  state.playOnline.unlocked = unlocked;
-  document.getElementById("riftCodeField").classList.toggle("riftcode-unlocked", unlocked);
-  document.getElementById("navEmulator").hidden = !unlocked;
-  if (!unlocked && state.page === "play-online") navigate("vault");
+// The board needs real screen width - matches the app's own mobile breakpoint (see the 720px
+// media queries throughout styles.css), not a phone-specific check, so a narrow desktop window
+// gets the same treatment as an actual phone.
+function poIsMobileViewport() {
+  return window.innerWidth <= 720;
+}
+
+function poSetUnlocked(granted) {
+  state.playOnline.serverGranted = granted;
+  poApplyUnlockGate();
+}
+
+// Re-run whenever the server grant changes AND on every resize, since a desktop window dragged
+// narrow (or a tablet rotated) should lose Emulator access exactly like a phone would.
+function poApplyUnlockGate() {
+  const allowed = state.playOnline.serverGranted && !poIsMobileViewport();
+  state.playOnline.unlocked = allowed;
+  document.getElementById("riftCodeField").classList.toggle("riftcode-unlocked", allowed);
+  document.getElementById("navEmulator").hidden = !allowed;
+  if (!allowed && state.page === "play-online") navigate("vault");
 }
 
 async function loadPlayOnline() {
+  if (poIsMobileViewport()) { navigate("vault"); toast("The Emulator isn't available on mobile.", true); return; }
   if (!state.playOnline.unlocked) { navigate("vault"); return; }
   if (state.playOnline.room) { poShowView("room"); poRenderRoom(); return; }
   poShowView("lobby");
@@ -2897,9 +2913,44 @@ async function poEnterRoom(connection, result) {
   poRenderRoom();
 }
 
+// Launching a match (hosting or joining) opens its own window rather than taking over the one the
+// user was browsing the vault in - the board wants real width, and this way the vault stays where
+// they left it. The new window is the only thing that ever connects for that player; nothing here
+// tries to hand a live connection between windows.
+function poLaunchInNewWindow(params) {
+  const url = new URL(location.href);
+  url.search = new URLSearchParams(params).toString();
+  window.open(url.toString(), "_blank", "width=1500,height=940");
+}
+
+// Consumes ?poAuto=host|join&poName=...&poCode=... from the URL (see poLaunchInNewWindow) - only
+// ever present in a window that was just opened specifically to host or join, so it connects for
+// real immediately instead of showing the picked-Host-or-Join lobby first.
+async function poRunAutoLaunch() {
+  const params = new URLSearchParams(location.search);
+  const mode = params.get("poAuto");
+  if (!mode) return;
+  history.replaceState(null, "", location.pathname);
+  if (!state.playOnline.unlocked) { toast("Couldn't unlock the Emulator in this window.", true); return; }
+  state.playOnline.autoLaunch = true;
+  navigate("play-online");
+  await new Promise(r => setTimeout(r, 0));
+  if (mode === "host") {
+    document.getElementById("poHostName").value = params.get("poName") || "";
+    poSetLobbyTab("host");
+    await poHostRoom().catch(err => toast(err.message, true));
+  } else if (mode === "join") {
+    document.getElementById("poJoinName").value = params.get("poName") || "";
+    document.getElementById("poJoinCode").value = params.get("poCode") || "";
+    poSetLobbyTab("join");
+    await poJoinRoom().catch(err => toast(err.message, true));
+  }
+}
+
 async function poHostRoom() {
   const name = document.getElementById("poHostName").value.trim();
   if (!name) { toast("Enter a display name", true); return; }
+  if (!state.playOnline.autoLaunch) { poLaunchInNewWindow({ poAuto: "host", poName: name }); navigate("vault"); return; }
   const connection = poGetConnection();
   if (connection.state === signalR.HubConnectionState.Disconnected) await connection.start();
   const result = await connection.invoke("HostRoom", name);
@@ -2911,6 +2962,7 @@ async function poJoinRoom() {
   const name = document.getElementById("poJoinName").value.trim();
   const code = document.getElementById("poJoinCode").value.trim();
   if (!name || !code) { toast("Fill in your name and the room code", true); return; }
+  if (!state.playOnline.autoLaunch) { poLaunchInNewWindow({ poAuto: "join", poName: name, poCode: code }); navigate("vault"); return; }
   const connection = poGetConnection();
   if (connection.state === signalR.HubConnectionState.Disconnected) await connection.start();
   const result = await connection.invoke("JoinRoom", code, name);
@@ -3074,14 +3126,38 @@ function poRenderRoom() {
     // tool's single dropdown can address any of them without a separate control per zone.
     const myMovableCards = isMe && zones ? PO_MOVABLE_ZONES.flatMap(([key, label]) =>
       (key === "hand" ? zones.hand || [] : zones[key]).map(cardId => ({ cardId, key, label }))) : [];
-    const legend = zones?.legendCardId ? poCardTile(zones.legendCardId, "legend") : "";
+    const legendCard = zones?.legendCardId ? cardsById.get(zones.legendCardId) : null;
+    const legendImg = legendCard && cardImage(legendCard);
+    const might = legendCard?.might;
+    // A live, honest read of the runes actually sitting in this player's Base right now (public
+    // information) broken out by Domain - not the Rune Deck's full composition, which stays Secret
+    // Information (Core Rule 108.5.d) and is never sent to any client, so it can't be shown here.
+    const domainOrder = ["Fury", "Calm", "Order", "Mind", "Body", "Chaos"];
+    const domainCounts = Object.fromEntries(domainOrder.map(d => [d, 0]));
+    (zones?.base || []).forEach(id => (cardsById.get(id)?.domains || []).forEach(d => { if (d in domainCounts) domainCounts[d]++; }));
+    const domainPips = zones ? `<div class="po-domain-pips">${domainOrder.map(d => `<span class="po-domain-pip" style="--pip-color: var(--c-${d.toLowerCase()})" title="${d} Runes">${domainCounts[d]}</span>`).join("")}</div>` : "";
+    // A vertical Victory Score track (0-8) run down the edge of the card, separate from the name
+    // header - a direct child of .po-player-card, so it inherits that card's own 180deg flip on the
+    // opponent's side automatically and reads upside down there, same as everything else about them.
+    const pointTrack = zones ? `
+      <div class="po-point-track" title="Score: ${zones.score} / 8">
+        ${isMe ? `<button class="icon-btn" data-po-score-delta="1">+</button>` : `<span class="po-point-spacer"></span>`}
+        ${[8, 7, 6, 5, 4, 3, 2, 1, 0].map(n => `<span class="po-point-tick${zones.score >= n ? " po-point-filled" : ""}">${n}</span>`).join("")}
+        ${isMe ? `<button class="icon-btn" data-po-score-delta="-1">−</button>` : `<span class="po-point-spacer"></span>`}
+      </div>` : "";
 
     return `
       <div class="po-player-card${isActiveTurn ? " po-active-turn" : ""}${isMe ? " po-mine" : " po-opponent"}">
+        ${pointTrack}
+        <div class="po-player-content">
         <div class="po-player-head">
-          ${legend}
+          <div class="po-portrait">
+            ${legendImg ? `<img src="${escapeHtml(legendImg)}" alt="" />` : `<i data-icon="shield"></i>`}
+            ${might != null ? `<span class="po-might-badge" title="Might"><b>${might}</b></span>` : ""}
+          </div>
           <div class="po-player-id">
             <strong>${escapeHtml(player.name)}${isMe ? " (You)" : ""}</strong>
+            <span class="po-legend-name">${legendCard ? escapeHtml(legendCard.name) : ""}</span>
             <div class="po-badges">
               ${player.isHost ? `<span class="po-badge po-badge-host">Host</span>` : ""}
               ${isActiveTurn ? `<span class="po-badge po-badge-turn">Turn</span>` : ""}
@@ -3089,13 +3165,12 @@ function poRenderRoom() {
             </div>
           </div>
           ${zones ? `
-            <div class="po-score">
-              <i data-icon="star"></i><b>${zones.score}</b><span>/ 8</span>
-              ${isMe ? `
-                <button class="icon-btn" data-po-score-delta="-1">−</button>
-                <button class="icon-btn" data-po-score-delta="1">+</button>
-              ` : ""}
-            </div>` : ""}
+            <div class="po-stat-block">
+              <div class="po-stat"><b>${zones.counters.Energy || 0}</b><span>Energy</span></div>
+              <div class="po-stat"><b>${zones.base.length}</b><span>Runes</span></div>
+            </div>
+            ${domainPips}
+          ` : ""}
           ${counters.length ? `<div class="po-counter-strip">${counters.map(([n, v]) => `<span class="po-counter-pill"><b>${v}</b>${escapeHtml(n)}</span>`).join("")}</div>` : ""}
         </div>
         ${!zones ? (isMe ? `
@@ -3159,6 +3234,7 @@ function poRenderRoom() {
                 </span>`).join("")}
             </div>` : ""}
         `}
+        </div>
       </div>`;
   });
   // The opponent(s) sit across the table, upside down, at the top; your own side is always the
@@ -4923,6 +4999,10 @@ function wireEvents() {
     const keywordBtn = event.target.closest("[data-keyword-goto]");
     if (keywordBtn) selectKeywordResult(Number(keywordBtn.dataset.keywordGoto));
   });
+  window.addEventListener("resize", () => {
+    clearTimeout(state.playOnlineResizeTimer);
+    state.playOnlineResizeTimer = setTimeout(poApplyUnlockGate, 150);
+  });
   document.getElementById("riftCodeInput").addEventListener("input", () => {
     clearTimeout(state.riftCodeTimer);
     state.riftCodeTimer = setTimeout(() => checkRiftCode().catch(() => poSetUnlocked(false)), 300);
@@ -5101,6 +5181,7 @@ async function init() {
     document.querySelectorAll(".vault-tab").forEach(item => item.classList.toggle("active", item.dataset.owned === state.owned));
     poSetUnlocked(emuAccess.hasAccess);
     navigate(state.page);
+    await poRunAutoLaunch();
   } catch (err) {
     toast(`Vault startup failed: ${err.message}`, true);
   }

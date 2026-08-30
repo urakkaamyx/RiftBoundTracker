@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.28.30 — Rules tab hidden again
+
+Not quite right yet — back to hidden while it gets more work.
+
 ## v1.28.29 — Rules tab is back
 
 Unhidden now that Ask Rules quality has caught up (see v1.28.28). Opens on Ask Rules by default — Search Rules is still on the old catalog and not yet wired to the new engine, so it's there if you want it but isn't the first thing you see.

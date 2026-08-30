@@ -115,6 +115,15 @@ public sealed class MatchHub(MatchRoomService rooms, EmulatorAccessService acces
         return new HubResult(true, null);
     }
 
+    public async Task<HubResult> StandardMove(string roomCode, string instanceId, string toZone)
+    {
+        var room = rooms.GetRoom(roomCode);
+        if (room is null) return new HubResult(false, "Room not found.");
+        if (!rooms.StandardMove(room, Context.ConnectionId, instanceId, toZone)) return new HubResult(false, "That unit can't make a Standard Move right now - it needs to be Ready.");
+        await BroadcastAsync(room);
+        return new HubResult(true, null);
+    }
+
     public async Task<HubResult> ToggleUnitReady(string roomCode, string instanceId)
     {
         var room = rooms.GetRoom(roomCode);

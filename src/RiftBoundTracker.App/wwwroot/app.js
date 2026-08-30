@@ -3038,6 +3038,11 @@ async function poHealUnit(instanceId, amount) {
   if (!result.ok) toast(result.error || "Could not heal that unit.", true);
 }
 
+async function poStandardMove(instanceId, toZone) {
+  const result = await state.playOnline.connection.invoke("StandardMove", state.playOnline.room.roomCode, instanceId, toZone);
+  if (!result.ok) toast(result.error || "Could not make that move.", true);
+}
+
 async function poToggleUnitReady(instanceId) {
   const result = await state.playOnline.connection.invoke("ToggleUnitReady", state.playOnline.room.roomCode, instanceId);
   if (!result.ok) toast(result.error || "Could not toggle that unit.", true);
@@ -3165,18 +3170,20 @@ function poRenderRoom() {
       </div>`;
     // Board/Battlefield hold unit instances (Core Rule 415 Ready/Exhausted state), not bare card
     // ids - exhausted units are dimmed and rotated, and the caller can click their own to toggle it.
-    const unitRow = (units, label, cls = "") => `
+    const unitRow = (units, label, zoneKey, cls = "") => `
       <div class="po-zone po-zone-${cls || label.toLowerCase().replace(/\s+/g, "-")}">
         <span class="po-zone-label">${label} <b>${units.length}</b></span>
         <div class="po-card-row">${units.length ? units.map(u => {
           const might = cardsById.get(u.cardId)?.might;
           const attachedToCard = u.attachedToInstanceId ? unitCardIdByInstance[u.attachedToInstanceId] : null;
           const slotTitle = attachedToCard ? `Attached to ${poCardLabel(attachedToCard)}` : (u.exhausted ? "Exhausted" : "Ready");
+          const moveTarget = zoneKey === "board" ? "battlefield" : "board";
           return `
           <span class="po-unit-slot${u.exhausted ? " po-unit-exhausted" : ""}${attachedToCard ? " po-unit-attached" : ""}"${isMe ? ` data-po-toggle-ready="${escapeHtml(u.instanceId)}" title="${slotTitle}${isMe ? " - click to toggle ready" : ""}"` : ` title="${slotTitle}"`}>
             ${poCardTile(u.cardId, "sm")}
             ${u.damage || might != null ? `<b class="po-unit-damage${u.damage ? " po-unit-damage-marked" : ""}">${u.damage}${might != null ? `/${might}` : ""}</b>` : ""}
             ${isMe && u.attachedToInstanceId ? `<button class="icon-btn po-unit-detach" data-po-detach="${escapeHtml(u.instanceId)}" title="Detach"><i data-icon="x"></i></button>` : ""}
+            ${isMe && !u.exhausted ? `<button class="icon-btn po-unit-move" data-po-standard-move="${escapeHtml(u.instanceId)}" data-po-move-to="${moveTarget}" title="Standard Move to ${moveTarget === "battlefield" ? "a Battlefield" : "your Base"} (exhausts this unit)"><i data-icon="repeat"></i></button>` : ""}
           </span>`;
         }).join("") : `<span class="po-zone-empty">—</span>`}</div>
       </div>`;
@@ -3245,8 +3252,8 @@ function poRenderRoom() {
               <i data-icon="layers"></i><span class="po-pile-count">${zones.mainDeckCount}</span>
             </button>
             <div class="po-battlefield-zones">
-              ${unitRow(zones.battlefield, "At Battlefield")}
-              ${unitRow(zones.board, "Board")}
+              ${unitRow(zones.battlefield, "At Battlefield", "battlefield")}
+              ${unitRow(zones.board, "Board", "board")}
             </div>
             <button class="po-pile po-pile-rune"${isMe && zones.runeDeckCount ? " data-po-channel" : " disabled"} title="Rune Deck — ${isMe ? "click to channel an extra rune (2 are automatic at the start of your turn)" : `${zones.runeDeckCount} left`}">
               <i data-icon="dollar"></i><span class="po-pile-count">${zones.runeDeckCount}</span>
@@ -5128,6 +5135,8 @@ function wireEvents() {
     if (recycleBtn) { poRecycleRune(recycleBtn.dataset.poRecycle).catch(err => toast(err.message, true)); return; }
     const detachBtn = event.target.closest("[data-po-detach]");
     if (detachBtn) { poDetachCard(detachBtn.dataset.poDetach).catch(err => toast(err.message, true)); return; }
+    const standardMoveBtn = event.target.closest("[data-po-standard-move]");
+    if (standardMoveBtn) { poStandardMove(standardMoveBtn.dataset.poStandardMove, standardMoveBtn.dataset.poMoveTo).catch(err => toast(err.message, true)); return; }
     const readyToggle = event.target.closest("[data-po-toggle-ready]");
     if (readyToggle) { poToggleUnitReady(readyToggle.dataset.poToggleReady).catch(err => toast(err.message, true)); return; }
     const damageBtn = event.target.closest("[data-po-deal-damage]");

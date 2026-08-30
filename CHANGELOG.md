@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.30.5 — Emulator: real Standard Move
+
+- Moving a unit between your Base and a Battlefield now costs what it actually costs — exhausting the unit (Core Rule 144.2). A Ready unit gets a small move button; using it exhausts it and sends it over, and it can't move again until it's Ready again. The old free move between those two zones is gone — that specific transition wasn't a real free action.
+
 ## v1.30.4 — Fix: Battlefield cards were silently dropped at match start
 
 - Found and fixed a real bug while working toward Combat: Battlefield-type cards in a deck (a deck's third pile alongside the Main and Rune decks) were being filtered out during setup and never placed anywhere — they just vanished at the start of every match. They're now correctly set aside and shown on the board, matching the real Setup Process. This isn't full Battlefield-location Combat yet (there's still no discrete-location movement or control), just the missing first step of it.

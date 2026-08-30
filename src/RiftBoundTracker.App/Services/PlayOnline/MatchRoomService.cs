@@ -320,7 +320,10 @@ public sealed class MatchRoomService(DeckLegalityService legality)
     {
         lock (_lock)
         {
-            if (fromZone == "hand" && toZone == "board") return false;
+            if (fromZone == "hand" && toZone is "board" or "battlefield") return false; // Playing a Card (PlayCard) or not a legal destination
+            // Core Rule 144.2: moving between Base (Board) and a Battlefield costs Exhausting the
+            // unit - that's StandardMove below, not a free move through this generic tool.
+            if ((fromZone == "board" && toZone == "battlefield") || (fromZone == "battlefield" && toZone == "board")) return false;
             var zones = room.Board.GetOrAddZones(connectionId);
 
             string movedCardId;
@@ -347,6 +350,32 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             else return false;
 
             AddLog(room, connectionId, $"moved a card from {fromZone} to {toZone}.");
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Core Rule 144, the Standard Move - a Unit's own Inherent Ability to move between its
+    /// controller's Base (Board) and a Battlefield (144.4.a/b), costing Exhausting itself (144.2).
+    /// Unlike the free generic MoveCard, this enforces the actual cost and precondition: only a
+    /// Ready unit can pay it, and it arrives at the destination already Exhausted, matching how
+    /// paying a Cost works everywhere else in this engine (compare PlayCard's Energy cost).
+    /// </summary>
+    public bool StandardMove(MatchRoom room, string connectionId, string instanceId, string toZone)
+    {
+        lock (_lock)
+        {
+            if (toZone is not ("board" or "battlefield")) return false;
+            var fromZone = toZone == "board" ? "battlefield" : "board";
+            var zones = room.Board.GetOrAddZones(connectionId);
+            var fromList = fromZone == "board" ? zones.Board : zones.Battlefield;
+            var toList = toZone == "board" ? zones.Board : zones.Battlefield;
+            var unit = fromList.FirstOrDefault(u => u.InstanceId == instanceId);
+            if (unit is null || unit.Exhausted) return false;
+            fromList.Remove(unit);
+            unit.Exhausted = true;
+            toList.Add(unit);
+            AddLog(room, connectionId, $"moved a unit to {(toZone == "battlefield" ? "a Battlefield" : "their Base")} (exhausting it).");
             return true;
         }
     }

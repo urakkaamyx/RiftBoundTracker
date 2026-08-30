@@ -1296,7 +1296,9 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-unit-attached { box-shadow: 0 0 0 2px var(--gold); border-radius: 5px; }
 .po-unit-detach { position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; padding: 0; border-radius: 50%; background: var(--bg); border-color: var(--red); color: var(--red); opacity: 0; transition: opacity .1s ease; }
 .po-unit-detach i, .po-unit-detach svg { width: 9px; height: 9px; }
-.po-unit-slot:hover .po-unit-detach { opacity: 1; }
+.po-unit-move { position: absolute; top: -6px; left: -6px; width: 16px; height: 16px; padding: 0; border-radius: 50%; background: var(--bg); border-color: var(--gold); color: var(--gold-bright); opacity: 0; transition: opacity .1s ease; }
+.po-unit-move i, .po-unit-move svg { width: 9px; height: 9px; }
+.po-unit-slot:hover .po-unit-detach, .po-unit-slot:hover .po-unit-move { opacity: 1; }
 
 .po-card-art { border-radius: 5px; overflow: hidden; border: 1px solid var(--border); background: var(--panel-2); box-shadow: 0 3px 8px rgba(0,0,0,.3); transition: transform .12s ease; }
 .po-card-art:hover { transform: translateY(-3px); }

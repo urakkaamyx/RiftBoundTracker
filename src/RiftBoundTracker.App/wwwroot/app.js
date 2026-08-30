@@ -74,7 +74,7 @@ const state = {
   priceQueue: { items: [], batchSize: 20, configured: false, provider: "JustTCG" },
   priceQueueIds: new Set(),
   rules: { mode: "search", query: "", results: [], glossary: [], errata: [], legality: [], selectedKind: null, selectedId: null, searchTimer: null },
-  rulesPageMode: "search",
+  rulesPageMode: "ask",
   localAiEnabled: false,
   updateStatus: null, updateFooterDismissed: false
 };

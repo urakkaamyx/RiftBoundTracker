@@ -24,6 +24,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             var room = new MatchRoom { RoomCode = code, HostConnectionId = hostConnectionId };
             room.Players.Add(new MatchPlayer { ConnectionId = hostConnectionId, Name = hostName, IsHost = true });
             _rooms[code] = room;
+            AddLog(room, hostConnectionId, "opened the room.");
             return room;
         }
     }
@@ -43,6 +44,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             if (room.Players.Count >= MatchRoom.MaxPlayers)
                 return (null, "Room is full.");
             room.Players.Add(new MatchPlayer { ConnectionId = connectionId, Name = name, IsHost = false });
+            AddLog(room, connectionId, "joined the room.");
             return (room, null);
         }
     }
@@ -80,6 +82,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             {
                 var player = room.Players.FirstOrDefault(p => p.ConnectionId == connectionId);
                 if (player is not null) player.DeckId = deckId;
+                AddLog(room, connectionId, "selected a deck.");
             }
         return result;
     }
@@ -90,6 +93,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
         {
             var player = room.Players.FirstOrDefault(p => p.ConnectionId == connectionId);
             if (player is not null) player.Ready = ready;
+            AddLog(room, connectionId, ready ? "is ready." : "is no longer ready.");
         }
     }
 
@@ -102,7 +106,8 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             var currentIndex = order.IndexOf(connectionId);
             room.Board.ActivePlayerConnectionId = order[(currentIndex + 1) % order.Count];
             if (currentIndex == order.Count - 1) room.Board.TurnNumber++;
-            RunStartOfTurn(room.Board.GetOrAddZones(room.Board.ActivePlayerConnectionId));
+            AddLog(room, connectionId, "passed the turn.");
+            RunStartOfTurn(room, room.Board.ActivePlayerConnectionId!);
         }
     }
 
@@ -112,6 +117,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
         {
             var zones = room.Board.GetOrAddZones(connectionId);
             zones.Counters[counterName] = zones.Counters.GetValueOrDefault(counterName) + delta;
+            AddLog(room, connectionId, $"{(delta >= 0 ? "gained" : "lost")} {Math.Abs(delta)} {counterName}.");
         }
     }
 
@@ -129,6 +135,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
         {
             var zones = room.Board.GetOrAddZones(connectionId);
             zones.Score = Math.Max(0, zones.Score + delta);
+            AddLog(room, connectionId, $"score is now {zones.Score}.");
         }
     }
 
@@ -164,7 +171,8 @@ public sealed class MatchRoomService(DeckLegalityService legality)
 
             room.Board.TurnNumber = 1;
             room.Board.ActivePlayerConnectionId = room.HostConnectionId;
-            RunStartOfTurn(room.Board.GetOrAddZones(room.HostConnectionId));
+            AddLog(room, connectionId, "started the match.");
+            RunStartOfTurn(room, room.HostConnectionId);
             return (true, null);
         }
     }
@@ -175,18 +183,23 @@ public sealed class MatchRoomService(DeckLegalityService legality)
     /// their Rune Pool per Core Rule 167 ("empties at the start of each player's Main Phase") - this
     /// engine has no separate Main Phase step, so it happens right here instead.
     /// </summary>
-    private static void RunStartOfTurn(PlayerZones zones)
+    private void RunStartOfTurn(MatchRoom room, string connectionId)
     {
+        var zones = room.Board.GetOrAddZones(connectionId);
         zones.ExhaustedRuneCount = 0;
         zones.Counters.Remove("Energy");
         zones.Counters.Remove("Power");
+        var channeled = 0;
         for (var i = 0; i < 2 && zones.RuneDeck.Count > 0; i++)
         {
             var top = zones.RuneDeck[^1];
             zones.RuneDeck.RemoveAt(zones.RuneDeck.Count - 1);
             zones.Base.Add(top);
+            channeled++;
         }
-        if (zones.MainDeck.Count > 0) DrawTopCard(zones);
+        var drew = zones.MainDeck.Count > 0;
+        if (drew) DrawTopCard(zones);
+        AddLog(room, connectionId, $"started their turn - channeled {channeled} rune{(channeled == 1 ? "" : "s")}{(drew ? " and drew a card." : ".")}");
     }
 
     /// <summary>Player-invoked extra Draw/Channel on top of the automatic Start of Turn - for
@@ -197,7 +210,9 @@ public sealed class MatchRoomService(DeckLegalityService legality)
         lock (_lock)
         {
             var zones = room.Board.GetOrAddZones(connectionId);
-            if (zones.MainDeck.Count > 0) DrawTopCard(zones);
+            if (zones.MainDeck.Count == 0) return;
+            DrawTopCard(zones);
+            AddLog(room, connectionId, "drew a card.");
         }
     }
 
@@ -210,6 +225,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             var top = zones.RuneDeck[^1];
             zones.RuneDeck.RemoveAt(zones.RuneDeck.Count - 1);
             zones.Base.Add(top);
+            AddLog(room, connectionId, "channeled a rune.");
         }
     }
 
@@ -224,6 +240,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             if (zones.ExhaustedRuneCount >= zones.Base.Count) return;
             zones.ExhaustedRuneCount++;
             zones.Counters["Energy"] = zones.Counters.GetValueOrDefault("Energy") + 1;
+            AddLog(room, connectionId, "exhausted a rune for +1 Energy.");
         }
     }
 
@@ -239,6 +256,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             if (zones.ExhaustedRuneCount > zones.Base.Count) zones.ExhaustedRuneCount = zones.Base.Count;
             zones.RuneDeck.Add(cardId);
             zones.Counters["Power"] = zones.Counters.GetValueOrDefault("Power") + 1;
+            AddLog(room, connectionId, "recycled a rune for +1 Power.");
             return true;
         }
     }
@@ -247,11 +265,11 @@ public sealed class MatchRoomService(DeckLegalityService legality)
     /// Core Rule 349, Playing a Card - pays the card's printed Energy cost out of the caller's Rune
     /// Pool, then moves it from Hand to wherever it actually ends up: a Spell finishes executing and
     /// goes straight to the Trash (Core Rule 108.2.b), everything else (Unit, Gear, ...) is a
-    /// Permanent and stays on the Board. Takes the cost/type as parameters rather than looking the
-    /// card up itself - same captive-dependency shape as SelectDeck/StartMatch, MatchHub (with its
-    /// own scoped AppDbContext) resolves the card and hands them in.
+    /// Permanent and stays on the Board. Takes the cost/type/name as parameters rather than looking
+    /// the card up itself - same captive-dependency shape as SelectDeck/StartMatch, MatchHub (with
+    /// its own scoped AppDbContext) resolves the card and hands them in.
     /// </summary>
-    public (bool Ok, string? Error) PlayCard(MatchRoom room, string connectionId, string cardId, int energyCost, string? cardType)
+    public (bool Ok, string? Error) PlayCard(MatchRoom room, string connectionId, string cardId, int energyCost, string? cardType, string? cardName)
     {
         lock (_lock)
         {
@@ -262,6 +280,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             zones.Hand.Remove(cardId);
             zones.Counters["Energy"] = available - energyCost;
             (cardType == "Spell" ? zones.Trash : zones.Board).Add(cardId);
+            AddLog(room, connectionId, $"played {cardName ?? "a card"}.");
             return (true, null);
         }
     }
@@ -289,6 +308,7 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             var zones = room.Board.GetOrAddZones(connectionId);
             if (!from(zones).Remove(cardId)) return false;
             to(zones).Add(cardId);
+            AddLog(room, connectionId, $"moved a card from {fromZone} to {toZone}.");
             return true;
         }
     }
@@ -339,10 +359,19 @@ public sealed class MatchRoomService(DeckLegalityService legality)
             return new RoomView(
                 room.RoomCode,
                 room.Players.Select(p => new PlayerView(p.ConnectionId, p.Name, p.IsHost, p.Ready, p.DeckId)).ToList(),
-                new BoardStateView(room.Board.TurnNumber, room.Board.ActivePlayerConnectionId, zonesView));
+                new BoardStateView(room.Board.TurnNumber, room.Board.ActivePlayerConnectionId, zonesView),
+                room.Log.Select(l => new LogEntryView(l.At, l.Message)).ToList());
         }
     }
 
     private static string GenerateRoomCode() =>
         new(Enumerable.Range(0, 5).Select(_ => CodeAlphabet[Random.Shared.Next(CodeAlphabet.Length)]).ToArray());
+
+    /// <summary>Always called from within an already-held _lock block - never locks itself.</summary>
+    private static void AddLog(MatchRoom room, string connectionId, string action)
+    {
+        var name = room.Players.FirstOrDefault(p => p.ConnectionId == connectionId)?.Name ?? "Someone";
+        room.Log.Add(new LogEntry(DateTimeOffset.UtcNow, $"{name} {action}"));
+        if (room.Log.Count > MatchRoom.MaxLogEntries) room.Log.RemoveAt(0);
+    }
 }

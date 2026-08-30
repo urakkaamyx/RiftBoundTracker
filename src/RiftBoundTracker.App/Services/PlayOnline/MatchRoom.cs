@@ -61,6 +61,12 @@ public sealed class MatchRoom
     public List<MatchPlayer> Players { get; } = [];
     public BoardState Board { get; } = new();
     public DateTimeOffset CreatedAt { get; } = DateTimeOffset.UtcNow;
+    // A plain-English feed of what's happened, newest last - purely a convenience log, not itself
+    // game state. Capped so a long match doesn't grow this without bound.
+    public List<LogEntry> Log { get; } = [];
 
     public const int MaxPlayers = 3; // host + 2 friends, per the plan's explicit "just me and two friends" scope
+    public const int MaxLogEntries = 200;
 }
+
+public sealed record LogEntry(DateTimeOffset At, string Message);

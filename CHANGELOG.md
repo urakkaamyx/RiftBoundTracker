@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.29.5 — Emulator: match log
+
+- Added a live match log next to the board — every draw, channel, exhaust, recycle, play, move, score change, ready-up, and turn pass shows up there with a timestamp as it happens, newest on top. Never reveals what's actually in anyone's hand, only that something moved.
+
 ## v1.29.4 — Emulator: across-the-table layout, Spells go to the Trash
 
 - The board is no longer a side-by-side split — your opponent's side sits upside down at the top of the table, and your own side is right-way up at the bottom, same as sitting across a real table from them.

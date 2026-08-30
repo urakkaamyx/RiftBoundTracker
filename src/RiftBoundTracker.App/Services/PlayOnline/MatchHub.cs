@@ -18,7 +18,7 @@ public sealed class MatchHub(MatchRoomService rooms, EmulatorAccessService acces
         var room = rooms.GetRoom(roomCode);
         if (room is null) return new HubResult(false, "Room not found.");
         var card = await db.Cards.FindAsync(cardId);
-        var (ok, error) = rooms.PlayCard(room, Context.ConnectionId, cardId, card?.Energy ?? 0, card?.Type);
+        var (ok, error) = rooms.PlayCard(room, Context.ConnectionId, cardId, card?.Energy ?? 0, card?.Type, card?.Name);
         if (!ok) return new HubResult(false, error);
         await BroadcastAsync(room);
         return new HubResult(true, null);

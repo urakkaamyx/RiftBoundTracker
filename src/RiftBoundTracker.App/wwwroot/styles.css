@@ -1147,9 +1147,17 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-share-box .connection-url { flex: 1; }
 
 /* ---- Emulator battlefield ---- */
+.po-room-layout { display: flex; align-items: flex-start; gap: 16px; }
+.po-log { flex: none; width: 240px; max-height: 640px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--panel); position: sticky; top: 12px; }
+.po-log-row { display: flex; flex-direction: column; gap: 1px; padding-bottom: 6px; border-bottom: 1px solid var(--border-soft); font-size: 11px; }
+.po-log-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.po-log-row b { color: var(--faint); font: 600 9px var(--mono); text-transform: uppercase; }
+.po-log-row span { color: var(--muted); }
+.po-log-empty { color: var(--faint); font-size: 11px; text-align: center; padding: 20px 0; }
+
 /* Across-the-table layout: opponent(s) upside down at the top, your own side right-way up at the
    bottom - matches how the physical/reference board reads at a glance instead of a flat list. */
-.po-board { display: flex; flex-direction: column; gap: 22px; }
+.po-board { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 22px; }
 .po-board-opponents { display: flex; gap: 16px; }
 .po-board-opponents:empty { display: none; }
 .po-board-opponents .po-player-card { flex: 1; min-width: 360px; transform: rotate(180deg); }

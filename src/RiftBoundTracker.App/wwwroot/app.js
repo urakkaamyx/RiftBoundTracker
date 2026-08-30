@@ -3032,6 +3032,9 @@ function poRenderRoom() {
   if (!room) return;
   document.getElementById("poRoomCode").textContent = room.roomCode;
   document.getElementById("poRoomMeta").textContent = `Turn ${room.board.turnNumber} · ${room.players.length}/3 players`;
+  document.getElementById("poLog").innerHTML = room.log.length
+    ? room.log.slice().reverse().map(entry => `<div class="po-log-row"><b>${new Date(entry.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</b><span>${escapeHtml(entry.message)}</span></div>`).join("")
+    : `<div class="po-log-empty">Nothing's happened yet.</div>`;
   document.getElementById("poPassTurnBtn").disabled = room.board.activePlayerConnectionId !== state.playOnline.myConnectionId;
 
   const me = room.players.find(p => p.connectionId === state.playOnline.myConnectionId);

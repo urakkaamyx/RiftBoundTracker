@@ -15,4 +15,6 @@ public sealed record BoardStateView(
 
 public sealed record PlayerView(string ConnectionId, string Name, bool IsHost, bool Ready, int? DeckId);
 
-public sealed record RoomView(string RoomCode, List<PlayerView> Players, BoardStateView Board);
+public sealed record LogEntryView(DateTimeOffset At, string Message);
+
+public sealed record RoomView(string RoomCode, List<PlayerView> Players, BoardStateView Board, List<LogEntryView> Log);

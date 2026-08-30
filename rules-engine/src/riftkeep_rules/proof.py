@@ -194,9 +194,23 @@ def detect_obligations(issue: str, named_cards: list[dict[str, Any]] | None = No
         out.append("invalid_other_base_play")
     if re.search(r"\bbecome(?:s|ing)? \d+|become .* or more|becomes? .*state|maintain(?:s|ing)? .*state|already .* or more\b", q) and re.search(r"\btrigger|ability|renekton|become\b", q):
         out.append("become_state_transition")
-    if "deflect" in q and re.search(r"\bignore|pay|heisho\b", q):
+    # "pay" was dropped from this trigger - the claim is specifically that ignoring Deflect for
+    # one named action/spell doesn't carry over to a different one, not a general "must I pay
+    # Deflect" question, but "pay" is common enough in ordinary Deflect cost questions ("do I
+    # have to pay Deflect twice?", "does this make me pay Deflect?") that it fired for those too,
+    # confirmed directly against real player questions where this claim's actual subject (an
+    # explicit ignore-for-one-action instruction) was never mentioned at all.
+    if "deflect" in q and re.search(r"\bignore|heisho\b", q):
         out.append("ignore_deflect_scope")
-    if re.search(r"\bimperial decree|immortal phoenix|delayed trigger(?:ed)?\b", q) and re.search(r"\bkill|attribut|responsib|trigger", q):
+    # "kill" and bare "trigger" were dropped from the second clause - this claim is specifically
+    # about delayed-triggered-ability Kill attribution, not "any Immortal Phoenix question that
+    # mentions killing or triggering something" (which is nearly all of them, since Immortal
+    # Phoenix's whole mechanic is being killed by a spell). "delayed trigger" was also dropped
+    # from the second clause because it's already part of the first, so pairing it with itself
+    # let any question that merely uses the phrase "delayed trigger" about a completely different
+    # card match here. "attribut"/"responsib" mirror the actual claim text ("...can be
+    # attributed the Kill action... Responsibility remains with the controller...").
+    if re.search(r"\bimperial decree|immortal phoenix|delayed trigger(?:ed)?\b", q) and re.search(r"\battribut|responsib\b", q):
         out.append("delayed_trigger_attribution")
     if re.search(r"\battach(?:ing|ed)?\b|\bequip(?:ping|ped)?\b", q) and re.search(r"\bexhaust", q):
         out.append("attach_exhausted_state_legality")

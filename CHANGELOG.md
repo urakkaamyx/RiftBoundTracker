@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.30.12 — Emulator: board layout matches the real client
+
+- Rebuilt each player's board row to match the reference layout: Rune deck/Base on the near-left, Hand centered, Board/Main Deck/Trash/Banishment on the near-right. The opponent's row is the exact same layout, just rotated 180° as a whole, so it mirrors correctly without any special-casing.
+
 ## v1.30.11 — Emulator: Token fixes — any Battlefield, real units only
 
 - Fixed a real bug: the token picker included Battlefield-type "tokens" (Baron Pit, Brush) and status Marker tokens (Buff, Empowered), which made no sense as a unit sitting at a Battlefield — creating one put a Battlefield card into the unit row. Only Unit/Gear tokens are offered now.

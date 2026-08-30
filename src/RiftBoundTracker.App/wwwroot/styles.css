@@ -1304,18 +1304,23 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-pile i { display: none; }
 .po-pile-count { position: absolute; bottom: -5px; right: -5px; min-width: 15px; height: 15px; padding: 0 3px; display: grid; place-items: center; border: 1px solid var(--gold); border-radius: 4px; background: var(--bg); color: var(--text); font: 700 8px var(--mono); }
 
-.po-battlefield { display: flex; align-items: stretch; gap: 6px; }
-.po-battlefield-zones { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+/* Matches the reference layout: Rune deck/stack at the near-left, Hand centered, Board/Main
+   Deck/Trash at the near-right - the opponent's row is this exact same layout, just rotated
+   180deg as a whole (see .po-board-opponents .po-player-card), so their near-left/near-right
+   swap to what reads as far-right/far-left from the viewer's side, matching the reference. */
+.po-main-row { display: flex; align-items: flex-start; gap: 8px; }
+.po-col-rune { flex: none; width: 130px; display: flex; flex-direction: column; gap: 3px; }
+.po-col-hand { flex: 1; min-width: 0; }
+.po-col-board { flex: none; width: 150px; display: flex; flex-direction: column; gap: 3px; align-items: stretch; }
 .po-zone { display: flex; flex-direction: column; gap: 2px; }
 .po-zone-label { color: var(--faint); font: 600 8px var(--mono); text-transform: uppercase; letter-spacing: .06em; }
 .po-zone-label b { color: var(--muted); font-size: 9px; }
 .po-zone-label em { margin-left: 6px; color: var(--green); font-style: normal; text-transform: none; letter-spacing: 0; }
-/* The Base/rune stack: starts sized to ~5 cards instead of stretching the full row width when
-   there are only 1-2 runes, and grows (wrapping, not just stretching) as more are channeled in. The
-   Exhaust button sits on the same line as the zone label/count rather than its own row below. */
 .po-zone-base-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
-.po-zone-base-head > .command-btn { flex: none; height: 22px; font-size: 10px; padding: 0 8px; }
-.po-base-row { width: fit-content; min-width: calc(5 * 27px); max-width: 100%; }
+.po-exhaust-btn { align-self: flex-start; height: 22px; font-size: 10px; padding: 0 8px; }
+/* The Base/rune stack wraps within its fixed-width column instead of stretching, so a handful of
+   runes reads as a compact stack rather than a long thin bar. */
+.po-base-row { width: 100%; }
 .po-rune-slot { position: relative; cursor: pointer; border-radius: 4px; transition: transform .12s ease, opacity .12s ease; }
 /* Core Rule 164.2.a: exhausting a Base rune for Energy tips it sideways, same tilt+dim language as
    an exhausted unit - reads honestly instead of only being visible via the "X ready" count. */
@@ -1362,10 +1367,11 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .po-zone-preview:not(:disabled):hover { border-color: var(--gold-soft); }
 .po-zone-more { position: absolute; bottom: -4px; right: -4px; min-width: 14px; height: 13px; padding: 0 2px; border-radius: 3px; background: var(--bg); border: 1px solid var(--gold); color: var(--gold-bright); font: 700 7px var(--mono); display: grid; place-items: center; }
 
-.po-side-row { display: flex; gap: 4px; flex-wrap: wrap; }
-.po-side-row .po-zone { flex: 1; min-width: 60px; }
+/* Deck pile + Trash/Banishment sit together at the near-right corner, matching the reference. */
+.po-side-row { display: flex; gap: 4px; align-items: flex-start; flex-wrap: wrap; }
+.po-side-row .po-zone-compact { flex: 1; min-width: 50px; }
 
-.po-hand-row { display: flex; flex-direction: column; gap: 2px; padding-top: 3px; border-top: 1px solid var(--border-soft); }
+.po-hand-row { display: flex; flex-direction: column; gap: 2px; height: 100%; }
 .po-hand-cards { min-height: 42px; background: color-mix(in srgb, var(--gold) 4%, transparent); border-color: var(--gold-soft); align-items: flex-end; }
 .po-hand-tile { display: flex; flex-direction: column; align-items: stretch; gap: 2px; cursor: pointer; border-radius: 4px; }
 .po-play-btn { height: 16px; padding: 0 4px; font-size: 8px; white-space: nowrap; }

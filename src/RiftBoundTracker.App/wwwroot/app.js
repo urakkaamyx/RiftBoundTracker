@@ -3652,44 +3652,48 @@ function poRenderRoom() {
           </select>
           <button class="command-btn${player.ready ? " quiet" : " gold"}" data-po-ready="${!player.ready}" ${player.deckId ? "" : "disabled"}>${player.ready ? "Not Ready" : "Ready Up"}</button>
         ` : `<p class="settings-hint">${player.deckId ? "Deck selected." : "Choosing a deck..."}</p>`) : `
-          <div class="po-battlefield">
-            <button class="po-pile po-pile-main"${isMe && zones.mainDeckCount ? " data-po-draw" : " disabled"} title="Main Deck — ${isMe ? "click for an extra draw (1 is automatic at the start of your turn)" : `${zones.mainDeckCount} left`}">
-              <i data-icon="layers"></i><span class="po-pile-count">${zones.mainDeckCount}</span>
-            </button>
-            <div class="po-battlefield-zones">
+          <div class="po-main-row">
+            <div class="po-col-rune">
+              <button class="po-pile po-pile-rune"${isMe && zones.runeDeckCount ? " data-po-channel" : " disabled"} title="Rune Deck — ${isMe ? "click to channel an extra rune (2 are automatic at the start of your turn)" : `${zones.runeDeckCount} left`}">
+                <i data-icon="dollar"></i><span class="po-pile-count">${zones.runeDeckCount}</span>
+              </button>
+              <div class="po-zone po-zone-base">
+                <div class="po-zone-base-head">
+                  <span class="po-zone-label">Base <b>${zones.base.length}</b>${isMe ? ` <em>${Math.max(0, zones.base.length - zones.exhaustedRuneCount)} ready</em>` : ""}</span>
+                </div>
+                <div class="po-card-row po-base-row">
+                  ${zones.base.length ? zones.base.map((id, idx) => `
+                    <div class="po-rune-slot${idx >= zones.base.length - zones.exhaustedRuneCount ? " po-rune-exhausted" : ""}${poSelClass(player.connectionId, "base", id)}" data-po-select-conn="${escapeHtml(player.connectionId)}" data-po-select-zone="base" data-po-select-card="${escapeHtml(id)}">
+                      ${poCardTile(id, "sm")}
+                    </div>`).join("") : `<span class="po-zone-empty">—</span>`}
+                </div>
+                ${isMe ? `<button class="command-btn quiet po-exhaust-btn" data-po-exhaust ${zones.base.length - zones.exhaustedRuneCount > 0 ? "" : "disabled"}><i data-icon="dollar"></i>+1 Energy</button>` : ""}
+              </div>
+            </div>
+            <div class="po-col-hand">
+              ${isMe ? `
+                <div class="po-hand-row">
+                  <span class="po-zone-label">Hand <b>${(zones.hand || []).length}</b></span>
+                  <div class="po-card-row po-hand-cards">${(zones.hand || []).map(id => poHandTile(id, zones.counters.Energy || 0, player.connectionId, poSelClass(player.connectionId, "hand", id))).join("") || `<span class="po-zone-empty">—</span>`}</div>
+                </div>
+              ` : `
+                <div class="po-hand-row">
+                  <span class="po-zone-label">Hand <b>${zones.handCount}</b></span>
+                  <div class="po-card-row po-hand-cards">${zones.handCount ? poHandBack(zones.handCount) : `<span class="po-zone-empty">—</span>`}</div>
+                </div>
+              `}
+            </div>
+            <div class="po-col-board">
               ${unitRow(zones.board, "Board", "board")}
-            </div>
-            <button class="po-pile po-pile-rune"${isMe && zones.runeDeckCount ? " data-po-channel" : " disabled"} title="Rune Deck — ${isMe ? "click to channel an extra rune (2 are automatic at the start of your turn)" : `${zones.runeDeckCount} left`}">
-              <i data-icon="dollar"></i><span class="po-pile-count">${zones.runeDeckCount}</span>
-            </button>
-          </div>
-          <div class="po-zone po-zone-base">
-            <div class="po-zone-base-head">
-              <span class="po-zone-label">Base <b>${zones.base.length}</b>${isMe ? ` <em>${Math.max(0, zones.base.length - zones.exhaustedRuneCount)} ready</em>` : ""}</span>
-              ${isMe ? `<button class="command-btn quiet" data-po-exhaust ${zones.base.length - zones.exhaustedRuneCount > 0 ? "" : "disabled"}><i data-icon="dollar"></i>Exhaust for +1 Energy</button>` : ""}
-            </div>
-            <div class="po-card-row po-base-row">
-              ${zones.base.length ? zones.base.map((id, idx) => `
-                <div class="po-rune-slot${idx >= zones.base.length - zones.exhaustedRuneCount ? " po-rune-exhausted" : ""}${poSelClass(player.connectionId, "base", id)}" data-po-select-conn="${escapeHtml(player.connectionId)}" data-po-select-zone="base" data-po-select-card="${escapeHtml(id)}">
-                  ${poCardTile(id, "sm")}
-                </div>`).join("") : `<span class="po-zone-empty">—</span>`}
+              <div class="po-side-row">
+                <button class="po-pile po-pile-main"${isMe && zones.mainDeckCount ? " data-po-draw" : " disabled"} title="Main Deck — ${isMe ? "click for an extra draw (1 is automatic at the start of your turn)" : `${zones.mainDeckCount} left`}">
+                  <i data-icon="layers"></i><span class="po-pile-count">${zones.mainDeckCount}</span>
+                </button>
+                ${poZoneCompact(zones.trash, "Trash", "trash", player.connectionId)}
+                ${poZoneCompact(zones.banishment, "Banishment", "banishment", player.connectionId)}
+              </div>
             </div>
           </div>
-          <div class="po-side-row">
-            ${poZoneCompact(zones.trash, "Trash", "trash", player.connectionId)}
-            ${poZoneCompact(zones.banishment, "Banishment", "banishment", player.connectionId)}
-          </div>
-          ${isMe ? `
-            <div class="po-hand-row">
-              <span class="po-zone-label">Hand <b>${(zones.hand || []).length}</b></span>
-              <div class="po-card-row po-hand-cards">${(zones.hand || []).map(id => poHandTile(id, zones.counters.Energy || 0, player.connectionId, poSelClass(player.connectionId, "hand", id))).join("") || `<span class="po-zone-empty">—</span>`}</div>
-            </div>
-          ` : `
-            <div class="po-hand-row">
-              <span class="po-zone-label">Hand <b>${zones.handCount}</b></span>
-              <div class="po-card-row po-hand-cards">${zones.handCount ? poHandBack(zones.handCount) : `<span class="po-zone-empty">—</span>`}</div>
-            </div>
-          `}
           ${isMe ? `
             <div class="po-add-counter">
               <input id="poNewCounterName-${escapeHtml(player.connectionId)}" type="text" placeholder="New counter (e.g. Life)" autocomplete="off" />

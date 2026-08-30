@@ -131,6 +131,21 @@ def _near(q: str, pattern_a: str, pattern_b: str, max_distance: int = _PROXIMITY
 
 def detect_deck_obligations(q: str) -> list[str]:
     out: list[str] = []
+    # A real deck-construction question is about building/legality of a deck, and virtually
+    # always says so ("my deck", "a deck", "in my deck", "Main Deck", "Rune Deck"). Without this
+    # gate, every per-obligation trigger word below is common enough in ordinary gameplay
+    # language (a bare "legend", "rune", "card", or a stray digit sitting next to one of them)
+    # to false-positive on scenario questions that have nothing to do with deck construction -
+    # confirmed directly against real player questions: "...legend abilities...if I have
+    # Focus?" fired champion_legend_count on the word "have"; "...draw 2 cards?" fired
+    # main_deck_minimum on the digit in "2 cards"; "...ready 2 runes?" fired rune_deck_count the
+    # same way. Each of those wrongly returned a confident, wrong verdict instead of the
+    # `insufficient` this project's whole design otherwise insists on (see README's fail-closed
+    # safety model) whenever no real evidence supports an answer. Requiring "deck" is the one
+    # cheap, high-precision anchor that separates the two: a false negative here degrades to
+    # `insufficient` (safe), while a false positive here previously produced a wrong answer.
+    if "deck" not in q:
+        return out
     if (
         "control" not in q
         and _near(q, r"\b(?:champion )?legends?\b", r"\bplay|have|run|use|put|include|allow|need|contain|multiple|deck\b")
@@ -185,6 +200,14 @@ def deck_construction_facts(q: str) -> list[tuple[str, str, str]]:
 
     def setf(name: str, value: bool, source: str) -> None:
         out.append((name, "true" if value else "false", source))
+
+    # Same "deck" anchor as detect_deck_obligations above, and for the same reason: this
+    # function's own per-obligation regexes are individually even looser (e.g. a bare
+    # r"\brunes?\b" with no proximity check at all), so without this gate it derives a false
+    # fact - which the proof engine then renders as a confident wrong answer - for any ordinary
+    # gameplay question that merely mentions "legend"/"card"/"rune"/"copy" in passing.
+    if "deck" not in q:
+        return out
 
     # Champion Legend count - Rule 103.1: exactly 1.
     if re.search(r"\b(?:champion )?legends?\b", q) and "control" not in q:

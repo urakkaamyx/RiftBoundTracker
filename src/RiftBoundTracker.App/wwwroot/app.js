@@ -3280,55 +3280,58 @@ function poRenderRoom() {
               <div class="po-card-row po-hand-cards">${(zones.hand || []).map(id => poHandTile(id, zones.counters.Energy || 0)).join("") || `<span class="po-zone-empty">—</span>`}</div>
             </div>
           ` : `<div class="po-zone-label po-hand-count">Hand <b>${zones.handCount}</b></div>`}
-          ${isMe && myMovableCards.length ? `
-            <div class="po-move-tool">
-              <select id="poMoveCard-${escapeHtml(player.connectionId)}">
-                ${myMovableCards.map(c => `<option value="${escapeHtml(c.cardId)}|${c.key}">${poCardLabel(c.cardId)} — ${c.label}</option>`).join("")}
-              </select>
-              <select id="poMoveTo-${escapeHtml(player.connectionId)}">
-                ${PO_MOVABLE_ZONES.map(([key, label]) => `<option value="${key}">→ ${label}</option>`).join("")}
-              </select>
-              <button class="command-btn quiet" data-po-move="${escapeHtml(player.connectionId)}">Move</button>
-            </div>` : ""}
-          ${isMe && poAllUnits(room).length ? `
-            <div class="po-move-tool">
-              <select id="poDamageTarget-${escapeHtml(player.connectionId)}">
-                ${poAllUnits(room).map(u => `<option value="${escapeHtml(u.instanceId)}">${escapeHtml(u.ownerName)} — ${poCardLabel(u.cardId)} (${u.damage}${u.might != null ? `/${u.might}` : ""})</option>`).join("")}
-              </select>
-              <input id="poDamageAmount-${escapeHtml(player.connectionId)}" type="number" min="1" value="1" />
-              <button class="command-btn quiet" data-po-deal-damage="${escapeHtml(player.connectionId)}"><i data-icon="alert-triangle"></i>Damage</button>
-              <button class="command-btn quiet" data-po-heal="${escapeHtml(player.connectionId)}"><i data-icon="heart"></i>Heal</button>
-            </div>` : ""}
-          ${isMe && zones && (zones.board.length || zones.battlefield.length) && poAllUnits(room).length > 1 ? `
-            <div class="po-move-tool">
-              <select id="poCombatAttacker-${escapeHtml(player.connectionId)}">
-                ${[...zones.board, ...zones.battlefield].map(u => `<option value="${escapeHtml(u.instanceId)}">${poCardLabel(u.cardId)} (${cardsById.get(u.cardId)?.might ?? "?"} Might)</option>`).join("")}
-              </select>
-              <select id="poCombatDefender-${escapeHtml(player.connectionId)}">
-                ${poAllUnits(room).filter(u => u.ownerConnectionId !== player.connectionId).map(u => `<option value="${escapeHtml(u.instanceId)}">${escapeHtml(u.ownerName)} — ${poCardLabel(u.cardId)} (${u.might ?? "?"} Might)</option>`).join("")}
-              </select>
-              <button class="command-btn quiet" data-po-resolve-combat="${escapeHtml(player.connectionId)}">Resolve Combat</button>
-            </div>` : ""}
-          ${isMe && zones && (zones.board.length || zones.battlefield.length) && poAllUnits(room).length > 1 ? `
-            <div class="po-move-tool">
-              <select id="poAttachCard-${escapeHtml(player.connectionId)}">
-                ${[...zones.board, ...zones.battlefield].map(u => `<option value="${escapeHtml(u.instanceId)}">${poCardLabel(u.cardId)}</option>`).join("")}
-              </select>
-              <select id="poAttachTarget-${escapeHtml(player.connectionId)}">
-                ${poAllUnits(room).map(u => `<option value="${escapeHtml(u.instanceId)}">→ ${escapeHtml(u.ownerName)} — ${poCardLabel(u.cardId)}</option>`).join("")}
-              </select>
-              <button class="command-btn quiet" data-po-attach="${escapeHtml(player.connectionId)}">Attach</button>
-            </div>` : ""}
           ${isMe ? `
-            <div class="po-add-counter">
-              <input id="poNewCounterName-${escapeHtml(player.connectionId)}" type="text" placeholder="New counter (e.g. Life)" autocomplete="off" />
-              <button class="command-btn" data-po-add-counter="${escapeHtml(player.connectionId)}">Add</button>
-              ${counters.map(([n]) => `
-                <span class="po-counter-edit"><span>${escapeHtml(n)}</span>
-                  <button class="icon-btn" data-po-counter-delta="-1" data-po-counter-name="${escapeHtml(n)}">−</button>
-                  <button class="icon-btn" data-po-counter-delta="1" data-po-counter-name="${escapeHtml(n)}">+</button>
-                </span>`).join("")}
-            </div>` : ""}
+            <details class="po-actions">
+              <summary>Actions</summary>
+              ${myMovableCards.length ? `
+                <div class="po-move-tool">
+                  <select id="poMoveCard-${escapeHtml(player.connectionId)}">
+                    ${myMovableCards.map(c => `<option value="${escapeHtml(c.cardId)}|${c.key}">${poCardLabel(c.cardId)} — ${c.label}</option>`).join("")}
+                  </select>
+                  <select id="poMoveTo-${escapeHtml(player.connectionId)}">
+                    ${PO_MOVABLE_ZONES.map(([key, label]) => `<option value="${key}">→ ${label}</option>`).join("")}
+                  </select>
+                  <button class="command-btn quiet" data-po-move="${escapeHtml(player.connectionId)}">Move</button>
+                </div>` : ""}
+              ${poAllUnits(room).length ? `
+                <div class="po-move-tool">
+                  <select id="poDamageTarget-${escapeHtml(player.connectionId)}">
+                    ${poAllUnits(room).map(u => `<option value="${escapeHtml(u.instanceId)}">${escapeHtml(u.ownerName)} — ${poCardLabel(u.cardId)} (${u.damage}${u.might != null ? `/${u.might}` : ""})</option>`).join("")}
+                  </select>
+                  <input id="poDamageAmount-${escapeHtml(player.connectionId)}" type="number" min="1" value="1" />
+                  <button class="command-btn quiet" data-po-deal-damage="${escapeHtml(player.connectionId)}"><i data-icon="alert-triangle"></i>Damage</button>
+                  <button class="command-btn quiet" data-po-heal="${escapeHtml(player.connectionId)}"><i data-icon="heart"></i>Heal</button>
+                </div>` : ""}
+              ${zones && (zones.board.length || zones.battlefield.length) && poAllUnits(room).length > 1 ? `
+                <div class="po-move-tool">
+                  <select id="poCombatAttacker-${escapeHtml(player.connectionId)}">
+                    ${[...zones.board, ...zones.battlefield].map(u => `<option value="${escapeHtml(u.instanceId)}">${poCardLabel(u.cardId)} (${cardsById.get(u.cardId)?.might ?? "?"} Might)</option>`).join("")}
+                  </select>
+                  <select id="poCombatDefender-${escapeHtml(player.connectionId)}">
+                    ${poAllUnits(room).filter(u => u.ownerConnectionId !== player.connectionId).map(u => `<option value="${escapeHtml(u.instanceId)}">${escapeHtml(u.ownerName)} — ${poCardLabel(u.cardId)} (${u.might ?? "?"} Might)</option>`).join("")}
+                  </select>
+                  <button class="command-btn quiet" data-po-resolve-combat="${escapeHtml(player.connectionId)}">Resolve Combat</button>
+                </div>` : ""}
+              ${zones && (zones.board.length || zones.battlefield.length) && poAllUnits(room).length > 1 ? `
+                <div class="po-move-tool">
+                  <select id="poAttachCard-${escapeHtml(player.connectionId)}">
+                    ${[...zones.board, ...zones.battlefield].map(u => `<option value="${escapeHtml(u.instanceId)}">${poCardLabel(u.cardId)}</option>`).join("")}
+                  </select>
+                  <select id="poAttachTarget-${escapeHtml(player.connectionId)}">
+                    ${poAllUnits(room).map(u => `<option value="${escapeHtml(u.instanceId)}">→ ${escapeHtml(u.ownerName)} — ${poCardLabel(u.cardId)}</option>`).join("")}
+                  </select>
+                  <button class="command-btn quiet" data-po-attach="${escapeHtml(player.connectionId)}">Attach</button>
+                </div>` : ""}
+              <div class="po-add-counter">
+                <input id="poNewCounterName-${escapeHtml(player.connectionId)}" type="text" placeholder="New counter (e.g. Life)" autocomplete="off" />
+                <button class="command-btn" data-po-add-counter="${escapeHtml(player.connectionId)}">Add</button>
+                ${counters.map(([n]) => `
+                  <span class="po-counter-edit"><span>${escapeHtml(n)}</span>
+                    <button class="icon-btn" data-po-counter-delta="-1" data-po-counter-name="${escapeHtml(n)}">−</button>
+                    <button class="icon-btn" data-po-counter-delta="1" data-po-counter-name="${escapeHtml(n)}">+</button>
+                  </span>`).join("")}
+              </div>
+            </details>` : ""}
         `}
         </div>
       </div>`;

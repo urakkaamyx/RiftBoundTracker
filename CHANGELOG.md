@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.30.6 — Emulator: fit both boards on screen, no scrolling
+
+- Compacted the whole board considerably — smaller card art, tighter spacing everywhere, Energy/Runes side by side instead of stacked — so your board and your opponent's both fit on screen together on a normal desktop display without scrolling the page.
+- The Move/Damage/Combat/Attach/Counter tools now live behind a single collapsed "Actions" section per player instead of always taking up space — expand it when you actually need it.
+
 ## v1.30.5 — Emulator: real Standard Move
 
 - Moving a unit between your Base and a Battlefield now costs what it actually costs — exhausting the unit (Core Rule 144.2). A Ready unit gets a small move button; using it exhausts it and sends it over, and it can't move again until it's Ready again. The old free move between those two zones is gone — that specific transition wasn't a real free action.
